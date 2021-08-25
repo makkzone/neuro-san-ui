@@ -131,14 +131,14 @@ export default function NewProject(props: NewProps) {
         const dataTagMessage: DataTag = {
             // time: new Date().toDateString(),
             fields: inputFieldsMapped,
-            datasource: datasetName.value,
+            data_source: datasetName.value,
             id: uuid()
         }
 
         console.log("DataTag: ", dataTagMessage)
 
         // Trigger the Data tag Controller
-        const accesionDatatagResp: DataTag = await AccessionDataTag(dataTagMessage)
+        await AccessionDataTag(dataTagMessage)
 
 
         // Inform the view to update its state

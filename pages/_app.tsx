@@ -1,4 +1,5 @@
 // Import Stylesheets
+import '../styles/updatenode.css'
 import '../styles/globals.css'
 import 'antd/dist/antd.css'
 import 'tailwindcss/tailwind.css'

@@ -12,7 +12,8 @@ export interface NavbarProps {
     Title: string,
     LinkComponentProps?: LinkProps,
     DisplayNewLink?: boolean,
-    LinkCallback?: any
+    LinkCallback?: any,
+    ButtonComponent?: any
 }
 
 export default function NewBar(props: NavbarProps) {
@@ -32,6 +33,8 @@ export default function NewBar(props: NavbarProps) {
         } else if (props.LinkCallback) {
             // If a link has been provided
             newButton = <h3 className="h3" onClick={props.LinkCallback}><BsFillPlusSquareFill /></h3>
+        } else if (props.ButtonComponent) {
+            newButton = props.ButtonComponent
         }
     } 
 

@@ -35,7 +35,11 @@ import {
     FetchPredictors,
     FetchMetrics,
     FetchParams
-} from '../../../controller/predictor'
+} from '../../../../controller/predictor'
+import {
+    DataTag,
+    CAOType
+} from "../../../../controller/datatag/types"
 
 // Define an interface for the structure
 // of the nodes
@@ -47,11 +51,12 @@ export interface PredictorNodeData {
     readonly NodeID: string,
 
     // This map describes the field names
-    readonly CAOMapping: any
+    readonly SelectedDataTag: DataTag
 
-    readonly NodeDefs: any,
-    readonly UpdateNodeDefFn: any
+    readonly state: any,
+    readonly setState: any
 }
+
 
 export default function PredictorNode(props): React.ReactElement {
     /*
@@ -63,22 +68,7 @@ export default function PredictorNode(props): React.ReactElement {
     const data: PredictorNodeData = props.data
 
     // Unpack the mapping
-    const { NodeID } = data
-
-    // Use state to keep track of the availaible predictor options
-    let [state, setState] = useState({
-        selectedPredictorType: "regressor",
-        predictors: [],
-        selectedPredictor: "",
-        metrics: [],
-        selectedMetric: "",
-        predictorParams: {},
-        caoState: {
-            "context": {},
-            "action": {},
-            "outcome": {}
-        }
-    })
+    const { NodeID, state, setState } = data
 
     const invokePredictorSelectorController = async (predictorType: string) => {
         /*
@@ -129,6 +119,27 @@ export default function PredictorNode(props): React.ReactElement {
             }
         })
 
+        // Construct the CAO Map
+        let CAOMapping = {
+            context: [],
+            action: [],
+            outcome: []
+        }
+        Object.keys(data.SelectedDataTag.fields).forEach(fieldName => {
+            const field = data.SelectedDataTag.fields[fieldName]
+            switch (field.espType) {
+                case CAOType[1]:
+                    CAOMapping.context.push(fieldName)
+                    break
+                case CAOType[2]:
+                    CAOMapping.action.push(fieldName)
+                    break
+                case CAOType[3]:
+                    CAOMapping.outcome.push(fieldName)
+                    break
+            }
+        })
+
         // Create the initial state for the CAO Map
         let CAOState = {
             "context": {},
@@ -136,15 +147,19 @@ export default function PredictorNode(props): React.ReactElement {
             "outcome": {}
         }
 
-        data.CAOMapping.context.forEach(
+        CAOMapping.context.forEach(
             context => CAOState.context[context] = true
         )
-        data.CAOMapping.action.forEach(
+        CAOMapping.action.forEach(
             action => CAOState.action[action] = true
         )
-        data.CAOMapping.outcome.forEach(
-            outcome => CAOState.outcome[outcome] = false
+        CAOMapping.outcome.forEach(
+            outcome => CAOState.outcome[outcome] = {
+                checked: false,
+                maximize: true
+            }
         )
+        console.log("INITSTATE: ", CAOState)
 
         setState({
             ...state, 
@@ -219,7 +234,13 @@ export default function PredictorNode(props): React.ReactElement {
     const updateCAOState = ( event, espType: string ) => {
         const { name, checked } = event.target
         let caoStateCopy = { ...state.caoState }
-        caoStateCopy[espType][name] = checked
+
+        if (espType === "outcome") {
+            caoStateCopy[espType][name]["checked"] = checked
+        } else {
+            caoStateCopy[espType][name] = checked
+        }
+        
         setState({
             ...state, 
             caoState: caoStateCopy
@@ -232,18 +253,82 @@ export default function PredictorNode(props): React.ReactElement {
     // getInitialProps/getServerSideProps for a NextJS Component.
     // Here useEffect also provides no clean up function
     useEffect(() => {
-        initialize()
+        // Do not initialize if state has been initialized before
+        // We check this using the context variable, the parent should
+        // in an uninitialized state pass it as an empty dict.
+        if (state.caoState.context && Object.keys(state.caoState.context).length == 0) {
+            initialize()
+        }
     }, [])
 
-    // We use another useEffect hook to update the state of the parent component
-    // whenever the internal state of the predictor changes
     useEffect(() => {
 
-        let newNodeState = {...data.NodeDefs}
-        newNodeState[NodeID] = {...state}
+        
 
-        data.UpdateNodeDefFn(newNodeState)
-    }, [state])
+        // Construct the CAO Map
+        let CAOMapping = {
+            context: [],
+            action: [],
+            outcome: []
+        }
+        Object.keys(data.SelectedDataTag.fields).forEach(fieldName => {
+            const field = data.SelectedDataTag.fields[fieldName]
+            switch (field.espType) {
+                case CAOType[1]:
+                    CAOMapping.context.push(fieldName)
+                    break
+                case CAOType[2]:
+                    CAOMapping.action.push(fieldName)
+                    break
+                case CAOType[3]:
+                    CAOMapping.outcome.push(fieldName)
+                    break
+            }
+        })
+
+        // Create the initial state for the CAO Map
+        let CAOState = {
+            context: {},
+            action: {},
+            outcome: {}
+        }
+
+        CAOMapping.context.forEach(context => {
+            if (context in state.caoState.context) {
+                CAOState.context[context] = state.caoState.context[context]
+            } else {
+                CAOState.context[context] = true
+            }
+            
+        })
+        CAOMapping.action.forEach(action => {
+            if (action in state.caoState.action) {
+                CAOState.action[action] = state.caoState.action[action]
+            } else {
+                CAOState.action[action] = true
+            }
+        })
+        CAOMapping.outcome.forEach(outcome => {
+            if (outcome in state.caoState.outcome) {
+                CAOState.outcome[outcome] = {
+                    checked: state.caoState.outcome[outcome].checked,
+                    maximize: state.caoState.outcome[outcome].maximize
+                }
+            } else {
+                CAOState.outcome[outcome] = {
+                    checked: false,
+                    maximize: true
+                }
+            }
+        })
+        
+
+        setState({
+            ...state, 
+            caoState: CAOState
+        })
+        
+    }, [data.SelectedDataTag])
 
 
     // We want to have a tabbed predictor configuration
@@ -261,7 +346,8 @@ export default function PredictorNode(props): React.ReactElement {
                                                 onChange={ event => invokePredictorSelectorController(event.target.value)} 
                                                 className="w-32" >
                                                     <option value="regressor">Regressor</option>
-                                                    <option value="classifier">Classfier</option>
+                                                    <option disabled value="classifier">Classfier (Coming Soon)</option>
+                                                    <option disabled value="evolution">Evolution (Coming Soon)</option>
                                             </select>    
                                         </div>
                                         
@@ -458,7 +544,7 @@ export default function PredictorNode(props): React.ReactElement {
                                             name={element}
                                             type="checkbox" 
                                             defaultChecked={false}
-                                            checked={state.caoState.outcome[element]}
+                                            checked={state.caoState.outcome[element].checked}
                                             onChange={event => updateCAOState(event, "outcome")}/>
                                         </div>)
                                     }

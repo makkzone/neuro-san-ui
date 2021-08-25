@@ -1,6 +1,7 @@
 // Import Custom Components
 import DataSourceNode from './datasourcenode'
 import PredictorNode from './predictornode'
+import PrescriptorNode from './prescriptornode'
 
 // Based on the declared nodes above we declare a constant holder
 // to reference the Node objects. These references are later passed
@@ -8,7 +9,7 @@ import PredictorNode from './predictornode'
 const NodeTypes = {
     datanode: DataSourceNode,
     predictornode: PredictorNode,
-    // prescriptorNode: PrescriptorNode
+    prescriptornode: PrescriptorNode
 }
 
 export default NodeTypes;

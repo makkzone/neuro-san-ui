@@ -79,7 +79,7 @@ export default class AWSUtils {
     }
 
     ConstructURL(bucketName: string, region: string, key: string) {
-        return `https://${bucketName}.${region}.amazonaws.com/${key}`
+        return `https://s3.${region}.amazonaws.com/${bucketName}/${key}`
     }
 
     GetS3Obj(region: string) {

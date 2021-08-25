@@ -9,56 +9,28 @@ import {
 // Import ID Gen
 import uuid from "react-uuid"
 
-// For our graph to render we declare some helper functions
-// that define constraints and interactivity with the graph.
-export const initializeGraph = (ProjectID, 
-        NodeDefs, 
-        UpdateNodeDefs, 
-        UpdateSelectedSourceCAOMapFn) => {
-    /*
-    This function resets the graphs and attaches a Data node.
-    We pass the node a UpdateSelectedDataSourceFn to update the selected
-    data source. This function updates the state stored in the parent Flow
-    component. This is an unusual case where the state ideally should live in the
-    the Data Node, but here needs to live in the parent container. Reason being,
-    this state needs to be passed to other components. This is following reacts pattern
-    of Lifting up State.
-    */
+// Import types
+import { 
+    TaggedDataInfoList 
+} from '../../../pages/projects/[projectID]/experiments/new'
 
-    // Create an empty graph
-    let initialGraph = []
 
-    // Add Data Node. The Data node has a constant ID
-    // described by the constant InputDataNodeID. At the moment
-    // We only support one data source and thus this suffices.
-    // In a later implementation when this has to change, we
-    // can describe it otherwise.
-    initialGraph.push({
-        id: InputDataNodeID,
-        type: 'datanode',
-        data: { 
-            ProjectID: ProjectID, 
-            NodeDefs: NodeDefs,
-            UpdateNodeDefs: UpdateNodeDefs,
-            UpdateSelectedSourceCAOMap: UpdateSelectedSourceCAOMapFn
-        },
-        position: {x: 100, y: 100}
-    })
 
-   return initialGraph
-}
 
 // Declare functions to fetch predictor and prescriptor nodes out of the 
 // graph
 export const getPredictorNodes = graph => graph.filter(
     element => element.type === 'predictornode')
 export const getPrescriptorNodes = graph => graph.filter(
-    element => element.type === 'prescriptorNode')
+    element => element.type === 'prescriptornode')
+
+export const getDataNodes = graph => graph.filter(
+    element => element.type === 'datanode')
 
 export const getPredictorNodeByID = (graph, id) => graph.filter(
     element => element.type === 'predictornode' && element.id === id)
 export const getPrescriptorNodeByID = (graph, id) => graph.filter(
-    element => element.type === 'prescriptorNode' && element.id === id)
+    element => element.type === 'prescriptornode' && element.id === id)
 
 export const updateGraphWithNodeDef = (graph, nodeDef) => {
     
@@ -75,7 +47,7 @@ export const updateGraphWithNodeDef = (graph, nodeDef) => {
     return graphCopy
 }
 
-export const addPredictorNode = (graph, nodeDefs, setNodeDefs, CAOMapping) => {
+export const addPredictorNode = (graph, nodeDefs, setNodeDefs, DataTag) => {
     /*
     This function adds a predictor node to the Graph while supplying
     several constraints.
@@ -84,7 +56,7 @@ export const addPredictorNode = (graph, nodeDefs, setNodeDefs, CAOMapping) => {
     2. If a prescriptor node exists, the predictor is attached to that node.
 
     @param graph: Current state of the graph
-    @param CAOMapping: CAO Map for Data Source that the user has selected
+    @param DataTag: CAO Map for Data Source that the user has selected
     */
 
     // Make a copy of the graph
@@ -99,11 +71,14 @@ export const addPredictorNode = (graph, nodeDefs, setNodeDefs, CAOMapping) => {
         type: 'predictornode',
         data: { 
             NodeID: NodeID, 
-            CAOMapping: CAOMapping, 
+            DataTag: DataTag, 
             NodeDefs: nodeDefs,
             UpdateNodeDefFn: setNodeDefs
         },
-        position: { x: 150, y: 125 },
+        position: { 
+            x: 150, 
+            y: 125 
+        }
     })
 
     // Add an Edge to the data node
@@ -127,6 +102,14 @@ export const addPredictorNode = (graph, nodeDefs, setNodeDefs, CAOMapping) => {
             animated: true 
         })
     }
+
+    // Moreover we need to update the DataNode's data
+    let dataNodes = getDataNodes(graphCopy)
+    dataNodes.forEach(function(node){
+        node.data = {
+
+        }
+    })
 
     return graphCopy
 }

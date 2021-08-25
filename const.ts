@@ -20,3 +20,42 @@ export const AUTHOR: string = "mohak"
 export const DEFAULT_DATA_ROOT_KEY: string = "data"
 export const LOGO: string = "LEAF"
 
+export const OutputOverrideCode: string = `def evaluate_candidate(self, candidate: object) -> Dict[str, object]:
+"""
+This function receives a candidate and can be
+modified to provide alternate fitness calculations.
+:param candidate: a candidate model to evaluate
+:return: a dictionary of metrics
+"""
+
+# Fetch the CAO Map
+CAO_MAP = self.CAO_MAP
+
+# Fetc the Context and the Actions
+context_data: pd.DataFrame = self.data[CAO_MAP["context"]]
+
+# Declare a metrics container
+metrics = {}
+
+# Loop over the outcomes
+for outcome_list in CAO_MAP["outcome"]:
+
+    # Get the actions
+    actions_df = pd.DataFrame(candidate.predict(context_data))
+    consolidated_df = pd.concat(
+        [context_data, actions_df]
+    )
+
+    # If the predictor has only one outcome attached
+    if len(outcome_list) == 1:
+        predictor = self.get_predictor(outcome_list[0])
+
+        metrics[outcome_list[0]] = np.mean(predictor.predict(consolidated_df))
+    else:
+        # If a predictor predcits multiple outcomes
+        outcomes = predictor.predict(consolidated_df)
+        for idx, outcome in enumerate(outcome_list):
+            metrics[outcome] = np.mean(outcomes[:, idx])
+
+return metrics        
+`
