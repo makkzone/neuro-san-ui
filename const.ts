@@ -20,7 +20,7 @@ export const AUTHOR: string = "mohak"
 export const DEFAULT_DATA_ROOT_KEY: string = "data"
 export const LOGO: string = "LEAF"
 
-export const OutputOverrideCode: string = `def evaluate_candidate(self, candidate: object) -> Dict[str, object]:
+export const EvaluateCandidateCode: string = `def evaluate_candidate(self, candidate: object) -> Dict[str, object]:
 """
 This function receives a candidate and can be
 modified to provide alternate fitness calculations.
@@ -58,4 +58,14 @@ for outcome_list in CAO_MAP["outcome"]:
             metrics[outcome] = np.mean(outcomes[:, idx])
 
 return metrics        
+`
+
+export const OutputOverrideCode: string = `def override_predictions(self, predictions: pd.Dataframe) -> predictions: pd.Dataframe:
+"""
+This function receives the predictions from the predictor as a dataframe.
+The DataFrame contains the outcomes that have been selected as checkboxes
+in the node.
+"""
+
+return predictions        
 `

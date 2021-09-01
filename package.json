@@ -14,7 +14,7 @@
     "aws-sdk": "^2.951.0",
     "axios": "^0.21.1",
     "bootstrap": "^5.0.2",
-    "codemirror": "^5.62.2",
+    "codemirror": "^5.62.3",
     "dockerode": "^3.3.0",
     "evergreen-ui": "^6.1.0",
     "fast-csv": "^4.3.6",

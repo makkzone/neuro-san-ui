@@ -154,10 +154,7 @@ export default function PredictorNode(props): React.ReactElement {
             action => CAOState.action[action] = true
         )
         CAOMapping.outcome.forEach(
-            outcome => CAOState.outcome[outcome] = {
-                checked: false,
-                maximize: true
-            }
+            outcome => CAOState.outcome[outcome] = false
         )
         console.log("INITSTATE: ", CAOState)
 
@@ -235,11 +232,7 @@ export default function PredictorNode(props): React.ReactElement {
         const { name, checked } = event.target
         let caoStateCopy = { ...state.caoState }
 
-        if (espType === "outcome") {
-            caoStateCopy[espType][name]["checked"] = checked
-        } else {
-            caoStateCopy[espType][name] = checked
-        }
+        caoStateCopy[espType][name] = checked
         
         setState({
             ...state, 
@@ -310,18 +303,11 @@ export default function PredictorNode(props): React.ReactElement {
         })
         CAOMapping.outcome.forEach(outcome => {
             if (outcome in state.caoState.outcome) {
-                CAOState.outcome[outcome] = {
-                    checked: state.caoState.outcome[outcome].checked,
-                    maximize: state.caoState.outcome[outcome].maximize
-                }
+                CAOState.outcome[outcome] = state.caoState.outcome[outcome]
             } else {
-                CAOState.outcome[outcome] = {
-                    checked: false,
-                    maximize: true
-                }
+                CAOState.outcome[outcome] = false
             }
         })
-        
 
         setState({
             ...state, 
@@ -544,7 +530,7 @@ export default function PredictorNode(props): React.ReactElement {
                                             name={element}
                                             type="checkbox" 
                                             defaultChecked={false}
-                                            checked={state.caoState.outcome[element].checked}
+                                            checked={state.caoState.outcome[element]}
                                             onChange={event => updateCAOState(event, "outcome")}/>
                                         </div>)
                                     }

@@ -33,15 +33,6 @@ const foreignObjectSize = 20;
 // of the data object that is passed down to this componenent
 export interface ObjectiveData {
 
-    // Marked Outcomes is a dictionary that contains
-    // the outcome marked with if its maximum or not and
-    // if it is marked or not
-    readonly MarkedOutcomes: any
-
-    // This is a function passed to update the state
-    // of the marked outcomes as to maximize or minimize them.
-    readonly UpdateMarkedOutcomes: any
-
     readonly OutputOverrideCode: any
     readonly UpdateOutputOverrideCode: any
 
@@ -73,20 +64,7 @@ export default function PrescriptorEdge({ id, sourceX, sourceY,
     // and thus we build the following component
     // Declare state to keep track of the Tabs
     const [selectedIndex, setSelectedIndex] = useState(0)
-    const [tabs] = useState(['Objecive Confuration', 'Override Predictor Output'])
-
-    const ObjectiveConfigurationPanel = data.MarkedOutcomes ? Object.keys(data.MarkedOutcomes).map((outcome, _) => 
-                                        <div className="p-2 grid grid-cols-2 gap-4 mb-2" key={outcome} >
-                                            <label>{outcome}: </label>
-                                            <select 
-                                                key="objective-select" 
-                                                value={data.MarkedOutcomes[outcome].maximize}
-                                                onChange={event => data.UpdateMarkedOutcomes(outcome, event.target.value)}
-                                                >
-                                                <option value="true">Maximize</option>
-                                                <option value="false">Minimize</option>
-                                            </select>
-                                        </div>): "No Objective Selected for this Predictor"
+    const [tabs] = useState(['Override Predictor Output'])
 
     const PredictorOverride = <Card.Body> 
                                     <CodeMirror
@@ -100,6 +78,7 @@ export default function PrescriptorEdge({ id, sourceX, sourceY,
                                     onBeforeChange={(editor, editorData, value) => data.UpdateOutputOverrideCode(value)}
                                     onChange={(editor, editorData, value) => {}}
                                     />
+
                                 </Card.Body>
 
     return (
@@ -140,8 +119,7 @@ export default function PrescriptorEdge({ id, sourceX, sourceY,
                             </Tab>
                             ))}
                         </Tablist>
-                        { selectedIndex === 0  && ObjectiveConfigurationPanel }
-                        { selectedIndex === 1  && PredictorOverride }
+                        { selectedIndex === 0  && PredictorOverride }
                     </>
                 }
                 >   

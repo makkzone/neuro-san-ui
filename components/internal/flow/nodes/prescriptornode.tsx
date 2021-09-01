@@ -3,6 +3,7 @@ import {
     useState, 
     useEffect 
 } from 'react'
+import dynamic from 'next/dynamic'
 
 // Import 3rd pary components
 import { 
@@ -36,6 +37,15 @@ import {
     CAOType
 } from "../../../../controller/datatag/types"
 
+// Import Code Mirror
+import { Controlled as CodeMirror } from 'react-codemirror2'
+// require('codemirror/mode/python/python');
+
+// const CodeMirror2 = dynamic(() => {
+//     require('codemirror/mode/python/python')
+//     import('react-codemirror2').then(module => module.Controlled)
+// }, {ssr: false})
+
 // Define an interface for the structure
 // of the nodes
 export interface PredictorNodeData {
@@ -46,7 +56,19 @@ export interface PredictorNodeData {
     readonly NodeID: string,
 
     // This map describes the field names
-    readonly SelectedDataTag: DataTag
+    readonly SelectedDataTag: DataTag,
+
+    // Marked Outcomes is a dictionary that contains
+    // the outcome marked with if its maximum or not and
+    // if it is marked or not
+    readonly MarkedOutcomes: any,
+
+    // This is a function passed to update the state
+    // of the marked outcomes as to maximize or minimize them.
+    readonly UpdateMarkedOutcomes: any,
+
+    readonly EvaluatorOverrideCode: any,
+    readonly UpdateEvaluateOverrideCode: any,
 
     readonly state: any,
     readonly setState: any
@@ -63,57 +85,12 @@ export default function PrescriptorNode(props): React.ReactElement {
     const data: PredictorNodeData = props.data
 
     // Unpack the mapping
-    const { NodeID, state, setState } = data
-    
-
-    // const initialize = () => {
-    //     /*
-    //     This controller invokation is used for the fetching of the predictors and the
-    //     metrics of a certain kind of predictor. This only needs to be used once
-    //     when the content is being rendered
-    //     */
-
-    //     // Construct the CAO Map
-    //     let CAOMapping = {
-    //         context: [],
-    //         action: [],
-    //         outcome: []
-    //     }
-    //     Object.keys(data.SelectedDataTag.fields).forEach(fieldName => {
-    //         const field = data.SelectedDataTag.fields[fieldName]
-    //         switch (field.espType) {
-    //             case CAOType[1]:
-    //                 CAOMapping.context.push(fieldName)
-    //                 break
-    //             case CAOType[2]:
-    //                 CAOMapping.action.push(fieldName)
-    //                 break
-    //         }
-    //     })
-
-    //     // Create the initial state for the CAO Map
-    //     let CAOState = {
-    //         "context": {},
-    //         "action": {}
-    //     }
-
-    //     CAOMapping.context.forEach(
-    //         context => CAOState.context[context] = true
-    //     )
-    //     CAOMapping.action.forEach(
-    //         action => CAOState.action[action] = true
-    //     )
-
-    //     let initialState = {...state}
-        
-    //     initialState.caoState = CAOState
-    //     initialState.network.inputs[0].size = CAOMapping.context.length
-    //     initialState.network.hidden_layers[0].layer_params.units = 2 * CAOMapping.context.length
-    //     initialState.network.outputs[0].size = CAOMapping.action.length
-
-    //     setState(initialState)
-
-    // }
+    const { 
+        NodeID, 
+        state, setState, 
+        MarkedOutcomes, UpdateMarkedOutcomes,
+        EvaluatorOverrideCode, UpdateEvaluateOverrideCode 
+    } = data
 
     const updateCAOState = ( event, espType: string ) => {
         const { name, checked } = event.target
@@ -131,27 +108,13 @@ export default function PrescriptorNode(props): React.ReactElement {
         })
     }
 
-    // We use the use Effect hook here to ensure that we can provide
-    // no dependancies for prop update. In this specific case it acts
-    // as DidComponentUpdate function for class Components or similar to
-    // getInitialProps/getServerSideProps for a NextJS Component.
-    // Here useEffect also provides no clean up function
-    // useEffect(() => {
-    //     // Do not initialize if state has been initialized before
-    //     // We check this using the context variable, the parent should
-    //     // in an uninitialized state pass it as an empty dict.
-    //     if (state.caoState.context && Object.keys(state.caoState.context).length == 0) {
-    //         console.log("Initializing State")
-    //         initialize()
-    //     }
-    // }, [])
-
     useEffect(() => {
 
         // Construct the CAO Map
         let CAOMapping = {
             context: [],
-            action: []
+            action: [],
+            outcome: []
         }
         Object.keys(data.SelectedDataTag.fields).forEach(fieldName => {
             const field = data.SelectedDataTag.fields[fieldName]
@@ -162,13 +125,17 @@ export default function PrescriptorNode(props): React.ReactElement {
                 case CAOType[2]:
                     CAOMapping.action.push(fieldName)
                     break
+                case CAOType[2]:
+                    CAOMapping.action.push(fieldName)
+                    break
             }
         })
 
         // Create the initial state for the CAO Map
         let CAOState = {
             context: {},
-            action: {}
+            action: {},
+            outcome: {}
         }
 
         CAOMapping.context.forEach(context => {
@@ -186,8 +153,26 @@ export default function PrescriptorNode(props): React.ReactElement {
                 CAOState.action[action] = true
             }
         })
+        CAOMapping.outcome.forEach(
+            outcome => CAOState.outcome[outcome] = {
+                checked: false,
+                maximize: true
+            }
+        )
+        CAOMapping.outcome.forEach(outcome => {
+            if (outcome in state.caoState.outcome) {
+                CAOState.outcome[outcome] = {
+                    checked: state.caoState.outcome[outcome].checked,
+                    maximize: state.caoState.outcome[outcome].maximize
+                }
+            } else {
+                CAOState.outcome[outcome] = {
+                    checked: false,
+                    maximize: true
+                }
+            }
+        })
         
-
         let initializedState = {...state}
         initializedState.caoState = CAOState
         initializedState.network.inputs[0].size = CAOMapping.context.length
@@ -205,7 +190,54 @@ export default function PrescriptorNode(props): React.ReactElement {
     // and thus we build the following component
     // Declare state to keep track of the Tabs
     const [selectedIndex, setSelectedIndex] = useState(0)
-    const [tabs] = useState(['Representation', 'Evolution Parameters'])
+    const [tabs] = useState(['Representation', 'Evolution Parameters', 'Objective Configuration', 'Override Evaluator'])
+
+    const ObjectiveConfigurationPanel = state.evolution.fitness.map((outcomeDict, _) => {
+        return <div className="p-2 grid grid-cols-2 gap-4 mb-2" key={outcomeDict.metric_name} >
+            <label>{outcomeDict.metric_name}: </label>
+            <select 
+                key="objective-select" 
+                value={outcomeDict.maximize}
+                onChange={event => {
+                    let fitness = state.evolution.fitness.map(fitnessDict => {
+                        if (fitnessDict.metric_name === outcomeDict.metric_name) {
+                            fitnessDict.maximize = event.target.value
+                        }
+                    })
+                    setState({
+                        evolution: {
+                            fitness: fitness,
+                            ...state.evolution
+                        },
+                        ...state
+                    })
+                }}
+                >
+                <option value="true">Maximize</option>
+                <option value="false">Minimize</option>
+            </select>
+        </div>
+    })
+    
+
+
+    const EvaluatorOverridePanel = <Card.Body> 
+                                        <CodeMirror
+                                            value={EvaluatorOverrideCode}
+                                            options={{
+                                                tabSize: 4,
+                                                theme: 'material',
+                                                lineNumbers: true,
+                                                mode: 'python',
+                                            }}
+                                            onBeforeChange={(editor, editorData, value) => {
+                                                UpdateEvaluateOverrideCode(value)
+                                            }}
+                                            onChange={(editor, editorData, value) => {}}
+                                            />
+
+                                    </Card.Body>
+    
 
     
     // We need to maintain state for selected Representation
@@ -577,6 +609,8 @@ export default function PrescriptorNode(props): React.ReactElement {
                                 </Tablist>
                                 { selectedIndex === 0  && PrescriptorRepresentationPanel }
                                 { selectedIndex === 1  && EvolutionConfigurationPanel }
+                                { selectedIndex === 2  && ObjectiveConfigurationPanel }
+                                { selectedIndex === 3  && EvaluatorOverridePanel }
                             </>
                         }
                         >   

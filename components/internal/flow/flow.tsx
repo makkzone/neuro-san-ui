@@ -26,14 +26,14 @@ import {
 import { 
     MaximumBlue, 
     InputDataNodeID,
-    OutputOverrideCode
+    OutputOverrideCode,
+    EvaluateCandidateCode
 } from '../../../const'
 
 // Import types
 import { 
     TaggedDataInfoList 
 } from '../../../pages/projects/[projectID]/experiments/new'
-import { ThDisconnectIcon } from 'evergreen-ui'
 
 /*
 The following interface is used to define the props
@@ -80,7 +80,8 @@ class FlowNodeStateUpdateHandler extends FlowState {
         // The flow is the collection of nodes and
         // edges all identified by a node type and
         // a uuid
-        flow: []
+        flow: [],
+        flowInstance: null
     }
 
 
@@ -130,21 +131,32 @@ class FlowNodeStateUpdateHandler extends FlowState {
                 }
 
                 // We also need to edit the data
-                // in all the prescriptor edges that are connected
+                // in all the prescriptor node that are connected
                 // to this node
-                if (node.type === "prescriptoredge" && node.source === NodeID) {
+                if (node.type === "prescriptornode") {
                     // We need the outcome Information to pass the outcomes
                     // selected
                     const outcomeData = newState.caoState.outcome
-                    let checkedOutcomes = {}
+                    let fitness = []
+                    
                     Object.keys(outcomeData).forEach(outcome => {
-                        if (outcomeData[outcome].checked) {
-                            checkedOutcomes[outcome] = outcomeData[outcome]
+                        if (outcomeData[outcome]) {
+                            fitness.push({
+                                metric_name: outcome,
+                                maximize: "true"
+                            })
                         }
                     })
+                    // debugger
                     node.data = {
                         ...node.data,
-                        MarkedOutcomes: checkedOutcomes
+                        state: {
+                            ...node.data.state,
+                            evolution: {
+                                ...node.data.state.evolution,
+                                fitness
+                            }
+                        }
                     }
                 }
 
@@ -194,6 +206,25 @@ class FlowNodeStateUpdateHandler extends FlowState {
                     node.data = {
                         ...node.data,
                         OutputOverrideCode: value
+                    }
+                }
+                return node
+            })
+        })
+    }
+
+    UpdateEvaluateOverrideCode(prescriptorNodeID, value) {
+        /*
+        This function is used to update the code block in the predictor Edge
+        used to override the output of the predictor.
+        */
+        const flow = this.state.flow
+        this.setState({
+            flow: flow.map(node => {
+                if (node.id === prescriptorNodeID) {
+                    node.data = {
+                        ...node.data,
+                        EvaluatorOverrideCode: value
                     }
                 }
                 return node
@@ -501,10 +532,11 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
                 "mutation_probability": 0.1,
                 "mutation_factor": 0.1,
                 "initialization_distribution": "orthogonal",
-                "initialization_range": 1
+                "initialization_range": 1,
+                "fitness": []
             },
             LEAF: {
-                representation: "NNWeights"
+                representation: "NNWeights",
             },
             caoState: {
                 "context": {},
@@ -554,7 +586,9 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
                 NodeID: NodeID,
                 SelectedDataTag: this.state.flow[0].data.SelectedDataTag.LatestDataTag,
                 state: this._getInitialPrescriptorState(),
-                setState: state => this.PrescriptorSetStateHandler(state, NodeID)
+                setState: state => this.PrescriptorSetStateHandler(state, NodeID),
+                EvaluatorOverrideCode: EvaluateCandidateCode,
+                UpdateEvaluateOverrideCode: value => this.UpdateEvaluateOverrideCode(NodeID, value)
             },
             position: { 
                 x: flowInstanceElem[0].position.x + 750, 
