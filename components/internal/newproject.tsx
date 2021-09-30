@@ -3,22 +3,25 @@ import { useState } from 'react'
 
 // Import 3rd Party components
 import { Collapse } from 'antd'
-import uuid from "react-uuid"
 import { Container, Form, Button } from "react-bootstrap"
 
 // Import required interface to create a new project
 import AccessionProject from "../../controller/projects/accession"
 import { Project } from "../../controller/projects/types"
+import { Profile } from "../../controller/dataprofile/types"
 import { DataSource } from "../../controller/datasources/types"
-import { DataTagField, DataTagFields, DataTag } from "../../controller/datatag/types"
-import AccessionDataTag from "../../controller/datatag/accession"
-import { AccessionDatasourceS3, ValidateCSV, GetCSVHeaders } from "../../controller/datasources/accession"
+import {DataTag, DataTagField, DataTagFields, DiscreteCategoricalValues, Valued} from "../../controller/datatag/types";
+import { AccessionDatasourceS3 } from "../../controller/datasources/accession"
+import AccessionDataTag from "../../controller/datatag/accession";
 
-// Import cosntants
+// Import constants
 import { MaximumBlue } from "../../const"
 
 // Import Utils
+import uuid from 'react-uuid'
 import AWSUtils from "../../utils/aws"
+
+
 
 // Declare the Props for this component
 export interface NewProps {
@@ -29,7 +32,7 @@ export interface NewProps {
 
     // A call back function that tells the view
     // to update its state to reflect the new addition 
-    // if it has successeded
+    // if it has succeeded
     UpdateHook?: any
 
 }
@@ -48,37 +51,36 @@ export default function NewProject(props: NewProps) {
         "datasetName": "",
         "bucketName": "",
         "s3Key": "",
-        "region": "", 
-
-        // Ordered lists to store the data fields
-        // and the mapping
-        "datafields": []
+        "region": "",
     })
+
+    const [profile, setProfile] = useState(null)
 
     // Define a function to unpack the form and trigger the controller
     // to register the project
-    const TriggerController = async (formTarget: EventTarget) => {
+    const TriggerProjectDataSourceAccessionController = async () => {
 
         // ################################ Accession Project ###########################
         let name
         if (!props.ProjectID) {
             // Unpack the Project Variables
-            let {description} = formTarget
-            name = formTarget.name.value
+            let {projectName, description} = inputFields
 
             // Create the Project message
             let projectMessage: Project = {
-                id: name,
-                description: description.value,
+                id: projectName,
+                description: description,
                 // time: new Date().toString()
             }
             console.log("Project: ", projectMessage)
 
             // Trigger the Project Controller
-            const accesionProjectResp: Project = await AccessionProject(projectMessage)
+            const accessionProjectResp: Project = await AccessionProject(projectMessage)
 
             // If Project creation failed, everything fails
-            if (accesionProjectResp === null) { return }
+            if (accessionProjectResp === null) { return }
+
+            name = projectName
 
         } else {
             name = props.ProjectID
@@ -86,44 +88,61 @@ export default function NewProject(props: NewProps) {
 
         // ################################ Accession Data Source ###########################
         // Unpack Data Source Variables
-        let {datasetName, bucketName, s3Key, region} = formTarget
+        let {datasetName, bucketName, s3Key, region} = inputFields
 
         // Create the Data source Message
         let dataSourceMessage: DataSource = {
             project: name,
-            id: datasetName.value,
+            id: datasetName,
             s3_url: new AWSUtils().ConstructURL(
-                bucketName.value, 
-                region.value, 
-                s3Key.value
-            ),
-            // time: new Date().toDateString()
+                bucketName,
+                region,
+                s3Key
+            )
         }
         console.log("Datasource: ", dataSourceMessage)
 
          // Trigger the Data Source Controller
-         const accesionDataSourceResp: DataSource = await AccessionDatasourceS3(dataSourceMessage)
+         const profile: Profile = await AccessionDatasourceS3(dataSourceMessage)
 
          // If Data Source creation failed, everything fails
-         if (accesionDataSourceResp === null) { return }
+         if (profile === null) { return }
+        setProfile(profile)
 
+    }
+
+    const TriggerDataTagAccession = async () => {
         // ################################ Accession Data Tag ###########################
+        let projectName
+
+        if (props.ProjectID) {
+            projectName = props.ProjectID
+        } else {
+            projectName = inputFields.projectName
+        }
 
         // Unpack the values for datafields
         let inputFieldsMapped: DataTagFields = {}
         // Loop over the Data fields
-        inputFields.datafields.forEach(datafield => {
+        Object.keys(profile.dataTag.fields).forEach(fieldName => {
 
-            const dataTagField: DataTagField = {
+            const datafield = profile.dataTag.fields[fieldName]
+
+            // Set the value
+            inputFieldsMapped[fieldName] = {
                 // Get the esp-type
-                esp_type: parseInt(formTarget[`${datafield}-esp_type`].value),
+                esp_type: datafield.espType,
 
                 // Get the Data type
-                data_type: parseInt(formTarget[`${datafield}-data_type`].value)
+                data_type: datafield.dataType,
+                sum: datafield.sum,
+                std_dev: datafield.stdDev,
+                range: datafield.range,
+                discrete_categorical_values: datafield.discreteCategoricalValues,
+                has_nan: datafield.hasNan,
+                valued: datafield.valued,
+                mean: datafield.mean
             }
-            
-            // Set the value
-            inputFieldsMapped[datafield] = dataTagField
 
         })
 
@@ -131,46 +150,21 @@ export default function NewProject(props: NewProps) {
         const dataTagMessage: DataTag = {
             // time: new Date().toDateString(),
             fields: inputFieldsMapped,
-            data_source: datasetName.value,
+            data_source: inputFields.datasetName,
             id: uuid()
         }
 
         console.log("DataTag: ", dataTagMessage)
 
         // Trigger the Data tag Controller
-        await AccessionDataTag(dataTagMessage)
-
+        const savedDataTag = await AccessionDataTag(dataTagMessage)
+        console.log("Saved DT: ", savedDataTag)
 
         // Inform the view to update its state
         props.UpdateHook && props.UpdateHook()
 
         // Redirect
-        window.location.href = `/projects/${name}`
-
-    }
-
-    // We need a function to validate the existance of the file on S3
-    // and fetch the headers.
-    const DataSourceValidation = async() => {
-        
-        // Validate Existence of CSV 
-        const validationResp = await ValidateCSV(inputFields.bucketName,
-                    inputFields.s3Key,
-                    inputFields.region)
-        
-        // Return if CSV does not exist
-        if (validationResp == null) { return }
-
-        const headers = await GetCSVHeaders(inputFields.bucketName,
-            inputFields.s3Key,
-            inputFields.region)
-
-        // Return if headers can't be fetched
-        if (headers == null) { return }
-
-        // If headers exist update the state
-        setInputFields({...inputFields, 
-            "datafields": headers})
+        window.location.href = `/projects/${projectName}`
     }
 
     const EnabledDataSourceSection = props.ProjectID || (inputFields.projectName && 
@@ -179,14 +173,14 @@ export default function NewProject(props: NewProps) {
                                     inputFields.datasetName && 
                                     inputFields.bucketName && 
                                     inputFields.s3Key && 
-                                    inputFields.region && inputFields.datafields.length > 0
+                                    inputFields.region &&
+                                    profile != null
 
     const startIndexOffset = props.ProjectID ? -1 : 0
-    console.log(startIndexOffset)
 
     return <Container>
 
-        <Form onSubmit={event => {event.preventDefault(); TriggerController(event.target)}} target="_blank">
+        <Form onSubmit={event => {event.preventDefault(); TriggerDataTagAccession()}} target="_blank">
 
             <Collapse accordion expandIconPosition="right">
                 { startIndexOffset === 0 && 
@@ -278,37 +272,105 @@ export default function NewProject(props: NewProps) {
                         {
                             background: MaximumBlue, 
                             borderColor: MaximumBlue
-                        }} type="button" onClick={DataSourceValidation}>Connect</Button>
+                        }} type="button" onClick={TriggerProjectDataSourceAccessionController}>Connect</Button>
 
                 </Panel>
                 <Panel header={`${3 + startIndexOffset}. Tag your Data`} key="3" disabled={!EnabledDataTagSection}>
-                    <div className="grid grid-cols-3 gap-4 mb-2 border-b-2 border-b-black" >
+                    <div className="grid grid-cols-4 gap-4 mb-2 border-b-2 border-b-black" >
                         <h6>Field</h6>
                         <h6>ESP Type</h6>
                         <h6>Data Type</h6>
+                        <h6>Valued</h6>
                     </div>
-                    {inputFields.datafields.map((field, _) => 
-                        <div className="grid grid-cols-3 gap-4 mb-2" >
-                            <label>{ field }</label>
-                            <select
-                                name={`${field}-esp_type`}
-                                value={ inputFields.datafields[field] } 
-                                className="w-32"
-                                defaultValue={1}>
-                                    <option value={1}>CONTEXT</option>
-                                    <option value={2}>ACTION</option>
-                                    <option value={3}>OUTCOME</option>
-                            </select>
-                            <select
-                                name={`${field}-data_type`}
-                                value={ inputFields.datafields[field] } 
-                                className="w-32"
-                                defaultValue={1}
+                    {profile != null && Object.keys(profile.dataTag.fields).map((field, _) =>
+                        <>
+                            <div key={`${field}-row`} className="grid grid-cols-4 gap-4 mb-2" >
+                                <label>{ field }</label>
+                                <select
+                                    name={`${field}-esp_type`}
+                                    value={ profile.dataTag.fields[field].espType }
+                                    className="w-32"
+                                    onChange={event => {
+                                        let profileCopy = {...profile}
+                                        profileCopy.dataTag.fields[field].espType = event.target.value
+                                        setProfile(profileCopy)
+                                    }}
                                 >
-                                    <option value={1}>INT32</option>
-                                    <option value={2}>STRING</option>
-                            </select>
-                        </div>
+                                        <option value="CONTEXT">CONTEXT</option>
+                                        <option value="ACTION">ACTION</option>
+                                        <option value="OUTCOME">OUTCOME</option>
+                                </select>
+                                <select
+                                    name={`${field}-data_type`}
+                                    value={ profile.dataTag.fields[field].dataType }
+                                    className="w-32"
+                                    onChange={event => {
+                                        let profileCopy = {...profile}
+                                        profileCopy.dataTag.fields[field].dataType = event.target.value
+                                        setProfile(profileCopy)
+                                    }}
+                                    >
+                                        <option value="INT">INT</option>
+                                        <option value="STRING">STRING</option>
+                                        <option value="FLOAT">FLOAT</option>
+                                        <option value="BOOL">BOOL</option>
+                                </select>
+                                <select
+                                    name={`${field}-valued`}
+                                    value={ profile.dataTag.fields[field].valued }
+                                    className="w-32"
+                                    onChange={event => {
+                                        let profileCopy = {...profile}
+                                        profileCopy.dataTag.fields[field].valued = event.target.value
+                                        setProfile(profileCopy)
+                                    }}
+                                >
+                                    <option value="CATEGORICAL">CATEGORICAL</option>
+                                    <option value="CONTINUOUS">CONTINUOUS</option>
+                                </select>
+                            </div>
+                            <div>
+                                {
+                                    profile.dataTag.fields[field].valued === "CONTINUOUS" &&
+                                    <div className="grid grid-cols-6 gap-4 mb-2">
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="text-left w-full">Min</Form.Label>
+                                            <Form.Control
+                                                name={`${field}-min-range`}
+                                                type="number"
+                                                value={profile.dataTag.fields[field].range[0]}
+                                                onChange={event => {
+                                                    let profileCopy = {...profile}
+                                                    profileCopy.dataTag.fields[field].range[0] = parseFloat(event.target.value)
+                                                    setProfile(profileCopy)
+                                                }} />
+                                        </Form.Group>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="text-left w-full">Max</Form.Label>
+                                            <Form.Control
+                                                name={`${field}-max-range`}
+                                                type="number"
+                                                value={profile.dataTag.fields[field].range[1]}
+                                                onChange={event => {
+                                                    let profileCopy = {...profile}
+                                                    profileCopy.dataTag.fields[field].range[1] = parseFloat(event.target.value)
+                                                    setProfile(profileCopy)
+                                                }} />
+                                        </Form.Group>
+                                        <div>Mean: {profile.dataTag.fields[field].mean}</div>
+                                        <div>Sum: {profile.dataTag.fields[field].sum}</div>
+                                        <div>Std Dev: {profile.dataTag.fields[field].stdDev}</div>
+                                        <div>Has Nan: {profile.dataTag.fields[field].hasNan.toString()}</div>
+                                    </div>
+                                }
+                                {
+                                    profile.dataTag.fields[field].valued === "CATEGORICAL" &&
+                                    <>
+                                        <div>Has Nan: {profile.dataTag.fields[field].hasNan.toString()}</div>
+                                    </>
+                                }
+                            </div>
+                        </>
                     )}
                 </Panel>
             </Collapse>

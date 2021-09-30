@@ -84,7 +84,6 @@ class FlowNodeStateUpdateHandler extends FlowState {
         flowInstance: null
     }
 
-
     DataNodeStateUpdateHandler(state) {
         /*
         This handler is used to update the predictor
@@ -93,11 +92,14 @@ class FlowNodeStateUpdateHandler extends FlowState {
 
         const flow = this.state.flow
 
+        console.log("State in Data Node: ", state)
+
         // Update the selected data source
         this.setState({
             // datanodeState: state,
             flow: flow.map(node => {
                 if (node.type === 'predictornode' || node.type === 'prescriptornode') {
+                    console.log("Recreating node: ", node.type)
                     node.data = {
                         ...node.data,
                         SelectedDataTag: state.LatestDataTag,
@@ -128,6 +130,7 @@ class FlowNodeStateUpdateHandler extends FlowState {
                         ...node.data,
                         state: newState
                     }
+                    console.log("UPDATING PREDICTOR NODE DATA: ", newState)
                 }
 
                 // We also need to edit the data

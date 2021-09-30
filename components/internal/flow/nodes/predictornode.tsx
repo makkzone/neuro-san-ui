@@ -66,11 +66,12 @@ export default function PredictorNode(props): React.ReactElement {
     */
 
     const data: PredictorNodeData = props.data
+    console.log("SELECTED DATA TAG: ", data.SelectedDataTag)
 
-    // Unpack the mapping
+    // Unpack the data
     const { NodeID, state, setState } = data
 
-    const invokePredictorSelectorController = async (predictorType: string) => {
+    const initialize = () => {
         /*
         This controller invokation is used for the fetching of the predictors and the
         metrics of a certain kind of predictor. This only needs to be used once
@@ -78,36 +79,12 @@ export default function PredictorNode(props): React.ReactElement {
         */
 
         // Invoke the controllers
-        const predictorsFetched = await FetchPredictors(predictorType)
-        const metricsFetched = await FetchMetrics(predictorType)
+        const predictorsFetched = FetchPredictors("regressor")
+        const metricsFetched = FetchMetrics()
 
         // Run Fetch Parameters
-        await onPredictorChange(predictorsFetched[predictorType][0])
-
-        setState({
-            ...state, 
-            predictors: predictorsFetched[predictorType],
-            selectedPredictor: predictorsFetched[predictorType][0],
-            metrics: metricsFetched[predictorType],
-            selectedMetric: metricsFetched[predictorType][0]
-        })
-
-    }
-
-    const initialize = async() => {
-        /*
-        This controller invokation is used for the fetching of the predictors and the
-        metrics of a certain kind of predictor. This only needs to be used once
-        when the content is being rendered
-        */
-
-        // Invoke the controllers
-        const predictorsFetched = await FetchPredictors("regressor")
-        const metricsFetched = await FetchMetrics("regressor")
-
-        // Run Fetch Parameters
-        const params = await FetchParams(state.selectedPredictorType, 
-            predictorsFetched["regressor"][0])
+        const params = FetchParams(state.selectedPredictorType, 
+            predictorsFetched[0])
         
     
         // We add a key called value to adjust for user input
@@ -125,8 +102,10 @@ export default function PredictorNode(props): React.ReactElement {
             action: [],
             outcome: []
         }
+
         Object.keys(data.SelectedDataTag.fields).forEach(fieldName => {
             const field = data.SelectedDataTag.fields[fieldName]
+            // debugger
             switch (field.espType) {
                 case CAOType[1]:
                     CAOMapping.context.push(fieldName)
@@ -139,6 +118,8 @@ export default function PredictorNode(props): React.ReactElement {
                     break
             }
         })
+
+        console.log("DATA: ", data)
 
         // Create the initial state for the CAO Map
         let CAOState = {
@@ -156,31 +137,52 @@ export default function PredictorNode(props): React.ReactElement {
         CAOMapping.outcome.forEach(
             outcome => CAOState.outcome[outcome] = false
         )
-        console.log("INITSTATE: ", CAOState)
 
         setState({
             ...state, 
-            predictors: predictorsFetched["regressor"],
-            selectedPredictor: predictorsFetched["regressor"][0],
-            metrics: metricsFetched["regressor"],
-            selectedMetric: metricsFetched["regressor"][0], 
-            predictorParams: params,
+            predictors: predictorsFetched,
+            selectedPredictor: state.selectedPredictor || predictorsFetched[0],
+            metrics: metricsFetched,
+            selectedMetric: state.selectedMetric || metricsFetched[0],
+            predictorParams: state.predictorParams || params,
             caoState: CAOState
+        })
+    }
+
+    const onPredictorTypeChange = (predictorType: string) => {
+        /*
+        This controller invokation is used for the fetching of the predictors and the
+        metrics of a certain kind of predictor. This only needs to be used once
+        when the content is being rendered
+        */
+
+        // Invoke the controllers
+        const predictorsFetched = FetchPredictors(predictorType)
+        const metricsFetched = FetchMetrics()
+
+        // Run Fetch Parameters
+        onPredictorChange(predictorsFetched[0])
+
+        setState({
+            ...state,
+            predictors: predictorsFetched,
+            selectedPredictor: predictorsFetched[0],
+            metrics: metricsFetched,
+            selectedMetric: metricsFetched[0]
         })
 
     }
 
-    const onPredictorChange = async (selectedPredictor) => {
+    const onPredictorChange = (selectedPredictor: string) => {
         /*
         This function serves to fetch the parameters of the predictor,
         do some parameter state formatting and update the selected predictor state.
         */
 
         // Invoke the controller
-        const params = await FetchParams(state.selectedPredictorType, 
+        const params = FetchParams(state.selectedPredictorType, 
             selectedPredictor)
-        
-    
+
         // We add a key called value to adjust for user input
         Object.keys(params).forEach(key => {
             if (typeof(params[key].default_value) === "object") {
@@ -191,7 +193,6 @@ export default function PredictorNode(props): React.ReactElement {
         })
         
         // Write the state.
-
         setState({
             ...state, 
             predictorParams: params,
@@ -254,67 +255,77 @@ export default function PredictorNode(props): React.ReactElement {
         }
     }, [])
 
+    // Here we initialize again, if the data source changes
     useEffect(() => {
-
-        
-
-        // Construct the CAO Map
-        let CAOMapping = {
-            context: [],
-            action: [],
-            outcome: []
-        }
-        Object.keys(data.SelectedDataTag.fields).forEach(fieldName => {
-            const field = data.SelectedDataTag.fields[fieldName]
-            switch (field.espType) {
-                case CAOType[1]:
-                    CAOMapping.context.push(fieldName)
-                    break
-                case CAOType[2]:
-                    CAOMapping.action.push(fieldName)
-                    break
-                case CAOType[3]:
-                    CAOMapping.outcome.push(fieldName)
-                    break
-            }
-        })
-
-        // Create the initial state for the CAO Map
-        let CAOState = {
-            context: {},
-            action: {},
-            outcome: {}
-        }
-
-        CAOMapping.context.forEach(context => {
-            if (context in state.caoState.context) {
-                CAOState.context[context] = state.caoState.context[context]
-            } else {
-                CAOState.context[context] = true
-            }
-            
-        })
-        CAOMapping.action.forEach(action => {
-            if (action in state.caoState.action) {
-                CAOState.action[action] = state.caoState.action[action]
-            } else {
-                CAOState.action[action] = true
-            }
-        })
-        CAOMapping.outcome.forEach(outcome => {
-            if (outcome in state.caoState.outcome) {
-                CAOState.outcome[outcome] = state.caoState.outcome[outcome]
-            } else {
-                CAOState.outcome[outcome] = false
-            }
-        })
-
-        setState({
-            ...state, 
-            caoState: CAOState
-        })
-        
+        initialize()
     }, [data.SelectedDataTag])
+
+
+    // useEffect(() => {
+    //
+    //
+    //     // Construct the CAO Map
+    //     let CAOMapping = {
+    //         context: [],
+    //         action: [],
+    //         outcome: []
+    //     }
+    //     Object.keys(data.SelectedDataTag.fields).forEach(fieldName => {
+    //         const field = data.SelectedDataTag.fields[fieldName]
+    //         switch (field.espType) {
+    //             case CAOType[1]:
+    //                 CAOMapping.context.push(fieldName)
+    //                 break
+    //             case CAOType[2]:
+    //                 CAOMapping.action.push(fieldName)
+    //                 break
+    //             case CAOType[3]:
+    //                 CAOMapping.outcome.push(fieldName)
+    //                 break
+    //         }
+    //     })
+    //
+    //     // Create the initial state for the CAO Map
+    //     let CAOState = {
+    //         context: {},
+    //         action: {},
+    //         outcome: {}
+    //     }
+    //
+    //     CAOMapping.context.forEach(context => {
+    //         if (context in state.caoState.context) {
+    //             CAOState.context[context] = state.caoState.context[context]
+    //         } else {
+    //             CAOState.context[context] = true
+    //         }
+    //
+    //     })
+    //     CAOMapping.action.forEach(action => {
+    //         if (action in state.caoState.action) {
+    //             CAOState.action[action] = state.caoState.action[action]
+    //         } else {
+    //             CAOState.action[action] = true
+    //         }
+    //     })
+    //     CAOMapping.outcome.forEach(outcome => {
+    //         if (outcome in state.caoState.outcome) {
+    //             CAOState.outcome[outcome] = state.caoState.outcome[outcome]
+    //         } else {
+    //             CAOState.outcome[outcome] = false
+    //         }
+    //     })
+    //
+    //     console.log("State in CAO: ", {
+    //         ...state,
+    //         caoState: CAOState
+    //     })
+    //
+    //     setState({
+    //         ...state,
+    //         caoState: CAOState
+    //     })
+    //
+    // }, [data.SelectedDataTag])
 
 
     // We want to have a tabbed predictor configuration
@@ -329,7 +340,7 @@ export default function PredictorNode(props): React.ReactElement {
                                             <label className="m-0 mr-2">Type: </label>
                                             <select 
                                                 name={ `${NodeID}-predictorType` } 
-                                                onChange={ event => invokePredictorSelectorController(event.target.value)} 
+                                                onChange={ event => onPredictorTypeChange(event.target.value)}
                                                 className="w-32" >
                                                     <option value="regressor">Regressor</option>
                                                     <option disabled value="classifier">Classfier (Coming Soon)</option>
@@ -365,7 +376,7 @@ export default function PredictorNode(props): React.ReactElement {
                                                      { state.metrics && 
                                                         state.metrics.map(
                                                                 (metric, _) => 
-                                                                    <option value={ metric }>
+                                                                    <option key={metric} value={ metric }>
                                                                         { metric }
                                                                     </option>
                                                             ) 
@@ -421,7 +432,7 @@ export default function PredictorNode(props): React.ReactElement {
                                                             onChange={onParamChange}
                                                             className="w-32">
                                                             { state.predictorParams[param].type.map(
-                                                                (value, _) => <option value={ value }>{ value }</option>) 
+                                                                (value, _) => <option key={value} value={ value }>{ value }</option>)
                                                             }
                                                         </select>
                                                     }
