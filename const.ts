@@ -13,6 +13,7 @@ export const StatusColors = {
 
 export const InputDataNodeID: string = 'root'
 export const TRAIN_SERVER: string = "http://localhost:8080"
+// TODO: this needs to be in external config.
 // export const MD_BASE_URL: string = "http://localhost:4000"
 export const MD_BASE_URL: string = "http://localhost:30002"
 export const THIS_SERVER: string = "http://localhost:3000"

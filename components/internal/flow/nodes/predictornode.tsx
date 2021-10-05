@@ -332,7 +332,7 @@ export default function PredictorNode(props): React.ReactElement {
     // and thus we build the following component
     // Declare state to keep track of the Tabs
     const [selectedIndex, setSelectedIndex] = useState(0)
-    const [tabs] = useState(['Predictor', 'Configuration'])
+    const [tabs] = useState(['Predictor', 'Configuration', 'Data Split'])
 
     // Create the selection Panel
     const PredictorSelectionPanel = <Card.Body>
@@ -445,6 +445,22 @@ export default function PredictorNode(props): React.ReactElement {
                                             
                                         </Card.Body>
 
+    // Create the data split
+    const DataSplitConfigurationPanel = <Card.Body>
+        <div className="flex justify-between mb-4 content-center">
+            <label className="m-0 mr-2">Train: </label>
+            <label>0%</label>
+            <input type="range" id="train" min="0" max="100"></input>
+            <label>100%</label>
+        </div>
+        <div className="flex justify-between mb-4 content-center">
+            <label style={{width: "60"}} className="m-0 mr-2">Test: </label>
+            <label>0%</label>
+            <input type="range" id="test" min="0" max="100"></input>
+            <label>100%</label>
+        </div>
+    </Card.Body>
+
     // Create the Component structure
     return <BleuprintCard 
         interactive={ true } 
@@ -472,6 +488,7 @@ export default function PredictorNode(props): React.ReactElement {
                                 </Tablist>
                                 { selectedIndex === 0  && PredictorSelectionPanel }
                                 { selectedIndex === 1  && PredictorConfigurationPanel }
+                                { selectedIndex === 2  && DataSplitConfigurationPanel }
                             </>
                         }
                         >   
