@@ -169,8 +169,8 @@ class FlowNodeStateUpdateHandler extends FlowState {
 
     UpdateMarkedOutcomes(predictorNodeID, outcomeName, maximize) {
         /*
-        This funciton is used to update the selected outcomes within the 
-        prededictor edge wether they need to mimized or maximized.
+        This function is used to update the selected outcomes within the
+        predict edge whether they need to minimized or maximized.
         */
         const flow = this.state.flow
         this.setState({
