@@ -1,56 +1,51 @@
-// Import the library for making requests
-import axios from 'axios'
-
 // Import constants
-import { TRAIN_SERVER } from "../const"
+import { 
+    SUPPORTED_REGRESSION_MODELS,
+    SUPPORTED_CLASSIFICATION_MODELS,
+    SUPPORTED_METRICS
 
-export async function FetchPredictors(predictorType: string) {
+ } from "../predictorinfo"
+
+export function FetchPredictors(predictorType: string) {
     /*
     This function is the controller used to contact the backend to
     fetch the type of predictors availaible
     */
     
-    // Create the Predictor URL
-    const PredictorURL = TRAIN_SERVER + `/predictors/${predictorType}`
+    let predictorResp: string[]
 
-    // Fetch the Predictors and return the promise that returns the 
-    // JSON
-   let response = await fetch(PredictorURL) 
-   let predictorResp = await response.json()
+    if (predictorType == "regressor") {
+        predictorResp = Object.keys(SUPPORTED_REGRESSION_MODELS)
+    } else if (predictorType == "classifier") {
+        predictorResp = Object.keys(SUPPORTED_CLASSIFICATION_MODELS)
+    }
     
     return predictorResp
 
 }
 
-export async function FetchMetrics(predictorType: string) {
+export function FetchMetrics() {
     /*
     This function is the controller used to contact the backend to
     fetch the type of predictors availaible
     */
     
-    // Create the Predictor URL
-    const URL = TRAIN_SERVER + `/metrics/${predictorType}`
-
-    // Fetch the metrics
-   let response = await fetch(URL) 
-   let metrics = await response.json()
-    
-    return metrics
+    return SUPPORTED_METRICS
 }
 
-export async function FetchParams(predictorType: string, predictorName: string) {
+export function FetchParams(predictorType: string, predictorName: string) {
     /*
     This function is the controller used to contact the backend to
     fetch the configuration parameters for the predictor
     */
+    let params
+ 
+    if (predictorType == "regressor") {
+        params = SUPPORTED_REGRESSION_MODELS[predictorName]
+    } else if (predictorType == "classifier") {
+        params = SUPPORTED_CLASSIFICATION_MODELS[predictorName]
+    }
     
-    // Create the Predictor URL
-    const URL = TRAIN_SERVER + `/default_params/${predictorType}/${predictorName}`
-
-    // Fetch the Predictors and return the promise that returns the 
-    // JSON
-    let response = await fetch(URL) 
-    let params = await response.json()
-        
     return params
+    
 }

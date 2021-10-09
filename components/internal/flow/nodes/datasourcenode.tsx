@@ -1,3 +1,5 @@
+import React from "react";
+
 // Import 3rd pary components
 import { Card } from "react-bootstrap"
 // Import React Flow
@@ -14,17 +16,18 @@ import {
 } from '../../../../pages/projects/[projectID]/experiments/new'
 
 
+
 export interface DataSourceNodeData {
     // Project ID that this new experiment belongs to.
     readonly ProjectID: string,
 
-    // Datasources availaible
+    // Data sources available
     readonly TaggedDataList: TaggedDataInfoList,
 
-    // Datasources Selected
+    // Data sources Selected
     readonly SelectedDataTag: any,
 
-    // We get passed the Node Definitions and a hook to update the defintion
+    // We get passed the Node Definitions and a hook to update the definition
     readonly SelfStateUpdateHandler: any,
 }
 
@@ -53,11 +56,16 @@ export default function DataSourceNode(props): React.ReactElement {
                         <div className="flex justify-between mb-4 content-center">
                             <select name='dataset' className="w-24"
                                 onChange={
-                                    event => data.SelfStateUpdateHandler(
-                                        data.TaggedDataList.filter(
-                                                data => event.target.value === data.DataSource.id
-                                            )[0]
+                                    event => {
+                                        console.log("Selected: ", event.target.value)
+                                        const filteredSelectedData = data.TaggedDataList.filter(
+                                            data => event.target.value === data.DataSource.id
+                                        )[0]
+                                        console.log("FDS: ", filteredSelectedData)
+                                        data.SelfStateUpdateHandler(
+                                            filteredSelectedData
                                         )
+                                    }
                                 }
                                 >
                                 { DataSourceNames.map(dataSource => 
