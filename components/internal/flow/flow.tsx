@@ -130,7 +130,6 @@ class FlowNodeStateUpdateHandler extends FlowState {
                         ...node.data,
                         state: newState
                     }
-                    console.log("UPDATING PREDICTOR NODE DATA: ", newState)
                 }
 
                 // We also need to edit the data
@@ -170,8 +169,8 @@ class FlowNodeStateUpdateHandler extends FlowState {
 
     UpdateMarkedOutcomes(predictorNodeID, outcomeName, maximize) {
         /*
-        This funciton is used to update the selected outcomes within the 
-        prededictor edge wether they need to mimized or maximized.
+        This function is used to update the selected outcomes within the
+        predict edge whether they need to minimized or maximized.
         */
         const flow = this.state.flow
         this.setState({
@@ -243,7 +242,6 @@ class FlowNodeStateUpdateHandler extends FlowState {
         */
         const flow = this.state.flow
 
-        console.log("State while Initializing inside Handler: ", newState)
         this.setState({
             flow: flow.map(node => {
                 if (node.id === NodeID) {
@@ -251,7 +249,6 @@ class FlowNodeStateUpdateHandler extends FlowState {
                         ...node.data,
                         state: newState
                     }
-                    console.log("New Node Data", node.data)
                 }
                 return node
             })
@@ -429,7 +426,9 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
                 "context": {},
                 "action": {},
                 "outcome": {}
-            }
+            },
+            trainSliderValue: 80,
+            testSliderValue: 20
         }
     }
     _addPredictorNode() {
@@ -454,7 +453,6 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
             flowInstanceElem[0].position.y - 100
         )
 
-        console.log(MaxPredictorNodeY)
         graphCopy.push({
             id: NodeID,
             type: 'predictornode',
