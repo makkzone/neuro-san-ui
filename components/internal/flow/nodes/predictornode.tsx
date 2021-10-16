@@ -146,7 +146,8 @@ export default function PredictorNode(props): React.ReactElement {
             predictorParams: state.predictorParams || params,
             caoState: CAOState,
             trainSliderValue: 80,
-            testSliderValue: 20
+            testSliderValue: 20,
+            rngSeedValue: ''
         })
     }
 
@@ -429,6 +430,17 @@ export default function PredictorNode(props): React.ReactElement {
             >
             </SliderComponent>
             <label>100%</label>
+        </div>
+        <div>
+            <label>
+                Data split RNG seed:
+                <input id="split_rng"
+                       type={"number"}
+                       value={state.rngSeedValue}
+                       onChange={ event => { setState({...state, rngSeedValue: event.target.value}) } }
+                       className="input-field"
+                        />
+            </label>
         </div>
     </Card.Body>
 
