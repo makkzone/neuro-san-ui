@@ -15,6 +15,7 @@ import {
     TaggedDataInfoList 
 } from '../../../../pages/projects/[projectID]/experiments/new'
 
+var debug = require('debug')('data_source_node')
 
 
 export interface DataSourceNodeData {
@@ -57,11 +58,11 @@ export default function DataSourceNode(props): React.ReactElement {
                             <select name='dataset' className="w-24"
                                 onChange={
                                     event => {
-                                        console.log("Selected: ", event.target.value)
+                                        debug("Selected: ", event.target.value)
                                         const filteredSelectedData = data.TaggedDataList.filter(
                                             data => event.target.value === data.DataSource.id
                                         )[0]
-                                        console.log("FDS: ", filteredSelectedData)
+                                        debug("FDS: ", filteredSelectedData)
                                         data.SelfStateUpdateHandler(
                                             filteredSelectedData
                                         )

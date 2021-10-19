@@ -1,6 +1,7 @@
 import AWS from 'aws-sdk'
 import Notification, { NotificationProps } from '../controller/notification'
 
+var debug = require('debug')('aws')
 
 export default class AWSUtils {
 
@@ -37,8 +38,8 @@ export default class AWSUtils {
         }
         s3.putObject(params)
             .on('httpUploadProgress', (evt) => {
-                console.log(evt)
-                console.log(Math.round((evt.loaded / evt.total) * 100))
+                debug(evt)
+                debug(Math.round((evt.loaded / evt.total) * 100))
             })
             .send((err) => {
                 // Notify the UI
