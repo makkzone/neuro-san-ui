@@ -21,6 +21,8 @@ import { MaximumBlue } from "../../const"
 import uuid from 'react-uuid'
 import AWSUtils from "../../utils/aws"
 
+var debug = require('debug')('new_project')
+
 // Declare the Props for this component
 export interface NewProps {
 
@@ -70,7 +72,7 @@ export default function NewProject(props: NewProps) {
                 description: description,
                 // time: new Date().toString()
             }
-            console.log("Project: ", projectMessage)
+            debug("Project: ", projectMessage)
 
             // Trigger the Project Controller
             const accessionProjectResp: Project = await AccessionProject(projectMessage)
@@ -98,7 +100,7 @@ export default function NewProject(props: NewProps) {
                 s3Key
             )
         }
-        console.log("Datasource: ", dataSourceMessage)
+        debug("Datasource: ", dataSourceMessage)
 
          // Trigger the Data Source Controller
          const profile: Profile = await AccessionDatasourceS3(dataSourceMessage)
@@ -152,11 +154,11 @@ export default function NewProject(props: NewProps) {
             id: uuid()
         }
 
-        console.log("DataTag: ", dataTagMessage)
+        debug("DataTag: ", dataTagMessage)
 
         // Trigger the Data tag Controller
         const savedDataTag = await AccessionDataTag(dataTagMessage)
-        console.log("Saved DT: ", savedDataTag)
+        debug("Saved DT: ", savedDataTag)
 
         // Inform the view to update its state
         props.UpdateHook && props.UpdateHook()

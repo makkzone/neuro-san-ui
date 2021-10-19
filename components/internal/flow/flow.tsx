@@ -35,6 +35,8 @@ import {
     TaggedDataInfoList 
 } from '../../../pages/projects/[projectID]/experiments/new'
 
+var debug = require('debug')('flow')
+
 /*
 The following interface is used to define the props
 that the flow expects.
@@ -92,14 +94,14 @@ class FlowNodeStateUpdateHandler extends FlowState {
 
         const flow = this.state.flow
 
-        console.log("State in Data Node: ", state)
+        debug("State in Data Node: ", state)
 
         // Update the selected data source
         this.setState({
             // datanodeState: state,
             flow: flow.map(node => {
                 if (node.type === 'predictornode' || node.type === 'prescriptornode') {
-                    console.log("Recreating node: ", node.type)
+                    debug("Recreating node: ", node.type)
                     node.data = {
                         ...node.data,
                         SelectedDataTag: state.LatestDataTag,
@@ -176,7 +178,7 @@ class FlowNodeStateUpdateHandler extends FlowState {
         this.setState({
             flow: flow.map(node => {
                 if (node.id === predictorNodeID) {
-                    console.log("maximize: ", maximize)
+                    debug("maximize: ", maximize)
                     let outcomeData = {...node.data.state.caoState.outcome}
                     outcomeData[outcomeName].maximize = maximize
 
@@ -307,7 +309,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
 
             })
 
-            console.log("FS: ", this.state.flow)
+            debug("FS: ", this.state.flow)
 
         } else {
             this.state.flow = this._initializeFlow()
