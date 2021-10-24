@@ -677,7 +677,6 @@ export default class Flow extends FlowUtils {
         */
         reactFlowInstance.fitView();
         this.setState({flowInstance: reactFlowInstance})
-        this.setState({flow: reactFlowInstance.getElements()})
     }
 
     componentDidUpdate(prevProps, newProps, snapshot) {
