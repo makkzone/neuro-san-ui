@@ -657,10 +657,19 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
     }
 
     onNodeDragStop(event, node) {
+        /*
+        This event handler is called when a user moves a node in the flow such as data node, predictor node or
+        prescriptor node.
+        It is only called when the user finishes moving the node. It updates the current state with the new position
+        for the dragged node.
+         */
         const graphCopy = this.state.flow.slice()
 
+        // Locate which node was moved
         const movedNode = graphCopy.find(n => n.id === node.id);
         if (movedNode) {
+            // Only update if we found the node. There should be no circumstances where the node is not found here
+            // since we're in the event handler for the node itself, but just to be careful.
             movedNode.position = node.position
             this.setState({flow: graphCopy})
         }
