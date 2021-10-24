@@ -656,6 +656,11 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         
     }
 
+    _onMove(event, node) {
+        let graphCopy = this.state.flow.slice()
+        graphCopy.find(n => n.id === node.id).position = node.position
+        this.setState({flow: graphCopy})
+    }
 
 }
 
@@ -674,6 +679,7 @@ export default class Flow extends FlowUtils {
         */
         reactFlowInstance.fitView();
         this.setState({flowInstance: reactFlowInstance})
+        this.setState({flow: reactFlowInstance.getElements()})
     }
 
     componentDidUpdate(prevProps, newProps, snapshot) {
@@ -709,9 +715,10 @@ export default class Flow extends FlowUtils {
                     snapGrid={[10, 10]}
                     nodeTypes={NodeTypes}
                     edgeTypes={EdgeTypes}
+                    onNodeDrag={this._onMove.bind(this)}
                     >
-                        <Background color="#000" gap={5} />
-                    </ReactFlow>
+                    <Background color="#000" gap={5} />
+                </ReactFlow>
             </div>
         </Container>
     }
