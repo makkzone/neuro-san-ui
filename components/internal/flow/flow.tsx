@@ -657,9 +657,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
     }
 
     _onMove(event, node) {
-        let graphCopy = this.state.flow.slice()
-        graphCopy.find(n => n.id === node.id).position = node.position
-        this.setState({flow: graphCopy})
+        this.state.flow.find(n => n.id === node.id).position = node.position
     }
 
 }
