@@ -128,13 +128,13 @@ export default function PredictorNode(props): React.ReactElement {
         }
 
         CAOMapping.context.forEach(
-            context => CAOState.context[context] = true
+            c => CAOState.context[c] = state.caoState.context[c] ?? true
         )
         CAOMapping.action.forEach(
-            action => CAOState.action[action] = true
+            a => CAOState.action[a] = state.caoState.action[a] ?? true
         )
         CAOMapping.outcome.forEach(
-            outcome => CAOState.outcome[outcome] = false
+            o => CAOState.outcome[o] = state.caoState.outcome[o] ?? false
         )
 
         setState({
