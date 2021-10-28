@@ -34,6 +34,7 @@ import {
 import { 
     TaggedDataInfoList 
 } from '../../../pages/projects/[projectID]/experiments/new'
+import Notification, {NotificationProps} from "../../../controller/notification";
 
 var debug = require('debug')('flow')
 
@@ -554,7 +555,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
     _addPrescriptorNode() {
         /*
         This function adds a prescriptor node to the Graph. The only
-        requirement for this is that atleast one predictor exists.
+        requirement for this is that at least one predictor exists.
     
     
         @param graph: Current state of the graph
@@ -566,13 +567,25 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
             this._getPrescriptorNodes(this.state.flow)).length != 0
     
         // If it already exists, return
-        if (prescriptorExists) { return this.state.flow }
+        if (prescriptorExists) {
+            let notificationProps: NotificationProps = {
+                Type: "error",
+                Message: "Only one prescriptor per experiment is currently supported",
+                Description: ``
+            }
+            Notification(notificationProps)
+            return this.state.flow
+        }
     
         // Make sure predictor nodes exist, if not alert
         const predictorNodes = this._getPredictorNodes(this.state.flow)
         if (predictorNodes.length == 0) {
-            // TODO: Convert Alert to notification
-            alert("Please add a Predictor First")
+            let notificationProps: NotificationProps = {
+                Type: "error",
+                Message: "Add at least one predictor before adding a prescriptor",
+                Description: ``
+            }
+            Notification(notificationProps)
             return this.state.flow
         }
         

@@ -13,6 +13,7 @@ import uuid from "react-uuid"
 import { 
     TaggedDataInfoList 
 } from '../../../pages/projects/[projectID]/experiments/new'
+import Notification, {NotificationProps} from "../../../controller/notification";
 
 
 
@@ -117,8 +118,7 @@ export const addPredictorNode = (graph, nodeDefs, setNodeDefs, DataTag) => {
 export const addPrescriptorNode = (graph, CAOMapping) => {
     /*
     This function adds a prescriptor node to the Graph. The only
-    requirement for this is that atleast one predictor exists.
-
+    requirement for this is that at least one predictor exists.
 
     @param graph: Current state of the graph
     @param CAOMapping: CAOMapping for the Data Source that the user has selected
@@ -134,8 +134,12 @@ export const addPrescriptorNode = (graph, CAOMapping) => {
     // Make sure predictor nodes exist, if not alert
     const predictorNodes = getPredictorNodes(graph)
     if (predictorNodes.length == 0) {
-        // TODO: Convert Alert to notification
-        alert("Please add a Predictor First")
+        let notificationProps: NotificationProps = {
+            Type: "error",
+            Message: "Add at least one predictor before adding a prescriptor",
+            Description: ``
+        }
+        Notification(notificationProps)
         return graph
     }
     
