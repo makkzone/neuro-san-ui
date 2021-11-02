@@ -51,15 +51,6 @@ export interface PrescriptorNodeData {
     // This map describes the field names
     readonly SelectedDataTag: DataTag,
 
-    // Marked Outcomes is a dictionary that contains
-    // the outcome marked with if its maximum or not and
-    // if it is marked or not
-    readonly MarkedOutcomes: any,
-
-    // This is a function passed to update the state
-    // of the marked outcomes as to maximize or minimize them.
-    readonly UpdateMarkedOutcomes: any,
-
     readonly EvaluatorOverrideCode: any,
     readonly UpdateEvaluateOverrideCode: any,
 
@@ -81,8 +72,7 @@ export default function PrescriptorNode(props): React.ReactElement {
     const { 
         NodeID, 
         state, setState,
-        MarkedOutcomes, UpdateMarkedOutcomes,
-        EvaluatorOverrideCode, UpdateEvaluateOverrideCode 
+        EvaluatorOverrideCode, UpdateEvaluateOverrideCode
     } = data
 
     const updateCAOState = ( event, espType: string ) => {
@@ -164,7 +154,7 @@ export default function PrescriptorNode(props): React.ReactElement {
         initializedState.network.outputs[0].size = CAOMapping.action.length
 
         setState({
-            ...state,
+            ...initializedState,
             caoState: CAOState
         })
         
@@ -176,31 +166,35 @@ export default function PrescriptorNode(props): React.ReactElement {
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [tabs] = useState(['Representation', 'Evolution Parameters', 'Objective Configuration', 'Override Evaluator'])
 
-    const ObjectiveConfigurationPanel = state.evolution.fitness.map((outcomeDict, _) => {
-        return <div className="p-2 grid grid-cols-2 gap-4 mb-2" key={outcomeDict.metric_name} >
-            <label>{outcomeDict.metric_name}: </label>
-            <select 
-                key="objective-select" 
-                value={outcomeDict.maximize}
-                onChange={event => {
-                    let fitness = state.evolution.fitness.map(fitnessDict => {
-                        if (fitnessDict.metric_name === outcomeDict.metric_name) {
-                            fitnessDict.maximize = event.target.value
-                        }
-                    })
-                    setState({
-                        evolution: {
-                            fitness: fitness,
-                            ...state.evolution
-                        },
-                        ...state
-                    })
-                }}
-                >
-                <option value="true">Maximize</option>
-                <option value="false">Minimize</option>
-            </select>
-        </div>
+    // Create a min/max selector for each desired outcome
+    // TODO: filtering by checked outcomes only currently not working
+    const ObjectiveConfigurationPanel = state.evolution.fitness
+        .map((metric, _) => {
+            return <div className="p-2 grid grid-cols-2 gap-4 mb-2" key={metric.metric_name} >
+                <label>{metric.metric_name}: </label>
+                <select
+                    key="objective-select"
+                    value={metric.maximize}
+                    onChange={event => {
+                        // Update maximize/minimize status for selected outcome
+                        let fitness = state.evolution.fitness
+                            .map(f => {return ({metric_name: f.metric_name, maximize: event.target.value})})
+
+                        console.log('New fitness: ' + JSON.stringify(fitness))
+                        // Update settings for this objective in the state
+                        setState({
+                            ...state,
+                            evolution: {
+                                ...state.evolution,
+                                fitness: fitness
+                            },
+                        })
+                    }}
+                    >
+                    <option value="true">Maximize</option>
+                    <option value="false">Minimize</option>
+                </select>
+            </div>
     })
     
     const EvaluatorOverridePanel = <Card.Body>
