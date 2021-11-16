@@ -34,7 +34,7 @@ export default async function HackyStream<ObjectType extends MDServerObject>(url
             const chunk = utf8decoder.decode(value)
             buffer += chunk
         } catch (e) {
-            // invalid json input, set to null
+            // invalid json input, log the error
             debug(`Error Serializing ${resourceName}: `, e)
         }
     }
