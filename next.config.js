@@ -11,4 +11,8 @@ module.exports = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  publicRuntimeConfig: {
+    // Will be available on both server and client
+    md_server_url: process.env.MD_SERVER_URL,
+  }
 }
