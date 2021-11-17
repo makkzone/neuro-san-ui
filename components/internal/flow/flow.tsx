@@ -725,7 +725,8 @@ export default class Flow extends FlowUtils {
         // Build the Contents of the Flow
         return <Container>
 
-            {/* Only render if ElementsSelectable is true */}
+            {/* If this is set to true, it disables the buttons
+            and the flow from update */}
             {this.ElementsSelectable && <div className="grid grid-cols-2 gap-4 mb-4">
                 <Button size="sm"
                         onClick={this._addPredictorNode.bind(this)}
