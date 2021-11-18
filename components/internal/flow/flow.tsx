@@ -488,7 +488,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // Check if Prescriptor Node exists
         const prescriptorNodes = this._getPrescriptorNodes(this.state.flow)
     
-        // If there's already a prescriptor node, add edge to that
+        // If there's already a prescriptor node, add edge to that prescriptor node
         if (prescriptorNodes.length != 0) { 
             const prescriptorNode = prescriptorNodes[0]
             graphCopy = this._addEdgeToPrescriptorNode(
