@@ -168,9 +168,8 @@ class FlowNodeStateUpdateHandler extends FlowState {
                         }
                     }
                 }
-
                 return node
-            })
+            }),
         })
     }
 
@@ -488,7 +487,11 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // Check if Prescriptor Node exists
         const prescriptorNodes = this._getPrescriptorNodes(this.state.flow)
     
+<<<<<<< HEAD
         // If there's already a prescriptor node, add edge to that prescriptor node
+=======
+        // If there's already a prescriptor node, add edge to that
+>>>>>>> 4921d42ce50c32a514f5ecf4446f0a9e9af1a1ec
         if (prescriptorNodes.length != 0) { 
             const prescriptorNode = prescriptorNodes[0]
             graphCopy = this._addEdgeToPrescriptorNode(
@@ -501,7 +504,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         this.setState({flow: graphCopy})
     }
 
-    _getInitialPrescriptorState() {
+    _getInitialPrescriptorState(fitness) {
         /*
         This function returns the initial prescriptor
         state.
@@ -542,7 +545,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
                 "mutation_factor": 0.1,
                 "initialization_distribution": "orthogonal",
                 "initialization_range": 1,
-                "fitness": []
+                "fitness": fitness
             },
             LEAF: {
                 representation: "NNWeights",
@@ -598,6 +601,15 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // Create a unique ID
         const NodeID = uuid()
 
+<<<<<<< HEAD
+=======
+        // Get outcomes from all current predictors to use for prescriptor fitness
+        const outcomes = predictorNodes.map(node => node.data.state.caoState.outcome)
+
+        // Default to maximizing outcomes until user tells us otherwise
+        const fitness = outcomes.map(outcome => ({ metric_name: Object.keys(outcome)[0], maximize: true}))
+
+>>>>>>> 4921d42ce50c32a514f5ecf4446f0a9e9af1a1ec
         // Add a Prescriptor Node
         const flowInstanceElem = this.state.flowInstance.getElements()
         graphCopy.push({
@@ -606,7 +618,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
             data:  { 
                 NodeID: NodeID,
                 SelectedDataTag: this.state.flow[0].data.SelectedDataTag.LatestDataTag,
-                state: this._getInitialPrescriptorState(),
+                state: this._getInitialPrescriptorState(fitness),
                 setState: state => this.PrescriptorSetStateHandler(state, NodeID),
                 EvaluatorOverrideCode: EvaluateCandidateCode,
                 UpdateEvaluateOverrideCode: value => this.UpdateEvaluateOverrideCode(NodeID, value)
@@ -750,6 +762,7 @@ export default class Flow extends FlowUtils {
                     nodeTypes={NodeTypes}
                     edgeTypes={EdgeTypes}
                     onNodeDragStop={this.onNodeDragStop.bind(this)}
+                    style={{zIndex: 0}}
                 >
                     <Controls
                         style={{
