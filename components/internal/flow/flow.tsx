@@ -33,7 +33,12 @@ import {
 import { 
     TaggedDataInfoList 
 } from '../../../pages/projects/[projectID]/experiments/new'
+import {
+    CAOChecked,
+    PredictorState
+} from "./nodes/predictornode"
 import Notification, {NotificationProps} from "../../../controller/notification";
+import {PredictorParams} from "../../../predictorinfo";
 
 
 var debug = require('debug')('flow')
@@ -137,11 +142,12 @@ class FlowNodeStateUpdateHandler extends FlowState {
         this.setState({
             flow: flow.map(node => {
 
+                console.log("NS: ", newState)
                 // If this is the predictor node
                 if (node.id === NodeID) {
                     node.data = {
                         ...node.data,
-                        state: newState
+                        ParentPredictorState: newState
                     }
                 }
 
@@ -427,23 +433,26 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         /*
         This function returns the initial state of the predictor
         */
-        return {  
+        let initialCAOState: CAOChecked = {
+            context: {},
+            action: {},
+            outcome: {}
+        }
+        let predictorParams: PredictorParams = {}
+        let initialState: PredictorState = {
             selectedPredictorType: "regressor",
-            predictors: [],
             selectedPredictor: "",
-            metrics: [],
             selectedMetric: "",
-            predictorParams: {},
-            caoState: {
-                "context": {},
-                "action": {},
-                "outcome": {}
-            },
+            predictorParams: predictorParams,
+            caoState: initialCAOState,
             trainSliderValue: 80,
             testSliderValue: 20,
-            rngSeedValue: ''
+            rngSeedValue: null
         }
+
+        return initialState
     }
+
     _addPredictorNode() {
         /*
         This function adds a predictor node to the Graph while supplying
@@ -471,9 +480,9 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
             type: 'predictornode',
             data: { 
                 NodeID: NodeID,
-                SelectedDataTag: this.state.flow[0].data.SelectedDataTag.LatestDataTag,
-                state: this._getInitialPredictorState(),
-                setState: state => this.PredictorSetStateHandler(state, NodeID)
+                SelectedDataSourceId: this.state.flow[0].data.SelectedDataSourceId,
+                ParentPredictorState: this._getInitialPredictorState(),
+                SetParentPredictorState: state => this.PredictorSetStateHandler(state, NodeID)
             },
             position: { 
                 x: flowInstanceElem[0].position.x + 250, 

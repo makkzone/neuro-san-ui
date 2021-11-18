@@ -19,6 +19,7 @@ import {DataSources} from "../../../../controller/datasources/types";
 import {BrowserFetchDataSources} from "../../../../controller/datasources/fetch";
 import {BrowserFetchDataTags} from "../../../../controller/datatag/fetch";
 import {DataTags} from "../../../../controller/datatag/types";
+import loadTaggedDataList from "../../../../controller/fetchdatataglist";
 
 var debug = require('debug')('data_source_node')
 
@@ -45,27 +46,7 @@ export default function DataSourceNode(props): React.ReactElement {
 
     // Fetch the Data Sources and the Data Tags
     useEffect(() => {
-        async function loadTaggedDataList() {
-            if (projectId) {
-                const dataSources: DataSources = await BrowserFetchDataSources(projectId)
-                if (dataSources.length > 0) {
-                    let taggedDataList: TaggedDataInfoList = []
-                    for (let iter = 0; iter < dataSources.length; iter++) {
-                        const dataSource = dataSources[iter]
-                        const dataTags: DataTags = await BrowserFetchDataTags(dataSource.id)
-                        if (dataTags.length > 0) {
-                            const taggedData: TaggedDataInfo = {
-                                DataSource: dataSource,
-                                LatestDataTag: dataTags[0]
-                            }
-                            taggedDataList.push(taggedData)
-                        }
-                    }
-                    setTaggedDataList(taggedDataList)
-                }
-            }
-        }
-        loadTaggedDataList()
+        (async () => setTaggedDataList(await loadTaggedDataList(projectId)))()
     }, [projectId])
 
 

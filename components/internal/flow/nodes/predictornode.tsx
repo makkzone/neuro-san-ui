@@ -1,7 +1,7 @@
 // Import React components
-import { 
-    useState, 
-    useEffect 
+import {
+    useState,
+    useEffect, SetStateAction, Dispatch
 } from 'react'
 
 import Slider from 'rc-slider';
@@ -43,6 +43,30 @@ import {
     DataTag,
     CAOType
 } from "../../../../controller/datatag/types"
+import {loadDataTag} from "../../../../controller/fetchdatataglist";
+import {StringBool} from "../../../../controller/base_types";
+import {PredictorParams} from "../../../../predictorinfo";
+
+
+// Interface for Predictor CAO
+export interface CAOChecked {
+    context: StringBool,
+    action: StringBool,
+    outcome: StringBool
+}
+
+
+// State of the predictor
+export interface PredictorState {
+    selectedPredictorType: "regressor" | "classifier",
+    selectedPredictor: string,
+    selectedMetric: string,
+    predictorParams: PredictorParams,
+    caoState: CAOChecked,
+    trainSliderValue: number,
+    testSliderValue: number,
+    rngSeedValue: number
+}
 
 // Define an interface for the structure
 // of the nodes
@@ -54,11 +78,13 @@ export interface PredictorNodeData {
     readonly NodeID: string,
 
     // This map describes the field names
-    readonly SelectedDataTag: DataTag
+    readonly SelectedDataSourceId: number
 
-    readonly state: any,
-    readonly setState: any
+    readonly ParentPredictorState: PredictorState,
+    readonly SetParentPredictorState: Dispatch<SetStateAction<PredictorState>>
 }
+
+
 
 const SliderComponent = Slider.createSliderWithTooltip(Slider);
 
@@ -72,82 +98,161 @@ export default function PredictorNode(props): React.ReactElement {
     const data: PredictorNodeData = props.data
 
     // Unpack the data
-    const { NodeID, state, setState } = data
+    const { NodeID, ParentPredictorState, SetParentPredictorState } = data
 
-    const initialize = () => {
-        /*
-        This controller invocation is used for the fetching of the predictors and the
-        metrics of a certain kind of predictor. This only needs to be used once
-        when the content is being rendered
-        */
-
-        // Invoke the controllers
-        const predictorsFetched = FetchPredictors("regressor")
-        const metricsFetched = FetchMetrics()
-
-        // Run Fetch Parameters
-        const params = FetchParams(state.selectedPredictorType, predictorsFetched[0])
-
-        // We add a key called value to adjust for user input
-        Object.keys(params).forEach(key => {
-            if (typeof(params[key].default_value) === "object") {
-                params[key].value = params[key].default_value[0]
-            } else {
-                params[key].value = params[key].default_value
-            }
-        })
-
-        // Construct the CAO Map
-        let CAOMapping = {
-            context: [],
-            action: [],
-            outcome: []
-        }
-
-        Object.keys(data.SelectedDataTag.fields).forEach(fieldName => {
-            const field = data.SelectedDataTag.fields[fieldName]
-            switch (field.esp_type.toString()) {
-                case "CONTEXT":
-                    CAOMapping.context.push(fieldName)
-                    break
-                case "ACTION":
-                    CAOMapping.action.push(fieldName)
-                    break
-                case "OUTCOME":
-                    CAOMapping.outcome.push(fieldName)
-                    break
-            }
-        })
-        // Create the initial state for the CAO Map
-        let CAOState = {
-            "context": {},
-            "action": {},
-            "outcome": {}
-        }
-
-        CAOMapping.context.forEach(
-            c => CAOState.context[c] = state.caoState.context[c] ?? true
-        )
-        CAOMapping.action.forEach(
-            a => CAOState.action[a] = state.caoState.action[a] ?? true
-        )
-        CAOMapping.outcome.forEach(
-            o => CAOState.outcome[o] = state.caoState.outcome[o] ?? false
-        )
-
-        setState({
-            ...state, 
-            predictors: predictorsFetched,
-            selectedPredictor: state.selectedPredictor || predictorsFetched[0],
-            metrics: metricsFetched,
-            selectedMetric: state.selectedMetric || metricsFetched[0],
-            predictorParams: state.predictorParams || params,
-            caoState: CAOState,
-            trainSliderValue: state.trainSliderValue || '80',
-            testSliderValue: state.testSliderValue || '20',
-            rngSeedValue: state.rngSeedValue || ''
-        })
+    // Fetch the available metrics and predictors and these are not state dependant
+    const metrics = FetchMetrics()
+    const predictors = {
+        regressor: FetchPredictors("regressor"),
+        classifiers: FetchPredictors("classifier")
     }
+
+    // Since predictors change
+    const [taggedData, setTaggedData] = useState(null)
+
+    console.log("PPS: ", ParentPredictorState)
+
+    // Fetch the Data Tag
+    useEffect(() => {
+        (async () => setTaggedData(await loadDataTag(data.SelectedDataSourceId)))()
+    }, [data.SelectedDataSourceId])
+
+    // We need to take an intersection of what is in the state (for eg: Predictor Node Creation)
+    // and what we can fetch for missing values and update the initial state - but do this only
+    // once the data tags are loaded
+    useEffect(() => {
+
+            const SelectedPredictor = ParentPredictorState.selectedPredictor || predictors[ParentPredictorState.selectedPredictorType][0]
+            const SelectedMetric = ParentPredictorState.selectedMetric || metrics[0]
+
+            // Initialize the parameters to be from the state
+            let predictorParams = ParentPredictorState.predictorParams
+
+            // If the parameters do not exist in the state update them
+            if (!predictorParams || Object.keys(predictorParams).length === 0) {
+                predictorParams = FetchParams(ParentPredictorState.selectedPredictorType, SelectedPredictor)
+                // We add a key called value to adjust for user input
+                Object.keys(predictorParams).forEach(key => {
+                    if (typeof(predictorParams[key].default_value) === "object") {
+                        // If the type has to be a choice, select the first choice
+                        predictorParams[key].value = predictorParams[key].default_value[0]
+                    } else {
+                        // If the type is a number, string or a bool
+                        // use the default value as the user selected value
+                        predictorParams[key].value = predictorParams[key].default_value
+                    }
+                })
+            }
+
+            // Build the CAO State for the data tag from the given data source id
+            const CAOState: CAOChecked = ParentPredictorState.caoState
+
+            if (taggedData) {
+                Object.keys(taggedData.fields).forEach(fieldName => {
+                    const field = taggedData.fields[fieldName]
+                    switch (field.esp_type.toString()) {
+                        case "CONTEXT":
+                            CAOState.context[fieldName] = CAOState.context[fieldName] ?? true
+                            break
+                        case "ACTION":
+                            CAOState.action[fieldName] = CAOState.action[fieldName] ?? true
+                            break
+                        case "OUTCOME":
+                            CAOState.outcome[fieldName] = CAOState.outcome[fieldName] ?? true
+                            break
+                    }
+                })
+            }
+
+
+            SetParentPredictorState({
+                ...ParentPredictorState,
+                selectedPredictor: SelectedPredictor,
+                selectedMetric: SelectedMetric,
+                predictorParams: predictorParams,
+                caoState: CAOState,
+                trainSliderValue: ParentPredictorState.trainSliderValue || 80,
+                testSliderValue: ParentPredictorState.testSliderValue || 20,
+                rngSeedValue: ParentPredictorState.rngSeedValue || 0
+            })
+
+    },
+    [taggedData])
+
+    // const initialize = () => {
+    //     /*
+    //     This controller invocation is used for the fetching of the predictors and the
+    //     metrics of a certain kind of predictor. This only needs to be used once
+    //     when the content is being rendered
+    //     */
+    //
+    //     // Fetch the params of the first predictor
+    //     const params = FetchParams(
+    //         ParentPredictorState.selectedPredictorType,
+    //         predictors.regressors[0]
+    //     )
+    //
+    //     // We add a key called value to adjust for user input
+    //     Object.keys(params).forEach(key => {
+    //         if (typeof(params[key].default_value) === "object") {
+    //             // If the type has to be a choice, select the first choice
+    //             params[key].value = params[key].default_value[0]
+    //         } else {
+    //             // If the type is a number, string or a bool
+    //             // use the default value as the user selected value
+    //             params[key].value = params[key].default_value
+    //         }
+    //     })
+    //
+    //     // Construct the CAO Map
+    //     let CAOMapping = {
+    //         context: [],
+    //         action: [],
+    //         outcome: []
+    //     }
+    //
+    //     Object.keys(taggedData.fields).forEach(fieldName => {
+    //         const field = taggedData.fields[fieldName]
+    //         switch (field.esp_type.toString()) {
+    //             case "CONTEXT":
+    //                 CAOMapping.context.push(fieldName)
+    //                 break
+    //             case "ACTION":
+    //                 CAOMapping.action.push(fieldName)
+    //                 break
+    //             case "OUTCOME":
+    //                 CAOMapping.outcome.push(fieldName)
+    //                 break
+    //         }
+    //     })
+    //     // Create the initial state for the CAO Map
+    //     let CAOState = {
+    //         "context": {},
+    //         "action": {},
+    //         "outcome": {}
+    //     }
+    //
+    //     CAOMapping.context.forEach(
+    //         c => CAOState.context[c] = ParentPredictorState.caoState.context[c] ?? true
+    //     )
+    //     CAOMapping.action.forEach(
+    //         a => CAOState.action[a] = ParentPredictorState.caoState.action[a] ?? true
+    //     )
+    //     CAOMapping.outcome.forEach(
+    //         o => CAOState.outcome[o] = ParentPredictorState.caoState.outcome[o] ?? false
+    //     )
+    //
+    //     SetParentPredictorState({
+    //         ...ParentPredictorState,
+    //         selectedPredictor: ParentPredictorState.selectedPredictor || predictorsFetched[0],
+    //         selectedMetric: ParentPredictorState.selectedMetric || metrics[0],
+    //         predictorParams: ParentPredictorState.predictorParams || params,
+    //         caoState: CAOState,
+    //         trainSliderValue: ParentPredictorState.trainSliderValue || '80',
+    //         testSliderValue: ParentPredictorState.testSliderValue || '20',
+    //         rngSeedValue: ParentPredictorState.rngSeedValue || ''
+    //     })
+    // }
 
     const onPredictorTypeChange = (predictorType: string) => {
         /*
@@ -156,20 +261,8 @@ export default function PredictorNode(props): React.ReactElement {
         when the content is being rendered
         */
 
-        // Invoke the controllers
-        const predictorsFetched = FetchPredictors(predictorType)
-        const metricsFetched = FetchMetrics()
-
-        // Run Fetch Parameters
-        onPredictorChange(predictorsFetched[0])
-
-        setState({
-            ...state,
-            predictors: predictorsFetched,
-            selectedPredictor: predictorsFetched[0],
-            metrics: metricsFetched,
-            selectedMetric: metricsFetched[0]
-        })
+        const NewPred = predictors[predictorType][0]
+        onPredictorChange(NewPred)
 
     }
 
@@ -180,7 +273,7 @@ export default function PredictorNode(props): React.ReactElement {
         */
 
         // Invoke the controller
-        const params = FetchParams(state.selectedPredictorType, 
+        const params = FetchParams(ParentPredictorState.selectedPredictorType,
             selectedPredictor)
 
         // We add a key called value to adjust for user input
@@ -193,8 +286,8 @@ export default function PredictorNode(props): React.ReactElement {
         })
         
         // Write the state.
-        setState({
-            ...state, 
+        SetParentPredictorState({
+            ...ParentPredictorState,
             predictorParams: params,
             selectedPredictor: selectedPredictor
         })
@@ -207,10 +300,10 @@ export default function PredictorNode(props): React.ReactElement {
         parameters.
         */
         const { name, value } = event.target
-        let paramsCopy = {...state.predictorParams}
+        let paramsCopy = {...ParentPredictorState.predictorParams}
         paramsCopy[name].value = value
-        setState({
-            ...state, 
+        SetParentPredictorState({
+            ...ParentPredictorState,
             predictorParams: paramsCopy
         })
     }
@@ -221,18 +314,18 @@ export default function PredictorNode(props): React.ReactElement {
         parameter checkboxes.
         */
         const { name, checked } = event.target
-        let paramsCopy = {...state.predictorParams}
+        let paramsCopy = {...ParentPredictorState.predictorParams}
         paramsCopy[name].value = checked
-        setState({
-            ...state, 
+        SetParentPredictorState({
+            ...ParentPredictorState,
             predictorParams: paramsCopy
         })
     }
 
     const onTrainSliderChange = newValue => {
         let newTestSliderValue = 100 - newValue
-        setState({
-            ...state,
+        SetParentPredictorState({
+            ...ParentPredictorState,
             testSliderValue: newTestSliderValue,
             trainSliderValue: newValue
         });
@@ -240,8 +333,8 @@ export default function PredictorNode(props): React.ReactElement {
 
     const onTestSliderChange = newValue => {
         let newTrainSliderValue = 100 - newValue
-        setState({
-            ...state,
+        SetParentPredictorState({
+            ...ParentPredictorState,
             testSliderValue: newValue,
             trainSliderValue: newTrainSliderValue
         });
@@ -249,12 +342,12 @@ export default function PredictorNode(props): React.ReactElement {
 
     const updateCAOState = ( event, espType: string ) => {
         const { name, checked } = event.target
-        let caoStateCopy = { ...state.caoState }
+        let caoStateCopy = { ...ParentPredictorState.caoState }
 
         caoStateCopy[espType][name] = checked
         
-        setState({
-            ...state, 
+        SetParentPredictorState({
+            ...ParentPredictorState,
             caoState: caoStateCopy
         })
     }
@@ -264,19 +357,19 @@ export default function PredictorNode(props): React.ReactElement {
     // as DidComponentUpdate function for class Components or similar to
     // getInitialProps/getServerSideProps for a NextJS Component.
     // Here useEffect also provides no clean up function
-    useEffect(() => {
-        // Do not initialize if state has been initialized before
-        // We check this using the context variable, the parent should
-        // in an uninitialized state pass it as an empty dict.
-        if (state.caoState.context && Object.keys(state.caoState.context).length == 0) {
-            initialize()
-        }
-    }, [])
+    // useEffect(() => {
+    //     // Do not initialize if state has been initialized before
+    //     // We check this using the context variable, the parent should
+    //     // in an uninitialized state pass it as an empty dict.
+    //     if (ParentPredictorState.caoState.context && Object.keys(ParentPredictorState.caoState.context).length == 0) {
+    //         initialize()
+    //     }
+    // }, [])
 
     // Here we initialize again, if the data source changes
-    useEffect(() => {
-        initialize()
-    }, [data.SelectedDataTag])
+    // useEffect(() => {
+    //     initialize()
+    // }, [data.SelectedDataTag])
 
     // We want to have a tabbed predictor configuration
     // and thus we build the following component
@@ -302,11 +395,11 @@ export default function PredictorNode(props): React.ReactElement {
                                             <label className="m-0">Predictor: </label>
                                             <select 
                                                 name={ `${NodeID}-predictor` } 
-                                                value={ state.selectedPredictor } 
+                                                value={ ParentPredictorState.selectedPredictor }
                                                 onChange={ event => onPredictorChange(event.target.value) }
                                                 className="w-32">
-                                                    { state.predictors && 
-                                                        state.predictors.map(
+                                                    { ParentPredictorState.selectedPredictorType &&
+                                                        predictors[ParentPredictorState.selectedPredictorType].map(
                                                                 (predictor, _) => 
                                                                     <option key={ predictor } value={ predictor }>
                                                                         { predictor }
@@ -320,11 +413,10 @@ export default function PredictorNode(props): React.ReactElement {
                                             <label className="m-0">Metric: </label>
                                             <select 
                                                 name={ `${NodeID}-metric` } 
-                                                value={ state.selectedMetric } 
-                                                onChange={ event => { setState({...state, selectedMetric: event.target.value}) } }
+                                                value={ ParentPredictorState.selectedMetric }
+                                                onChange={ event => { SetParentPredictorState({...ParentPredictorState, selectedMetric: event.target.value}) } }
                                                 className="w-32">
-                                                     { state.metrics && 
-                                                        state.metrics.map(
+                                                     { metrics.map(
                                                                 (metric, _) => 
                                                                     <option key={metric} value={ metric }>
                                                                         { metric }
@@ -337,56 +429,60 @@ export default function PredictorNode(props): React.ReactElement {
 
     // Create the configuration Panel
     const PredictorConfigurationPanel = <Card.Body className="overflow-y-auto h-40 text-xs" id={ `${NodeID}-predictorconfig` }>
-                                        {   state.predictorParams &&
-                                            Object.keys(state.predictorParams).map((param, _) => 
+                                        {   ParentPredictorState.predictorParams &&
+                                            Object.keys(ParentPredictorState.predictorParams).map((param, _) =>
                                                 <div className="grid grid-cols-3 gap-4 mb-2" key={param} >
                                                     <label className="capitalize">{ param }: </label>
                                                     { 
-                                                        state.predictorParams[param].type === "int" && 
+                                                        ParentPredictorState.predictorParams[param].type === "int" &&
                                                         <input 
                                                         name={param} 
                                                         type="number" 
                                                         step="1" 
-                                                        defaultValue={ state.predictorParams[param].default_value }
-                                                        value={ state.predictorParams[param].value }
+                                                        defaultValue={ ParentPredictorState.predictorParams[param].default_value.toString() }
+                                                        value={ ParentPredictorState.predictorParams[param].value.toString() }
                                                         onChange={onParamChange}
                                                         /> 
                                                     }
                                                     { 
-                                                        state.predictorParams[param].type === "float" && 
+                                                        ParentPredictorState.predictorParams[param].type === "float" &&
                                                         <input 
                                                         name={param} 
                                                         type="number" 
                                                         step="0.1"
-                                                        defaultValue={ state.predictorParams[param].default_value }
-                                                        value={ state.predictorParams[param].value }
+                                                        defaultValue={ ParentPredictorState.predictorParams[param].default_value.toString() }
+                                                        value={ ParentPredictorState.predictorParams[param].value.toString() }
                                                         onChange={onParamChange}
                                                         /> 
                                                     }
                                                     { 
-                                                        state.predictorParams[param].type === "bool" && (
+                                                        ParentPredictorState.predictorParams[param].type === "bool" && (
                                                         <input 
                                                             type="checkbox" 
                                                             name={param} 
-                                                            defaultChecked={ state.predictorParams[param].default_value }
-                                                            checked={ state.predictorParams[param].value }
+                                                            defaultChecked={ Boolean(ParentPredictorState.predictorParams[param].default_value) }
+                                                            checked={ Boolean(ParentPredictorState.predictorParams[param].value) }
                                                             onChange={onPredictorParamCheckBoxChange}
                                                         />
                                                         )
                                                     }
                                                     { 
-                                                        typeof(state.predictorParams[param].type) === "object" && 
+                                                        typeof(ParentPredictorState.predictorParams[param].type) === "object" &&
                                                         <select 
                                                             name={param}
-                                                            value={ state.predictorParams[param].value } 
+                                                            value={ ParentPredictorState.predictorParams[param].value.toString() }
                                                             onChange={onParamChange}
                                                             className="w-32">
-                                                            { state.predictorParams[param].type.map(
-                                                                (value, _) => <option key={value} value={ value }>{ value }</option>)
+                                                            {
+                                                                // This requirement to wrap the type in an Array arises
+                                                                // from a limitation of typescript where it lets ypu define a union
+                                                                // over several datatype but can't determine if you call any function on it
+                                                                Array(ParentPredictorState.predictorParams[param].type).map(
+                                                                (value: string, _) => <option key={value} value={ value }>{ value }</option>)
                                                             }
                                                         </select>
                                                     }
-                                                    <Tooltip content={ state.predictorParams[param].description } >
+                                                    <Tooltip content={ ParentPredictorState.predictorParams[param].description } >
                                                         <InfoSignIcon />
                                                     </Tooltip>
                                                 </div>
@@ -407,7 +503,7 @@ export default function PredictorNode(props): React.ReactElement {
                 onChange={ event => onTrainSliderChange(event) }
                 min={0}
                 max={100}
-                value={state.trainSliderValue}
+                value={ParentPredictorState.trainSliderValue}
                 defaultValue={80}
             >
             </SliderComponent>
@@ -423,7 +519,7 @@ export default function PredictorNode(props): React.ReactElement {
                 onChange={ event => onTestSliderChange(event) }
                 min={0}
                 max={100}
-                value={state.testSliderValue}
+                value={ParentPredictorState.testSliderValue}
                 defaultValue={20}
             >
             </SliderComponent>
@@ -434,8 +530,8 @@ export default function PredictorNode(props): React.ReactElement {
                 Data split RNG seed:
                 <input id="split_rng"
                        type={"number"}
-                       value={state.rngSeedValue}
-                       onChange={ event => { setState({...state, rngSeedValue: event.target.value}) } }
+                       value={ParentPredictorState.rngSeedValue}
+                       onChange={ event => { SetParentPredictorState({...ParentPredictorState, rngSeedValue: parseInt(event.target.value)}) } }
                        className="input-field"
                         />
             </label>
@@ -450,7 +546,7 @@ export default function PredictorNode(props): React.ReactElement {
                 
             <Card border="warning" style={{ height: "100%" }}>
                     <Card.Body className="flex justify-center content-center">
-                        <Text className="mr-2">{ state.selectedPredictor || "Predictor" }</Text>
+                        <Text className="mr-2">{ ParentPredictorState.selectedPredictor || "Predictor" }</Text>
                         <Popover
                         content={
                             <>
@@ -485,14 +581,14 @@ export default function PredictorNode(props): React.ReactElement {
                                 className="overflow-y-auto h-40 text-xs">
                                     <Text className="mb-2">Context</Text>
                                     {
-                                        Object.keys(state.caoState.context).map(element => 
+                                        Object.keys(ParentPredictorState.caoState.context).map(element =>
                                         <div key={element} className="grid grid-cols-2 gap-4 mb-2">
                                             <label className="capitalize"> {element} </label>
                                             <input 
                                             name={element}
                                             type="checkbox" 
                                             defaultChecked={true}
-                                            checked={state.caoState.context[element]}
+                                            checked={ParentPredictorState.caoState.context[element]}
                                             onChange={event => updateCAOState(event, "context")}/>
                                         </div>)
                                     }
@@ -508,7 +604,7 @@ export default function PredictorNode(props): React.ReactElement {
                                 className="overflow-y-auto h-40 text-xs">
                                     <Text className="mb-2">Actions</Text>
                                     {
-                                        Object.keys(state.caoState.action).map(element => 
+                                        Object.keys(ParentPredictorState.caoState.action).map(element =>
                                         <div 
                                         key={element} className="grid grid-cols-2 gap-4 mb-2">
                                             <label className="capitalize"> {element} </label>
@@ -516,7 +612,7 @@ export default function PredictorNode(props): React.ReactElement {
                                             name={element}
                                             type="checkbox" 
                                             defaultChecked={true}
-                                            checked={state.caoState.action[element]}
+                                            checked={ParentPredictorState.caoState.action[element]}
                                             onChange={event => updateCAOState(event, "action")}/>
                                         </div>)
                                     }
@@ -532,14 +628,14 @@ export default function PredictorNode(props): React.ReactElement {
                                 className="overflow-y-auto h-40 text-xs">
                                     <Text className="mb-2">Outcomes</Text>
                                     {
-                                        Object.keys(state.caoState.outcome).map(element => 
+                                        Object.keys(ParentPredictorState.caoState.outcome).map(element =>
                                         <div key={element} className="grid grid-cols-2 gap-4 mb-2">
                                             <label className="capitalize"> {element} </label>
                                             <input 
                                             name={element}
                                             type="checkbox" 
                                             defaultChecked={false}
-                                            checked={state.caoState.outcome[element]}
+                                            checked={ParentPredictorState.caoState.outcome[element]}
                                             onChange={event => updateCAOState(event, "outcome")}/>
                                         </div>)
                                     }
