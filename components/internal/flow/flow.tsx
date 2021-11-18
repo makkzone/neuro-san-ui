@@ -93,7 +93,7 @@ class FlowNodeStateUpdateHandler extends FlowState {
         flowInstance: null
     }
 
-    DataNodeStateUpdateHandler(state) {
+    DataNodeStateUpdateHandler(dataSourceId: number) {
         /*
         This handler is used to update the predictor
         and prescriptor nodes with the new data tag
@@ -101,16 +101,21 @@ class FlowNodeStateUpdateHandler extends FlowState {
 
         const flow = this.state.flow
 
-        debug("State in Data Node: ", state)
-
         // Update the selected data source
         this.setState({
             flow: flow.map(node => {
+                if (node.type === 'datanode') {
+                    debug("Recreating Data node: ", node.type)
+                    node.data = {
+                        ...node.data,
+                        SelectedDataSourceId: dataSourceId
+                    }
+                }
                 if (node.type === 'predictornode' || node.type === 'prescriptornode') {
                     debug("Recreating node: ", node.type)
                     node.data = {
                         ...node.data,
-                        SelectedDataTag: state.LatestDataTag,
+                        // SelectedDataTag: state.LatestDataTag,
                     }
                 }
                 return node
@@ -340,9 +345,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
             id: InputDataNodeID,
             type: 'datanode',
             data: { 
-                ProjectID: this.ProjectID, 
-                TaggedDataList: this.TaggedDataList,
-                SelectedDataTag: this.TaggedDataList[0],
+                ProjectID: this.ProjectID,
                 SelfStateUpdateHandler: this.DataNodeStateUpdateHandler.bind(this)
             },
             position: { x: 100, y: 100 }

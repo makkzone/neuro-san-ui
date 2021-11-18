@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 
 // Import 3rd pary components
 import { Card } from "react-bootstrap"
@@ -11,68 +11,97 @@ import {
 import { Card as BleuprintCard, Elevation } from "@blueprintjs/core";
 
 // Import types
-import { 
-    TaggedDataInfoList 
+import {
+    TaggedDataInfo,
+    TaggedDataInfoList
 } from '../../../../pages/projects/[projectID]/experiments/new'
+import {DataSources} from "../../../../controller/datasources/types";
+import {BrowserFetchDataSources} from "../../../../controller/datasources/fetch";
+import {BrowserFetchDataTags} from "../../../../controller/datatag/fetch";
+import {DataTags} from "../../../../controller/datatag/types";
 
 var debug = require('debug')('data_source_node')
 
 
 export interface DataSourceNodeData {
     // Project ID that this new experiment belongs to.
-    readonly ProjectID: string,
+    readonly ProjectID: number,
 
-    // Data sources available
-    readonly TaggedDataList: TaggedDataInfoList,
-
-    // Data sources Selected
-    readonly SelectedDataTag: any,
+    // Data sources Selected Unique Id
+    readonly SelectedDataSourceId: number,
 
     // We get passed the Node Definitions and a hook to update the definition
     readonly SelfStateUpdateHandler: any,
 }
 
+
 export default function DataSourceNode(props): React.ReactElement {
-    /*
-    This function is responsible to render a form to select a
-    DataSource.
-    NOTE: THIS RENDERS FORMS ELEMENT BUT NOT THE FORM ITSELF
-    THE FORM MUST BE RENDERED AS A PARENT CONTAINER OF THIS.
-    */
 
     const data: DataSourceNodeData = props.data
+    const projectId: number = data.ProjectID
+    const selectedDataSourceId: number = data.SelectedDataSourceId
 
-    // Extract the DataTag Names
-    const DataSourceNames: string[] = data.TaggedDataList.map(data => data.DataSource.name)
+    const [taggedDataList, setTaggedDataList] = useState([])
+
+    // Fetch the Data Sources and the Data Tags
+    useEffect(() => {
+        async function loadTaggedDataList() {
+            if (projectId) {
+                const dataSources: DataSources = await BrowserFetchDataSources(projectId)
+                if (dataSources.length > 0) {
+                    let taggedDataList: TaggedDataInfoList = []
+                    for (let iter = 0; iter < dataSources.length; iter++) {
+                        const dataSource = dataSources[iter]
+                        const dataTags: DataTags = await BrowserFetchDataTags(dataSource.id)
+                        if (dataTags.length > 0) {
+                            const taggedData: TaggedDataInfo = {
+                                DataSource: dataSource,
+                                LatestDataTag: dataTags[0]
+                            }
+                            taggedDataList.push(taggedData)
+                        }
+                    }
+                    setTaggedDataList(taggedDataList)
+                }
+            }
+        }
+        loadTaggedDataList()
+    }, [projectId])
+
 
     // Create the Component structure
-    return <BleuprintCard 
-        interactive={ true } 
-        elevation={ Elevation.TWO } 
+    return <BleuprintCard
+        interactive={ true }
+        elevation={ Elevation.TWO }
         style={ { padding: 0, width: "8rem", height: "6rem" } }>
             <Card border="warning" style={{height: "100%"}}>
                 <Card.Header>Data Source</Card.Header>
                 <Card.Body>
                     <div className="flex-col flex content-center">
                         <div className="flex justify-between mb-4 content-center">
-                            <select name='dataset' className="w-24"
-                                onChange={
-                                    event => {
-                                        debug("Selected: ", event.target.value)
-                                        const filteredSelectedData = data.TaggedDataList.filter(
-                                            data => event.target.value === data.DataSource.name
-                                        )[0]
-                                        debug("FDS: ", filteredSelectedData)
-                                        data.SelfStateUpdateHandler(
-                                            filteredSelectedData
-                                        )
-                                    }
-                                }
+                            {
+                                taggedDataList.length > 0 &&
+                                <select name='dataset' className="w-24"
+                                         onChange={
+                                             event => {
+                                                 debug("Selected: ", event.target.value)
+                                                 const filteredSelectedData = taggedDataList.filter(
+                                                     data => parseInt(event.target.value) === data.DataSource.id
+                                                 )[0]
+                                                 debug("FDS: ", filteredSelectedData)
+                                                 data.SelfStateUpdateHandler(
+                                                     filteredSelectedData.id
+                                                 )
+                                             }
+                                         }
+                                         defaultValue={selectedDataSourceId || taggedDataList[0].DataSource.id}
                                 >
-                                { DataSourceNames.map(dataSource => 
-                                        <option key={dataSource} value={dataSource}>{dataSource}</option>
-                                )}
-                            </select>
+                                    {taggedDataList.map(data =>
+                                        <option key={data.DataSource.id}
+                                                value={data.DataSource.id}>{data.DataSource.name}</option>
+                                    )}
+                                </select>
+                            }
                         </div>
                     </div>
                 </Card.Body>
