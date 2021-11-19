@@ -178,7 +178,16 @@ export default function PrescriptorNode(props): React.ReactElement {
                     onChange={event => {
                         // Update maximize/minimize status for selected outcome
                         let fitness = state.evolution.fitness
-                            .map(f => {return ({metric_name: f.metric_name, maximize: event.target.value})})
+                            .map(f => {
+                                if (f.metric_name === metric.metric_name) {
+                                    return {
+                                        metric_name: f.metric_name,
+                                        maximize: event.target.value
+                                    }
+                                } else {
+                                    return f
+                                }
+                            })
 
                         console.log('New fitness: ' + JSON.stringify(fitness))
                         // Update settings for this objective in the state
