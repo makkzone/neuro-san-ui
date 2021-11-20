@@ -465,7 +465,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // Check if Prescriptor Node exists
         const prescriptorNodes = this._getPrescriptorNodes(this.state.flow)
 
-        // If there's already a prescriptor node, add edge to that
+        // If there's already a prescriptor node, add edge to that prescriptor node
         if (prescriptorNodes.length != 0) { 
             const prescriptorNode = prescriptorNodes[0]
             graphCopy = this._addEdgeToPrescriptorNode(
@@ -558,7 +558,6 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
     
         // Make sure predictor nodes exist, if not alert
         const predictorNodes = this._getPredictorNodes(this.state.flow)
-
         if (predictorNodes.length == 0) {
             let notificationProps: NotificationProps = {
                 Type: "error",
@@ -624,7 +623,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         Note: This edits the graph inPlace
         */
         // Make sure there are no data nodes
-        let removableElements = elementsToRemove.filter(element => element.type != "datanode")
+        const removableElements = elementsToRemove.filter(element => element.type != "datanode")
 
         const predictorIdsBeingRemoved = this._getPredictorNodes(elementsToRemove).
             map(node => node.id)
@@ -750,7 +749,6 @@ export default class Flow extends FlowUtils {
                     nodeTypes={NodeTypes}
                     edgeTypes={EdgeTypes}
                     onNodeDragStop={this.onNodeDragStop.bind(this)}
-                    style={{zIndex: 0}}
                 >
                     <Controls
                         style={{

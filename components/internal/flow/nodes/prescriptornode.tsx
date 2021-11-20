@@ -167,7 +167,6 @@ export default function PrescriptorNode(props): React.ReactElement {
     const [tabs] = useState(['Representation', 'Evolution Parameters', 'Objective Configuration', 'Override Evaluator'])
 
     // Create a min/max selector for each desired outcome
-    // TODO: filtering by checked outcomes only currently not working
     const ObjectiveConfigurationPanel = state.evolution.fitness
         .map((metric, _) => {
             return <div className="p-2 grid grid-cols-2 gap-4 mb-2" key={metric.metric_name} >
