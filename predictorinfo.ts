@@ -309,8 +309,17 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
 export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {}
 
 export const SUPPORTED_METRICS: string[] = [
+/*
+This list should match the list of supported metrics in the backend.
+See SUPPORTED_METRICS in framework/metrics/metrics_manager.py
+The string should match exactly the `name` property of the MetricsCalculator.
+For instance, "Mean Absolute Error" must match MeanAbsoluteError.name in framework/metrics/mean_absolute_error.py
+ */
     "Mean Absolute Error",
-    "F1 Score",
-    "Accuracy Score",
+    "Mean Squared Error",
+    "Root Mean Square Error",
+    "F1 score",
+    "R2 score",
+    "Accuracy score",
     "Matthews correlation coefficient"
 ]

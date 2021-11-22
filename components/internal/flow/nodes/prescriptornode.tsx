@@ -37,18 +37,11 @@ import {
     CAOType
 } from "../../../../controller/datatag/types"
 
-// Import Code Mirror
 import { Controlled as CodeMirror } from 'react-codemirror2'
-// require('codemirror/mode/python/python');
-
-// const CodeMirror2 = dynamic(() => {
-//     require('codemirror/mode/python/python')
-//     import('react-codemirror2').then(module => module.Controlled)
-// }, {ssr: false})
 
 // Define an interface for the structure
 // of the nodes
-export interface PredictorNodeData {
+export interface PrescriptorNodeData {
     // The ID of the nodes. This will
     // be important to issues name to
     // form elements. The form elements thus
@@ -57,15 +50,6 @@ export interface PredictorNodeData {
 
     // This map describes the field names
     readonly SelectedDataTag: DataTag,
-
-    // Marked Outcomes is a dictionary that contains
-    // the outcome marked with if its maximum or not and
-    // if it is marked or not
-    readonly MarkedOutcomes: any,
-
-    // This is a function passed to update the state
-    // of the marked outcomes as to maximize or minimize them.
-    readonly UpdateMarkedOutcomes: any,
 
     readonly EvaluatorOverrideCode: any,
     readonly UpdateEvaluateOverrideCode: any,
@@ -77,33 +61,28 @@ export interface PredictorNodeData {
 
 export default function PrescriptorNode(props): React.ReactElement {
     /*
-    This function is responsible to render the Predictor Node
+    This function is responsible for rendering the prescriptor node.
     NOTE: THIS RENDERS FORMS ELEMENT BUT NOT THE FORM ITSELF
     THE FORM MUST BE RENDERED AS A PARENT CONTAINER OF THIS.
     */
 
-    const data: PredictorNodeData = props.data
+    const data: PrescriptorNodeData = props.data
 
     // Unpack the mapping
     const { 
         NodeID, 
-        state, setState, 
-        MarkedOutcomes, UpdateMarkedOutcomes,
-        EvaluatorOverrideCode, UpdateEvaluateOverrideCode 
+        state, setState,
+        EvaluatorOverrideCode, UpdateEvaluateOverrideCode
     } = data
 
     const updateCAOState = ( event, espType: string ) => {
         const { name, checked } = event.target
         let caoStateCopy = { ...state.caoState }
 
-        if (espType === "outcome") {
-            caoStateCopy[espType][name]["checked"] = checked
-        } else {
-            caoStateCopy[espType][name] = checked
-        }
-        
+        caoStateCopy[espType][name] = checked
+
         setState({
-            ...state, 
+            ...state,
             caoState: caoStateCopy
         })
     }
@@ -153,12 +132,7 @@ export default function PrescriptorNode(props): React.ReactElement {
                 CAOState.action[action] = true
             }
         })
-        CAOMapping.outcome.forEach(
-            outcome => CAOState.outcome[outcome] = {
-                checked: false,
-                maximize: true
-            }
-        )
+
         CAOMapping.outcome.forEach(outcome => {
             if (outcome in state.caoState.outcome) {
                 CAOState.outcome[outcome] = {
@@ -178,9 +152,9 @@ export default function PrescriptorNode(props): React.ReactElement {
         initializedState.network.inputs[0].size = CAOMapping.context.length
         initializedState.network.hidden_layers[0].layer_params.units = 2 * CAOMapping.context.length
         initializedState.network.outputs[0].size = CAOMapping.action.length
-        
+
         setState({
-            ...state,
+            ...initializedState,
             caoState: CAOState
         })
         
@@ -192,36 +166,46 @@ export default function PrescriptorNode(props): React.ReactElement {
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [tabs] = useState(['Representation', 'Evolution Parameters', 'Objective Configuration', 'Override Evaluator'])
 
-    const ObjectiveConfigurationPanel = state.evolution.fitness.map((outcomeDict, _) => {
-        return <div className="p-2 grid grid-cols-2 gap-4 mb-2" key={outcomeDict.metric_name} >
-            <label>{outcomeDict.metric_name}: </label>
-            <select 
-                key="objective-select" 
-                value={outcomeDict.maximize}
-                onChange={event => {
-                    let fitness = state.evolution.fitness.map(fitnessDict => {
-                        if (fitnessDict.metric_name === outcomeDict.metric_name) {
-                            fitnessDict.maximize = event.target.value
-                        }
-                    })
-                    setState({
-                        evolution: {
-                            fitness: fitness,
-                            ...state.evolution
-                        },
-                        ...state
-                    })
-                }}
-                >
-                <option value="true">Maximize</option>
-                <option value="false">Minimize</option>
-            </select>
-        </div>
+    // Create a min/max selector for each desired outcome
+    const ObjectiveConfigurationPanel = state.evolution.fitness
+        .map((metric, _) => {
+            return <div className="p-2 grid grid-cols-2 gap-4 mb-2" key={metric.metric_name} >
+                <label>{metric.metric_name}: </label>
+                <select
+                    key="objective-select"
+                    value={metric.maximize}
+                    onChange={event => {
+                        // Update maximize/minimize status for selected outcome
+                        let fitness = state.evolution.fitness
+                            .map(f => {
+                                if (f.metric_name === metric.metric_name) {
+                                    return {
+                                        metric_name: f.metric_name,
+                                        maximize: event.target.value
+                                    }
+                                } else {
+                                    return f
+                                }
+                            })
+
+                        console.log('New fitness: ' + JSON.stringify(fitness))
+                        // Update settings for this objective in the state
+                        setState({
+                            ...state,
+                            evolution: {
+                                ...state.evolution,
+                                fitness: fitness
+                            },
+                        })
+                    }}
+                    >
+                    <option value="true">Maximize</option>
+                    <option value="false">Minimize</option>
+                </select>
+            </div>
     })
     
-
-
-    const EvaluatorOverridePanel = <Card.Body> 
+    const EvaluatorOverridePanel = <Card.Body>
                                         <CodeMirror
                                             value={EvaluatorOverrideCode}
                                             options={{
@@ -237,8 +221,6 @@ export default function PrescriptorNode(props): React.ReactElement {
                                             />
 
                                     </Card.Body>
-    
-
     
     // We need to maintain state for selected Representation
     // Possible options are: 

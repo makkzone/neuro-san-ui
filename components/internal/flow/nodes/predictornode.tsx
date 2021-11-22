@@ -340,7 +340,7 @@ export default function PredictorNode(props): React.ReactElement {
         });
     };
 
-    const updateCAOState = ( event, espType: string ) => {
+    const onUpdateCAOState = ( event, espType: string ) => {
         const { name, checked } = event.target
         let caoStateCopy = { ...ParentPredictorState.caoState }
 
@@ -589,7 +589,7 @@ export default function PredictorNode(props): React.ReactElement {
                                             type="checkbox" 
                                             defaultChecked={true}
                                             checked={ParentPredictorState.caoState.context[element]}
-                                            onChange={event => updateCAOState(event, "context")}/>
+                                            onChange={event => onUpdateCAOState(event, "context")}/>
                                         </div>)
                                     }
                                 </Card.Body>
@@ -613,7 +613,7 @@ export default function PredictorNode(props): React.ReactElement {
                                             type="checkbox" 
                                             defaultChecked={true}
                                             checked={ParentPredictorState.caoState.action[element]}
-                                            onChange={event => updateCAOState(event, "action")}/>
+                                            onChange={event => onUpdateCAOState(event, "action")}/>
                                         </div>)
                                     }
                                 </Card.Body>
@@ -636,7 +636,7 @@ export default function PredictorNode(props): React.ReactElement {
                                             type="checkbox" 
                                             defaultChecked={false}
                                             checked={ParentPredictorState.caoState.outcome[element]}
-                                            onChange={event => updateCAOState(event, "outcome")}/>
+                                            onChange={event => onUpdateCAOState(event, "outcome")}/>
                                         </div>)
                                     }
                                 </Card.Body>

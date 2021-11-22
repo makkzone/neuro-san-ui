@@ -2,6 +2,7 @@
 import ReactFlow, {
     addEdge,
     Background,
+    Controls,
     removeElements
 } from 'react-flow-renderer'
 
@@ -16,22 +17,22 @@ import EdgeTypes from './edges/types'
 import NodeTypes from './nodes/types'
 
 // Import 3rd party components
-import { 
-    Button, 
-    Container 
+import {
+    Button,
+    Container
 } from "react-bootstrap"
 
 // Import Constants
-import { 
-    MaximumBlue, 
+import {
+    MaximumBlue,
     InputDataNodeID,
     OutputOverrideCode,
     EvaluateCandidateCode
 } from '../../../const'
 
 // Import types
-import { 
-    TaggedDataInfoList 
+import {
+    TaggedDataInfoList
 } from '../../../pages/projects/[projectID]/experiments/new'
 import {
     CAOChecked,
@@ -39,7 +40,6 @@ import {
 } from "./nodes/predictornode"
 import Notification, {NotificationProps} from "../../../controller/notification";
 import {PredictorParams} from "../../../predictorinfo";
-
 
 var debug = require('debug')('flow')
 
@@ -98,6 +98,23 @@ class FlowNodeStateUpdateHandler extends FlowState {
         flowInstance: null
     }
 
+    extractCheckedOutcomes(predictorNodes) {
+        /*
+        The function extracts all the outcome names
+        that are checked across predictors
+         */
+        const outcomes = []
+        predictorNodes.forEach(node => {
+            const nodeOutcomes = node.data.state.caoState.outcome
+            Object.keys(nodeOutcomes).forEach(outcome => {
+                if (nodeOutcomes[outcome]) {
+                    outcomes.push(outcome)
+                }
+            })
+        })
+        return outcomes;
+    }
+
     DataNodeStateUpdateHandler(dataSourceId: number) {
         /*
         This handler is used to update the predictor
@@ -136,14 +153,21 @@ class FlowNodeStateUpdateHandler extends FlowState {
         prescriptor edges linked to it.
         The NodeID parameter is used to bind it to the state
         */
+        // TODO: This logic will start to break when we have intermediate nodes for eg: RIO
 
         const flow = this.state.flow
 
+        // Get all the outgoing prescriptor edges from this predictor and get the
+        // target node id
+
+        const outgoingPrescriptorIds = flow.
+        filter(elem => elem.type === "prescriptoredge" && elem.source === NodeID).
+            map(elem => elem.target)
+
         this.setState({
             flow: flow.map(node => {
+                // If this is the right predictor node
 
-                console.log("NS: ", newState)
-                // If this is the predictor node
                 if (node.id === NodeID) {
                     node.data = {
                         ...node.data,
@@ -151,24 +175,38 @@ class FlowNodeStateUpdateHandler extends FlowState {
                     }
                 }
 
-                // We also need to edit the data
-                // in all the prescriptor node that are connected
-                // to this node
-                if (node.type === "prescriptornode") {
-                    // We need the outcome Information to pass the outcomes
-                    // selected
-                    const outcomeData = newState.caoState.outcome
-                    let fitness = []
-                    
-                    Object.keys(outcomeData).forEach(outcome => {
-                        if (outcomeData[outcome]) {
-                            fitness.push({
-                                metric_name: outcome,
-                                maximize: "true"
-                            })
+                // If the node is a prescriptor that is connected to this node
+                if (node.type === "prescriptornode" && outgoingPrescriptorIds.includes(node.id)) {
+
+                    // Find all the predictors connected to this node except the one that triggered
+                    // this update. We don't fetch the one that just got updated because the data in
+                    // that node is stale. Remember, we are inside the set state handler so the state there
+                    // is before the update
+                    const predictorIds = flow.
+                    filter(elem => elem.type === "prescriptoredge" && elem.target === node.id && elem.source != NodeID).
+                        map(elem => elem.source)
+                    const predictors = flow.filter(elem => predictorIds.includes(elem.id))
+
+                    // Take the Union of all the checked outcomes on the predictors
+                    let checkedOutcomes = this.extractCheckedOutcomes(predictors)
+
+                    // Append the new state outcome
+                    Object.keys(newState.caoState.outcome).forEach(outcome => {
+                        if (newState.caoState.outcome[outcome]) {
+                            checkedOutcomes.push(outcome)
                         }
                     })
-                    // debugger
+
+                    // Make this a set
+                    checkedOutcomes = checkedOutcomes.filter((value, index, self) => self.indexOf(value) === index)
+
+                    let fitness = checkedOutcomes.map(outcome => {
+                        return {
+                            metric_name: outcome,
+                            maximize: "true"
+                        }
+                    })
+
                     node.data = {
                         ...node.data,
                         state: {
@@ -180,38 +218,8 @@ class FlowNodeStateUpdateHandler extends FlowState {
                         }
                     }
                 }
-
                 return node
-            })
-        })
-    }
-
-    UpdateMarkedOutcomes(predictorNodeID, outcomeName, maximize) {
-        /*
-        This function is used to update the selected outcomes within the
-        predict edge whether they need to minimized or maximized.
-        */
-        const flow = this.state.flow
-        this.setState({
-            flow: flow.map(node => {
-                if (node.id === predictorNodeID) {
-                    debug("maximize: ", maximize)
-                    let outcomeData = {...node.data.state.caoState.outcome}
-                    outcomeData[outcomeName].maximize = maximize
-
-                    node.data = {
-                        ...node.data,
-                        state: {
-                            ...node.data.state,
-                            caoState: {
-                                ...node.data.state.caoState,
-                                outcome: outcomeData
-                            }
-                        }
-                    }
-                }
-                return node
-            })
+            }),
         })
     }
 
@@ -307,19 +315,9 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
                         setState: state => this.PrescriptorSetStateHandler(state, node.id)
                     }
                 } else if (node.type === "prescriptoredge") {
-
-                    // We need to get the predictor attached
-                    // to the source of this edge
-                    const predictorNodeID = this._getPredictorNodes(props.Flow).filter(predictorNode => predictorNode.id === node.source)[0].id 
                     node.data = {
                         ...node.data,
-                        UpdateMarkedOutcomes: (outcomeName, 
-                            maximize) => this.UpdateMarkedOutcomes(
-                                predictorNodeID, 
-                                outcomeName, maximize
-                        ),
-                        UpdateOutputOverrideCode: value => this.UpdateOutputOverrideCode(
-                            node.id, value)
+                        UpdateOutputOverrideCode: value => this.UpdateOutputOverrideCode(node.id, value)
                     }
                 }
 
@@ -384,24 +382,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
             element => element.type === 'datanode')
     }
 
-    _filterCheckedOutcomes(outcomeData) {
-        /*
-        This function filters out the outcomes that
-        are checked and returns them
-        */
-
-        let checkedOutcomes = {}
-        Object.keys(outcomeData).forEach(outcome => {
-            if (outcomeData[outcome].checked) {
-                checkedOutcomes[outcome] = outcomeData[outcome]
-            }
-        })
-
-        return checkedOutcomes
-
-    }
-
-    _addEdgeToPrescriptorNode(graph, checkedOutcomes, 
+    _addEdgeToPrescriptorNode(graph,
         predictorNodeID, prescriptorNodeID) {
 
         let graphCopy = [...graph]
@@ -413,12 +394,6 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
             animated: false,
             type: 'prescriptoredge',
             data: {
-                MarkedOutcomes: checkedOutcomes,
-                UpdateMarkedOutcomes: (outcomeName, 
-                    maximize) => this.UpdateMarkedOutcomes(
-                        predictorNodeID, 
-                        outcomeName, maximize
-                ),
                 OutputOverrideCode: OutputOverrideCode,
                 UpdateOutputOverrideCode: value => this.UpdateOutputOverrideCode(
                     EdgeId, value)
@@ -501,22 +476,20 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
     
         // Check if Prescriptor Node exists
         const prescriptorNodes = this._getPrescriptorNodes(this.state.flow)
-    
-        // If it already exists add edge to that
-        if (prescriptorNodes.length != 0) { 
 
+        // If there's already a prescriptor node, add edge to that prescriptor node
+        if (prescriptorNodes.length != 0) { 
             const prescriptorNode = prescriptorNodes[0]
             graphCopy = this._addEdgeToPrescriptorNode(
-                graphCopy, 
-                this._filterCheckedOutcomes(prescriptorNode.data.state.caoState.outcome),
+                graphCopy,
                 NodeID, prescriptorNode.id
             )
         }
-        
+
         this.setState({flow: graphCopy})
     }
 
-    _getInitialPrescriptorState() {
+    _getInitialPrescriptorState(fitness) {
         /*
         This function returns the initial prescriptor
         state.
@@ -557,7 +530,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
                 "mutation_factor": 0.1,
                 "initialization_distribution": "orthogonal",
                 "initialization_range": 1,
-                "fitness": []
+                "fitness": fitness
             },
             LEAF: {
                 representation: "NNWeights",
@@ -610,9 +583,17 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // If above conditions are satisfied edit the graph
         let graphCopy = this.state.flow.slice()
     
-        // Create an unique ID
+        // Create a unique ID
         const NodeID = uuid()
-    
+
+        // Get outcomes from all current predictors to use for prescriptor fitness
+        let outcomes = this.extractCheckedOutcomes(predictorNodes)
+        // Make this a set
+        outcomes = outcomes.filter((value, index, self) => self.indexOf(value) === index)
+
+        // Default to maximizing outcomes until user tells us otherwise
+        const fitness = outcomes.map(outcome => ({ metric_name: outcome, maximize: true}))
+
         // Add a Prescriptor Node
         const flowInstanceElem = this.state.flowInstance.getElements()
         graphCopy.push({
@@ -621,7 +602,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
             data:  { 
                 NodeID: NodeID,
                 SelectedDataTag: this.state.flow[0].data.SelectedDataTag.LatestDataTag,
-                state: this._getInitialPrescriptorState(),
+                state: this._getInitialPrescriptorState(fitness),
                 setState: state => this.PrescriptorSetStateHandler(state, NodeID),
                 EvaluatorOverrideCode: EvaluateCandidateCode,
                 UpdateEvaluateOverrideCode: value => this.UpdateEvaluateOverrideCode(NodeID, value)
@@ -635,8 +616,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // Add edges to all the predictor nodes
         predictorNodes.forEach(predictorNode => {
             graphCopy = this._addEdgeToPrescriptorNode(
-                graphCopy, 
-                this._filterCheckedOutcomes(predictorNode.data.state.caoState.outcome),
+                graphCopy,
                 predictorNode.id, NodeID
             )
         })
@@ -656,32 +636,48 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         */
         // Make sure there are no data nodes
         const removableElements = elementsToRemove.filter(element => element.type != "datanode")
-    
-        // // If this delete will remove all predictors, also delete the prescriptor
-        const numPredictorNodesLeft = this._getPredictorNodes(graph).length - this._getPredictorNodes(elementsToRemove).length
+
+        const predictorIdsBeingRemoved = this._getPredictorNodes(elementsToRemove).
+            map(node => node.id)
+
+        // If this delete will remove all predictors, also delete the prescriptor
+        const numPredictorNodesLeft = this._getPredictorNodes(graph).length - predictorIdsBeingRemoved.length
         if (numPredictorNodesLeft == 0) {
             removableElements.push(...this._getPrescriptorNodes(graph))
+
+
+        } else {
+            // Also if the removable elements have predictor nodes we
+            // need to clean up their outcomes from showing in the prescriptor
+            const predictorsLeft = graph.filter(node => node.type === "predictornode" && !predictorIdsBeingRemoved.includes(node.id))
+            // Get outcomes from all current predictors to use for prescriptor fitness
+            let outcomes = this.extractCheckedOutcomes(predictorsLeft)
+            // Make this a set
+            outcomes = outcomes.filter((value, index, self) => self.indexOf(value) === index)
+            // Default to maximizing outcomes until user tells us otherwise
+            const fitness = outcomes.map(outcome => ({ metric_name: outcome, maximize: true}))
+
+            graph = graph.map(node => {
+                if (node.type === "prescriptornode") {
+                    node.data = {
+                        ...node.data,
+                        state: {
+                            ...node.data.state,
+                            evolution: {
+                                ...node.data.state.evolution,
+                                fitness
+                            }
+                        }
+                    }
+                }
+                return node
+            })
+
         }
-    
-        // Get all the removable nodes
-        const removableNodes = elementsToRemove.filter(element => !(element.source || element.target))
+
 
         // Clean the node state
         this.setState({
-            predictornodesState: function() {
-                let stateCopy = { ...this.state.predictornodesState }
-                for (let removableNode of removableNodes) {
-                    delete stateCopy[removableNode.id]
-                }
-                return stateCopy
-            }.bind(this)(),
-            prescriptornodesState: function() {
-                let stateCopy = { ...this.state.prescriptornodesState }
-                for (let removableNode of removableNodes) {
-                    delete stateCopy[removableNode.id]
-                }
-                return stateCopy
-            }.bind(this)(),
             flow: removeElements(removableElements, graph)
         })
         
@@ -766,21 +762,14 @@ export default class Flow extends FlowUtils {
                     edgeTypes={EdgeTypes}
                     onNodeDragStop={this.onNodeDragStop.bind(this)}
                 >
-                    <Button size="sm"
-                             onClick={_ => {
-                                 if (this.state.flowInstance != null) {
-                                     this.state.flowInstance.fitView()
-                                 }
-                             }}
-                             style={{
-                                 position: "absolute",
-                                 right: "0px",
-                                 top: "0px",
-                                 zIndex: 1000,
-                                 background: MaximumBlue,
-                                 borderColor: MaximumBlue
-                             }}
-                    >Fit diagram</Button>
+                    <Controls
+                        style={{
+                            position: "absolute",
+                            top: "0px",
+                            left: "0px",
+                            zIndex: 100
+                        }}
+                    />
                     <Background color="#000" gap={5} />
                 </ReactFlow>
             </div>
