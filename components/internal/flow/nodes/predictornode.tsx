@@ -275,25 +275,6 @@ export default function PredictorNode(props): React.ReactElement {
         })
     }
 
-    // We use the use Effect hook here to ensure that we can provide
-    // no dependancies for prop update. In this specific case it acts
-    // as DidComponentUpdate function for class Components or similar to
-    // getInitialProps/getServerSideProps for a NextJS Component.
-    // Here useEffect also provides no clean up function
-    // useEffect(() => {
-    //     // Do not initialize if state has been initialized before
-    //     // We check this using the context variable, the parent should
-    //     // in an uninitialized state pass it as an empty dict.
-    //     if (ParentPredictorState.caoState.context && Object.keys(ParentPredictorState.caoState.context).length == 0) {
-    //         initialize()
-    //     }
-    // }, [])
-
-    // Here we initialize again, if the data source changes
-    // useEffect(() => {
-    //     initialize()
-    // }, [data.SelectedDataTag])
-
     // We want to have a tabbed predictor configuration
     // and thus we build the following component
     // Declare state to keep track of the Tabs
