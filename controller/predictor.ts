@@ -1,12 +1,12 @@
 // Import constants
-import { 
+import {
     SUPPORTED_REGRESSION_MODELS,
     SUPPORTED_CLASSIFICATION_MODELS,
-    SUPPORTED_METRICS
+    SUPPORTED_METRICS, PredictorParams
 
- } from "../predictorinfo"
+} from "../predictorinfo"
 
-export function FetchPredictors(predictorType: string) {
+export function FetchPredictors(predictorType: string): string[] {
     /*
     This function is the controller used to contact the backend to
     fetch the type of predictors availaible
@@ -24,7 +24,7 @@ export function FetchPredictors(predictorType: string) {
 
 }
 
-export function FetchMetrics() {
+export function FetchMetrics(): string[] {
     /*
     This function is the controller used to contact the backend to
     fetch the type of predictors availaible
@@ -33,7 +33,7 @@ export function FetchMetrics() {
     return SUPPORTED_METRICS
 }
 
-export function FetchParams(predictorType: string, predictorName: string) {
+export function FetchParams(predictorType: string, predictorName: string): PredictorParams {
     /*
     This function is the controller used to contact the backend to
     fetch the configuration parameters for the predictor

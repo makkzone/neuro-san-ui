@@ -1,4 +1,22 @@
-export const SUPPORTED_REGRESSION_MODELS = {
+export interface PredictorParamFields {
+    default_value: boolean | number | string,
+    description: string,
+    type: string | string[] | number[],
+
+    // Value is an optional field that can be used within a form
+    // etc to denote user input
+    value?: boolean | number | string,
+}
+
+export interface PredictorParams {
+    [key: string]: PredictorParamFields
+}
+
+export interface SupportedModels {
+    [key: string]: PredictorParams
+}
+
+export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
     "Linear Regressor": {
         "fit_intercept": {
             "default_value": true,
@@ -288,15 +306,15 @@ export const SUPPORTED_REGRESSION_MODELS = {
         }
     }
 }
-export const SUPPORTED_CLASSIFICATION_MODELS = []
+export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {}
 
+export const SUPPORTED_METRICS: string[] = [
 /*
 This list should match the list of supported metrics in the backend.
 See SUPPORTED_METRICS in framework/metrics/metrics_manager.py
 The string should match exactly the `name` property of the MetricsCalculator.
 For instance, "Mean Absolute Error" must match MeanAbsoluteError.name in framework/metrics/mean_absolute_error.py
  */
-export const SUPPORTED_METRICS = [
     "Mean Absolute Error",
     "Mean Squared Error",
     "Root Mean Square Error",
