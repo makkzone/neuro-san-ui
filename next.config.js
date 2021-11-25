@@ -1,3 +1,6 @@
+const CopyPlugin = require("copy-webpack-plugin");
+const path = require("path");
+
 module.exports = {
   typescript: {
     // !! WARN !!
@@ -15,5 +18,30 @@ module.exports = {
   publicRuntimeConfig: {
     // if the md_server_url is not set it defaults to staging
     md_server_url: process.env.MD_SERVER_URL ?? "http://gateway.staging.unileaf.evolution.ml:30002",
-  }
+  },
+  entry: path.resolve(__dirname, 'main.js'),
+    output: {
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'bundle.min.js',
+        library: {
+            type: 'umd'
+        }
+    },
+    mode: 'production',
+    webpack: (config, {buildId, dev, isServer, defaultLoaders, webpack}) => {
+
+        config.plugins.push(
+            new CopyPlugin({
+                // Use copy plugin to copy *.wasm to output folder.
+                patterns: [
+                    {
+                        from: 'node_modules/onnxruntime-web/dist/*.wasm',
+                        to: 'static/chunks/pages/projects/[projectID]/experiments/[experimentID]/run/[runID]/[name].[ext]'
+                    }
+                ]
+            })
+        )
+
+        return config
+    }
 }

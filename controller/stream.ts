@@ -4,14 +4,26 @@ import {MDServerObject, MDServerResponse} from "./base_types";
 
 // HackyStream implements streaming a specific resource from the MD Server using a regex hack
 // By virtue of this hack it currently stores the whole stream in memory.
-export default async function HackyStream<ObjectType extends MDServerObject>(url: string, resourceName: string): Promise<ObjectType[]> {
+export default async function HackyStream<ObjectType extends MDServerObject>(
+    url: string,
+    resourceName: string,
+    method: string = 'GET',
+    data: object = null
+): Promise<ObjectType[]> {
+
+    // Build request params
+    let requestParams = {method: method};
+    if (data) {
+        requestParams["body"] = JSON.stringify(data)
+    }
 
     // Fetch the URL
-    const response = await fetch(url)
+    const response = await fetch(url, requestParams)
 
     // Instantiate logger
     const debug = require('debug')(`Fetch ${resourceName}`)
 
+    // Check for error
     if (response.status != 200) {
         let notificationProps: NotificationProps = {
             Type: "error",
