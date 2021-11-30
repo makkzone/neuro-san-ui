@@ -25,12 +25,12 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [predictorPlotData, setPredictorPlotData] = useState(null)
     const [prescriptorPlotData, setPrescriptorPlotData] = useState(null)
     const [paretoPlotData, setParetoPlotData] = useState({})
-    const [artifacts, setArtifacts] = useState(null)
+    const [flowInstance, setFlowInstance] = useState(null)
 
     const flow = JSON.parse(props.Run.flow)
 
     const constructMetrics = metrics => {
-        let [constructedPredictorResults, constructedPrescriptorResults, pareto] = constructRunMetricsForRunPlot(flow, JSON.parse(props.Run.metrics))
+        let [constructedPredictorResults, constructedPrescriptorResults, pareto] = constructRunMetricsForRunPlot(flow, JSON.parse(metrics))
         setPredictorPlotData(constructedPredictorResults)
         setPrescriptorPlotData(constructedPrescriptorResults)
         setParetoPlotData(pareto)
@@ -45,6 +45,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
             }
 
         },[])
+
+    // Fit flow when displaying Run
+    useEffect(() => {
+        if (flowInstance) {
+            flowInstance.fitView()
+        }
+    }, [flow])
 
     let PlotDiv = []
     if (predictorPlotData) {
@@ -93,6 +100,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     ProjectID={props.ProjectId}
                     Flow={flow}
                     ElementsSelectable={false}
+                    onLoad={reactFlowInstance => {setFlowInstance(reactFlowInstance)}}
                 />
             </ReactFlowProvider>
         </div>
