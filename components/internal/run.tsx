@@ -90,9 +90,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             </Button>
         )
     }
-
-    console.log(nodeToCIDMap)
-
+    
     return <div className="mr-8 ml-8">
         {/* Create the title bar */}
         <h1 className="mt-4 mb-4">{props.Run.name}</h1>
