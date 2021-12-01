@@ -3,9 +3,10 @@ import {Table} from "evergreen-ui";
 import {ResponsiveLine} from "@nivo/line";
 import {useEffect, useMemo, useState} from "react";
 import { Slider } from 'antd';
-import {Button} from "react-bootstrap";
+import {Button, Card, Container} from "react-bootstrap";
 import {FiPlay, FiStopCircle} from "react-icons/fi";
 import {MaximumBlue} from "../const";
+import Notification, {NotificationProps} from "../controller/notification";
 
 
 export interface EspRunPlotProps {
@@ -18,6 +19,9 @@ export interface ParetoPlotProps {
 
     // The pareto front data
     readonly Pareto: any
+
+    // The Node mapping to the CID Map of selected prescriptor
+    NodeToCIDMap: any
 
     // A state handler for the parent object whoever needs to use it
     // that maps the node id of the prescriptor(ESP Experiment) to the
@@ -131,6 +135,7 @@ function ParetoPlot(props) {
     const { xLabel, yLabel } = props;
     const data = props.data
     const selectedCIDStateUpdator = props.SelectedCIDStateUpdator
+    const selectedCID = props.SelectedCID
 
     // Compute the min and the max of all the values for the plot below
     // We do this rather than letting the plot decide because while animating
@@ -171,13 +176,34 @@ function ParetoPlot(props) {
         return data.length
     }, [])
 
+    // Create a cache of all the generations by the generation
+    // name in a hash table for fast lookup.
+    // This useMemo has a dependency selectedCID that denotes
+    // that his object only be recreated when it changes, i.e
+    // the user selects a different prescriptor for inference
     const cachedDataByGen = useMemo(function() {
         const gendata = {}
-        for (const row of data) {
+        let row
+        for (row of data) {
             gendata[row.id] = [row]
         }
+
+        // Overlay the selected prescriptor for inference on the last generation
+        const selectedDataPt = gendata[row.id][0].data.filter(
+            point => point.cid === selectedCID
+        )
+        // TODO: This color does not appear yet. The underlying library
+        // is pretty low level and does not provide an easy interface for merging.
+        gendata[row.id].unshift({
+            id: "Selected for Inference",
+            data: selectedDataPt,
+            color: "red"
+        })
         return gendata
-    }, [])
+
+    }, [selectedCID])
+
+
 
     // We manage the selected state to display only data of selected generation.
     const [selectedGen, setSelectedGen] = useState(numGen)
@@ -208,15 +234,43 @@ function ParetoPlot(props) {
 
     // On Click handler - only rendered at the last generation as those are the
     // candidates we persist
-    let onClickHandler = null
+    // The default click handler shows the Notification if the
+    // selected Candidate is not of the last generation - we cannot yet perform inference
+    // on those as those don't exist
+    let onClickHandler = (node, _) => {
+        let notificationProps: NotificationProps = {
+            Type: "error",
+            Message: "Model Selection Error",
+            Description: "Can't use model for inference unless it is from last generation"
+        }
+        Notification(notificationProps)
+    }
+    // Override the default onclick handler to actually update the selected model
+    // if it is selected from the last generation
     if (selectedGen === numGen) {
         onClickHandler = (node, _) => {
             selectedCIDStateUpdator(node.data.cid)
         }
     }
 
+    // A custom Point symbol for the scatter plot
+    const CustomSymbol = ({ size, color, borderWidth, borderColor }) => (
+        <g>
+            <circle fill="#fff" r={size / 2} strokeWidth={borderWidth} stroke={borderColor} />
+            <circle
+                r={size / 5}
+                strokeWidth={borderWidth}
+                stroke={borderColor}
+                fill={color}
+                fillOpacity={0.35}
+            />
+        </g>
+    )
+
     return <>
         <div className="flex mt-4 ">
+
+            {/* This button enables the animation */}
             <Button
                 style={{background: MaximumBlue, borderColor: MaximumBlue}}
                 type="button"
@@ -270,15 +324,30 @@ function ParetoPlot(props) {
             />
         </div>
 
-
         <ResponsiveLine
+            pointSymbol={CustomSymbol}
+            pointSize={12}
+            pointBorderWidth={1}
+            pointBorderColor={{
+                from: 'color',
+                modifiers: [['darker', 0.3]]
+            }}
+            curve="monotoneX"
+            tooltip={({point}) => {
+                // @ts-ignore
+                return <Card>
+                    <Container className="flex flex-col justify-space-between">
+                        <p>{xLabel}: {point.data.x}</p>
+                        <p>{yLabel}: {point.data.y}</p>
+                    </Container>
+                </Card>
+            }}
             data={cachedDataByGen[`Gen ${selectedGen}`] ?? data}
             margin={{top: 60, right: 140, bottom: 70, left: 90}}
             xScale={{type: 'linear', min: minX, max: maxX}}
             xFormat=">-.2f"
             yScale={{type: 'linear', min: minY, max: maxY}}
             yFormat=">-.2f"
-            blendMode="multiply"
             axisTop={null}
             axisRight={null}
             axisBottom={{
@@ -349,11 +418,12 @@ export function ParetoPlotTable(props: ParetoPlotProps) {
                             data={node.data}
                             xLabel={objectives[0]}
                             yLabel={objectives[1]}
+                            SelectedCID={props.NodeToCIDMap[nodeID]}
                             SelectedCIDStateUpdator={(cid: string) => {
                                 props.PrescriptorNodeToCIDMapUpdater(value => {
                                     return {
                                         ...value,
-                                        nodeID: cid
+                                        [nodeID]: cid
                                     }
                                 })
                             }}

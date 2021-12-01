@@ -12,6 +12,7 @@ import ClipLoader from "react-spinners/ClipLoader";
 import Link from "next/link";
 import Flow from "./flow/flow";
 import {ReactFlowProvider} from "react-flow-renderer";
+import {node} from "prop-types";
 
 export interface RunProps {
     ProjectId: number,
@@ -39,13 +40,45 @@ export default function RunPage(props: RunProps): React.ReactElement {
 
     // Kick off a timer that updates the plot data and the artifacts at frequent intervals
     useEffect(() => {
-
             // Build plot data if metrics exist
             if (props.Run.metrics) {
                 constructMetrics(props.Run.metrics)
             }
-
         },[])
+
+    useEffect(() => {
+        if (paretoPlotData) {
+
+            const nodeToCIDMap = {}
+
+            // This is the 1D case - if the Pareto does not exist
+            if(Object.keys(paretoPlotData).length === 0) {
+                // Get all the artifacts that start with the keyword prescriptor
+                const prescriptorArtifactNames = Object.keys(JSON.parse(props.Run.output_artifacts)).filter(
+                    name => name.startsWith("prescriptor")
+                )
+
+                prescriptorArtifactNames.forEach(artifact => {
+                    // Split the name of the prescriptor to extract the node id and the cid
+                    const splitName = artifact.split("-")
+                    const nodeId = splitName.slice(1, splitName.length - 1).join("-")
+                    const cid = splitName[splitName.length - 1]
+                    nodeToCIDMap[nodeId] = cid
+                })
+
+            } else {
+
+                // Loop over the nodes
+                Object.keys(paretoPlotData).forEach(nodeId => {
+                    const nodeInfo = paretoPlotData[nodeId].data
+                    const numGen = nodeInfo.length
+                    nodeToCIDMap[nodeId] = nodeInfo[numGen - 1].data[0].cid
+                })
+
+            }
+            updateNodeToCIDMap(nodeToCIDMap)
+        }
+    }, [paretoPlotData])
 
     // Fit flow when displaying Run
     useEffect(() => {
@@ -64,7 +97,10 @@ export default function RunPage(props: RunProps): React.ReactElement {
     }
 
     if (Object.keys(paretoPlotData).length > 0) {
-        PlotDiv.push(<ParetoPlotTable Pareto={paretoPlotData} PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap} />)
+        PlotDiv.push(<ParetoPlotTable
+            Pareto={paretoPlotData}
+            NodeToCIDMap={nodeToCIDMap}
+            PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap} />)
     }
 
     if (!predictorPlotData && !prescriptorPlotData) {
@@ -80,11 +116,11 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     style={{background: MaximumBlue, borderColor: MaximumBlue, width: "100%"}}
             >
                 <Link
-                    href={`/projects/${props.ProjectId}/experiments/${props.Run.experiment_id}/run/${props.Run.id}/ui`}
+                    href={`/projects/${props.ProjectId}/experiments/${props.Run.experiment_id}/run/${props.Run.id}/ui/${Object.values(nodeToCIDMap)[0]}`}
                 >
                     <a style={{
                         color: "white"
-                    }}>Go to Decision Making System</a>
+                    }}>Go to Decision Making System with Prescriptor: {Object.values(nodeToCIDMap)[0]}</a>
                 </Link>
 
             </Button>
