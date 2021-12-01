@@ -129,6 +129,8 @@ export default function ESPRunPlot(props: EspRunPlotProps) {
 
 }
 
+// ParetoPlot renders a react component that is capable of
+// animating over several generations of an ESP Run.
 function ParetoPlot(props) {
 
     // Unpack props
@@ -399,10 +401,13 @@ function ParetoPlot(props) {
 }
 
 
+// This function encloses the ParetoPlot component to
+// render a table of Pareto Plots incase there are multiple Prescriptor nodes/experiments
 export function ParetoPlotTable(props: ParetoPlotProps) {
 
     let nodePlots = []
 
+    // For Each node create a table
     Object.keys(props.Pareto).forEach(nodeID => {
 
         const node = props.Pareto[nodeID]
@@ -451,7 +456,7 @@ export function ParetoPlotTable(props: ParetoPlotProps) {
     })
 
     return <>
-        <NewBar Title="Prescriptor Pareto's" DisplayNewLink={ false } />
+        <NewBar Title="Pareto Prescriptors" DisplayNewLink={ false } />
         {nodePlots}
     </>
 
