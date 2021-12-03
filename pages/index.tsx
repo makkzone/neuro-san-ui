@@ -121,7 +121,7 @@ export default function Index(): React.ReactElement {
           <LeftRight>
               <div>
                   <HeaderLineOne>OPTIMIZE YOUR</HeaderLineOne>
-                  <HeaderLineTwo>BUISNESS</HeaderLineTwo>
+                  <HeaderLineTwo>BUSINESS</HeaderLineTwo>
                   <Link href={`/projects`} >
                       <GetStartedButton>Get Started</GetStartedButton>
                   </Link>

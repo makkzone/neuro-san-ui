@@ -22,11 +22,14 @@ import 'react-pro-sidebar/dist/css/styles.css';
 
 // import Constants
 import { LOGO } from "../const"
+import {useRouter} from "next/router";
 
 export default function LEAF({ Component, pageProps }): React.ReactElement {
 
+  const router = useRouter()
+
   let Body
-  if (Component.name === "Index") {
+  if (router.pathname === "/") {
     Body = <div>
       <Component {...pageProps} />
     </div>
