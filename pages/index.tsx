@@ -3,6 +3,7 @@ import React from 'react'
 import styled from "styled-components";
 
 import Image from 'next/image'
+import {Link} from "evergreen-ui";
 
 
 const OuterContainer = styled.div`
@@ -67,12 +68,15 @@ const HeaderLineTwo = styled.h1`
     font-size: 5rem;
 `
 
-const GetStartedButton = styled.button`
+const GetStartedButton = styled.a`
+    display: block;
     margin-top: 4rem;
     color: white;
     font-size: 1.25rem;
     padding-bottom: 0.313rem;
     border-bottom: 2px solid #FDB716;
+    width: 7.063rem;
+    text-align: center;
 `
 
 const Description = styled.p`
@@ -118,7 +122,9 @@ export default function Index(): React.ReactElement {
               <div>
                   <HeaderLineOne>OPTIMIZE YOUR</HeaderLineOne>
                   <HeaderLineTwo>BUISNESS</HeaderLineTwo>
-                  <GetStartedButton>Get Started</GetStartedButton>
+                  <Link href={`/projects`} >
+                      <GetStartedButton>Get Started</GetStartedButton>
+                  </Link>
                   <Description>
                       Research and builds applications with modern AI techniques such as evolutionary computation and deep learning across disciplines using LEAF (Learning and Evolutionary AI Framework)
                   </Description>

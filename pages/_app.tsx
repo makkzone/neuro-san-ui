@@ -31,10 +31,13 @@ export default function LEAF({ Component, pageProps }): React.ReactElement {
       <Component {...pageProps} />
     </div>
   } else {
-    Body = <Container>
-          <Navbar Logo={LOGO}/>
-          <Component {...pageProps} />
-        </Container>
+    Body = <>
+      <Navbar Logo={LOGO}/>
+      <Container>
+        <Component {...pageProps} />
+      </Container>
+    </>
+
   }
 
   return (

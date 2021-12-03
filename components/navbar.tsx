@@ -24,10 +24,7 @@ const NAV_ITEMS_COLOR: string = "white";
 // Declare the Props Interface
 export interface NavbarProps {
     // Logo is the title of the NavBar
-    readonly Logo: string,
-
-    // The name of the Page this component is being rendered in
-    readonly PageName: string
+    readonly Logo: string
 }
 
 export function Navbar(props: NavbarProps): React.ReactElement {
