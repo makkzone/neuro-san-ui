@@ -15,6 +15,7 @@ import React from 'react'
 
 // Import Next Components
 import Head from 'next/head'
+import {useRouter} from "next/router";
 
 // Import Components
 import Navbar from "../components/navbar"
@@ -25,8 +26,9 @@ import { LOGO } from "../const"
 
 export default function LEAF({ Component, pageProps }): React.ReactElement {
 
+  const router = useRouter()
   let Body
-  if (Component.name === "Index") {
+  if (router.pathname === "/") {
     Body = <div>
       <Component {...pageProps} />
     </div>
@@ -37,7 +39,6 @@ export default function LEAF({ Component, pageProps }): React.ReactElement {
         <Component {...pageProps} />
       </Container>
     </>
-
   }
 
   return (
@@ -48,7 +49,9 @@ export default function LEAF({ Component, pageProps }): React.ReactElement {
       <link rel="icon" href="/leaffavicon.png" />
     </Head>
     <body>
-      { Body }
+      {
+        Body
+      }
     </body>
 
   </div>
