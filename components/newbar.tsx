@@ -48,7 +48,7 @@ export default function NewBar(props: NavbarProps) {
             {props.Title}
             <button onClick={() => {
                 setEditing(true)
-            }}> <AiFillEdit /> </button>
+            }}> <AiFillEdit size='14'/> </button>
         </h3>
     } else if (props.EditableCallback && editing) {
         title = <h3 className="h3">
