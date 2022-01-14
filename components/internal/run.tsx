@@ -40,11 +40,11 @@ export default function RunPage(props: RunProps): React.ReactElement {
         if (runID) {
             const run: Runs = await BrowserFetchRuns(null, runID, ['output_artifacts', 'metrics', 'flow'])
             setRuns(run[0])
-            // let editingLoading = Array(runs.length).fill({
-            //     editing: false,
-            //     loading: false
-            // })
-            // setEditingLoading(editingLoading)
+            let editingLoading = Array(run.length).fill({
+                editing: false,
+                loading: false
+            })
+            setEditingLoading(editingLoading)
         } else {
             debug("Failed to load runs, no experiment id passed")
         }
