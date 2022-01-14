@@ -70,7 +70,6 @@ export default function RunPage(props: RunProps): React.ReactElement {
     }, [flow])
 
     const constructMetrics = metrics => {
-        console.log('Metrics: ',metrics)
         if (metrics) {
             let [constructedPredictorResults, constructedPrescriptorResults, pareto] = constructRunMetricsForRunPlot(flow, JSON.parse(metrics))
             setPredictorPlotData(constructedPredictorResults)
