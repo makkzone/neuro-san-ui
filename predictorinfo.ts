@@ -323,12 +323,12 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
         },
         "DATABRICKS_HOST": {
             "default_value": "https://cog-leaftest.cloud.databricks.com",
-            "description": `The URL of the Databricks host`,
+            "description": `The URL of the Databricks™ host`,
             "type": "string",
         },
         "DATABRICKS_TOKEN": {
             "default_value": "",
-            "description": `A generated token to access the Databricks instance`,
+            "description": `A generated token to access the Databricks™ instance`,
             "type": "password",
         }
     }
