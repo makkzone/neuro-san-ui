@@ -131,9 +131,14 @@ export default function PredictorNode(props): React.ReactElement {
                 predictorParams = FetchParams(ParentPredictorState.selectedPredictorType, SelectedPredictor)
                 // We add a key called value to adjust for user input
                 Object.keys(predictorParams).forEach(key => {
-                    // If the type is a number, string or a bool
-                    // use the default value as the user selected value
-                    predictorParams[key].value = predictorParams[key].default_value
+                    if (typeof(predictorParams[key].default_value) === "object") {
+                        // If the type has to be a choice, select the first choice
+                        predictorParams[key].value = predictorParams[key].default_value[0]
+                    } else {
+                        // If the type is a number, string or a bool
+                        // use the default value as the user selected value
+                        predictorParams[key].value = predictorParams[key].default_value
+                    }
                 })
             }
 
@@ -363,6 +368,21 @@ export default function PredictorNode(props): React.ReactElement {
                                                                     onChange={event => onPredictorParamCheckBoxChange(event, param)}
                                                                 />
                                                             )
+                                                        }
+                                                        {
+                                                            typeof(ParentPredictorState.predictorParams[param].type) === "object" &&
+                                                            <select
+                                                                value={ ParentPredictorState.predictorParams[param].value.toString() }
+                                                                onChange={event => onParamChange(event, param)}
+                                                                className="w-32">
+                                                                {
+                                                                    // This requirement to wrap the type in an Array arises
+                                                                    // from a limitation of typescript where it lets ypu define a union
+                                                                    // over several datatype but can't determine if you call any function on it
+                                                                    Array(ParentPredictorState.predictorParams[param].type).map(
+                                                                        (value: string, _) => <option key={value} value={ value }>{ value }</option>)
+                                                                }
+                                                            </select>
                                                         }
                                                         {
                                                             ParentPredictorState.predictorParams[param].type === "string" && (

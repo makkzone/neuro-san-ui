@@ -5,6 +5,9 @@ Configuration settings and constants for predictor configuration popup
 export interface PredictorParamFields {
     default_value: boolean | number | string,
     description: string,
+
+    // TODO: there's probably a safer and more elegant way to handle types with something like Typescript Generics,
+    // rather than putting the name of the type in a string
     type: string | string[] | number[],
 
     // Value is an optional field that can be used within a form
