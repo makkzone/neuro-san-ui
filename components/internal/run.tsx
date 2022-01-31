@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Runs} from "../../controller/run/types";
+import {Run, Runs} from "../../controller/run/types";
 import {BrowserFetchRuns} from "../../controller/run/fetch";
 import {
     constructRunMetricsForRunPlot
@@ -16,7 +16,9 @@ import {ReactFlowProvider} from "react-flow-renderer";
 export interface RunProps {
     ProjectId: number,
     RunID: number,
-    RunName: string
+    RunName: string,
+    updateCachedRun: (arg: Run) => void,
+    CachedRun: Run
 }
 
 var debug = require('debug')('run')
@@ -38,6 +40,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         if (runID) {
             const run: Runs = await BrowserFetchRuns(null, runID, ['output_artifacts', 'metrics', 'flow'])
             setRun(run[0])
+            props.updateCachedRun(run[0])
             let editingLoading = Array(run.length).fill({
                 editing: false,
                 loading: false
@@ -50,7 +53,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
 
     // Fetch the experiment and the runs
     useEffect(() => {
-        loadRun(props.RunID)
+        if (props.CachedRun) {
+            console.log('Loading cached run.')
+            setRun(props.CachedRun)
+        }
+        else {
+            loadRun(props.RunID)
+        }
     }, [props.RunID])
 
     useEffect(() => {
