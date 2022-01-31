@@ -38,7 +38,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
 
     async function loadRun(runID: number) {
         if (runID) {
-            const run: Runs = await BrowserFetchRuns(null, runID, ['output_artifacts', 'metrics', 'flow'])
+            const run: Runs = await BrowserFetchRuns(null, runID, ['output_artifacts', 'metrics', 'flow', 'id'])
             setRun(run[0])
             props.updateCachedRun(run[0])
             let editingLoading = Array(run.length).fill({
