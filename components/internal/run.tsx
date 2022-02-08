@@ -14,6 +14,15 @@ import Flow from "./flow/flow";
 import {ReactFlowProvider} from "react-flow-renderer";
 
 export interface RunProps {
+    /* 
+    ProjectId: Rendered in run page
+    RunID: Used to fetch run using backend
+    RunName: Rendered in run page
+    setRuns: Function used to send back fetched information to the
+    experiment page.
+    runs: Used to query and update runs after runs have been
+    fetched.
+    */
     ProjectId: number,
     RunID: number,
     RunName: string,
@@ -36,18 +45,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
     // Maintain state for if something is being edited or deleted
     const [editingLoading, setEditingLoading] = useState([])
 
-    type RunQueryFunctionType = {
-        (runID: number): number;
-    };
-
-
     function cacheRun(openRun: Run) {
         /*
         Takes the fetched fields from this run page and updates
         the runs prop passed from the experiment page so they 
         won't have to be fetched again.
         */
-        let tempRuns = props.runs
+        let tempRuns = [...props.runs]
         let runIndex = getRunIndexByID(openRun.id)
         tempRuns[runIndex].output_artifacts = openRun.output_artifacts
         tempRuns[runIndex].metrics = openRun.metrics
