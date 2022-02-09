@@ -71,12 +71,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 selectedIndex = idx
             }
         }))
-        if (selectedIndex != null) {
-            return selectedIndex
-        }
-        else {
-            return null
-        }
+        return selectedIndex
     }
 
     function runIsCached(runID: number) {
