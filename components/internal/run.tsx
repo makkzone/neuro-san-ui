@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Runs} from "../../controller/run/types";
+import {Run, Runs} from "../../controller/run/types";
 import {BrowserFetchRuns} from "../../controller/run/fetch";
 import {
     constructRunMetricsForRunPlot
@@ -14,9 +14,20 @@ import Flow from "./flow/flow";
 import {ReactFlowProvider} from "react-flow-renderer";
 
 export interface RunProps {
+    /* 
+    ProjectId: Rendered in run page
+    RunID: Used to fetch run using backend
+    RunName: Rendered in run page
+    setRuns: Function used to send back fetched information to the
+    experiment page.
+    runs: Used to query and update runs after runs have been
+    fetched.
+    */
     ProjectId: number,
     RunID: number,
-    RunName: string
+    RunName: string,
+    setRuns: (arg: Runs) => void,
+    runs: Runs
 }
 
 var debug = require('debug')('run')
@@ -34,10 +45,61 @@ export default function RunPage(props: RunProps): React.ReactElement {
     // Maintain state for if something is being edited or deleted
     const [editingLoading, setEditingLoading] = useState([])
 
+    function cacheRun(openRun: Run) {
+        /*
+        Takes the fetched fields from this run page and updates
+        the runs prop passed from the experiment page so they 
+        won't have to be fetched again.
+        */
+        let tempRuns = [...props.runs]
+        let runIndex = getRunIndexByID(openRun.id)
+        tempRuns[runIndex].output_artifacts = openRun.output_artifacts
+        tempRuns[runIndex].metrics = openRun.metrics
+        tempRuns[runIndex].flow = openRun.flow
+        props.setRuns(tempRuns)
+    }
+
+    function getRunIndexByID(runID: number): number {
+        /*
+        Finds a run by runID from the props and returns the 
+        corresponding index so the run can be accessed
+        */
+        let tempRuns = props.runs
+        let selectedIndex = null
+        tempRuns.forEach(((iterated_run, idx) => {
+            if (runID == iterated_run.id) {
+                selectedIndex = idx
+            }
+        }))
+        return selectedIndex
+    }
+
+    function runIsCached(runID: number) {
+        /*
+        Queries the run from props and checks if it has information
+        that a cached run would have and returns a boolean
+        value representing whether or not the run has already been
+        cached
+        */
+        let runIndex = getRunIndexByID(runID)
+        let tempRun = null
+        if (runIndex != null) {
+            tempRun = props.runs[runIndex]
+        }
+        if (tempRun != null && tempRun.flow != null  && tempRun.output_artifacts != null
+            && tempRun.metrics != null) {
+            return true
+        }
+        else {
+            return false
+        }
+    }
+    
     async function loadRun(runID: number) {
         if (runID) {
-            const run: Runs = await BrowserFetchRuns(null, runID, ['output_artifacts', 'metrics', 'flow'])
+            const run: Runs = await BrowserFetchRuns(null, runID, ['output_artifacts', 'metrics', 'flow', 'id'])
             setRun(run[0])
+            cacheRun(run[0])
             let editingLoading = Array(run.length).fill({
                 editing: false,
                 loading: false
@@ -50,7 +112,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
 
     // Fetch the experiment and the runs
     useEffect(() => {
-        loadRun(props.RunID)
+        // Make sure the cached run is the correct run
+        if (runIsCached(props.RunID)) {
+            setRun(props.runs[getRunIndexByID(props.RunID)])
+        }
+        else {
+            loadRun(props.RunID)
+        }
     }, [props.RunID])
 
     useEffect(() => {
