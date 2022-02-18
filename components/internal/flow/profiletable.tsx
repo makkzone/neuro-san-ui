@@ -1,15 +1,15 @@
-import {Button, Form, Modal} from "react-bootstrap"
+import {Form} from "react-bootstrap"
 import {AiFillEdit} from "react-icons/ai";
 import EditableList from 'react-list-editable';
 import 'react-list-editable/lib/react-list-editable.css';
 import React, {useState} from "react";
+import {Modal} from 'antd';
 
 export interface ProfiletableProps {
-
     Profile: any
     ProfileUpdateHandler: any
-
 }
+
 export default function ProfileTable(props: ProfiletableProps) {
 
     const profile = props.Profile
@@ -46,7 +46,7 @@ export default function ProfileTable(props: ProfiletableProps) {
 
     let fieldRows = []
     if (profile != null) {
-        Object.keys(profile.data_tag.fields).map((field, idx) =>
+        Object.keys(profile.data_tag.fields).map((field, _) =>
             fieldRows.push(
                 <tr key={field}>
                     <td className="px-10 py-3 text-center text-xs font-medium text-gray-900 tracking-wider">
@@ -109,9 +109,10 @@ export default function ProfileTable(props: ProfiletableProps) {
                                 name={`${field}-values`}
                                 className="w-32"
                                 >
+                                <option value="" disabled selected>Click for values:</option>
                                 {
                                     profile.data_tag.fields[field].discrete_categorical_values.map(
-                                        (item, index) => (<option value={item} key={item}>{item}</option>))
+                                        (item, _) => (<option value={item} key={item} disabled>{item}</option>))
                                 }
                             </select> <button onClick={() => {
                                 setFieldBeingEditedName(field)
@@ -167,49 +168,42 @@ export default function ProfileTable(props: ProfiletableProps) {
 
     }
 
-    const editCategoryValues =
-        <Modal.Dialog
-            centered
-            size="lg"
-            style={{
-                position: 'absolute', left: '50%', top: '50%',
-                transform: 'translate(-50%, -50%)'
-            }}
+    const editCategoryValuesModal =
+        <Modal title="Edit categorical values"
+               visible={showFieldEditor}
+               destroyOnClose={true}
+               onOk={() => {
+                   const profileCopy = {...profile}
+
+                   currentCategoryValues.sort()
+                   profileCopy.data_tag.fields[fieldBeingEditedName].discrete_categorical_values = currentCategoryValues
+                   setProfile(profileCopy)
+
+                   setCurrentCategoryValues([])
+                   setFieldBeingEditedName(undefined)
+                   setFieldEditorVisible(false)
+               }}
+               onCancel={() => {
+                   setFieldEditorVisible(false)
+                   setFieldBeingEditedName(undefined)
+               }}
         >
-            <Modal.Header closeButton>
-                <Modal.Title className='text-wrap w-100'>Configure values for "{fieldBeingEditedName}"</Modal.Title>
-            </Modal.Header>
-
-            <Modal.Body>
-                <EditableList
-                    list={
-                        profile && fieldBeingEditedName
-                            ? profile.data_tag.fields[fieldBeingEditedName].discrete_categorical_values: []}
-                    onListChange={(newList) => {
-                        console.log('new vals: ' + newList)
-                        setCurrentCategoryValues(newList)
-                    }}
-                    placeholder='Enter a value'
-
-                />
-            </Modal.Body>
-
-            <Modal.Footer>
-                <Button variant="secondary" onClick={() => setFieldEditorVisible(false)}>Close</Button>
-                <Button variant="primary" onClick={() => {
-                    const profileCopy = {...profile}
-                    console.log('setting: ' + currentCategoryValues)
-                    profileCopy.data_tag.fields[fieldBeingEditedName].discrete_categorical_values = currentCategoryValues
-                    setCurrentCategoryValues([])
-                    setProfile(profileCopy)
-                    setFieldEditorVisible(false)
-                }}>Save changes</Button>
-            </Modal.Footer>
-        </Modal.Dialog>
-
+            <p><label>Field: {fieldBeingEditedName}</label></p>
+            <EditableList
+                list={
+                    profile && fieldBeingEditedName
+                        ? profile.data_tag.fields[fieldBeingEditedName].discrete_categorical_values
+                        : []}
+                onListChange={(newList) => {
+                    setCurrentCategoryValues(newList)
+                }}
+                placeholder='Enter a value'
+            />
+        </Modal>
+        
     return <React.Fragment>
-        {showFieldEditor ? editCategoryValues : ""}
         <div className="flex flex-col mt-4">
+            {editCategoryValuesModal}
             <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                     <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
