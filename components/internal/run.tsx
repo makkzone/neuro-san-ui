@@ -12,7 +12,7 @@ import {Button} from "react-bootstrap";
 import {MaximumBlue} from "../../const";
 import ClipLoader from "react-spinners/ClipLoader";
 import Link from "next/link";
-import Flow, { FlowRetreivalUtils } from "./flow/flow";
+import Flow, { FlowNodeQueries } from "./flow/flow";
 import {ReactFlowProvider} from "react-flow-renderer";
 import fromBinary from "../../utils/conversion";
 
@@ -44,7 +44,6 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [flowInstance, setFlowInstance] = useState(null)
     const [nodeToCIDMap, updateNodeToCIDMap] = useState({})
     const [run, setRun] = useState(null)
-    const [isRuleBased, setIsRuleBased] = useState(null)
     const [rules, setRules] = useState(null)
 
 
@@ -101,33 +100,57 @@ export default function RunPage(props: RunProps): React.ReactElement {
         }
     }
 
-    function ruleBasedCheck(flow: string) {
-        let parsedFlow = JSON.parse(flow)
-        let flowUtilsObj = new FlowRetreivalUtils()
-        let prescriptorNode = flowUtilsObj._getPrescriptorNodes(parsedFlow)[0]
+    function isRuleBased(flow: JSON) {
+        let prescriptorNode = FlowNodeQueries._getPrescriptorNodes(flow)[0]
         let representation = prescriptorNode.data.ParentPrescriptorState.LEAF.representation
         if (representation === "RuleBased") {
-            setIsRuleBased(true)
             return true
         } 
         else {
-            setIsRuleBased(false)
             return false
         }
     }
 
+    function generateArtifactURL(flow: JSON) {
+        let prescriptorNode = FlowNodeQueries._getPrescriptorNodes(flow)[0]
+        let rulesURL = null
+        if (prescriptorNode) {
+            let nodeCID = nodeToCIDMap[prescriptorNode.id]
+            if (nodeCID) {
+                let index = `prescriptor-text-${prescriptorNode.id}-${nodeCID}`
+                rulesURL = JSON.parse(run.output_artifacts)[index]   
+            }
+            else {
+                debug("Failed to find nodeCID with prescriptor id.")
+            }
+        }
+        else {
+            debug("Faled to load prescriptor node.")
+        } 
+
+        return rulesURL
+    }
+
+    function decodeRules(rules: Artifact[]) {
+        let encodedRules = fromBinary(rules[0].bytes)
+        return new TextDecoder().decode(encodedRules)
+    }
+
     async function loadRules() {
-        let flowUtilsObj = new FlowRetreivalUtils()
         let parsedFlow = JSON.parse(run.flow)
-        let prescriptorNode = flowUtilsObj._getPrescriptorNodes(parsedFlow)[0]
-        let nodeCID = nodeToCIDMap[prescriptorNode.id]
-        let index = `prescriptor-text-${prescriptorNode.id}-${nodeCID}`
-        let rulesURL = JSON.parse(run.output_artifacts)[index]
+        let rulesURL = generateArtifactURL(parsedFlow)
         if (rulesURL) {
             const rules: Artifact[] = await BrowserFetchArtifact(rulesURL)
-            let encodedRules = fromBinary(rules[0].bytes)
-            let decodedRules = new TextDecoder().decode(encodedRules)
-            setRules(decodedRules)
+            let rulesDecoded = decodeRules(rules)
+            if (rulesDecoded) {
+                setRules(decodeRules)
+            }
+            else {
+                debug("Failed to decode rules.")
+            }
+        }
+        else {
+            debug("Failed to retrieve s3 url from output artifacts.")
         }
     }
     
@@ -162,7 +185,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         // If nodeToCIDMap has been populated, we can load the rules
         if (run && nodeToCIDMap) {
             // If it contains a rule-based prescriptor, load the rules
-            if (isRuleBased || ruleBasedCheck(run.flow)){
+            if (isRuleBased(JSON.parse(run.flow))){
                 loadRules()
             }
         }

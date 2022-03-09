@@ -293,8 +293,6 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // Pass Props to parent class
         super(props)
 
-        this.flowRetreivalObj = new FlowRetreivalUtils()
-
         // Initialize the Flow
         if (props.Flow) {
 
@@ -424,7 +422,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // Add the Predictor Node
         const flowInstanceElem = this.state.flowInstance.getElements()
         const MaxPredictorNodeY = Math.max(
-            ...this.flowRetreivalObj._getPredictorNodes(flowInstanceElem).map(node => node.position.y), 
+            ...FlowNodeQueries._getPredictorNodes(flowInstanceElem).map(node => node.position.y), 
             flowInstanceElem[0].position.y - 100
         )
 
@@ -453,7 +451,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         })
     
         // Check if Prescriptor Node exists
-        const prescriptorNodes = this.flowRetreivalObj._getPrescriptorNodes(this.state.flow)
+        const prescriptorNodes = FlowNodeQueries._getPrescriptorNodes(this.state.flow)
 
         // If there's already a prescriptor node, add edge to that prescriptor node
         if (prescriptorNodes.length != 0) { 
@@ -533,7 +531,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
     
         // Check if Prescriptor Node exists
         const prescriptorExists = (
-            this.flowRetreivalObj._getPrescriptorNodes(this.state.flow)).length != 0
+            FlowNodeQueries._getPrescriptorNodes(this.state.flow)).length != 0
     
         // If it already exists, return
         if (prescriptorExists) {
@@ -547,7 +545,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         }
     
         // Make sure predictor nodes exist, if not alert
-        const predictorNodes = this.flowRetreivalObj._getPredictorNodes(this.state.flow)
+        const predictorNodes = FlowNodeQueries._getPredictorNodes(this.state.flow)
         if (predictorNodes.length == 0) {
             let notificationProps: NotificationProps = {
                 Type: "error",
@@ -615,13 +613,13 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // Make sure there are no data nodes
         const removableElements = elementsToRemove.filter(element => element.type != "datanode")
 
-        const predictorIdsBeingRemoved = this.flowRetreivalObj._getPredictorNodes(elementsToRemove).
+        const predictorIdsBeingRemoved = FlowNodeQueries._getPredictorNodes(elementsToRemove).
             map(node => node.id)
 
         // If this delete will remove all predictors, also delete the prescriptor
-        const numPredictorNodesLeft = this.flowRetreivalObj._getPredictorNodes(graph).length - predictorIdsBeingRemoved.length
+        const numPredictorNodesLeft = FlowNodeQueries._getPredictorNodes(graph).length - predictorIdsBeingRemoved.length
         if (numPredictorNodesLeft == 0) {
-            removableElements.push(...this.flowRetreivalObj._getPrescriptorNodes(graph))
+            removableElements.push(...FlowNodeQueries._getPrescriptorNodes(graph))
 
 
         } else {
@@ -682,9 +680,9 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
 
 }
 
-export class FlowRetreivalUtils {
+export class FlowNodeQueries {
 
-    _getPredictorNodes(graph) {
+    static _getPredictorNodes(graph) {
         /*
         This function filters the predictor nodes
         from the graph and returns them
@@ -692,7 +690,7 @@ export class FlowRetreivalUtils {
         return graph.filter(
             element => element.type === 'predictornode')
     }
-    _getPrescriptorNodes(graph) { 
+    static _getPrescriptorNodes(graph) { 
         /*
         This function filters the prescriptor nodes
         from the graph and returns them
@@ -700,7 +698,7 @@ export class FlowRetreivalUtils {
         return graph.filter(
             element => element.type === 'prescriptornode')
     }
-    _getDataNodes(graph){ 
+    static _getDataNodes(graph){ 
         /*
         This function filters the data nodes
         from the graph and returns them

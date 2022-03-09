@@ -21,9 +21,9 @@ export async function BrowserFetchArtifact(url: string): Promise<Artifact[]> {
         let notificationProps: NotificationProps = {
             Type: "error",
             Message: "Internal error",
-            Description: "Unable to retrieve artifacts"
+            Description: "Unable to retrieve artifact"
         }
-        console.error("runID not specified")
+        console.error("url not specified")
         Notification(notificationProps)
         return null
     }
