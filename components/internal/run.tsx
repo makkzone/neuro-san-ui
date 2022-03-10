@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Run, Runs, Artifact} from "../../controller/run/types";
-import {BrowserFetchRuns} from "../../controller/run/fetch";
+import {BrowserFetchRunArtifacts, BrowserFetchRuns} from "../../controller/run/fetch";
 import { BrowserFetchArtifact } from "../../controller/fetch_artifact";
 import {
     constructRunMetricsForRunPlot
@@ -45,6 +45,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [nodeToCIDMap, updateNodeToCIDMap] = useState({})
     const [run, setRun] = useState(null)
     const [rules, setRules] = useState(null)
+    const [artifactObj, setArtifactObj] = useState(null)
 
 
     // Maintain state for if something is being edited or deleted
@@ -126,22 +127,21 @@ export default function RunPage(props: RunProps): React.ReactElement {
         return rulesURL
     }
 
-    function decodeRules(rules: Artifact[]) {
-        let encodedRules = fromBinary(rules[0].bytes)
-        return new TextDecoder().decode(encodedRules)
+    function getDecodedRules() {
+        return new TextDecoder().decode(fromBinary(artifactObj.bytes))
     }
 
-    async function loadRules() {
+    async function loadArtifactObj() {
         let parsedFlow = JSON.parse(run.flow)
         let rulesURL = generateArtifactURL(parsedFlow)
         if (rulesURL) {
-            const rules: Artifact[] = await BrowserFetchArtifact(rulesURL)
-            let rulesDecoded = decodeRules(rules)
-            if (rulesDecoded) {
-                setRules(decodeRules)
+            const artifactObj: Artifact[] = await BrowserFetchRunArtifacts(rulesURL)
+            
+            if (artifactObj) {
+                setArtifactObj(artifactObj[0])
             }
             else {
-                debug("Failed to decode rules.")
+                debug('Failed to fetch Artifact object.')
             }
         }
         else {
@@ -181,10 +181,23 @@ export default function RunPage(props: RunProps): React.ReactElement {
         if (run && nodeToCIDMap) {
             // If it contains a rule-based prescriptor, load the rules
             if (isRuleBased(JSON.parse(run.flow))){
-                loadRules()
+                loadArtifactObj()
             }
         }
     }, [nodeToCIDMap])
+
+    // Decode the rules from the artifact obj
+    useEffect(() => {
+        if (artifactObj != null) {
+            let decodedRules = getDecodedRules()
+            if (decodedRules) {
+                setRules(decodedRules)
+            }
+            else {
+                debug("Failed to decode rules.")
+            }
+        }
+    }, [artifactObj])
 
     useEffect(() => {
         if (run != null) {
