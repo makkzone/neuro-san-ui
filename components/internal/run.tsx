@@ -86,7 +86,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         value representing whether or not the run has already been
         cached
         */
-        let runIndex = getRunIndexByID(runID)
+        const runIndex = getRunIndexByID(runID)
         let tempRun = null
         if (runIndex != null) {
             tempRun = props.runs[runIndex]
@@ -101,18 +101,18 @@ export default function RunPage(props: RunProps): React.ReactElement {
     }
 
     function isRuleBased(flow: JSON) {
-        let prescriptorNode = FlowNodeQueries._getPrescriptorNodes(flow)[0]
-        let representation = prescriptorNode.data.ParentPrescriptorState.LEAF.representation
+        const prescriptorNode = FlowNodeQueries._getPrescriptorNodes(flow)[0]
+        const representation = prescriptorNode.data.ParentPrescriptorState.LEAF.representation
         return representation === "RuleBased"
     }
 
     function generateArtifactURL(flow: JSON) {
-        let prescriptorNode = FlowNodeQueries._getPrescriptorNodes(flow)[0]
+        const prescriptorNode = FlowNodeQueries._getPrescriptorNodes(flow)[0]
         let rulesURL = null
         if (prescriptorNode) {
-            let nodeCID = nodeToCIDMap[prescriptorNode.id]
+            const nodeCID = nodeToCIDMap[prescriptorNode.id]
             if (nodeCID) {
-                let index = `prescriptor-text-${prescriptorNode.id}-${nodeCID}`
+                const index = `prescriptor-text-${prescriptorNode.id}-${nodeCID}`
                 rulesURL = JSON.parse(run.output_artifacts)[index]   
             }
             else {
@@ -131,8 +131,8 @@ export default function RunPage(props: RunProps): React.ReactElement {
     }
 
     async function loadArtifactObj() {
-        let parsedFlow = JSON.parse(run.flow)
-        let rulesURL = generateArtifactURL(parsedFlow)
+        const parsedFlow = JSON.parse(run.flow)
+        const rulesURL = generateArtifactURL(parsedFlow)
         if (rulesURL) {
             const artifactObj: Artifact[] = await BrowserFetchRunArtifacts(rulesURL)
             
@@ -188,7 +188,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     // Decode the rules from the artifact obj
     useEffect(() => {
         if (artifactObj != null) {
-            let decodedRules = getDecodedRules()
+            const decodedRules = getDecodedRules()
             if (decodedRules) {
                 setRules(decodedRules)
             }

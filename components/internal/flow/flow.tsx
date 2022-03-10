@@ -285,9 +285,7 @@ class FlowNodeStateUpdateHandler extends FlowState {
 }
 
 class FlowUtils extends FlowNodeStateUpdateHandler {
-    
-    flowRetreivalObj: any
-    
+        
     constructor(props) {
 
         // Pass Props to parent class
