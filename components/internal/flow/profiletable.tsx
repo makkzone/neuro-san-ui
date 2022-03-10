@@ -1,10 +1,9 @@
-import {Form} from "react-bootstrap"
+import {Form, ListGroup} from "react-bootstrap"
 import {AiFillEdit} from "react-icons/ai";
-import EditableList from 'react-list-editable';
-import 'react-list-editable/lib/react-list-editable.css';
 import React, {useState} from "react";
-import {Modal} from 'antd';
 import {CAOType} from "../../../controller/datatag/types";
+import {Checkbox, Modal} from 'antd';
+import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
 
 export interface ProfiletableProps {
     Profile: any
@@ -18,6 +17,7 @@ export default function ProfileTable(props: ProfiletableProps) {
     const [fieldBeingEditedName, setFieldBeingEditedName] = useState(null)
     const [showFieldEditor, setFieldEditorVisible] = useState(false)
     const [currentCategoryValues, setCurrentCategoryValues] = useState([])
+    const [currentCategoryOrdered, setCurrentCategoryOrdered] = useState(false)
 
     // Declare table headers
     const TableHeaders = [
@@ -184,8 +184,8 @@ export default function ProfileTable(props: ProfiletableProps) {
                onOk={() => {
                    const profileCopy = {...profile}
 
-                   currentCategoryValues.sort()
                    profileCopy.data_tag.fields[fieldBeingEditedName].discrete_categorical_values = currentCategoryValues
+                   profileCopy.data_tag.fields[fieldBeingEditedName].is_ordered = currentCategoryOrdered
                    setProfile(profileCopy)
 
                    setCurrentCategoryValues([])
@@ -198,19 +198,63 @@ export default function ProfileTable(props: ProfiletableProps) {
                }}
         >
             <p><label>Field: {fieldBeingEditedName}</label></p>
-            <EditableList
-                list={
-                    profile && fieldBeingEditedName
-                        ? profile.data_tag.fields[fieldBeingEditedName].discrete_categorical_values
-                        : []}
-                onListChange={(newList) => {
-                    setCurrentCategoryValues(newList)
-                }}
-                placeholder='Enter a value'
-            />
+            <p>
+                <Checkbox
+                    value={currentCategoryOrdered}
+                    onChange={e => setCurrentCategoryOrdered(e.target.value)}
+                >
+                    Ordered (drag to re-order)
+                </Checkbox>
+            </p>
+            {/* Drag-drop list of values */}
+            {<Droppable droppableId="values">
+                {(provided, snapshot) => (
+                    <>
+                        <ListGroup as="ol"
+                                   id="listgroup"
+                                   ref={provided.innerRef}
+                                   {...provided.droppableProps}
+                        >
+                            {
+                                profile && fieldBeingEditedName ?
+                                    currentCategoryValues.map((val, index) => {
+                                        return (
+                                            <Draggable key={val} draggableId={val} index={index}>
+                                                {(provided) => (
+                                                    <p>
+                                                        <ListGroup.Item as="li" className="values"
+                                                                        ref={provided.innerRef}
+                                                                        {...provided.draggableProps}
+                                                                        {...provided.dragHandleProps}>
+                                                            {val}
+                                                        </ListGroup.Item>
+                                                    </p>
+                                                )
+                                                }
+                                            </Draggable>
+                                        )
+                                    }) : []
+                            }
+                        </ListGroup>
+                        {provided.placeholder}
+                    </>
+                )}
+            </Droppable>}
         </Modal>
-        
-    return <>
+
+    // Wrap everything in a DragDropContext as recommended by react-beautiful-dnd doc
+    return <DragDropContext
+        onDragEnd={(dragResult) => {
+            // Prevent dragging out of bounds
+            if (!dragResult.destination) return;
+
+            // Reorder list based on where user dropped item
+            const items = currentCategoryValues.slice()
+            const [reorderedItem] = items.splice(dragResult.source.index, 1);
+            items.splice(dragResult.destination.index, 0, reorderedItem);
+            setCurrentCategoryValues(items)
+        }
+    }>
         <div className="flex flex-col mt-4">
             {editCategoryValuesModal}
             <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -228,5 +272,5 @@ export default function ProfileTable(props: ProfiletableProps) {
                 </div>
             </div>
         </div>
-    </>
+    </DragDropContext>
 }
