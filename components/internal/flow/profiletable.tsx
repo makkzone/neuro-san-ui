@@ -208,8 +208,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                 <Row>
                     <label>Field: {fieldBeingEditedName}</label>
                 </Row>
-                <p/>
-                <Row>
+                <Row className="pt-3">
                     <Checkbox
                         value={currentCategoryOrdered}
                         onChange={e => setCurrentCategoryOrdered(e.target.value)}
@@ -229,18 +228,19 @@ export default function ProfileTable(props: ProfiletableProps) {
                                            {...provided.droppableProps}
                                 >
                                     {
-                                        profile && fieldBeingEditedName ?
-                                            currentCategoryValues.map((val, index) => {
-                                                return (
-                                                    <Draggable key={val} draggableId={val} index={index}>
-                                                        {(provided) => (
+                                        profile && fieldBeingEditedName ? currentCategoryValues.map((val, index) => {
+                                            return (
+                                                <Draggable key={val} draggableId={val} index={index}>
+                                                    {(provided, snapshot) => (
+                                                        <div style={{opacity: snapshot.isDragging ? "50%": "100%"}}
+                                                             ref={provided.innerRef}
+                                                             {...provided.draggableProps}
+                                                             {...provided.dragHandleProps}
+                                                        >
                                                             <Row className="my-1">
-                                                                <Col className="mx-0 px-1">
-                                                                    <ListGroup.Item as="li" className="values"
-                                                                                    ref={provided.innerRef}
-                                                                                    {...provided.draggableProps}
-                                                                                    >
-                                                                        <div {...provided.dragHandleProps}>
+                                                                <Col className="mx-0 px-1"  >
+                                                                    <ListGroup.Item as="li" className="values">
+                                                                        <div>
                                                                             {val}
                                                                         </div>
                                                                     </ListGroup.Item>
@@ -259,11 +259,12 @@ export default function ProfileTable(props: ProfiletableProps) {
 
                                                                 </Col>
                                                             </Row>
-                                                        )
-                                                        }
-                                                    </Draggable>
-                                                )
-                                            }) : []
+                                                        </div>
+                                                    )
+                                                    }
+                                                </Draggable>
+                                            )
+                                        }) : [] // empty list by default
                                     }
                                 </ListGroup>
                                 {provided.placeholder}
@@ -271,9 +272,10 @@ export default function ProfileTable(props: ProfiletableProps) {
                         )}
                     </Droppable>}
                 </Row>
-                <p/>
-                <Row>
+                <Row className="pt-4">
                     <label>Add category value:</label>
+                </Row>
+                <Row className="pt-1">
                     <Input.Group compact>
                         <Input style={{width: 'calc(100% - 200px)'}}
                            placeholder="Enter value"
@@ -286,10 +288,9 @@ export default function ProfileTable(props: ProfiletableProps) {
                         </Input>
                         <Button type="primary"
                             onClick ={_ => {
-                                if (!currentCategoryValues.includes(newItem)) {
-                                    setCurrentCategoryValues([...currentCategoryValues, newItem])
-                                }
+                                setCurrentCategoryValues([...currentCategoryValues, newItem])
                             }}
+                                disabled={newItem === "" || currentCategoryValues.includes(newItem)}
                         >
                             Add
                         </Button>
