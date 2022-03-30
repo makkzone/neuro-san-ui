@@ -1,9 +1,7 @@
 import React, {useEffect, useState} from "react";
-import {Run, Runs, Artifact} from "../../controller/run/types";
+import {Artifact, Run, Runs} from "../../controller/run/types";
 import {BrowserFetchRunArtifacts, BrowserFetchRuns} from "../../controller/run/fetch";
-import {
-    constructRunMetricsForRunPlot
-} from "../../controller/run/results";
+import {constructRunMetricsForRunPlot} from "../../controller/run/results";
 import MetricsTable from "../metricstable";
 import ESPRunPlot, {ParetoPlotTable} from "../esprunplot";
 import NewBar from "../newbar";
@@ -11,10 +9,11 @@ import {Button} from "react-bootstrap";
 import {MaximumBlue} from "../../const";
 import ClipLoader from "react-spinners/ClipLoader";
 import Link from "next/link";
-import Flow, { FlowNodeQueries } from "./flow/flow";
+import Flow from "./flow/flow";
 import {ReactFlowProvider} from "react-flow-renderer";
 import decode from "../../utils/decode";
 import Notification, {NotificationProps} from "../../controller/notification";
+import {FlowQueries} from "./flow/flowqueries";
 
 export interface RunProps {
     /* 
@@ -46,22 +45,19 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [run, setRun] = useState(null)
     const [rules, setRules] = useState(null)
     const [artifactObj, setArtifactObj] = useState(null)
+    const [flow, setFlow] = useState(null)
 
-
-    // Maintain state for if something is being edited or deleted
-    const [editingLoading, setEditingLoading] = useState([])
-
-    function cacheRun(openRun: Run) {
+    function cacheRun(run: Run) {
         /*
         Takes the fetched fields from this run page and updates
         the runs prop passed from the experiment page so they 
         won't have to be fetched again.
         */
         let tempRuns = [...props.runs]
-        let runIndex = getRunIndexByID(openRun.id)
-        tempRuns[runIndex].output_artifacts = openRun.output_artifacts
-        tempRuns[runIndex].metrics = openRun.metrics
-        tempRuns[runIndex].flow = openRun.flow
+        let runIndex = getRunIndexByID(run.id)
+        tempRuns[runIndex].output_artifacts = run.output_artifacts
+        tempRuns[runIndex].metrics = run.metrics
+        tempRuns[runIndex].flow = run.flow
         props.setRuns(tempRuns)
     }
 
@@ -105,13 +101,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
     }
 
     function isRuleBased(flow: JSON) {
-        const prescriptorNode = FlowNodeQueries.getPrescriptorNodes(flow)[0]
+        const prescriptorNode = FlowQueries.getPrescriptorNodes(flow)[0]
         const representation = prescriptorNode.data.ParentPrescriptorState.LEAF.representation
         return representation === "RuleBased"
     }
 
     function generateArtifactURL(flow: JSON) {
-        const prescriptorNode = FlowNodeQueries.getPrescriptorNodes(flow)[0]
+        const prescriptorNode = FlowQueries.getPrescriptorNodes(flow)[0]
         let rulesURL = null
         if (prescriptorNode) {
             const nodeCID = nodeToCIDMap[prescriptorNode.id]
@@ -125,7 +121,6 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     Message: "Internal error",
                     Description: "Failed to find nodeCID with prescriptor id."
                 }
-                console.error("Failed to find nodeCID with prescriptor id.")
                 Notification(notificationProps)
             }
         }
@@ -135,7 +130,6 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 Message: "Internal error",
                 Description: "Retrieval of prescriptor node returned false"
             }
-            console.error("Retrieval of prescriptor node returned false")
             Notification(notificationProps)
         } 
 
@@ -143,8 +137,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     }
 
     async function loadArtifactObj() {
-        const parsedFlow = JSON.parse(run.flow)
-        const rulesURL = generateArtifactURL(parsedFlow)
+        const rulesURL = generateArtifactURL(flow)
         if (rulesURL) {
             const artifactObj: Artifact[] = await BrowserFetchRunArtifacts(null, rulesURL)
             
@@ -157,7 +150,6 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     Message: "Internal error",
                     Description: "Fetch for artifacts returned null"
                 }
-                console.error("BrowserFetchRunArtifacts returned null")
                 Notification(notificationProps)
             }
         }
@@ -167,7 +159,6 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 Message: "Internal error",
                 Description: "Generation of s3 url returned null."
             }
-            console.error("Generation of s3 url returned null.")
             Notification(notificationProps)
         }
     }
@@ -175,27 +166,43 @@ export default function RunPage(props: RunProps): React.ReactElement {
     async function loadRun(runID: number) {
         if (runID) {
             const propertiesToRetrieve = ['output_artifacts', 'metrics', 'flow', 'id', 'experiment_id'];
-            const run: Runs = await BrowserFetchRuns(null, runID, propertiesToRetrieve)
-            setRun(run[0])
-            cacheRun(run[0])
-            let editingLoading = Array(run.length).fill({
-                editing: false,
-                loading: false
-            })
-            setEditingLoading(editingLoading)
+            const runs: Runs = await BrowserFetchRuns(null, runID, propertiesToRetrieve)
+            if (runs.length == 1) {
+                const run = runs[0]
+                const flow = JSON.parse(run.flow)
+                setFlow(flow)
+                setRun(run)
+                cacheRun(run)
+            } else {
+                const notificationProps: NotificationProps = {
+                    Type: "error",
+                    Message: "Internal error",
+                    Description: `Unexpected number of runs returned: ${runs.length} for run ${runID}`
+                }
+                Notification(notificationProps)
+                return null
+            }
         } else {
-            debug("Failed to load runs, no experiment id passed")
+            const notificationProps: NotificationProps = {
+                Type: "error",
+                Message: "Internal error",
+                Description: "No run ID passed"
+            }
+            Notification(notificationProps)
+            return null
         }
     }
 
     // Fetch the experiment and the runs
     useEffect(() => {
-        // Make sure the cached run is the correct run
+        // Attempt to get the run from the cache
         const run = getRunFromCache(props.RunID)
         if (run) {
             setRun(props.runs[getRunIndexByID(props.RunID)])
+            setFlow(run.flow)
         }
         else {
+            // Cache miss -- have to load from backend
             loadRun(props.RunID)
         }
     }, [props.RunID])
@@ -205,7 +212,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         // If nodeToCIDMap has been populated, we can load the rules
         if (run && nodeToCIDMap) {
             // If it contains a rule-based prescriptor, load the rules
-            if (isRuleBased(JSON.parse(run.flow))){
+            if (isRuleBased(flow)){
                 loadArtifactObj()
             }
         }
@@ -224,21 +231,20 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     Message: "Internal error",
                     Description: "Failed to decode rules"
                 }
-                console.error("Failed to decode rules")
                 Notification(notificationProps)
             }
         }
     }, [artifactObj])
 
     useEffect(() => {
-        if (run != null) {
+        if (run != null && flow != null) {
             constructMetrics(run.metrics)
         }
     }, [run])
 
     const constructMetrics = metrics => {
         if (metrics) {
-            let [constructedPredictorResults, constructedPrescriptorResults, pareto] = constructRunMetricsForRunPlot(JSON.parse(run.flow), JSON.parse(metrics))
+            let [constructedPredictorResults, constructedPrescriptorResults, pareto] = constructRunMetricsForRunPlot(flow, JSON.parse(metrics))
             setPredictorPlotData(constructedPredictorResults)
             setPrescriptorPlotData(constructedPrescriptorResults)
             setParetoPlotData(pareto)
@@ -261,8 +267,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     // Split the name of the prescriptor to extract the node id and the cid
                     const splitName = artifact.split("-")
                     const nodeId = splitName.slice(1, splitName.length - 1).join("-")
-                    const cid = splitName[splitName.length - 1]
-                    nodeToCIDMap[nodeId] = cid
+                    nodeToCIDMap[nodeId] = splitName[splitName.length - 1]
                 })
 
             } else {
@@ -315,7 +320,8 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     style={{background: MaximumBlue, borderColor: MaximumBlue, width: "100%"}}
             >
                 <Link
-                    href={`/projects/${props.ProjectId}/experiments/${run.experiment_id}/runs/${run.id}/prescriptors/${Object.values(nodeToCIDMap)[0]}`}
+                    href={`/projects/${props.ProjectId}/experiments/${run.experiment_id}/runs/${run.id}/
+prescriptors/${Object.values(nodeToCIDMap)[0]}/?dataprofile_id=${flow[0].data.DataTag.id}`}
                 >
                     <a style={{
                         color: "white"
@@ -338,13 +344,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
     
     const flowDiv = []
 
-    if (run && run.flow) {
+    if (run && flow) {
         flowDiv.push(
             <div>
             <ReactFlowProvider>
                 <Flow
                     ProjectID={props.ProjectId}
-                    Flow={JSON.parse(run.flow)}
+                    Flow={flow}
                     ElementsSelectable={false}
                     onLoad={reactFlowInstance => {setFlowInstance(reactFlowInstance)}}
                 />
