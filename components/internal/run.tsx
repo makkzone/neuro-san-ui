@@ -1,9 +1,7 @@
 import React, {useEffect, useState} from "react";
-import {Run, Runs, Artifact} from "../../controller/run/types";
+import {Artifact, Run, Runs} from "../../controller/run/types";
 import {BrowserFetchRunArtifacts, BrowserFetchRuns} from "../../controller/run/fetch";
-import {
-    constructRunMetricsForRunPlot
-} from "../../controller/run/results";
+import {constructRunMetricsForRunPlot} from "../../controller/run/results";
 import MetricsTable from "../metricstable";
 import ESPRunPlot, {ParetoPlotTable} from "../esprunplot";
 import NewBar from "../newbar";
@@ -11,10 +9,11 @@ import {Button} from "react-bootstrap";
 import {MaximumBlue} from "../../const";
 import ClipLoader from "react-spinners/ClipLoader";
 import Link from "next/link";
-import Flow, { FlowNodeQueries } from "./flow/flow";
+import Flow from "./flow/flow";
 import {ReactFlowProvider} from "react-flow-renderer";
 import decode from "../../utils/decode";
 import Notification, {NotificationProps} from "../../controller/notification";
+import {FlowQueries} from "./flow/flowqueries";
 
 export interface RunProps {
     /* 
@@ -102,13 +101,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
     }
 
     function isRuleBased(flow: JSON) {
-        const prescriptorNode = FlowNodeQueries.getPrescriptorNodes(flow)[0]
+        const prescriptorNode = FlowQueries.getPrescriptorNodes(flow)[0]
         const representation = prescriptorNode.data.ParentPrescriptorState.LEAF.representation
         return representation === "RuleBased"
     }
 
     function generateArtifactURL(flow: JSON) {
-        const prescriptorNode = FlowNodeQueries.getPrescriptorNodes(flow)[0]
+        const prescriptorNode = FlowQueries.getPrescriptorNodes(flow)[0]
         let rulesURL = null
         if (prescriptorNode) {
             const nodeCID = nodeToCIDMap[prescriptorNode.id]
@@ -268,8 +267,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     // Split the name of the prescriptor to extract the node id and the cid
                     const splitName = artifact.split("-")
                     const nodeId = splitName.slice(1, splitName.length - 1).join("-")
-                    const cid = splitName[splitName.length - 1]
-                    nodeToCIDMap[nodeId] = cid
+                    nodeToCIDMap[nodeId] = splitName[splitName.length - 1]
                 })
 
             } else {

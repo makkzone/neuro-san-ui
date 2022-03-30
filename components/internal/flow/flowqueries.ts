@@ -1,0 +1,45 @@
+import {CAOType} from "../../../controller/datatag/types";
+
+/**
+ * Contains various methods for query items from the experiment flow
+ */
+export class FlowQueries {
+
+    static getPredictorNodes(graph) {
+        /*
+        This function filters the predictor nodes
+        from the graph and returns them
+        */
+        return graph.filter(
+            element => element.type === 'predictornode')
+    }
+
+    static getPrescriptorNodes(graph) {
+        /*
+        This function filters the prescriptor nodes
+        from the graph and returns them
+        */
+        return graph.filter(
+            element => element.type === 'prescriptornode')
+    }
+
+    static extractCheckedFields(nodes, caoType: CAOType) {
+        /*
+        The function extracts all user-selected (checked) fields of the given CAOType from the
+        relevant sub-nodes. It knows which nodes to search for each CAOType.
+         */
+        const parentNode = caoType == CAOType.CONTEXT || caoType == CAOType.ACTION ? "ParentPrescriptorState"
+            : "ParentPredictorState"
+        const caoTypeAsString = CAOType[caoType].toLowerCase()
+        const checkedFields = []
+        nodes && nodes.forEach(node => {
+            const caoNode = node.data[parentNode].caoState[caoTypeAsString]
+            Object.entries(caoNode).forEach(field => {
+                if (field[1]) {
+                    checkedFields.push(field[0])
+                }
+            })
+        })
+        return checkedFields
+    }
+}

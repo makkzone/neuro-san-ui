@@ -1,10 +1,5 @@
 // Import React Flow
-import ReactFlow, {
-    addEdge,
-    Background,
-    Controls,
-    removeElements
-} from 'react-flow-renderer'
+import ReactFlow, {addEdge, Background, Controls, removeElements} from 'react-flow-renderer'
 
 // Import Framework
 import React from 'react'
@@ -17,30 +12,20 @@ import EdgeTypes from './edges/types'
 import NodeTypes from './nodes/types'
 
 // Import 3rd party components
-import {
-    Button,
-    Container
-} from "react-bootstrap"
+import {Button, Container} from "react-bootstrap"
 
 // Import Constants
-import {
-    MaximumBlue,
-    InputDataNodeID,
-    OutputOverrideCode,
-    EvaluateCandidateCode
-} from '../../../const'
+import {EvaluateCandidateCode, InputDataNodeID, MaximumBlue, OutputOverrideCode} from '../../../const'
 
 // Import types
-import {
-    CAOChecked,
-    PredictorState
-} from "./nodes/predictornode"
+import {CAOChecked, PredictorState} from "./nodes/predictornode"
 import Notification, {NotificationProps} from "../../../controller/notification";
 import {PredictorParams} from "../../../predictorinfo";
 import {DataSource} from "../../../controller/datasources/types";
-import {DataTag} from "../../../controller/datatag/types";
+import {CAOType, DataTag} from "../../../controller/datatag/types";
+import {FlowQueries} from "./flowqueries";
 
-var debug = require('debug')('flow')
+const debug = require('debug')('flow')
 
 /*
 The following interface is used to define the props
@@ -91,22 +76,6 @@ class FlowNodeStateUpdateHandler extends FlowState {
         flowInstance: null
     }
 
-    extractCheckedOutcomes(predictorNodes) {
-        /*
-        The function extracts all the outcome names
-        that are checked across predictors
-         */
-        const outcomes = []
-        predictorNodes.forEach(node => {
-            const nodeOutcomes = node.data.ParentPredictorState.caoState.outcome
-            Object.keys(nodeOutcomes).forEach(outcome => {
-                if (nodeOutcomes[outcome]) {
-                    outcomes.push(outcome)
-                }
-            })
-        })
-        return outcomes;
-    }
 
     DataNodeStateUpdateHandler(dataSource: DataSource, dataTag: DataTag) {
         /*
@@ -154,9 +123,9 @@ class FlowNodeStateUpdateHandler extends FlowState {
         // Get all the outgoing prescriptor edges from this predictor and get the
         // target node id
 
-        const outgoingPrescriptorIds = flow.
-        filter(elem => elem.type === "prescriptoredge" && elem.source === NodeID).
-            map(elem => elem.target)
+        const outgoingPrescriptorIds = flow
+            .filter(elem => elem.type === "prescriptoredge" && elem.source === NodeID)
+            .map(elem => elem.target)
 
         this.setState({
             flow: flow.map(node => {
@@ -182,7 +151,7 @@ class FlowNodeStateUpdateHandler extends FlowState {
                     const predictors = flow.filter(elem => predictorIds.includes(elem.id))
 
                     // Take the Union of all the checked outcomes on the predictors
-                    let checkedOutcomes = this.extractCheckedOutcomes(predictors)
+                    let checkedOutcomes = FlowQueries.extractCheckedFields(predictors, CAOType.OUTCOME)
 
                     // Append the new state outcome
                     Object.keys(newState.caoState.outcome).forEach(outcome => {
@@ -420,7 +389,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // Add the Predictor Node
         const flowInstanceElem = this.state.flowInstance.getElements()
         const MaxPredictorNodeY = Math.max(
-            ...FlowNodeQueries.getPredictorNodes(flowInstanceElem).map(node => node.position.y), 
+            ...FlowQueries.getPredictorNodes(flowInstanceElem).map(node => node.position.y),
             flowInstanceElem[0].position.y - 100
         )
 
@@ -449,7 +418,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         })
     
         // Check if Prescriptor Node exists
-        const prescriptorNodes = FlowNodeQueries.getPrescriptorNodes(this.state.flow)
+        const prescriptorNodes = FlowQueries.getPrescriptorNodes(this.state.flow)
 
         // If there's already a prescriptor node, add edge to that prescriptor node
         if (prescriptorNodes.length != 0) { 
@@ -529,7 +498,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
     
         // Check if Prescriptor Node exists
         const prescriptorExists = (
-            FlowNodeQueries.getPrescriptorNodes(this.state.flow)).length != 0
+            FlowQueries.getPrescriptorNodes(this.state.flow)).length != 0
     
         // If it already exists, return
         if (prescriptorExists) {
@@ -543,7 +512,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         }
     
         // Make sure predictor nodes exist, if not alert
-        const predictorNodes = FlowNodeQueries.getPredictorNodes(this.state.flow)
+        const predictorNodes = FlowQueries.getPredictorNodes(this.state.flow)
         if (predictorNodes.length == 0) {
             let notificationProps: NotificationProps = {
                 Type: "error",
@@ -561,7 +530,8 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         const NodeID = uuid()
 
         // Get outcomes from all current predictors to use for prescriptor fitness
-        let outcomes = this.extractCheckedOutcomes(predictorNodes)
+        let outcomes = FlowQueries.extractCheckedFields(predictorNodes, CAOType.OUTCOME)
+
         // Make this a set
         outcomes = outcomes.filter((value, index, self) => self.indexOf(value) === index)
 
@@ -611,13 +581,13 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // Make sure there are no data nodes
         const removableElements = elementsToRemove.filter(element => element.type != "datanode")
 
-        const predictorIdsBeingRemoved = FlowNodeQueries.getPredictorNodes(elementsToRemove).
+        const predictorIdsBeingRemoved = FlowQueries.getPredictorNodes(elementsToRemove).
             map(node => node.id)
 
         // If this delete will remove all predictors, also delete the prescriptor
-        const numPredictorNodesLeft = FlowNodeQueries.getPredictorNodes(graph).length - predictorIdsBeingRemoved.length
+        const numPredictorNodesLeft = FlowQueries.getPredictorNodes(graph).length - predictorIdsBeingRemoved.length
         if (numPredictorNodesLeft == 0) {
-            removableElements.push(...FlowNodeQueries.getPrescriptorNodes(graph))
+            removableElements.push(...FlowQueries.getPrescriptorNodes(graph))
 
 
         } else {
@@ -625,7 +595,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
             // need to clean up their outcomes from showing in the prescriptor
             const predictorsLeft = graph.filter(node => node.type === "predictornode" && !predictorIdsBeingRemoved.includes(node.id))
             // Get outcomes from all current predictors to use for prescriptor fitness
-            let outcomes = this.extractCheckedOutcomes(predictorsLeft)
+            let outcomes = FlowQueries.extractCheckedFields(predictorsLeft, CAOType.OUTCOME)
             // Make this a set
             outcomes = outcomes.filter((value, index, self) => self.indexOf(value) === index)
             // Default to maximizing outcomes until user tells us otherwise
@@ -676,34 +646,6 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         }
     }
 
-}
-
-export class FlowNodeQueries {
-
-    static getPredictorNodes(graph) {
-        /*
-        This function filters the predictor nodes
-        from the graph and returns them
-        */
-        return graph.filter(
-            element => element.type === 'predictornode')
-    }
-    static getPrescriptorNodes(graph) { 
-        /*
-        This function filters the prescriptor nodes
-        from the graph and returns them
-        */
-        return graph.filter(
-            element => element.type === 'prescriptornode')
-    }
-    static getDataNodes(graph){ 
-        /*
-        This function filters the data nodes
-        from the graph and returns them
-        */
-        return graph.filter(
-            element => element.type === 'datanode')
-    }
 }
 
 export default class Flow extends FlowUtils {
