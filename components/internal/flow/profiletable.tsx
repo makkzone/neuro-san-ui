@@ -53,7 +53,7 @@ export default function ProfileTable(props: ProfiletableProps) {
         "ACTION": "#8BBEE8FF",
         "OUTCOME": "#A8D5BAFF"
     }
-    // To sort fields by CAOType
+
     if (profile != null) {
         Object.keys(profile.data_tag.fields)
             .map((field) =>
