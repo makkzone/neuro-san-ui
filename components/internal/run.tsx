@@ -46,6 +46,9 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [rules, setRules] = useState(null)
     const [artifactObj, setArtifactObj] = useState(null)
     const [flow, setFlow] = useState(null)
+    const isDisabled = {
+        pointerEvents: 'none'
+    }
 
     function cacheRun(run: Run) {
         /*
@@ -317,7 +320,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
         PlotDiv.push(
             <Button size="lg" className="mt-4 mb-4"
                     type="button"
-                    style={{background: MaximumBlue, borderColor: MaximumBlue, width: "100%"}}
+                    style={{
+                        background: MaximumBlue, 
+                        borderColor: MaximumBlue, 
+                        width: "100%",
+                        cursor: rules != null ? "pointer" : "not-allowed"
+                    }}
+                    disabled={rules == null}
             >
                 <Link
                     href={`/projects/${props.ProjectId}/experiments/${run.experiment_id}/runs/${run.id}/
