@@ -58,7 +58,7 @@ export interface CAOChecked {
 
 // State of the predictor
 export interface PredictorState {
-    selectedPredictorType: "regressor" | "classifier",
+    selectedPredictorType: string,
     selectedPredictor: string,
     selectedMetric: string,
     predictorParams: PredictorParams,
@@ -206,7 +206,8 @@ export default function PredictorNode(props): React.ReactElement {
                 params[key].value = params[key].default_value
             }
         })
-        
+
+        console.log("INVOKED: ", predictorType)
         // Write the state.
         SetParentPredictorState({
             ...ParentPredictorState,
@@ -288,6 +289,7 @@ export default function PredictorNode(props): React.ReactElement {
                                             <select 
                                                 name={ `${NodeID}-predictorType` } 
                                                 onChange={ event => onPredictorTypeChange(event.target.value)}
+                                                value={ ParentPredictorState.selectedPredictorType }
                                                 className="w-32" >
                                                     <option value="regressor">Regressor</option>
                                                     <option value="classifier">Classfier</option>
