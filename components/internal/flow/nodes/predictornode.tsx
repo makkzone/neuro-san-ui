@@ -58,7 +58,7 @@ export interface CAOChecked {
 
 // State of the predictor
 export interface PredictorState {
-    selectedPredictorType: "regressor" | "classifier",
+    selectedPredictorType: string,
     selectedPredictor: string,
     selectedMetric: string,
     predictorParams: PredictorParams,
@@ -206,7 +206,7 @@ export default function PredictorNode(props): React.ReactElement {
                 params[key].value = params[key].default_value
             }
         })
-        
+
         // Write the state.
         SetParentPredictorState({
             ...ParentPredictorState,
@@ -288,6 +288,7 @@ export default function PredictorNode(props): React.ReactElement {
                                             <select 
                                                 name={ `${NodeID}-predictorType` } 
                                                 onChange={ event => onPredictorTypeChange(event.target.value)}
+                                                value={ ParentPredictorState.selectedPredictorType }
                                                 className="w-32" >
                                                     <option value="regressor">Regressor</option>
                                                     <option value="classifier">Classfier</option>
@@ -376,9 +377,7 @@ export default function PredictorNode(props): React.ReactElement {
                                                                 onChange={event => onParamChange(event, param)}
                                                                 className="w-32">
                                                                 {
-                                                                    // The code below works as long as the predictor parameter is a list
-                                                                    // containing elements of the same type. If that is not followed this is
-                                                                    // invalid TS code and we will need to fix this.
+                                                                    // @ts-ignore
                                                                     ParentPredictorState.predictorParams[param].type.map(
                                                                         (value, _) => <option key={value} value={ value }>{ value }</option>)
                                                                 }
