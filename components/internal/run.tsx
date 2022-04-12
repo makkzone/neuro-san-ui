@@ -12,7 +12,7 @@ import Link from "next/link";
 import Flow from "./flow/flow";
 import {ReactFlowProvider} from "react-flow-renderer";
 import decode from "../../utils/decode";
-import Notification, {NotificationProps} from "../../controller/notification";
+import {NotificationType, sendNotification} from "../../controller/notification";
 import {FlowQueries} from "./flow/flowqueries";
 
 export interface RunProps {
@@ -116,22 +116,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 rulesURL = JSON.parse(run.output_artifacts)[index]   
             }
             else {
-                const notificationProps: NotificationProps = {
-                    Type: "error",
-                    Message: "Internal error",
-                    Description: "Failed to find nodeCID with prescriptor id."
-                }
-                Notification(notificationProps)
+                sendNotification(NotificationType.error, "Internal error",
+                    "Failed to find nodeCID with prescriptor id.")
             }
         }
         else {
-            const notificationProps: NotificationProps = {
-                Type: "error",
-                Message: "Internal error",
-                Description: "Retrieval of prescriptor node returned false"
-            }
-            Notification(notificationProps)
-        } 
+            sendNotification(NotificationType.error, "Internal error", "Error retrieving prescriptor node")
+        }
 
         return rulesURL
     }
@@ -145,21 +136,11 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 setArtifactObj(artifactObj[0])
             }
             else {
-                const notificationProps: NotificationProps = {
-                    Type: "error",
-                    Message: "Internal error",
-                    Description: "Fetch for artifacts returned null"
-                }
-                Notification(notificationProps)
+                sendNotification(NotificationType.error, "Internal error", "Fetch for artifacts returned null")
             }
         }
         else {
-            const notificationProps: NotificationProps = {
-                Type: "error",
-                Message: "Internal error",
-                Description: "Generation of s3 url returned null."
-            }
-            Notification(notificationProps)
+            sendNotification(NotificationType.error, "Internal error", "Generation of s3 url returned null.")
         }
     }
     
@@ -174,21 +155,12 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 setRun(run)
                 cacheRun(run)
             } else {
-                const notificationProps: NotificationProps = {
-                    Type: "error",
-                    Message: "Internal error",
-                    Description: `Unexpected number of runs returned: ${runs.length} for run ${runID}`
-                }
-                Notification(notificationProps)
+                sendNotification(NotificationType.error, "Internal error",
+                    `Unexpected number of runs returned: ${runs.length} for run ${runID}` )
                 return null
             }
         } else {
-            const notificationProps: NotificationProps = {
-                Type: "error",
-                Message: "Internal error",
-                Description: "No run ID passed"
-            }
-            Notification(notificationProps)
+            sendNotification(NotificationType.error, "Internal error", "No run ID passed")
             return null
         }
     }
@@ -226,12 +198,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 setRules(decodedRules)
             }
             else {
-                const notificationProps: NotificationProps = {
-                    Type: "error",
-                    Message: "Internal error",
-                    Description: "Failed to decode rules"
-                }
-                Notification(notificationProps)
+                sendNotification(NotificationType.error, "Internal error", "Failed to decode rules")
             }
         }
     }, [artifactObj])
