@@ -6,6 +6,7 @@ import MetricsTable from "../metricstable";
 import ESPRunPlot, {ParetoPlotTable} from "../esprunplot";
 import NewBar from "../newbar";
 import {Button} from "react-bootstrap";
+import {InfoSignIcon, Position, Tooltip} from "evergreen-ui";
 import {MaximumBlue} from "../../const";
 import ClipLoader from "react-spinners/ClipLoader";
 import Link from "next/link";
@@ -306,7 +307,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             NodeToCIDMap={nodeToCIDMap}
             PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap} />)
     }
-
+    
     if (!predictorPlotData && !prescriptorPlotData) {
         PlotDiv.push(
             <div className="container">
@@ -314,27 +315,38 @@ export default function RunPage(props: RunProps): React.ReactElement {
             </div>
         )
     } else {
-        PlotDiv.push(
-            <Button size="lg" className="mt-4 mb-4"
-                    type="button"
-                    style={{
-                        background: MaximumBlue, 
-                        borderColor: MaximumBlue, 
-                        width: "100%",
-                        cursor: rules == null ? "pointer" : "not-allowed"
-                    }}
-                    disabled={rules != null}
+        const inferenceButton = <Button size="lg" className="mt-4 mb-4"
+                                        type="button"
+                                        style={{
+                                            background: MaximumBlue, 
+                                            borderColor: MaximumBlue, 
+                                            width: "100%",
+                                            // cursor: rules == null ? "pointer" : "not-allowed"
+                                        }}
+                                        disabled={rules != null}
+        >
+            <Link
+                href={`/projects/${props.ProjectId}/experiments/${run.experiment_id}/runs/${run.id}/
+        prescriptors/${Object.values(nodeToCIDMap)[0]}/?dataprofile_id=${flow[0].data.DataTag.id}`}
             >
-                <Link
-                    href={`/projects/${props.ProjectId}/experiments/${run.experiment_id}/runs/${run.id}/
-prescriptors/${Object.values(nodeToCIDMap)[0]}/?dataprofile_id=${flow[0].data.DataTag.id}`}
-                >
-                    <a style={{
-                        color: "white"
-                    }}>Go to Decision Making System with Prescriptor: {Object.values(nodeToCIDMap)[0]}</a>
-                </Link>
+                <a style={{
+                    color: "white"
+                }} >Go to Decision Making System with Prescriptor: {Object.values(nodeToCIDMap)[0]}</a>
+            </Link>
 
-            </Button>
+        </Button>
+
+        if (rules == null) {
+            console.log('No tooltip')
+        } else {
+            console.log('Tooltip included')
+        }
+
+        PlotDiv.push(
+            rules == null ? inferenceButton 
+                : <Tooltip content="Link disabled due to rule-based run" 
+                           position={Position.BOTTOM_LEFT}
+                ><div className="d-inline">{inferenceButton}</div></Tooltip>
         )
     }
 
