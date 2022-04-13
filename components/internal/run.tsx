@@ -361,7 +361,7 @@ prescriptors/${Object.values(nodeToCIDMap)[0]}/?dataprofile_id=${flow[0].data.Da
                          backgroundColor: "whitesmoke"
                      }}
                 >
-                    <SyntaxHighlighter language="sql" style={docco} showLineNumbers={true}>
+                    <SyntaxHighlighter language="scala" style={docco} showLineNumbers={true}>
                         {rules}
                     </SyntaxHighlighter>
                 </div>
