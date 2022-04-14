@@ -6,7 +6,8 @@
     "dev": "next dev --hostname 0.0.0.0 --port 3000",
     "lint": "next lint",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "jest"
   },
   "dependencies": {
     "@blueprintjs/core": "^3.47.0",
@@ -45,12 +46,16 @@
     "zustand": "^3.5.8"
   },
   "devDependencies": {
+    "@types/jest": "^27.4.1",
+    "@typescript-eslint/eslint-plugin": "^5.19.0",
     "autoprefixer": "^10.3.1",
     "eslint": "^8.12.0",
     "eslint-config-next": "^12.1.4",
+    "jest": "^27.5.1",
     "postcss": "^8.3.5",
     "tailwindcss": "^2.2.4",
-    "typescript": "^4.3.5",
-    "@typescript-eslint/eslint-plugin": "^5.19.0"
+    "ts-jest": "^27.1.4",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.3.5"
   }
 }
