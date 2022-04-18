@@ -36,7 +36,7 @@ ENV MD_SERVER_URL ${GATEWAY}
 RUN yarn build
 
 # Production image, copy all the files and run next
-FROM node:$NODE_VERSION-alpine AS runner
+FROM gcr.io/distroless/nodejs:$NODE_VERSION AS runner
 
 WORKDIR /app
 
@@ -49,15 +49,15 @@ COPY --from=builder /app/package.json ./package.json
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=node:node /app/.next/standalone ./
-COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=nonroot:nonroot /app/.next/standalone ./
+COPY --from=builder --chown=nonroot:nonroot /app/.next/static ./.next/static
 
-# The "node" non-privileged user is provided by the base image
-USER node
+# The "nonroot" non-privileged user is provided by the base image
+USER nonroot
 
 EXPOSE 3000
 
 # Disable NextJS spyware
 ENV NEXT_TELEMETRY_DISABLED 1
 
-CMD ["node", "server.js"]
+CMD ["server.js"]
