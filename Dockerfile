@@ -1,47 +1,63 @@
-# Install dependencies only when needed
-FROM node:alpine AS deps
+#
+# This is the Dockerfile for building the UI/NodeJS Docker image.
+#
+# Taken from here with slight modifications: https://github.com/vercel/next.js/blob/main/examples/with-docker/Dockerfile
+#
+# It uses multi-stage builds for a smaller resulting image
+#
+
+# This is the major version of NodeJS we will enforce
+ARG NODE_VERSION=16
+
+FROM node:$NODE_VERSION-alpine AS deps
+
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+RUN apk add --quiet --no-progress --no-cache libc6-compat
 WORKDIR /app
 COPY package.json yarn.lock ./
-RUN yarn install --silent
+RUN yarn install --silent --prefer-offline --frozen-lockfile --non-interactive
 
 # Rebuild the source code only when needed
 
-FROM node:alpine AS builder
+FROM node:$NODE_VERSION-alpine AS builder
+
 WORKDIR /app
-COPY . .
 COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
 # Pass in the gateway (production or staging) at docker build time
-# This value is provided in codefresh where we build both 
+# This value is provided in codefresh where we build both
 # flavors in parallel. This env var needs to be set before
 # the yarn build command.
 ARG GATEWAY
 ENV MD_SERVER_URL ${GATEWAY}
 
-# NODE_OPTIONS is workaround for RR_OSSL_EVP_UNSUPPORTED error during build.
-# https://stackoverflow.com/questions/69692842/error0308010cdigital-envelope-routinesunsupported
-# I have not found any real fix for this issue, only this use-legacy-workaround.
-RUN export NODE_OPTIONS=--openssl-legacy-provider && yarn build && yarn install --silent --production --ignore-scripts --prefer-offline
+# Use yarn to build and install dependencies
+RUN yarn build
+
 # Production image, copy all the files and run next
-FROM node:alpine AS runner
+FROM gcr.io/distroless/nodejs:$NODE_VERSION AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV production
 
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-
 # You only need to copy next.config.js if you are NOT using the default configuration
 # COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-USER nextjs
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nonroot:nonroot /app/.next/standalone ./
+COPY --from=builder --chown=nonroot:nonroot /app/.next/static ./.next/static
+
+# The "nonroot" non-privileged user is provided by the base image
+USER nonroot
+
 EXPOSE 3000
+
+# Disable NextJS spyware
 ENV NEXT_TELEMETRY_DISABLED 1
-CMD ["yarn", "start"]
+
+CMD ["server.js"]

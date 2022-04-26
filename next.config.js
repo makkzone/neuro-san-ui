@@ -27,4 +27,7 @@ module.exports = {
         }
     },
     mode: 'production',
+    experimental: {
+        outputStandalone: true,
+    }
 }
