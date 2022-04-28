@@ -215,7 +215,10 @@ export default function RunPage(props: RunProps): React.ReactElement {
     useEffect(() => {
         if (run != null && flow != null) {
             constructMetrics(run.metrics)
-            deployModels(run)
+            if (rules == null) {
+                // Deploy models since it's not a Rules representation experiment
+                deployModels(run)
+            }
         }
     }, [run])
 
