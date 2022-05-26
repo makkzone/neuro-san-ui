@@ -16,8 +16,6 @@ import {NotificationType, sendNotification} from "../../controller/notification"
 import {FlowQueries} from "./flow/flowqueries";
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs';
-import {deployRun} from "../../controller/model_serving/crud";
-import {ModelServingEnvironment} from "../../controller/model_serving/types";
 
 export interface RunProps {
     /* 
@@ -167,11 +165,6 @@ export default function RunPage(props: RunProps): React.ReactElement {
         }
     }
 
-    // Eagerly deploy models for this run so they will be ready for the DMS.
-    // We currently deploy all prescriptors for the run which is a bit of overkill but fine for now.
-    async function deployModels(run: Run) {
-        await deployRun(props.ProjectId, run, 0, null, ModelServingEnvironment.KSERVE)
-    }
 
     // Fetch the experiment and the runs
     useEffect(() => {
@@ -215,10 +208,6 @@ export default function RunPage(props: RunProps): React.ReactElement {
     useEffect(() => {
         if (run != null && flow != null) {
             constructMetrics(run.metrics)
-            if (rules == null) {
-                // Deploy models since it's not a Rules representation experiment
-                deployModels(run)
-            }
         }
     }, [run])
 
