@@ -276,7 +276,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             NodeToCIDMap={nodeToCIDMap}
             PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap} />)
     }
-    
+
     if (!predictorPlotData && !prescriptorPlotData) {
         PlotDiv.push(
             <div className="container">
@@ -303,7 +303,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     {rules == null ?
                         <Link
                             href={`/projects/${props.ProjectId}/experiments/${run.experiment_id}/runs/${run.id}/
-prescriptors/${Object.values(nodeToCIDMap)[0]}/?dataprofile_id=${flow[0].data.DataTag.id}`}
+prescriptors/${Object.values(nodeToCIDMap)[0]}/?data_source_id=${flow[0].data.DataTag.data_source_id}`}
                         >
                             <a style={{
                                 color: "white"
