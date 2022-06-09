@@ -16,8 +16,6 @@ import {NotificationType, sendNotification} from "../../controller/notification"
 import {FlowQueries} from "./flow/flowqueries";
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs';
-import {deployRun} from "../../controller/model_serving/crud";
-import {ModelServingEnvironment} from "../../controller/model_serving/types";
 import {useLocalStorage} from "../../utils/use_local_storage";
 
 export interface RunProps {
@@ -50,7 +48,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [artifactObj, setArtifactObj] = useState(null)
     const [flow, setFlow] = useState(null)
 
-    const [prescriptors, setPrescriptors] = useLocalStorage("prescriptors", []);
+    const [, setPrescriptors] = useLocalStorage("prescriptors", null);
 
     function cacheRun(run: Run) {
         /*
@@ -217,18 +215,30 @@ export default function RunPage(props: RunProps): React.ReactElement {
     }, [run])
 
     const constructMetrics = metrics => {
+        setPrescriptors(null)
         if (metrics) {
             const [constructedPredictorResults, constructedPrescriptorResults, pareto] =
                 constructRunMetricsForRunPlot(flow, JSON.parse(metrics))
             setPredictorPlotData(constructedPredictorResults)
             setPrescriptorPlotData(constructedPrescriptorResults)
             setParetoPlotData(pareto)
-            console.debug("pareto", pareto)
-            const firstItem = pareto[Object.keys(pareto)[0]]
-            setPrescriptors({
-                "objectives": firstItem.objectives,
-                "prescriptors": firstItem.data[firstItem.data.length - 1].data
-            })
+
+            // Retrieve objectives and prescriptor IDs from Pareto front and save them to local storage so that
+            // DMS can retrieve them later
+            const keys = Object.keys(pareto)
+            if (keys && keys.length > 0) {
+                const firstItem = pareto[keys[0]]
+
+                // Extract x-y coords and CID (candidate ID) of each prescriptor
+                // Sort by first objective as DMS requires
+                const prescriptorInfo = firstItem.data[firstItem.data.length - 1].data
+                    .sort((item1, item2) => {return item1.x - item2.x})
+
+                setPrescriptors({
+                    "objectives": firstItem.objectives,
+                    "prescriptors": prescriptorInfo
+                })
+            }
         }
     }
 
