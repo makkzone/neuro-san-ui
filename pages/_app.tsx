@@ -1,4 +1,4 @@
-// Import Stylesheets
+// Stylesheets
 import '../styles/updatenode.css'
 import '../styles/globals.css'
 import 'antd/dist/antd.css'
@@ -7,25 +7,31 @@ import 'bootstrap/dist/css/bootstrap.css'
 import '@blueprintjs/icons/lib/css/blueprint-icons.css'
 import '@blueprintjs/core/lib/css/blueprint.css'
 
-// Import External Libraries
-import { Container } from 'react-bootstrap'
+// External Libraries
 
-// Import React
+// Bootstrap
+import {Container} from "react-bootstrap";
+
+// React
 import React from 'react'
-
-// Import Next Components
-import Head from 'next/head'
-import {useRouter} from "next/router";
-
-// Import Components
-import Navbar from "../components/navbar"
 import 'react-pro-sidebar/dist/css/styles.css';
 
-// import Constants
-import { LOGO } from "../const"
+// NextJS Components
+import Head from 'next/head'
 import {useRouter} from "next/router";
+import {SessionProvider} from "next-auth/react"
 
-export default function LEAF({ Component, pageProps }): React.ReactElement {
+// Local Components
+import Navbar from "../components/navbar"
+
+// import Constants
+import {LOGO} from "../const"
+
+
+export default function LEAF({
+  Component,
+  pageProps: { session, ...pageProps }
+}): React.ReactElement {
 
   const router = useRouter()
   let Body
@@ -34,11 +40,14 @@ export default function LEAF({ Component, pageProps }): React.ReactElement {
       <Component {...pageProps} />
     </div>
   } else {
-    Body = <>
-      <Navbar Logo={LOGO}/>
-      <Container>
-        <Component {...pageProps} />
-      </Container>
+    Body =
+    <>
+      <SessionProvider session={session}>
+        <Navbar Logo={LOGO} />
+        <Container>
+            <Component {...pageProps} />
+        </Container>
+      </SessionProvider>
     </>
   }
 

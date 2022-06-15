@@ -23,7 +23,7 @@ export const MD_BASE_URL: string = publicRuntimeConfig.md_server_url
 export const THIS_SERVER: string = "http://localhost:3000"
 export const AUTHOR: string = "mohak"
 export const DEFAULT_DATA_ROOT_KEY: string = "data"
-export const LOGO: string = "LEAF"
+export const LOGO: string = "UniLEAF"
 
 export const EvaluateCandidateCode: string = `def evaluate_candidate(self, candidate: object) -> Dict[str, object]:
 """

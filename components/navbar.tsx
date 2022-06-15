@@ -1,23 +1,16 @@
 // Import Constants
-import { 
-    MaximumBlue,
-    BaseBlack
-} from '../const'
+import {MaximumBlue} from '../const'
 
 // Import React
 import React from 'react'
 
 // Import Styling Libraries
-import { 
-    NavDropdown, 
-    Nav, 
-    Container, 
-    Navbar as BootstrapNavbar 
-} from "react-bootstrap";
+import {Container, Nav, Navbar as BootstrapNavbar} from "react-bootstrap";
 import Link from "next/link";
+import {signIn, signOut, useSession} from "next-auth/react";
+import {isSignedIn} from "../utils/auth";
 
 // Define Constants
-const BG_COLOR: string = "white";
 const LOGO_COLOR: string = "white";
 const NAV_ITEMS_COLOR: string = "white";
 
@@ -34,27 +27,36 @@ export function Navbar(props: NavbarProps): React.ReactElement {
     but not the list items.
     */
 
-    return <BootstrapNavbar collapseOnSelect expand="lg" 
-    style={{background: MaximumBlue, borderBottomColor: MaximumBlue}} 
-    variant="dark" className="border-b-2">
-        <Container>
-            <BootstrapNavbar.Brand href="/" style={{color: LOGO_COLOR}} className="font-bold ml-2">
-                { props.Logo }
-            </BootstrapNavbar.Brand>
+    const { data: session, status } = useSession()
+    const signedIn: boolean = isSignedIn(session, status)
+
+    return <BootstrapNavbar collapseOnSelect expand="lg"
+                style={{background: MaximumBlue, borderBottomColor: MaximumBlue}}
+                variant="dark" className="border-b-2">
+                <Container>
+                    <BootstrapNavbar.Brand href="/" style={{color: LOGO_COLOR}} className="font-bold ml-2">
+                        { props.Logo }
+                    </BootstrapNavbar.Brand>
             <BootstrapNavbar.Collapse id="responsive-navbar-nav">
-                <Nav className="me-auto"/>
-                <Nav>
-                    <Nav.Item>
-                        <Link href={`/projects`} >
-                            <a style={{color: NAV_ITEMS_COLOR}}>Projects</a>
-                        </Link>
-                    </Nav.Item>
-
-                </Nav>
-            </BootstrapNavbar.Collapse>
-        </Container>
-    </BootstrapNavbar>
-
+                        <Nav className="me-auto"/>
+                        <Nav>
+                            <Nav.Item className="px-3">
+                                <Link href={`/projects`} >
+                                    <a style={{color: NAV_ITEMS_COLOR}}>Projects</a>
+                                </Link>
+                            </Nav.Item>
+                            <Nav.Item className="px-3">
+                                <button>
+                                    {signedIn
+                                        ? <a style={{color: NAV_ITEMS_COLOR}} onClick={() => signOut()}>Sign out</a>
+                                        : <a style={{color: NAV_ITEMS_COLOR}} onClick={() => signIn()}>Sign In</a>
+                                    }
+                                </button>
+                            </Nav.Item>
+                        </Nav>
+                    </BootstrapNavbar.Collapse>
+                </Container>
+            </BootstrapNavbar>
 }
 
 export default Navbar;

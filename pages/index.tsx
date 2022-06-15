@@ -4,7 +4,7 @@ import styled from "styled-components";
 
 import Image from 'next/image'
 import {Link} from "evergreen-ui";
-
+import {LOGO} from "../const";
 
 const OuterContainer = styled.div`
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("/landingpagebackground.png");
@@ -110,7 +110,7 @@ export default function Index(): React.ReactElement {
     <OuterContainer>
       <Marginer>
           <Navbar>
-              <NavbarLogo>LEAF</NavbarLogo>
+              <NavbarLogo>{LOGO}</NavbarLogo>
               <NavbarMiddleSection>
                   <NavbarItem>Publications</NavbarItem>
                   <NavbarItem>Contact</NavbarItem>
