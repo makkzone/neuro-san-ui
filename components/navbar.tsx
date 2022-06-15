@@ -1,13 +1,18 @@
 // Import Constants
 import {MaximumBlue} from '../const'
 
-// Import React
+// React
 import React from 'react'
 
-// Import Styling Libraries
+// Styling Libraries
 import {Container, Nav, Navbar as BootstrapNavbar} from "react-bootstrap";
+import Image from 'next/image'
 import Link from "next/link";
+
+// Authentication
 import {signIn, signOut, useSession} from "next-auth/react";
+
+// Custom components
 import {isSignedIn} from "../utils/auth";
 
 // Define Constants
@@ -55,7 +60,7 @@ export function Navbar(props: NavbarProps): React.ReactElement {
                             </Nav.Item>
                             <Nav.Item className="px-3">
                                 {signedIn &&
-                                    <img
+                                    <Image
                                         src={session.user.image}
                                         width="30"
                                         height="30"
