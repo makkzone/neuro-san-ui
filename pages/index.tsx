@@ -146,3 +146,6 @@ export default function Index(): React.ReactElement {
     </OuterContainer>
   )
 }
+
+// Explicitly want to leave this splash page open
+Index.authRequired = false

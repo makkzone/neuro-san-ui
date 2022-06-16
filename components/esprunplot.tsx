@@ -454,6 +454,6 @@ export function ParetoPlotTable(props: ParetoPlotProps) {
         <NewBar Title="Pareto Prescriptors" DisplayNewLink={ false } />
         {nodePlots}
     </>
-
-
 }
+
+ESPRunPlot.authRequired = true

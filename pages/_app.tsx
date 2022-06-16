@@ -26,7 +26,7 @@ import Navbar from "../components/navbar"
 
 // import Constants
 import {LOGO} from "../const"
-
+import {Auth} from "../utils/auth";
 
 export default function LEAF({
   Component,
@@ -45,7 +45,10 @@ export default function LEAF({
       <SessionProvider session={session}>
         <Navbar Logo={LOGO} />
         <Container>
-            <Component {...pageProps} />
+          {Component.authRequired
+              ? <Auth><Component {...pageProps} /></Auth>
+              : <Component {...pageProps} />
+          }
         </Container>
       </SessionProvider>
     </>

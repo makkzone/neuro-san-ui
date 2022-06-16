@@ -46,8 +46,6 @@ export default function MetricsTable(props: MetricstableProps) {
         <NewBar Title="Predictor Metrics" DisplayNewLink={ false } />
         {predictorRenders}
     </>
-
-
-
-
 }
+
+MetricsTable.authRequired = true
