@@ -10,7 +10,7 @@ import Image from 'next/image'
 import Link from "next/link";
 
 // Authentication
-import {signIn, signOut, useSession} from "next-auth/react";
+import {signOut, useSession} from "next-auth/react";
 
 // Custom components
 import {isSignedIn} from "../utils/auth";
@@ -52,10 +52,8 @@ export function Navbar(props: NavbarProps): React.ReactElement {
                             </Nav.Item>
                             <Nav.Item className="px-3">
                                 <button>
-                                    {signedIn
-                                        ? <a style={{color: NAV_ITEMS_COLOR}} onClick={() => signOut()}>Sign out</a>
-                                        : <a style={{color: NAV_ITEMS_COLOR}} onClick={() => signIn()}>Sign In</a>
-                                    }
+                                    {signedIn &&
+                                        <a style={{color: NAV_ITEMS_COLOR}} onClick={() => signOut()}>Sign out</a>}
                                 </button>
                             </Nav.Item>
                             <Nav.Item className="px-3">

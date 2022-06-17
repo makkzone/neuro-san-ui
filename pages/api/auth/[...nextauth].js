@@ -13,7 +13,7 @@ export default NextAuth({
         GithubProvider({
             clientId: process.env.GITHUB_ID,
             clientSecret: process.env.GITHUB_SECRET,
-            scope: "read:user"
+            scope: "read:user, read:org"
         }),
         // ...add more providers here
     ],
@@ -26,6 +26,6 @@ export default NextAuth({
     theme: {
         colorScheme: "auto", // "auto" | "dark" | "light"
         brandColor: "0033a0", // Hex color value
-        logo: "" // Absolute URL to logo image
+        logo: "http://unileaf.evolution.ml/leaffavicon.png" // Absolute URL to logo image
     }
 })
