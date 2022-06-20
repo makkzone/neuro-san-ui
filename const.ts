@@ -12,7 +12,6 @@ export const MD_BASE_URL: string = publicRuntimeConfig.md_server_url
 
 // Global system flag -- whether authentication (sign-in) is required
 export const ENABLE_AUTHENTICATION: boolean = Boolean(JSON.parse(publicRuntimeConfig.enableAuthentication))
-console.debug("auth?", ENABLE_AUTHENTICATION)
 
 export const LOGO: string = "UniLEAF"
 
