@@ -61,15 +61,15 @@ export function Navbar(props: NavbarProps): React.ReactElement {
                                 </button>
                             </Nav.Item>
                             <Nav.Item className="px-3">
-                                {/*{signedIn && ENABLE_AUTHENTICATION &&*/}
-                                {/*    <Image*/}
-                                {/*        src={session.user.image}*/}
-                                {/*        width="30"*/}
-                                {/*        height="30"*/}
-                                {/*        title={session.user.name}*/}
-                                {/*        alt="..."*/}
-                                {/*    />*/}
-                                {/*}*/}
+                                {signedIn && ENABLE_AUTHENTICATION &&
+                                    <Image
+                                        src={session.user.image}
+                                        width="30"
+                                        height="30"
+                                        title={session.user.name}
+                                        alt="..."
+                                    />
+                                }
                             </Nav.Item>
                         </Nav>
                     </BootstrapNavbar.Collapse>
