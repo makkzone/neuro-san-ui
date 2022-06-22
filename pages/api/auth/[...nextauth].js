@@ -32,5 +32,5 @@ export default NextAuth({
     },
 
     // Set this to "true" for verbose debugging messages from next-auth
-    debug: true
+    debug: false
 })
