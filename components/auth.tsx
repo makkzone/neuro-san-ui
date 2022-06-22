@@ -29,6 +29,10 @@ export function isSignedIn(session: Session, status: string): boolean {
     return Boolean(session)
 }
 
+// Use this provider for authentication via next-auth. It *must* correspond to one of those listed in
+// ./pages/api/auth/[...nextauth].js
+const AUTHENTICATION_PROVIDER = "auth0";
+
 /**
  * Higher-level component to wrap pages that require authentication.
  *
@@ -45,7 +49,7 @@ export function Auth({ children }) {
 
     React.useEffect(() => {
         if (loading) return // Do nothing while loading
-        if (!isUser) signIn() // If not authenticated, force log in
+        if (!isUser) signIn(AUTHENTICATION_PROVIDER) // If not authenticated, force log in
     }, [isUser, loading])
 
     if (isUser) {
