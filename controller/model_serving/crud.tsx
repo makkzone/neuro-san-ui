@@ -214,7 +214,7 @@ export async function getModels(
 
     const url = `http://${baseUrl}/${V2_MODELS_ENDPOINT}`
     try {
-        const response = await fetch(`${MD_BASE_URL}/api/v1/infer`,  {
+        const response = await fetch(`${MD_BASE_URL}/api/v1/passthrough`,  {
             method: 'POST',
             mode: 'cors',
             body: JSON.stringify({
