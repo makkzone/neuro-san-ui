@@ -6,7 +6,7 @@
 import React from 'react'
 
 // Import Constants
-import {BUILD_VERSION, ENABLE_AUTHENTICATION, MaximumBlue} from '../const'
+import {UNILEAF_VERSION, ENABLE_AUTHENTICATION, MaximumBlue} from '../const'
 
 // Styling Libraries
 import {Container, Nav, Navbar as BootstrapNavbar} from "react-bootstrap";
@@ -50,7 +50,7 @@ export function Navbar(props: NavbarProps): React.ReactElement {
                         <Nav className="me-auto"/>
                         <Nav>
                             <Nav.Item className="px-3" style={{color: NAV_ITEMS_COLOR}}>
-                                Build: {BUILD_VERSION ?? "Unknown"}
+                                Build: {UNILEAF_VERSION ?? "Unknown"}
                             </Nav.Item>
                             <Nav.Item className="px-3">
                                 <Link href={`/projects`} >

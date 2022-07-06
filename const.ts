@@ -17,7 +17,7 @@ export const ENABLE_AUTHENTICATION: boolean = Boolean(JSON.parse(publicRuntimeCo
 export const LOGO: string = "UniLEAF"
 
 // Build version (passed in from build system)
-export const BUILD_VERSION: string = publicRuntimeConfig.buildVersion
+export const UNILEAF_VERSION: string = publicRuntimeConfig.unileafVersion
 
 export const EvaluateCandidateCode: string = `def evaluate_candidate(self, candidate: object) -> Dict[str, object]:
 """

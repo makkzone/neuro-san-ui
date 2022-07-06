@@ -18,7 +18,7 @@ module.exports = {
         // this way we don't accidentally point prod->staging or vice versa
         md_server_url: process.env.MD_SERVER_URL ?? "MD_SERVER_URL_must_be_set",
         enableAuthentication: process.env.ENABLE_AUTHENTICATION ?? false,
-        buildVersion: process.env.BUILD_VERSION
+        unileafVersion: process.env.UNILEAF_VERSION
     },
 
     entry: path.resolve(__dirname, 'main.js'),
