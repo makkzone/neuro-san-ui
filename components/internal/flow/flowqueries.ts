@@ -23,6 +23,14 @@ export class FlowQueries {
             element => element.type === 'prescriptornode')
     }
 
+    static getDataNodes(graph) {
+        /*
+        This function returns all nodes of type "data" from the graph
+        */
+        return graph.filter(
+            element => element.type === 'datanode')
+    }
+
     static extractCheckedFields(nodes, caoType: CAOType) {
         /*
         The function extracts all user-selected (checked) fields of the given CAOType from the
