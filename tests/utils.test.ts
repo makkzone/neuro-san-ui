@@ -3,9 +3,9 @@ Unit tests for the various small utility modules
  */
 
 import {removeItemOnce} from "../utils/transformation";
-import fromBinary from "../utils/conversion";
 import {getEnumKeyByEnumValue} from "../utils/enum";
 import sortByTime from "../utils/sort";
+import decode from "../utils/conversion";
 
 describe('Various utilities', () => {
     it('removes first item from an array', async () => {
@@ -14,7 +14,7 @@ describe('Various utilities', () => {
     })
 
     it('decodes binary string', async () => {
-        const res = fromBinary("EycgAOAAIABsAGEAIABtAG8AZABlAA==")
+        const res: string = decode("4pyTIMOgIGxhIG1vZGU=")
         expect(res).toEqual("✓ à la mode")
     })
     
@@ -28,7 +28,7 @@ describe('Various utilities', () => {
         }
 
         const res = getEnumKeyByEnumValue(DIRECTION, "UP")
-        expect(res).toEqual("UP")
+        expect(res).toEqual("Up")
     })
 
     it('sorts objects based on value of updated_at', async () => {

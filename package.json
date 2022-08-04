@@ -16,7 +16,7 @@
     "start": "next start",
 
     "about:test": "echo 'Runs the front-end unit tests using `jest`'",
-    "test": "jest"
+    "test": "jest --maxWorkers=1"
   },
   "dependencies": {
     "@blueprintjs/core": "^3.47.0",

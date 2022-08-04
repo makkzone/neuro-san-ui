@@ -11,12 +11,12 @@ import ClipLoader from "react-spinners/ClipLoader";
 import Link from "next/link";
 import Flow from "./flow/flow";
 import {ReactFlowProvider} from "react-flow-renderer";
-import decode from "../../utils/decode";
 import {NotificationType, sendNotification} from "../../controller/notification";
 import {FlowQueries} from "./flow/flowqueries";
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs';
 import {useLocalStorage} from "../../utils/use_local_storage";
+import decode from "../../utils/conversion";
 
 export interface RunProps {
     /* 
