@@ -1,30 +1,30 @@
-// Import React component
+// React components
 import {useState} from 'react'
-import prettyBytes from 'pretty-bytes';
-// Import 3rd Party components
+import {useSession} from 'next-auth/react'
+
+// 3rd Party components
 import {Button, Collapse, Radio, RadioChangeEvent, Space, Upload, UploadProps} from 'antd'
 import {Container, Form} from "react-bootstrap"
-import {UploadOutlined} from '@ant-design/icons';
+import {UploadOutlined} from '@ant-design/icons'
+import prettyBytes from 'pretty-bytes'
 
-// Import required interface to create a new project
+// Custom Components developed by us
+import ProfileTable from "./flow/profiletable";
+import {NotificationType, sendNotification} from "../../controller/notification"
+import Debug from "debug";
+import {Project} from "../../controller/projects/types"
+
+// Controllers for new project
+import {BrowserFetchProfile} from "../../controller/dataprofile/generate"
+import {DataTag, DataTagFields} from "../../controller/datatag/types"
+import {AccessionDatasource} from "../../controller/datasources/accession"
+import AccessionDataTag from "../../controller/datatag/accession"
 import AccessionProject from "../../controller/projects/accession"
 import {Profile} from "../../controller/dataprofile/types"
 import {DataSource} from "../../controller/datasources/types"
-import {DataTag, DataTagFields} from "../../controller/datatag/types";
-import {AccessionDatasource} from "../../controller/datasources/accession"
-import AccessionDataTag from "../../controller/datatag/accession";
 
-// Import constants
+// Constants
 import {MaximumBlue} from "../../const"
-
-// Import Utils
-import {Project} from "../../controller/projects/types";
-import ProfileTable from "./flow/profiletable";
-import {BrowserFetchProfile} from "../../controller/dataprofile/generate";
-import {NotificationType, sendNotification} from "../../controller/notification";
-
-import Debug from "debug";
-import {useSession} from 'next-auth/react';
 
 const debug = Debug("new_project")
 
@@ -214,7 +214,7 @@ export default function NewProject(props: NewProps) {
             authorization: 'authorization-text',
         },
 
-        // tslint:disable-next-line:no-unused-variable
+        // tslint:disable-next-line:no-unused-variable  false positive
         beforeUpload(file) {
             const fileTooLarge = file.size > MAX_ALLOWED_UPLOAD_SIZE_BYTES
             if (fileTooLarge) {
