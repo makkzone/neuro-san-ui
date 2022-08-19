@@ -43,6 +43,7 @@ import {
 import {loadDataTag} from "../../../../controller/fetchdatataglist";
 import {StringBool} from "../../../../controller/base_types";
 import {PredictorParams} from "../../../../predictorinfo";
+import {useSession} from "next-auth/react";
 
 
 // Interface for Predictor CAO
@@ -92,6 +93,10 @@ export default function PredictorNode(props): React.ReactElement {
 
     const data: PredictorNodeData = props.data
 
+    // Get the current user
+    const { data: session } = useSession()
+    const currentUser: string = session.user.name
+
     // Unpack the data
     const { NodeID, ParentPredictorState, SetParentPredictorState } = data
 
@@ -116,7 +121,7 @@ export default function PredictorNode(props): React.ReactElement {
     useEffect(() => {
         //TODO: If the data node has the data source and tag available we should not fetch it but use that.
         //TODO: Reason: Data Tags can change and we don't version them explicitly - this will be an easy way of doing that. If they were to change and we had to re-run a run it might fail
-        (async () => setTaggedData(await loadDataTag(data.SelectedDataSourceId)))()
+        (async () => setTaggedData(await loadDataTag(currentUser, data.SelectedDataSourceId)))()
     }, [data.SelectedDataSourceId])
 
     // We need to take an intersection of what is in the state (for eg: Predictor Node Creation)
