@@ -349,7 +349,7 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                                                     opacity: isUsingLocalFile && selectedFile ? 1.0 : 0.5
                                                 }}
                                                 onClick={handleSubmission}>
-                                            Submit
+                                            Upload
                                         </Button>
                                     </div>
                                 </Space>
