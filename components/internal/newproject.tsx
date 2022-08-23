@@ -1,97 +1,124 @@
-// Import React component
-import {useState} from 'react'
+// React components
+import {useEffect, useRef, useState} from 'react'
+import {useSession} from 'next-auth/react'
 
-// Import 3rd Party components
-import {Collapse} from 'antd'
-import {Button, Container, Form} from "react-bootstrap"
+// 3rd Party components
+import {Button, Collapse, Radio, RadioChangeEvent, Space} from 'antd'
+import {Container, Form} from "react-bootstrap"
+import prettyBytes from 'pretty-bytes'
 
-// Import required interface to create a new project
+// Custom Components developed by us
+import ProfileTable from "./flow/profiletable";
+import {NotificationType, sendNotification} from "../../controller/notification"
+import Debug from "debug";
+import {Project} from "../../controller/projects/types"
+import {uploadFile} from "../../controller/files/upload"
+
+// Controllers for new project
+import {BrowserFetchProfile} from "../../controller/dataprofile/generate"
+import {DataTag, DataTagFields} from "../../controller/datatag/types"
+import {AccessionDatasource} from "../../controller/datasources/accession"
+import AccessionDataTag from "../../controller/datatag/accession"
 import AccessionProject from "../../controller/projects/accession"
 import {Profile} from "../../controller/dataprofile/types"
 import {DataSource} from "../../controller/datasources/types"
-import {DataTag, DataTagFields} from "../../controller/datatag/types";
-import {AccessionDatasource} from "../../controller/datasources/accession"
-import AccessionDataTag from "../../controller/datatag/accession";
 
-// Import constants
+// Constants
 import {MaximumBlue} from "../../const"
 
-// Import Utils
-import AWSUtils from "../../utils/aws"
-import {Project} from "../../controller/projects/types";
-import ProfileTable from "./flow/profiletable";
-import {BrowserFetchProfile} from "../../controller/dataprofile/generate";
-import {NotificationType, sendNotification} from "../../controller/notification";
+const debug = Debug("new_project")
 
-var debug = require('debug')('new_project')
+// Only allow files up to this size to be uploaded as data sources
+const MAX_ALLOWED_UPLOAD_SIZE_BYTES = 200 * 1000 * 1000  // 200 MB in "decimal"
 
 // Declare the Props for this component
 export interface NewProps {
-
-    // A flag to tell if it is to be used in a 
+    // A flag to tell if it is to be used in a
     // DataSource mode only
     ProjectID?: number
 
     // A call back function that tells the view
-    // to update its state to reflect the new addition 
+    // to update its state to reflect the new addition
     // if it has succeeded
     UpdateHook?: any
-
 }
 
 const { Panel } = Collapse
 
 export default function NewProject(props: NewProps) {
-
-    /* 
-    This function adds a component form to add a new project to the system.
+    /*
+    This function adds a component form to add a new project to the system. Despite the name, also used when editing
+    an existing project, for example to add new data sources of experiments to the project.
     */
 
     const [inputFields, setInputFields] = useState({
-        "projectName": "",
-        "description": "", 
-        "datasetName": "",
-        "s3Key": "",
+        projectName: "",
+        description: "",
+        datasetName: "",
+        s3Key: "",
+        uploadedFileS3Key: ""
     })
 
-    const [projectId, setProjectId] = useState(props.ProjectID)
+    const s3Option = 1
+    const localFileOption = 2
+
+    // State variable for the created data profile
     const [profile, setProfile] = useState(null)
 
-    // Define a function to unpack the form and trigger the controller
-    // to register the project
-    const TriggerProfileGeneration = async () => {
+    // Data source currently chosen by the user using the radio buttons
+    const [chosenDataSource, setChosenDataSource] = useState(s3Option)
 
-        // Unpack Data Source Variables
-        const {s3Key} = inputFields
+    const { data: session } = useSession()
+
+    // For file upload
+    const [selectedFile, setSelectedFile] = useState(null);
+
+    // Decide which S3Key to use based on radio buttons
+    function getS3Key() {
+        return chosenDataSource === s3Option ? inputFields.s3Key : inputFields.uploadedFileS3Key;
+    }
+
+    /* Terminology:
+        data source = where to find the data (S3 URL, etc.), headers, stats about number of rows etc
+        data tag = list of fields with CAO type, data type, whether categorical or continuous etc.
+        data profile = data source + data tag
+
+        See proto/metadata.proto for specs.
+    */
+
+    // Create data source based on user selections
+    const CreateDataSource = async () => {
+        const s3Key = getS3Key();
 
         // Create the Data source Message
-        let dataSourceMessage: DataSource = {
+        const dataProfile: DataSource = {
             s3_key: s3Key
         }
 
-        debug("Datasource: ", dataSourceMessage)
+        debug("Data profile: ", dataProfile)
 
-         // Trigger the Data Source Controller
-         const profile: Profile = await BrowserFetchProfile(dataSourceMessage)
+        // Trigger the Data Source Controller
+        const tmpProfile: Profile = await BrowserFetchProfile(dataProfile)
 
-         // If Data Source creation failed, everything fails
-         if (profile === null) { return }
-        debug(profile)
-        setProfile(profile)
+        // If Data Source creation failed, everything fails
+        if (tmpProfile === null) {
+            return
+        }
 
+        setProfile(tmpProfile)
     }
 
-    const TriggerProjectDataSourceDataTagAccession = async () => {
+    //
+    const CreateDataProfile = async () => {
+        const projectId = props.ProjectID
 
-
-        let projectId = props.ProjectID
         // Create the project if the project does not exist
         if (!projectId) {
             // Unpack the Project Variables
             const {projectName, description} = inputFields
 
             // Create the Project message
-            let projectMessage: Project = {
+            const projectMessage: Project = {
                 name: projectName,
                 description: description
             }
@@ -104,13 +131,12 @@ export default function NewProject(props: NewProps) {
             if (accessionProjectResp === null) { return }
 
             sendNotification(NotificationType.success, `Project ${projectName} created`)
-            projectId = accessionProjectResp.id
-            setProjectId(accessionProjectResp.id)
-
         }
 
         // Unpack Data Source Variables
-        const {datasetName, s3Key} = inputFields
+        const {datasetName} = inputFields
+        const s3Key = getS3Key();
+
         const dataSourceMessage: DataSource = {
             project_id: projectId,
             name: datasetName,
@@ -124,7 +150,8 @@ export default function NewProject(props: NewProps) {
         debug("Saved Data Source: ", savedDataSource)
 
         // Unpack the values for datafields
-        let inputFieldsMapped: DataTagFields = {}
+        const inputFieldsMapped: DataTagFields = {}
+
         // Loop over the Data fields
         Object.keys(profile.data_tag.fields).forEach(fieldName => {
 
@@ -172,29 +199,88 @@ export default function NewProject(props: NewProps) {
         }
     }
 
-    const EnabledDataSourceSection = props.ProjectID || (inputFields.projectName && 
-                                        inputFields.description)
-    const EnabledDataTagSection = EnabledDataSourceSection && 
+    // Allow data source set-up if it's an existing project (meaning it has a ProjectID already, and user is not
+    // creating a new project) or if the user has already filled out the relevant project info fields for a new
+    // project.
+    const enabledDataSourceSection = props.ProjectID || (inputFields.projectName && inputFields.description)
+
+    const enabledDataTagSection = enabledDataSourceSection &&
                                     inputFields.datasetName &&
-                                    inputFields.s3Key &&
-                                    profile != null
+                                    profile &&
+                                    (chosenDataSource === s3Option && !!inputFields.s3Key) ||
+                                    (chosenDataSource === localFileOption && !!inputFields.uploadedFileS3Key)
 
     const startIndexOffset = props.ProjectID ? -1 : 0
 
+    const profileTable = <ProfileTable Profile={profile} ProfileUpdateHandler={setProfile} />
 
-    let profileTable = <ProfileTable Profile={profile} ProfileUpdateHandler={setProfile} />
+    const changeHandler = (event) => {
+        setSelectedFile(event.target.files[0])
+    }
+
+    const handleSubmission = () => {
+        // Make sure file is within our size limit
+        const fileTooLarge = (selectedFile.size > MAX_ALLOWED_UPLOAD_SIZE_BYTES)
+        if (fileTooLarge) {
+            sendNotification(NotificationType.error,
+`File "${selectedFile.name}" is ${prettyBytes(selectedFile.size)} in size, which exceeds the maximum allowed file 
+size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
+            return
+        }
+
+        // Prompt user if not CSV file
+        if (selectedFile.type !== "text/csv") {
+            if (!confirm("Only CSV files are supported, but the file you have selected " +
+                "does not appear to be a CSV file. Proceed anyway?")) {
+                return
+            }
+        }
+
+        // Determine where in S3 to store the file. For now, based on user name (from Github) and filename.
+        // Assumption: all Github usernames and all local filenames are valid for S3 paths. This...may be risky.
+        const s3Path = `data/${session.user.name}/${selectedFile.name}`
+        setInputFields(
+            {...inputFields, uploadedFileS3Key: s3Path}
+        )
+        uploadFile(selectedFile, s3Path)
+    }
+
+    // Keys for the various panels
+    const projectDetailsPanelKey = 1;
+    const dataSourcePanelKey = 2;
+    const tagYourDataPanelKey = 3;
+
+    const connectButtonEnabled: boolean = !!inputFields.datasetName &&
+        ((chosenDataSource === s3Option && !!inputFields.s3Key) ||
+        (chosenDataSource === localFileOption && !!inputFields.uploadedFileS3Key))
+
+    const isUsingLocalFile = chosenDataSource === localFileOption;
+
+    const isNewProject = startIndexOffset === 0;
+
+    const datasetNameRef = useRef<HTMLInputElement>()
+    const projectNameRef = useRef<HTMLInputElement>()
+
+    // Set focus on relevant field depending on if we're creating a new project or modifying existing
+    useEffect(() => {setTimeout(() => isNewProject
+            ? projectNameRef.current && projectNameRef.current.focus()
+            : datasetNameRef.current && datasetNameRef.current.focus(),
+        500)
+    }, [])
 
     return <Container>
-
-        <Form onSubmit={event => {event.preventDefault(); TriggerProjectDataSourceDataTagAccession()}} target="_blank">
-
-            <Collapse accordion expandIconPosition="right">
-                { startIndexOffset === 0 && 
-                    <Panel header="1. Project Details" key="1">
+        <Form onSubmit={event => {event.preventDefault(); CreateDataProfile()}} target="_blank" >
+            <Collapse accordion expandIconPosition="right"
+                      defaultActiveKey={isNewProject ? projectDetailsPanelKey : dataSourcePanelKey}
+            >
+                { isNewProject &&
+                    <Panel header="1. Project Details"
+                           key={projectDetailsPanelKey}>
                         <Form.Group className="mb-3">
                             <Form.Label className="text-left w-full">Project Name</Form.Label>
                             <Form.Control 
-                                name="name" 
+                                name="name"
+                                ref={projectNameRef}
                                 type="text" 
                                 placeholder="Enter project name" 
                                 onChange={
@@ -218,67 +304,113 @@ export default function NewProject(props: NewProps) {
                                         {...inputFields, description: event.target.value}
                                 )}/>
                         </Form.Group>      
-                    </Panel> 
+                    </Panel>
                 }
-                <Panel header={`${2 + startIndexOffset} . Attach a Data Source`} key="2" disabled={!EnabledDataSourceSection}>
-                    <Form.Group className="mb-3">
-                        <Form.Label className="text-left w-full">Dataset Name</Form.Label>
-                        <Form.Control 
-                            name="datasetName" 
-                            type="text" 
-                            placeholder="A name you will remember" 
+                <Panel header={`${2 + startIndexOffset}. Define your data source`}
+                       key={dataSourcePanelKey}
+                       disabled={!enabledDataSourceSection}>
+                    <Form.Group>
+                        Name
+                        <Form.Control
+                            name="datasetName"
+                            ref={datasetNameRef}
+                            type="text"
+                            placeholder="Choose a name for your data source"
                             onChange={
                                 event => setInputFields(
                                     {...inputFields, datasetName: event.target.value}
-                            )}/>
-                        <Form.Text className="text-muted text-left">
-                        Clean Data, Happy Data Scientist
-                        </Form.Text>
+                                )}/>
                     </Form.Group>
-
-                    <Form.Group className="mb-3">
-                        <Form.Label className="text-left w-full">Key</Form.Label>
-                        <Form.Control 
-                            name="s3Key" 
-                            type="text" 
-                            placeholder="data/somwhere/somefile.csv"
-                            onChange={
-                                event => setInputFields(
-                                    {...inputFields, s3Key: event.target.value}
-                            )} />
+                    <Radio.Group onChange={(e: RadioChangeEvent) => {setChosenDataSource(e.target.value)}}
+                                 value={chosenDataSource}
+                                 className="my-3">
+                        <Space direction="vertical" size="large">
+                            <Radio value={s3Option} >
+                                From S3
+                                <Form.Group className="my-3">
+                                    <Form.Label className="text-left w-full">Key</Form.Label>
+                                    <Form.Control
+                                        name="s3Key"
+                                        type="text"
+                                        placeholder="data/somewhere/somefile.csv"
+                                        onChange={
+                                            event => setInputFields(
+                                                {...inputFields, s3Key: event.target.value}
+                                        )}
+                                        disabled={isUsingLocalFile}
+                                    />
+                                </Form.Group>
+                            </Radio>
+                            <Radio value={localFileOption}>
+                                <Space direction="vertical" size="middle">
+                                    From a local file
+                                    <input type="file" name="file" onChange={changeHandler}
+                                           disabled={!isUsingLocalFile}/>
+                                    {selectedFile ? (
+                                        <div style={{
+                                            opacity: isUsingLocalFile ? 1.0 : 0.5,
+                                            fontSize: "90%"
+                                        }}>
+                                            <p><b>Filename: </b> {selectedFile.name}, <b>filetype: </b>
+                                                {selectedFile.type}, <b>size: </b> {prettyBytes(selectedFile.size)}</p>
+                                        </div>
+                                    ) : (
+                                        <p>Select a file to show details</p>
+                                    )}
+                                    <div>
+                                        <Button disabled={!isUsingLocalFile || !selectedFile}
+                                                style={{
+                                                    background: MaximumBlue,
+                                                    borderColor: MaximumBlue,
+                                                    color: "white",
+                                                    opacity: isUsingLocalFile && selectedFile ? 1.0 : 0.5
+                                                }}
+                                                onClick={handleSubmission}>
+                                            Upload
+                                        </Button>
+                                    </div>
+                                </Space>
+                            </Radio>
+                        </Space>
+                    </Radio.Group>
+                    <Form.Group className="mt-2">
+                        <Button
+                            style={{
+                                background: MaximumBlue,
+                                borderColor: MaximumBlue,
+                                color: "white",
+                                opacity: connectButtonEnabled ? 1.0 : 0.5
+                            }}
+                            onClick={CreateDataSource}
+                            disabled={
+                                !connectButtonEnabled
+                            }
+                        >
+                            Connect
+                        </Button>
                     </Form.Group>
-
-                    <Button style={
-                        {
-                            background: MaximumBlue, 
-                            borderColor: MaximumBlue
-                        }} type="button" onClick={TriggerProfileGeneration}>Connect</Button>
-
                 </Panel>
-
-                <Panel header={`${3 + startIndexOffset}. Tag your Data`} key="3" disabled={!EnabledDataTagSection}>
+                <Panel header={`${3 + startIndexOffset}. Tag your Data`}
+                       key={tagYourDataPanelKey}
+                       disabled={!enabledDataTagSection}>
                     {profileTable}
                 </Panel>
             </Collapse>
 
-            <Container>
-                <Panel header={<Button 
-                                variant="primary" 
-                                type="submit" 
-                                size="sm" 
-                                className="w-full mt-2 mb-2" 
-                                disabled={!EnabledDataTagSection}
-                                style={
-                                    {
-                                        background: MaximumBlue, 
-                                        borderColor: MaximumBlue
-                                    }}>
-                                {`${4 + startIndexOffset}. Create`}
-                        </Button>} key="4" >
-                        
-                </Panel>
-            </Container>
-
+            <Panel header={<Button
+                            type="primary"
+                            htmlType="submit"
+                            className="w-full mt-2 mb-2"
+                            disabled={!enabledDataTagSection}
+                            style={
+                                {
+                                    background: MaximumBlue,
+                                    borderColor: MaximumBlue,
+                                    color: "white"
+                                }}>
+                            {`${4 + startIndexOffset}. Create data profile`}
+                    </Button>} key="4" >
+            </Panel>
         </Form>
     </Container>
 }
