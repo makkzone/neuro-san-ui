@@ -62,6 +62,9 @@ export default function NewProject(props: NewProps) {
     const s3Option = 1
     const localFileOption = 2
 
+    // State variable for project ID
+    const [projectId, setProjectId] = useState(props.ProjectID)
+
     // State variable for the created data profile
     const [profile, setProfile] = useState(null)
 
@@ -111,7 +114,7 @@ export default function NewProject(props: NewProps) {
 
     //
     const CreateDataProfile = async () => {
-        const projectId = props.ProjectID
+        let tmpProjectId = projectId
 
         // Create the project if the project does not exist
         if (!projectId) {
@@ -132,6 +135,10 @@ export default function NewProject(props: NewProps) {
             if (accessionProjectResp === null) { return }
 
             sendNotification(NotificationType.success, `Project ${projectName} created`)
+            setProjectId(accessionProjectResp.id)
+
+            // capture the new ID for use below
+            tmpProjectId = accessionProjectResp.id
         }
 
         // Unpack Data Source Variables
@@ -139,7 +146,7 @@ export default function NewProject(props: NewProps) {
         const s3Key = getS3Key();
 
         const dataSourceMessage: DataSource = {
-            project_id: projectId,
+            project_id: tmpProjectId,
             name: datasetName,
             s3_key: s3Key,
             request_user: currentUser
@@ -198,7 +205,7 @@ export default function NewProject(props: NewProps) {
 
         // Redirect if new project creation
         if (!props.ProjectID) {
-            window.location.href = `/projects/${projectId}`
+            window.location.href = `/projects/${tmpProjectId}`
         }
     }
 
