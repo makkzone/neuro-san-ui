@@ -202,7 +202,7 @@ export default function NewProject(props: NewProps) {
 
         // Redirect if new project creation
         if (!props.ProjectID) {
-            window.location.href = `/projects/${projectId}`
+            window.location.href = `/projects/${tmpProjectId}`
         }
     }
 
