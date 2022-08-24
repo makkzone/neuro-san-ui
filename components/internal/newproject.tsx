@@ -124,7 +124,8 @@ export default function NewProject(props: NewProps) {
             // Create the Project message
             const projectMessage: Project = {
                 name: projectName,
-                description: description
+                description: description,
+                request_user: currentUser
             }
             debug("Project: ", projectMessage)
 
