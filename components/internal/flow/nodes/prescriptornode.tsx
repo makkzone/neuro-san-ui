@@ -33,6 +33,7 @@ import {
 
 import { Controlled as CodeMirror } from 'react-codemirror2'
 import {loadDataTag} from "../../../../controller/fetchdatataglist";
+import {useSession} from "next-auth/react";
 
 // Define an interface for the structure
 // of the nodes
@@ -61,6 +62,10 @@ export default function PrescriptorNode(props): React.ReactElement {
 
     const data: PrescriptorNodeData = props.data
 
+    // Get the current user
+    const { data: session } = useSession()
+    const currentUser: string = session.user.name
+
     // Unpack the mapping
     const { 
         NodeID, 
@@ -87,7 +92,7 @@ export default function PrescriptorNode(props): React.ReactElement {
     useEffect(() => {
         //TODO: If the data node has the data source and tag available we should not fetch it but use that.
         //TODO: Reason: Data Tags can change and we don't version them explicitly - this will be an easy way of doing that. If they were to change and we had to re-run a run it might fail
-        (async () => setTaggedData(await loadDataTag(data.SelectedDataSourceId)))()
+        (async () => setTaggedData(await loadDataTag(currentUser, data.SelectedDataSourceId)))()
     }, [data.SelectedDataSourceId])
 
     useEffect(() => {

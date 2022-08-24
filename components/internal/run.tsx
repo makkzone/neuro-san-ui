@@ -17,6 +17,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs';
 import {useLocalStorage} from "../../utils/use_local_storage";
 import decode from "../../utils/conversion";
+import {useSession} from "next-auth/react";
 
 export interface RunProps {
     /* 
@@ -37,6 +38,9 @@ export interface RunProps {
 
 
 export default function RunPage(props: RunProps): React.ReactElement {
+
+    const { data: session } = useSession()
+    const currentUser: string = session.user.name
 
     const [predictorPlotData, setPredictorPlotData] = useState(null)
     const [prescriptorPlotData, setPrescriptorPlotData] = useState(null)
@@ -150,7 +154,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     async function loadRun(runID: number) {
         if (runID) {
             const propertiesToRetrieve = ['output_artifacts', 'metrics', 'flow', 'id', 'experiment_id'];
-            const runs: Runs = await BrowserFetchRuns(null, runID, propertiesToRetrieve)
+            const runs: Runs = await BrowserFetchRuns(currentUser, null, runID, propertiesToRetrieve)
             if (runs.length == 1) {
                 const run = runs[0]
                 const flow = JSON.parse(run.flow)

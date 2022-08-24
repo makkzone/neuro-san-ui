@@ -4,14 +4,14 @@ import {TaggedDataInfo, TaggedDataInfoList} from "../pages/projects/[projectID]/
 import {DataTag, DataTags} from "./datatag/types";
 import {BrowserFetchDataTags} from "./datatag/fetch";
 
-export default async function loadTaggedDataList(projectId): Promise<TaggedDataInfoList> {
+export default async function loadTaggedDataList(requestUser, projectId): Promise<TaggedDataInfoList> {
     if (projectId) {
-        const dataSources: DataSources = await BrowserFetchDataSources(projectId)
+        const dataSources: DataSources = await BrowserFetchDataSources(requestUser, projectId)
         if (dataSources.length > 0) {
             let taggedDataList: TaggedDataInfoList = []
             for (let iter = 0; iter < dataSources.length; iter++) {
                 const dataSource = dataSources[iter]
-                const dataTags: DataTags = await BrowserFetchDataTags(dataSource.id)
+                const dataTags: DataTags = await BrowserFetchDataTags(requestUser, dataSource.id)
                 if (dataTags.length > 0) {
                     const taggedData: TaggedDataInfo = {
                         DataSource: dataSource,
@@ -25,8 +25,8 @@ export default async function loadTaggedDataList(projectId): Promise<TaggedDataI
     }
 }
 
-export async function loadDataTag(dataSourceId: number): Promise<DataTag> {
-    const dataTags: DataTags = await BrowserFetchDataTags(dataSourceId)
+export async function loadDataTag(requestUser: string, dataSourceId: number): Promise<DataTag> {
+    const dataTags: DataTags = await BrowserFetchDataTags(requestUser, dataSourceId)
     if (dataTags.length > 0) {
         return dataTags[0]
     }

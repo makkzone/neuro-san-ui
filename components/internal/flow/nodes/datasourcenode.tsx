@@ -14,6 +14,7 @@ import { Card as BleuprintCard, Elevation } from "@blueprintjs/core";
 import loadTaggedDataList from "../../../../controller/fetchdatataglist";
 import {DataSource} from "../../../../controller/datasources/types";
 import {DataTag} from "../../../../controller/datatag/types";
+import {useSession} from "next-auth/react";
 
 var debug = require('debug')('data_source_node')
 
@@ -38,9 +39,13 @@ export default function DataSourceNode(props): React.ReactElement {
 
     const [taggedDataList, setTaggedDataList] = useState([])
 
+    // Get the current user
+    const { data: session } = useSession()
+    const currentUser: string = session.user.name
+
     // Fetch the Data Sources and the Data Tags
     useEffect(() => {
-        async function loadDataTag() { setTaggedDataList(await loadTaggedDataList(projectId)) }
+        async function loadDataTag() { setTaggedDataList(await loadTaggedDataList(currentUser, projectId)) }
         loadDataTag()
     }, [projectId])
 
