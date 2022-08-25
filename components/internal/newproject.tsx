@@ -218,8 +218,8 @@ export default function NewProject(props: NewProps) {
     const enabledDataTagSection = enabledDataSourceSection &&
                                     inputFields.datasetName &&
                                     profile &&
-                                    (chosenDataSource === s3Option && !!inputFields.s3Key) ||
-                                    (chosenDataSource === localFileOption && !!inputFields.uploadedFileS3Key)
+                                    ((chosenDataSource === s3Option && !!inputFields.s3Key) ||
+                                    (chosenDataSource === localFileOption && !!inputFields.uploadedFileS3Key))
 
     const startIndexOffset = props.ProjectID ? -1 : 0
 
@@ -261,7 +261,7 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
     const dataSourcePanelKey = 2;
     const tagYourDataPanelKey = 3;
 
-    const connectButtonEnabled: boolean = !!inputFields.datasetName &&
+    const createDataSourceButtonEnabled: boolean = !!inputFields.datasetName &&
         ((chosenDataSource === s3Option && !!inputFields.s3Key) ||
         (chosenDataSource === localFileOption && !!inputFields.uploadedFileS3Key))
 
@@ -317,7 +317,7 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                         </Form.Group>      
                     </Panel>
                 }
-                <Panel header={`${2 + startIndexOffset}. Define your data source`}
+                <Panel header={`${2 + startIndexOffset}. Create your data source`}
                        key={dataSourcePanelKey}
                        disabled={!enabledDataSourceSection}>
                     <Form.Group>
@@ -390,14 +390,14 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                                 background: MaximumBlue,
                                 borderColor: MaximumBlue,
                                 color: "white",
-                                opacity: connectButtonEnabled ? 1.0 : 0.5
+                                opacity: createDataSourceButtonEnabled ? 1.0 : 0.5
                             }}
                             onClick={CreateDataSource}
                             disabled={
-                                !connectButtonEnabled
+                                !createDataSourceButtonEnabled
                             }
                         >
-                            Connect
+                            Create
                         </Button>
                     </Form.Group>
                 </Panel>
@@ -417,7 +417,8 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                                 {
                                     background: MaximumBlue,
                                     borderColor: MaximumBlue,
-                                    color: "white"
+                                    color: "white",
+                                    opacity: enabledDataTagSection ? 1.0 : 0.5
                                 }}>
                             {`${4 + startIndexOffset}. Create data profile`}
                     </Button>} key="4" >
