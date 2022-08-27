@@ -245,13 +245,11 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
 
         // Prompt user if not CSV file
         if (selectedFile.type !== "text/csv") {
-            if (!confirm("Only CSV files are supported, but the file you have selected " +
-                "does not appear to be a CSV file. Proceed anyway?")) {
+            if (!confirm(`Only CSV files are supported, but the file you have selected of type "${selectedFile.type}" does not appear to be a CSV file. Proceed anyway?`)) {
                 return
             }
         }
 
-        try {
             // Determine where in S3 to store the file. For now, based on user name (from Github) and filename.
             // Assumption: all Github usernames and all local filenames are valid for S3 paths. This...may be risky.
             setIsUploading(true)
@@ -261,10 +259,10 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
             )
 
             uploadFile(selectedFile, s3Path)
-        } finally {
-            setIsUploading(false)
-        }
+                .then(() => sendNotification(NotificationType.success, `File "${selectedFile.name}" uploaded`))
+                .finally(() => setIsUploading(false))
     }
+
 
     // Keys for the various panels
     const projectDetailsPanelKey = 1;
