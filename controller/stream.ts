@@ -64,6 +64,7 @@ export default async function HackyStream<ObjectType extends MDServerObject>(
         try {
             const itemResult: ObjectType = item.result
             itemResult.updated_at = new Date(itemResult.updated_at).toLocaleString()
+            itemResult.created_at = new Date(itemResult.created_at).toLocaleString()
             items.push(itemResult)
         } catch (error) {
             console.error(`Error parsing JSON for ${resourceName}: ` + String(error))
