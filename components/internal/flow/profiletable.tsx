@@ -214,7 +214,7 @@ export default function ProfileTable(props: ProfiletableProps) {
     const rejectedColumnRows = getRejectedColumnRows();
 
     // Add together error rows + valid rows to get all table rows
-    const allRows = rejectedColumnRows.concat(fieldRows)
+    const allRows = fieldRows.concat(rejectedColumnRows)
 
     function deleteValue(val: string) {
         let tmpValues = currentCategoryValues.slice()
