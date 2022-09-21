@@ -99,14 +99,14 @@ export default function NewProject(props: NewProps) {
         const s3Key = getS3Key();
 
         // Create the Data source Message
-        const dataProfile: DataSource = {
+        const dataSource: DataSource = {
             s3_key: s3Key
         }
 
-        debug("Data profile: ", dataProfile)
+        debug("Data source: ", dataSource)
 
         // Trigger the Data Source Controller
-        const tmpProfile: Profile = await BrowserFetchProfile(dataProfile)
+        const tmpProfile: Profile = await BrowserFetchProfile(dataSource)
 
         // If Data Source creation failed, everything fails
         if (tmpProfile === null) {
@@ -151,7 +151,7 @@ export default function NewProject(props: NewProps) {
         setProfile(tmpProfile)
     }
 
-    //
+    // Persists the profile with associated tags and data source
     const CreateDataProfile = async () => {
         let tmpProjectId = projectId
 
@@ -189,14 +189,15 @@ export default function NewProject(props: NewProps) {
             project_id: tmpProjectId,
             name: datasetName,
             s3_key: s3Key,
-            request_user: currentUser
+            request_user: currentUser,
+            rejectedColumns: profile.data_source.rejectedColumns
         }
 
         const savedDataSource = await AccessionDatasource(dataSourceMessage)
         if (savedDataSource) {
             sendNotification(NotificationType.success, `Data source ${datasetName} created`)
         } else {
-            // Failed to save data source -- can't continue
+            // Failed to save data source -- can't continue. For now, controller shows error popup.
             return
         }
 
