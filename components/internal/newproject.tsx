@@ -135,7 +135,7 @@ export default function NewProject(props: NewProps) {
         // Check for any columns discarded by backend
         const rejectedColumns = tmpProfile.data_source.rejectedColumns
 
-        const anyColumnsRejected = !empty(rejectedColumns)
+        const anyColumnsRejected = rejectedColumns && !empty(rejectedColumns)
         const notificationType = anyColumnsRejected ? NotificationType.warning : NotificationType.success
         const description =
             <>

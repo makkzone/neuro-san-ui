@@ -185,7 +185,6 @@ export default function ProfileTable(props: ProfiletableProps) {
         }
 
         const rejectedColumns = profile.data_source.rejectedColumns;
-        console.debug({rejectedColumns})
         return rejectedColumns && !empty(rejectedColumns)
             ? Object.keys(rejectedColumns)
                 .map((name) =>
