@@ -26,6 +26,7 @@ import {DataSource} from "../../controller/datasources/types"
 
 // Constants
 import {MaximumBlue} from "../../const"
+import {empty} from "../../utils/objects";
 
 const debug = Debug("new_project")
 
@@ -98,14 +99,14 @@ export default function NewProject(props: NewProps) {
         const s3Key = getS3Key();
 
         // Create the Data source Message
-        const dataProfile: DataSource = {
+        const dataSource: DataSource = {
             s3_key: s3Key
         }
 
-        debug("Data profile: ", dataProfile)
+        debug("Data source: ", dataSource)
 
         // Trigger the Data Source Controller
-        const tmpProfile: Profile = await BrowserFetchProfile(dataProfile)
+        const tmpProfile: Profile = await BrowserFetchProfile(dataSource)
 
         // If Data Source creation failed, everything fails
         if (tmpProfile === null) {
@@ -130,11 +131,27 @@ export default function NewProject(props: NewProps) {
             return
         }
 
-        sendNotification(NotificationType.success, "Profile Successfully Created")
+        // Notify user
+        // Check for any columns discarded by backend
+        const rejectedColumns = tmpProfile.data_source.rejectedColumns
+
+        const anyColumnsRejected = rejectedColumns && !empty(rejectedColumns)
+        const notificationType = anyColumnsRejected ? NotificationType.warning : NotificationType.success
+        const description =
+            <>
+                Rows: {`${tmpProfile.data_source.num_rows}`}<br />
+                Columns: {`${tmpProfile.data_source.num_cols}`}<br />
+                {anyColumnsRejected &&
+                    `WARNING: ${Object.keys(rejectedColumns).length} column(s) were rejected from your data source. Proceed to "Tag your Data" to see which columns and why.`}
+            </>
+
+        sendNotification(notificationType, "Data source successfully Created.", description)
+
+        // Save profile
         setProfile(tmpProfile)
     }
 
-    //
+    // Persists the profile with associated tags and data source
     const CreateDataProfile = async () => {
         let tmpProjectId = projectId
 
@@ -172,13 +189,16 @@ export default function NewProject(props: NewProps) {
             project_id: tmpProjectId,
             name: datasetName,
             s3_key: s3Key,
-            request_user: currentUser
+            request_user: currentUser,
+            rejectedColumns: profile.data_source.rejectedColumns
         }
 
         const savedDataSource = await AccessionDatasource(dataSourceMessage)
-        if (savedDataSource) {
-            sendNotification(NotificationType.success, `Data source ${datasetName} created`)
+        if (!savedDataSource) {
+            // Failed to save data source -- can't continue. For now, controller shows error popup.
+            return
         }
+
         debug("Saved Data Source: ", savedDataSource)
 
         // Unpack the values for datafields
@@ -219,7 +239,7 @@ export default function NewProject(props: NewProps) {
 
         const savedDataTag = await AccessionDataTag(dataTagMessage)
         if (savedDataTag) {
-            sendNotification(NotificationType.success, "Data tag created")
+            sendNotification(NotificationType.success, `Data profile "${datasetName}" created`)
         }
         debug("Saved DT: ", savedDataTag)
 
@@ -252,7 +272,7 @@ export default function NewProject(props: NewProps) {
         setSelectedFile(event.target.files[0])
     }
 
-    const handleSubmission = async () => {
+    const handleFileUpload = async () => {
         // Make sure file is within our size limit
         const fileTooLarge = (selectedFile.size > MAX_ALLOWED_UPLOAD_SIZE_BYTES)
         if (fileTooLarge) {
@@ -412,7 +432,7 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                                                             color: "white",
                                                             opacity: isUsingLocalFile && selectedFile ? 1.0 : 0.5
                                                         }}
-                                                        onClick={handleSubmission}>
+                                                        onClick={handleFileUpload}>
                                                     Upload
                                                 </Button>
                                         }
