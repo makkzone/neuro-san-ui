@@ -4,6 +4,8 @@ import {MDServerObject, MDServerResponse} from "./base_types";
 
 // HackyStream implements streaming a specific resource from the MD Server using a regex hack
 // By virtue of this hack it currently stores the whole stream in memory.
+// Note that this function will return an array of ObjectType items. Even if there is just a single item, you will
+// get an array of length 1 containing that item.
 export default async function HackyStream<ObjectType extends MDServerObject>(
     url: string,
     resourceName: string,
@@ -12,7 +14,7 @@ export default async function HackyStream<ObjectType extends MDServerObject>(
 ): Promise<ObjectType[]> {
 
     // Build request params
-    let requestParams = {method: method};
+    const requestParams = {method: method};
     if (data) {
         requestParams["body"] = JSON.stringify(data)
     }
@@ -29,7 +31,7 @@ export default async function HackyStream<ObjectType extends MDServerObject>(
     }
 
     const reader = response.body.getReader();
-    let items: ObjectType[] = []
+    const items: ObjectType[] = []
     const utf8decoder = new TextDecoder('utf8')
     let buffer = ""
 
@@ -66,8 +68,9 @@ export default async function HackyStream<ObjectType extends MDServerObject>(
             itemResult.updated_at = new Date(itemResult.updated_at).toLocaleString()
             itemResult.created_at = new Date(itemResult.created_at).toLocaleString()
             items.push(itemResult)
-        } catch (error) {
-            console.error(`Error parsing JSON for ${resourceName}: ` + String(error))
+        } catch (e) {
+            console.error(`Error parsing JSON for ${resourceName}: ` + String(e))
+            throw e
         }
     }
 

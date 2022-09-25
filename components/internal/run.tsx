@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Artifact, Run, Runs} from "../../controller/run/types";
-import {BrowserFetchRunArtifacts, BrowserFetchRuns} from "../../controller/run/fetch";
+import {BrowserFetchRuns, FetchSingleRunArtifact} from "../../controller/run/fetch";
 import {constructRunMetricsForRunPlot} from "../../controller/run/results";
 import MetricsTable from "../metricstable";
 import ESPRunPlot, {ParetoPlotTable} from "../esprunplot";
@@ -134,10 +134,10 @@ export default function RunPage(props: RunProps): React.ReactElement {
         return rulesURL
     }
 
-    async function loadArtifactObj() {
+    async function retrieveRulesPrescriptor() {
         const rulesURL = generateArtifactURL(flow)
         if (rulesURL) {
-            const artifactObj: Artifact[] = await BrowserFetchRunArtifacts(null, rulesURL)
+            const artifactObj: Artifact[] = await FetchSingleRunArtifact(rulesURL)
             
             if (artifactObj) {
                 setArtifactObj(artifactObj[0])
@@ -193,7 +193,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         if (run && nodeToCIDMap) {
             // If it contains a rule-based prescriptor, load the rules
             if (isRuleBased(flow)){
-                loadArtifactObj()
+                retrieveRulesPrescriptor()
             }
         }
     }, [nodeToCIDMap])
@@ -368,6 +368,7 @@ prescriptors/${Object.values(nodeToCIDMap)[0]}/?data_source_id=${flow[0].data.Da
             <div>
             <ReactFlowProvider>
                 <Flow
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     ProjectID={props.ProjectId}
                     Flow={flow}
