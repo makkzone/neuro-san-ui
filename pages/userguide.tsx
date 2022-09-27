@@ -1,5 +1,6 @@
 import {ReactMarkdown} from "react-markdown/lib/react-markdown";
 import {useEffect, useState} from "react";
+import rehypeRaw from "rehype-raw";
 
 
 export default function UserGuide() {
@@ -24,7 +25,7 @@ export default function UserGuide() {
 
 
     return <>
-        <ReactMarkdown className='prose'>{userGuide}</ReactMarkdown>
+        <ReactMarkdown rehypePlugins={[rehypeRaw]} className='prose'>{userGuide}</ReactMarkdown>
     </>
 }
 
