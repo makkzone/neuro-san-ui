@@ -18,7 +18,7 @@ import {uploadFile} from "../../controller/files/upload"
 
 // Controllers for new project
 import {CreateProfile} from "../../controller/dataprofile/generate"
-import {DataTag, DataTagFields} from "../../controller/datatag/types"
+import {CAOType, DataTag, DataTagFields} from "../../controller/datatag/types"
 import {AccessionDatasource} from "../../controller/datasources/accession"
 import AccessionDataTag from "../../controller/datatag/accession"
 import AccessionProject from "../../controller/projects/accession"
@@ -44,7 +44,7 @@ export interface NewProps {
     // A call back function that tells the view
     // to update its state to reflect the new addition
     // if it has succeeded
-    UpdateHook?: any
+    UpdateHook?: () => void
 }
 
 const { Panel } = Collapse
@@ -70,7 +70,7 @@ export default function NewProject(props: NewProps) {
     const [projectId, setProjectId] = useState(props.ProjectID)
 
     // State variable for the created data profile
-    const [profile, setProfile] = useState(null)
+    const [profile, setProfile] = useState<Profile | undefined>(null)
 
     // Data source currently chosen by the user using the radio buttons
     const [chosenDataSource, setChosenDataSource] = useState(s3Option)
@@ -146,9 +146,43 @@ export default function NewProject(props: NewProps) {
         setProfile(tmpProfile)
     }
 
+    // Sanity check on data tags before proceding to creation
+    function checkValidity(): boolean {
+        // Must have one or more designated Contexts
+        const hasContexts = Object.values(profile.data_tag.fields).some(f => f.esp_type === CAOType[CAOType.CONTEXT])
+        if (!hasContexts) {
+            sendNotification(NotificationType.warning,
+                'One or more fields must be designated as ESP type "CONTEXT" to proceed')
+            return false
+        }
+
+        // Must have one or more designated Actions
+        const hasActions = Object.values(profile.data_tag.fields).some(f => f.esp_type === CAOType[CAOType.ACTION])
+        if (!hasActions) {
+            sendNotification(NotificationType.warning,
+                'One or more fields must be designated as ESP type "ACTION" to proceed')
+            return false
+        }
+
+        // Must have one or more designated Outcomes
+        const hasOutcomes = Object.values(profile.data_tag.fields).some(f => f.esp_type === CAOType[CAOType.OUTCOME])
+        if (!hasOutcomes) {
+            sendNotification(NotificationType.warning,
+                'One or more fields must be designated as ESP type "OUTCOME" to proceed')
+            return false
+        }
+
+        return true
+    }
+
     // Persists the profile with associated tags and data source
     const CreateDataProfile = async () => {
         let tmpProjectId = projectId
+
+        const isValid = checkValidity()
+        if (!isValid) {
+            return
+        }
 
         // Create the project if the project does not exist
         if (!projectId) {
@@ -188,7 +222,7 @@ export default function NewProject(props: NewProps) {
             rejectedColumns: profile.data_source.rejectedColumns
         }
 
-        const savedDataSource = await AccessionDatasource(dataSourceMessage)
+        const savedDataSource: DataSource = await AccessionDatasource(dataSourceMessage)
         if (!savedDataSource) {
             // Failed to save data source -- can't continue. For now, controller shows error popup.
             return
@@ -202,22 +236,22 @@ export default function NewProject(props: NewProps) {
         // Loop over the Data fields
         Object.keys(profile.data_tag.fields).forEach(fieldName => {
 
-            const datafield = profile.data_tag.fields[fieldName]
+            const dataField = profile.data_tag.fields[fieldName]
 
             // Set the value
             inputFieldsMapped[fieldName] = {
                 // Get the esp-type
-                esp_type: datafield.esp_type,
+                esp_type: dataField.esp_type,
 
                 // Get the Data type
-                data_type: datafield.data_type,
-                sum: datafield.sum,
-                std_dev: datafield.std_dev,
-                range: datafield.range,
-                discrete_categorical_values: datafield.discrete_categorical_values,
-                has_nan: datafield.has_nan,
-                valued: datafield.valued,
-                mean: datafield.mean
+                data_type: dataField.data_type,
+                sum: dataField.sum,
+                std_dev: dataField.std_dev,
+                range: dataField.range,
+                discrete_categorical_values: dataField.discrete_categorical_values,
+                has_nan: dataField.has_nan,
+                valued: dataField.valued,
+                mean: dataField.mean
             }
 
         })
@@ -239,7 +273,7 @@ export default function NewProject(props: NewProps) {
         debug("Saved DT: ", savedDataTag)
 
         // Inform the view to update its state
-        props.UpdateHook && props.UpdateHook(savedDataSource)
+        props.UpdateHook && props.UpdateHook()
 
         // Redirect if new project creation
         if (!props.ProjectID) {
@@ -363,7 +397,8 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                 }
                 <Panel header={`${2 + startIndexOffset}. Create your data source`}
                        key={dataSourcePanelKey}
-                       disabled={!enabledDataSourceSection}>
+                       collapsible={enabledDataSourceSection ? "header": "disabled"}
+                >
                     <Form.Group>
                         Name
                         <Form.Control
@@ -445,9 +480,7 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                                 opacity: createDataSourceButtonEnabled ? 1.0 : 0.5
                             }}
                             onClick={CreateDataSource}
-                            disabled={
-                                !createDataSourceButtonEnabled
-                            }
+                            disabled={!createDataSourceButtonEnabled}
                         >
                             Create
                         </Button>
@@ -455,25 +488,29 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                 </Panel>
                 <Panel header={`${3 + startIndexOffset}. Tag your Data`}
                        key={tagYourDataPanelKey}
-                       disabled={!enabledDataTagSection}>
+                       collapsible={enabledDataTagSection ? "header": "disabled"}>
                     {profileTable}
                 </Panel>
             </Collapse>
 
-            <Panel header={<Button
-                            type="primary"
-                            htmlType="submit"
-                            className="w-full mt-2 mb-2"
-                            disabled={!enabledDataTagSection}
-                            style={
-                                {
-                                    background: MaximumBlue,
-                                    borderColor: MaximumBlue,
-                                    color: "white",
-                                    opacity: enabledDataTagSection ? 1.0 : 0.5
-                                }}>
-                            {`${4 + startIndexOffset}. Create data profile`}
-                    </Button>} key="4" >
+            <Panel
+                header={
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        className="w-full mt-2 mb-2"
+                        disabled={!enabledDataTagSection}
+                        style={{
+                            background: MaximumBlue,
+                            borderColor: MaximumBlue,
+                            color: "white",
+                            opacity: enabledDataTagSection ? 1.0 : 0.5
+                        }}
+                    >
+                        {`${4 + startIndexOffset}. Create data profile`}
+                    </Button>
+                }
+                key="4">
             </Panel>
         </Form>
     </Container>
