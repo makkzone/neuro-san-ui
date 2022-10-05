@@ -8,6 +8,7 @@ import prettyBytes from 'pretty-bytes'
 import status from "http-status"
 import {Button, Collapse, Radio, RadioChangeEvent, Space} from 'antd'
 import {Container, Form} from "react-bootstrap"
+import {checkValidity} from "./dataprofile/dataprofileutils";
 
 // Custom Components developed by us
 import ProfileTable from "./flow/profiletable";
@@ -18,7 +19,7 @@ import {uploadFile} from "../../controller/files/upload"
 
 // Controllers for new project
 import {CreateProfile} from "../../controller/dataprofile/generate"
-import {CAOType, DataTag, DataTagFields} from "../../controller/datatag/types"
+import {DataTag, DataTagFields} from "../../controller/datatag/types"
 import {AccessionDatasource} from "../../controller/datasources/accession"
 import AccessionDataTag from "../../controller/datatag/accession"
 import AccessionProject from "../../controller/projects/accession"
@@ -146,40 +147,11 @@ export default function NewProject(props: NewProps) {
         setProfile(tmpProfile)
     }
 
-    // Sanity check on data tags before proceding to creation
-    function checkValidity(): boolean {
-        // Must have one or more designated Contexts
-        const hasContexts = Object.values(profile.data_tag.fields).some(f => f.esp_type === CAOType[CAOType.CONTEXT])
-        if (!hasContexts) {
-            sendNotification(NotificationType.warning,
-                'One or more fields must be designated as ESP type "CONTEXT" to proceed')
-            return false
-        }
-
-        // Must have one or more designated Actions
-        const hasActions = Object.values(profile.data_tag.fields).some(f => f.esp_type === CAOType[CAOType.ACTION])
-        if (!hasActions) {
-            sendNotification(NotificationType.warning,
-                'One or more fields must be designated as ESP type "ACTION" to proceed')
-            return false
-        }
-
-        // Must have one or more designated Outcomes
-        const hasOutcomes = Object.values(profile.data_tag.fields).some(f => f.esp_type === CAOType[CAOType.OUTCOME])
-        if (!hasOutcomes) {
-            sendNotification(NotificationType.warning,
-                'One or more fields must be designated as ESP type "OUTCOME" to proceed')
-            return false
-        }
-
-        return true
-    }
-
     // Persists the profile with associated tags and data source
     const CreateDataProfile = async () => {
         let tmpProjectId = projectId
 
-        const isValid = checkValidity()
+        const isValid = checkValidity(profile.data_tag.fields)
         if (!isValid) {
             return
         }
