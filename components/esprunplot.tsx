@@ -128,7 +128,7 @@ export default function ESPRunPlot(props: EspRunPlotProps) {
             :   <>
                     <span style={{display: "flex"}}>
                         <FiAlertCircle color="red" size={50}/>
-                        <span className="ml-4 fs-4 my-auto">No prescriptors found..</span>
+                        <span className="ml-4 fs-4 my-auto">No prescriptors found.</span>
                         <div className="break"></div>
                     </span>
                     <br />
