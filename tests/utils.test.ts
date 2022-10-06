@@ -75,4 +75,3 @@ describe('Various utilities', () => {
         expect(res).toEqual(false)
     })
 })
-
