@@ -29,14 +29,6 @@ import { Controlled as CodeMirror } from 'react-codemirror2'
 
 const foreignObjectSize = 20;
 
-// The following interfaces the description
-// of the data object that is passed down to this componenent
-export interface ObjectiveData {
-
-    readonly OutputOverrideCode: any
-    readonly UpdateOutputOverrideCode: any
-}
-
 export default function PrescriptorEdge({ id, sourceX, sourceY,
                                         targetX, targetY,
                                         sourcePosition, targetPosition,
@@ -67,17 +59,18 @@ export default function PrescriptorEdge({ id, sourceX, sourceY,
 
     const PredictorOverride = <Card.Body> 
                                     <CodeMirror
-                                    value={data.OutputOverrideCode}
-                                    options={{
-                                        tabSize: 4,
-                                        theme: 'material',
-                                        lineNumbers: true,
-                                        mode: 'python',
-                                    }}
-                                    onBeforeChange={(editor, editorData, value) => data.UpdateOutputOverrideCode(value)}
-                                    onChange={(editor, editorData, value) => {}}
-                                    />
+                                        value={data.OutputOverrideCode}
+                                        options={{
+                                            tabSize: 4,
+                                            theme: 'material',
+                                            lineNumbers: true,
+                                            mode: 'python',
+                                        }}
+                                        onBeforeChange={
+                                            (editor, editorData, value) => data.UpdateOutputOverrideCode(value)
 
+                                        }
+                                    />
                                 </Card.Body>
 
     return (

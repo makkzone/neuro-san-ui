@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 
-// Import 3rd pary components
+// Import 3rd party components
 import { Card } from "react-bootstrap"
 // Import React Flow
 import {
@@ -8,7 +8,7 @@ import {
     Position
 } from 'react-flow-renderer'
 
-import { Card as BleuprintCard, Elevation } from "@blueprintjs/core";
+import { Card as BlueprintCard, Elevation } from "@blueprintjs/core";
 
 // Import types
 import loadTaggedDataList from "../../../../controller/fetchdatataglist";
@@ -16,8 +16,8 @@ import {DataSource} from "../../../../controller/datasources/types";
 import {DataTag} from "../../../../controller/datatag/types";
 import {useSession} from "next-auth/react";
 
-var debug = require('debug')('data_source_node')
-
+import Debug from "debug"
+const debug = Debug("data_source_node")
 
 export interface DataSourceNodeData {
     // Project ID that this new experiment belongs to.
@@ -28,7 +28,7 @@ export interface DataSourceNodeData {
     DataTag: DataTag,
 
     // We get passed the Node Definitions and a hook to update the definition
-    readonly SelfStateUpdateHandler: any,
+    readonly SelfStateUpdateHandler
 }
 
 
@@ -46,7 +46,7 @@ export default function DataSourceNode(props): React.ReactElement {
     // Fetch the Data Sources and the Data Tags
     useEffect(() => {
         async function loadDataTag() { setTaggedDataList(await loadTaggedDataList(currentUser, projectId)) }
-        loadDataTag()
+        void loadDataTag()
     }, [projectId])
 
     // Set the Selected Data Source Id at initialization of data tags
@@ -61,7 +61,7 @@ export default function DataSourceNode(props): React.ReactElement {
 
 
     // Create the Component structure
-    return <BleuprintCard
+    return <BlueprintCard
         interactive={ true }
         elevation={ Elevation.TWO }
         style={ { padding: 0, width: "8rem", height: "6rem" } }>
@@ -100,6 +100,6 @@ export default function DataSourceNode(props): React.ReactElement {
                 </Card.Body>
             </Card>
             <Handle type="source" position={Position.Right} />
-        </BleuprintCard>
+        </BlueprintCard>
         
 }

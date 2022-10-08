@@ -3,12 +3,14 @@ import {AiFillDelete, AiFillEdit, AiFillWarning} from "react-icons/ai";
 import React, {useState} from "react";
 import {Button, Checkbox, Input, Modal} from 'antd';
 import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
+import {DataType} from "../../../controller/datatag/types";
 import {empty} from "../../../utils/objects";
 import {reasonToHumanReadable} from "../../../controller/datasources/types";
+import {Profile} from "../../../controller/dataprofile/types"
 
 export interface ProfiletableProps {
-    Profile: any
-    ProfileUpdateHandler: any
+    Profile: Profile
+    ProfileUpdateHandler: (value: Profile) => void
 }
 
 export default function ProfileTable(props: ProfiletableProps) {
@@ -90,7 +92,9 @@ export default function ProfileTable(props: ProfiletableProps) {
                     className="w-32"
                     onChange={event => {
                         const profileCopy = {...profile}
-                        profileCopy.data_tag.fields[field].data_type = event.target.value
+                        profileCopy.data_tag.fields[field].data_type = DataType[event.target.value]
+                        console.debug("profile data type", profileCopy.data_tag.fields[field].data_type)
+                        console.debug("event", event.target.value)
                         setProfile(profileCopy)
                     }}
                 >

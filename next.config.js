@@ -1,3 +1,6 @@
+
+// This is JS not TS so suppress warning
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require("path");
 
 module.exports = {

@@ -1,6 +1,7 @@
+import Debug from "debug"
 import sortByTime from "../utils/sort"
-import {NotificationType, sendNotification} from "./notification";
 import {MDServerObject, MDServerResponse} from "./base_types";
+import {NotificationType, sendNotification} from "./notification";
 
 // HackyStream implements streaming a specific resource from the MD Server using a regex hack
 // By virtue of this hack it currently stores the whole stream in memory.
@@ -23,7 +24,7 @@ export default async function HackyStream<ObjectType extends MDServerObject>(
     const response = await fetch(url, requestParams)
 
     // Instantiate logger
-    const debug = require('debug')(`Fetch ${resourceName}`)
+    const debug = Debug(`Fetch ${resourceName}`)
 
     // Check for error
     if (response.status != 200) {

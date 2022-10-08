@@ -136,6 +136,7 @@ export default function Index(): React.ReactElement {
                           width="249"
                           height="587"
                           layout="responsive"
+                          alt=""
                       />
                   </ImageDiv>
                   <D2DText>Data to Decisions</D2DText>

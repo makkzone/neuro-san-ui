@@ -4,7 +4,7 @@ import NewBar from "./newbar";
 import {Table} from "evergreen-ui"
 
 export interface MetricstableProps {
-    readonly PredictorRunData: any
+    readonly PredictorRunData
 }
 
 export default function MetricsTable(props: MetricstableProps) {

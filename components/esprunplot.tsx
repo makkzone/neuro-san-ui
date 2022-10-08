@@ -9,23 +9,21 @@ import {MaximumBlue} from "../const";
 import {NotificationType, sendNotification} from "../controller/notification";
 
 export interface EspRunPlotProps {
-
-    readonly PrescriptorRunData: any
-
+    readonly PrescriptorRunData
 }
 
 export interface ParetoPlotProps {
 
     // The pareto front data
-    readonly Pareto: any
+    readonly Pareto
 
     // The Node mapping to the CID Map of selected prescriptor
-    NodeToCIDMap: any
+    NodeToCIDMap
 
     // A state handler for the parent object whoever needs to use it
     // that maps the node id of the prescriptor(ESP Experiment) to the
     // selected CID within that experiment so it can be used for inference
-    readonly PrescriptorNodeToCIDMapUpdater: any
+    readonly PrescriptorNodeToCIDMapUpdater
 
 }
 
@@ -345,8 +343,6 @@ function ParetoPlot(props) {
             }}
             curve="monotoneX"
             tooltip={({point}) => {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
                 return <Card>
                     <Container className="flex flex-col justify-space-between">
                         <p>{xLabel}: {point.data.x}</p>

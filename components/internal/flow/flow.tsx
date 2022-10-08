@@ -25,7 +25,8 @@ import {DataSource} from "../../../controller/datasources/types";
 import {CAOType, DataTag} from "../../../controller/datatag/types";
 import {FlowQueries} from "./flowqueries";
 
-const debug = require('debug')('flow')
+import Debug from "debug"
+const debug = Debug("flow")
 
 /*
 The following interface is used to define the props
@@ -37,10 +38,10 @@ export interface FlowProps {
 
     // A parent state update handle such that it can
     // update the flow in the parent container.
-    SetParentState?: any
+    SetParentState?
 
     // Flow passed down if it exists
-    Flow?: any
+    Flow?
 
     // If this is set to true, it disables the buttons
     // and the flow from update
@@ -50,7 +51,7 @@ export interface FlowProps {
 class FlowState extends React.Component {
     // Declare class Variables
     ProjectID: number
-    SetParentState: any
+    SetParentState
     protected ElementsSelectable: boolean
 
     constructor(props: FlowProps) {
@@ -659,7 +660,9 @@ export default class Flow extends FlowUtils {
         this.setState({flowInstance: reactFlowInstance})
     }
 
-    componentDidUpdate(prevProps: Readonly<{}>, prevState: Readonly<{}>, snapshot?: any) {
+    // TODO: what do to about these unused params?
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    componentDidUpdate(prevProps: Readonly<object>, prevState: Readonly<object>, snapshot?) {
         this.SetParentState && this.SetParentState(this.state.flow)
     }
 

@@ -1,11 +1,10 @@
 // Import React components
-import { 
-    useState, 
-    useEffect 
+import {
+    useState,
+    useEffect, ReactElement
 } from 'react'
-import dynamic from 'next/dynamic'
 
-// Import 3rd pary components
+// Import 3rd party components
 import { 
     Card
 } from "react-bootstrap"
@@ -20,7 +19,7 @@ import { GrSettingsOption } from "react-icons/gr"
 import { MdDelete } from "react-icons/md"
 import { BiPlusMedical } from "react-icons/bi"
 import { 
-    Card as BleuprintCard, 
+    Card as BlueprintCard,
     Elevation 
 } from "@blueprintjs/core";
 
@@ -47,15 +46,15 @@ export interface PrescriptorNodeData {
     // This map describes the field names
     readonly SelectedDataSourceId: number
 
-    readonly EvaluatorOverrideCode: any,
-    readonly UpdateEvaluateOverrideCode: any,
+    readonly EvaluatorOverrideCode
+    readonly UpdateEvaluateOverrideCode
 
-    readonly ParentPrescriptorState: any,
-    readonly SetParentPrescriptorState: any
+    readonly ParentPrescriptorState
+    readonly SetParentPrescriptorState
 }
 
 
-export default function PrescriptorNode(props): React.ReactElement {
+export default function PrescriptorNode(props): ReactElement {
     /*
     This function is responsible for rendering the prescriptor node.
     */
@@ -75,7 +74,7 @@ export default function PrescriptorNode(props): React.ReactElement {
 
     const updateCAOState = ( event, espType: string ) => {
         const { name, checked } = event.target
-        let caoStateCopy = { ...ParentPrescriptorState.caoState }
+        const caoStateCopy = { ...ParentPrescriptorState.caoState }
 
         caoStateCopy[espType][name] = checked
 
@@ -116,7 +115,7 @@ export default function PrescriptorNode(props): React.ReactElement {
                 })
             }
 
-            let initializedState = {...ParentPrescriptorState}
+            const initializedState = {...ParentPrescriptorState}
             initializedState.caoState = CAOState
 
             if (ParentPrescriptorState.network.hidden_layers[0].layer_params.units === 0) {
@@ -142,7 +141,7 @@ export default function PrescriptorNode(props): React.ReactElement {
 
     // Create a min/max selector for each desired outcome
     const ObjectiveConfigurationPanel = ParentPrescriptorState.evolution.fitness
-        .map((metric, _) => {
+        .map(metric => {
             return <div className="p-2 grid grid-cols-2 gap-4 mb-2" key={metric.metric_name} >
                 <label>{metric.metric_name}: </label>
                 <select
@@ -150,7 +149,7 @@ export default function PrescriptorNode(props): React.ReactElement {
                     value={metric.maximize}
                     onChange={event => {
                         // Update maximize/minimize status for selected outcome
-                        let fitness = ParentPrescriptorState.evolution.fitness
+                        const fitness = ParentPrescriptorState.evolution.fitness
                             .map(f => {
                                 if (f.metric_name === metric.metric_name) {
                                     return {
@@ -190,8 +189,7 @@ export default function PrescriptorNode(props): React.ReactElement {
                                             onBeforeChange={(editor, editorData, value) => {
                                                 UpdateEvaluateOverrideCode(value)
                                             }}
-                                            onChange={(editor, editorData, value) => {}}
-                                            />
+                                        />
 
                                     </Card.Body>
     
@@ -216,8 +214,8 @@ export default function PrescriptorNode(props): React.ReactElement {
             <button
                 style={{width: "1rem"}}
                 className="mb-2"
-                type="button" onClick={_ => {
-                    let stateCopy = {...ParentPrescriptorState}
+                type="button" onClick={() => {
+                    const stateCopy = {...ParentPrescriptorState}
                     stateCopy.network.hidden_layers.splice(idx, 1)
                     SetParentPrescriptorState(stateCopy)
                 }}><MdDelete /></button>
@@ -230,7 +228,7 @@ export default function PrescriptorNode(props): React.ReactElement {
                         step="1" 
                         value={ hiddenLayer.layer_params.units }
                         onChange={event => {
-                            let modifiedHiddenLayerState = {...ParentPrescriptorState}
+                            const modifiedHiddenLayerState = {...ParentPrescriptorState}
                             modifiedHiddenLayerState.network.hidden_layers[idx].layer_params.units = parseInt(event.target.value)
                             SetParentPrescriptorState(modifiedHiddenLayerState)
                         }}
@@ -242,12 +240,12 @@ export default function PrescriptorNode(props): React.ReactElement {
                         defaultValue="tanh"
                         value={ hiddenLayer.layer_params.activation }
                         onChange={event => {
-                            let modifiedHiddenLayerState = {...ParentPrescriptorState}
+                            const modifiedHiddenLayerState = {...ParentPrescriptorState}
                             modifiedHiddenLayerState.network.hidden_layers[idx].layer_params.activation = event.target.value
                             SetParentPrescriptorState(modifiedHiddenLayerState)
                         }}
                     >
-                        {ActivationFunctions.map((activationFn, _) => <option key={`hidden-layer-activation-${activationFn}`} value={activationFn}>{activationFn}</option>)}
+                        {ActivationFunctions.map(activationFn => <option key={`hidden-layer-activation-${activationFn}`} value={activationFn}>{activationFn}</option>)}
                     </select> 
                 </div>
 
@@ -258,7 +256,7 @@ export default function PrescriptorNode(props): React.ReactElement {
                         defaultChecked={ true }
                         checked={ hiddenLayer.layer_params.use_bias }
                         onChange={event => {
-                            let modifiedHiddenLayerState = {...ParentPrescriptorState}
+                            const modifiedHiddenLayerState = {...ParentPrescriptorState}
                             modifiedHiddenLayerState.network.hidden_layers[idx].layer_params.use_bias = event.target.checked
                             SetParentPrescriptorState(modifiedHiddenLayerState)
                         }}
@@ -293,19 +291,23 @@ export default function PrescriptorNode(props): React.ReactElement {
                                                     {
                                                         ParentPrescriptorState.LEAF.representation === "NNWeights" && <div>
                                                             {NeuralNetworkConfiguration}
-                                                            <button type="button" className="float-right" onClick={_ => {
-                                                                let stateCopy = {...ParentPrescriptorState}
-                                                                stateCopy.network.hidden_layers.push({
-                                                                    layer_name: `hidden-${ParentPrescriptorState.network.hidden_layers.length}`,
-                                                                    layer_type: 'dense',
-                                                                    layer_params: {
-                                                                        units: 2 * Object.keys(ParentPrescriptorState.caoState.context).length,
-                                                                        activation: 'tanh',
-                                                                        use_bias: true
-                                                                    }  
-                                                                })
-                                                                SetParentPrescriptorState(stateCopy)
-                                                            }}><BiPlusMedical /></button>
+                                                            <button type="button" className="float-right"
+                                                                onClick={() => {
+                                                                    const stateCopy = {...ParentPrescriptorState}
+                                                                    stateCopy.network.hidden_layers.push({
+                                                                        layer_name: `hidden-${ParentPrescriptorState.network.hidden_layers.length}`,
+                                                                        layer_type: 'dense',
+                                                                        layer_params: {
+                                                                            units: 2 * Object.keys(ParentPrescriptorState.caoState.context).length,
+                                                                            activation: 'tanh',
+                                                                            use_bias: true
+                                                                        }
+                                                                    })
+                                                                    SetParentPrescriptorState(stateCopy)
+                                                                }}
+                                                            >
+                                                                <BiPlusMedical />
+                                                            </button>
                                                         </div>
                                                     }
                                                 </div>
@@ -503,7 +505,7 @@ export default function PrescriptorNode(props): React.ReactElement {
                                         </Card.Body>
 
     // Create the Component structure
-    return <BleuprintCard 
+    return <BlueprintCard
         interactive={ true } 
         elevation={ Elevation.TWO } 
         style={ { padding: 0, width: "10rem", height: "4rem" } }>
@@ -592,5 +594,5 @@ export default function PrescriptorNode(props): React.ReactElement {
 
                 <Handle type="source" position={HandlePosition.Right} />
                 <Handle type="target" position={HandlePosition.Left} />
-        </BleuprintCard>
+        </BlueprintCard>
 }

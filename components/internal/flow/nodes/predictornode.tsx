@@ -396,9 +396,7 @@ export default function PredictorNode(props): ReactElement {
                                                                 className="w-32"
                                                                 >
                                                                 {
-                                                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                                                    // @ts-ignore
-                                                                    ParentPredictorState.predictorParams[param].type.map(
+                                                                    (ParentPredictorState.predictorParams[param].type as Array<string>).map(
                                                                         value => <option key={value} value={ value }>{ value }</option>)
                                                                 }
                                                             </select>

@@ -13,10 +13,9 @@ export interface NavbarProps {
     Title: string,
     LinkComponentProps?: LinkProps,
     DisplayNewLink?: boolean,
-    LinkCallback?: any,
-    ButtonComponent?: any,
-
-    EditableCallback?: any
+    LinkCallback?,
+    ButtonComponent?,
+    EditableCallback?
 }
 
 export default function NewBar(props: NavbarProps) {
@@ -64,9 +63,9 @@ export default function NewBar(props: NavbarProps) {
                    }
                    onKeyUp={
                        event => {
-                           if (event.keyCode == 13) {
-                               // @ts-ignore
-                               props.EditableCallback(event.target.value)
+                           if (event.key === "Enter") {
+                               const target = event.target as HTMLInputElement
+                               props.EditableCallback(target.value)
                                setEditing(false)
                            }
                        }

@@ -7,7 +7,7 @@ import {
 export default function PredictorEdge({ id, sourceX, sourceY,
                                         targetX, targetY,
                                         sourcePosition, targetPosition,
-                                        style = {}, data, arrowHeadType,
+                                        style = {}, arrowHeadType,
                                         markerEndId
                                         }) {
     const edgePath = getBezierPath({
