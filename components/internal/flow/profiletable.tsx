@@ -93,8 +93,6 @@ export default function ProfileTable(props: ProfiletableProps) {
                     onChange={event => {
                         const profileCopy = {...profile}
                         profileCopy.data_tag.fields[field].data_type = DataType[event.target.value]
-                        console.debug("profile data type", profileCopy.data_tag.fields[field].data_type)
-                        console.debug("event", event.target.value)
                         setProfile(profileCopy)
                     }}
                 >
