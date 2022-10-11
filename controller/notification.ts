@@ -1,4 +1,5 @@
 import {notification} from 'antd';
+import {NotificationPlacement} from "antd/lib/notification";
 import {ReactNode} from "react";
 import {renderToString} from "react-dom/server";
 
@@ -21,8 +22,10 @@ const SUCCESS_NOTIFICATION_DURATION_SECS = 5;
  * @param nt Indicates whether it's error, warning, info etc.
  * @param message Brief summary of the notification
  * @param description More complete description of the notification
+ * @param placement Where to show notification. Defaults to top-right.
  */
-export function sendNotification(nt: NotificationType, message: string, description: string | ReactNode = ""): void {
+export function sendNotification(nt: NotificationType, message: string, description: string | ReactNode = "",
+                                 placement: NotificationPlacement = "topRight"): void {
     // Log a copy to the console for troubleshooting
     console.debug(`Notification: Message: "${message}" Description: "${renderToString(description)}"`)
 
@@ -44,6 +47,7 @@ export function sendNotification(nt: NotificationType, message: string, descript
     notification[NotificationType[nt]]({
         message: message,
         description: description,
-        duration: duration
+        duration: duration,
+        placement: placement
     })
 }
