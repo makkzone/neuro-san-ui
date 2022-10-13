@@ -1,12 +1,12 @@
 // React components
-import {useEffect, useRef, useState} from 'react'
+import {FormEvent, useEffect, useRef, useState} from 'react'
 import {useSession} from 'next-auth/react'
 
 // 3rd Party components
 import ClipLoader from "react-spinners/ClipLoader";
 import prettyBytes from 'pretty-bytes'
 import status from "http-status"
-import {Button, Collapse, Radio, RadioChangeEvent, Space} from 'antd'
+import {Button, Collapse, Radio, RadioChangeEvent, Space, Tooltip} from 'antd'
 import {Container, Form} from "react-bootstrap"
 import {checkValidity} from "./dataprofile/dataprofileutils";
 
@@ -148,10 +148,21 @@ export default function NewProject(props: NewProps) {
     }
 
     // Persists the profile with associated tags and data source
-    const CreateDataProfile = async () => {
+    const createDataProfile = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+
         let tmpProjectId = projectId
 
-        const isValid = checkValidity(profile.data_tag.fields)
+        const form = event.currentTarget;
+
+        // HTML validation
+        if (!form.checkValidity()) {
+            event.stopPropagation()
+            return
+        }
+
+        // Validate consistency of fields
+        const isValid = profile && checkValidity(profile.data_tag.fields)
         if (!isValid) {
             return
         }
@@ -202,7 +213,7 @@ export default function NewProject(props: NewProps) {
 
         debug("Saved Data Source: ", savedDataSource)
 
-        // Unpack the values for datafields
+        // Unpack the values for data fields
         const inputFieldsMapped: DataTagFields = {}
 
         // Loop over the Data fields
@@ -254,18 +265,6 @@ export default function NewProject(props: NewProps) {
         }
     }
 
-    // Allow data source set-up if it's an existing project (meaning it has a ProjectID already, and user is not
-    // creating a new project) or if the user has already filled out the relevant project info fields for a new
-    // project.
-    const enabledDataSourceSection = props.ProjectID || (inputFields.projectName && inputFields.description)
-
-    const enabledDataTagSection = enabledDataSourceSection &&
-                                    !isUploading &&
-                                    inputFields.datasetName &&
-                                    profile &&
-                                    ((chosenDataSource === s3Option && !!inputFields.s3Key) ||
-                                    (chosenDataSource === localFileOption && !!inputFields.uploadedFileS3Key))
-
     const startIndexOffset = props.ProjectID ? -1 : 0
 
     const profileTable = <ProfileTable Profile={profile} ProfileUpdateHandler={setProfile} />
@@ -310,13 +309,8 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
     const dataSourcePanelKey = 2;
     const tagYourDataPanelKey = 3;
 
-    const createDataSourceButtonEnabled: boolean =
-        !!inputFields.datasetName &&
-        !isUploading &&
-        ((chosenDataSource === s3Option && !!inputFields.s3Key) ||
-        (chosenDataSource === localFileOption && !!inputFields.uploadedFileS3Key))
-
-    const isUsingLocalFile = chosenDataSource === localFileOption;
+    const isUsingLocalFile = chosenDataSource === localFileOption
+    const isUsingS3Source = !isUsingLocalFile
 
     const isNewProject = startIndexOffset === 0;
 
@@ -330,10 +324,73 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
         500)
     }, [])
 
+    // Tell user why button is disabled
+    function getUploadButtonTooltip() {
+        if (!isUsingLocalFile) {
+            return "Only available when using the file upload option"
+        } else if (!selectedFile){
+            return "Please select a file first"
+        } else {
+            // returning null means no tooltip shown, meaning the button should be enabled
+            return null
+        }
+    }
+
+    // Tell user why button is disabled
+    function getCreatButtonTooltip() {
+        if (!inputFields.datasetName) {
+            return "Please select a name for your data source"
+        } else if (isUploading) {
+            return "Please wait until upload is complete"
+        } else if (isUsingS3Source && !inputFields.s3Key) {
+            return "Please enter an S3 key for your data source or choose a local file"
+        } else if (isUsingLocalFile && !inputFields.uploadedFileS3Key) {
+            return "Please upload a file for your data source"
+        } else {
+            // returning null means no tooltip shown, meaning the button should be enabled
+            return null
+        }
+    }
+
+    // Allow data source set-up if it's an existing project (meaning it has a ProjectID already, and user is not
+    // creating a new project) or if the user has already filled out the relevant project info fields for a new
+    // project.
+    const enabledDataSourceSection = props.ProjectID || (inputFields.projectName && inputFields.description)
+
+    const enabledDataTagSection = enabledDataSourceSection &&
+        !isUploading &&
+        inputFields.datasetName &&
+        profile &&
+        ((chosenDataSource === s3Option && !!inputFields.s3Key) ||
+            (chosenDataSource === localFileOption && !!inputFields.uploadedFileS3Key))
+
+    // Tell user why button is disabled
+    function getCreateProjectButtonTooltip() {
+        if (!profile) {
+            return "Please name and create your data source first"
+        }
+        else {
+            // returning null means no tooltip shown, meaning the button should be enabled
+            return null
+        }
+    }
+
     return <Container>
-        <Form onSubmit={event => {event.preventDefault(); CreateDataProfile()}} target="_blank" >
+        <Form
+            onSubmit={event => void createDataProfile(event)}
+            target="_blank"
+
+            // We set noValidate to turn off the intrinsic HTML 5 validation since we'll be using Bootstrap's
+            // validation instead.
+            noValidate
+
+            // Setting this next property to "true" causes the "invalid feedback" to appear immediately. Normally one
+            // would only set this after the user attempts to submit the form, but we have a complex form here with
+            // multiple "submit"-type steps so that doesn't work for us.
+            validated={true}
+        >
             <Collapse accordion expandIconPosition="right"
-                      defaultActiveKey={isNewProject ? projectDetailsPanelKey : dataSourcePanelKey}
+                defaultActiveKey={isNewProject ? projectDetailsPanelKey : dataSourcePanelKey}
             >
                 { isNewProject &&
                     <Panel header="1. Project Details"
@@ -348,10 +405,11 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                                 onChange={
                                     event => setInputFields(
                                         {...inputFields, projectName: event.target.value}
-                                    )}/>
-                            <Form.Text className="text-muted text-left">
-                            A start to something great!
-                            </Form.Text>
+                                    )}
+                                required
+                            />
+                            <Form.Control.Feedback type="valid">Looks good!</Form.Control.Feedback>
+                            <Form.Control.Feedback type="invalid">Please choose a project name.</Form.Control.Feedback>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
@@ -364,11 +422,20 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                                 onChange={
                                     event => setInputFields(
                                         {...inputFields, description: event.target.value}
-                                )}/>
+                                )}
+                                required
+                            />
+                            <Form.Control.Feedback type="valid">Looks good!</Form.Control.Feedback>
+                            <Form.Control.Feedback type="invalid">Please enter a project description.</Form.Control.Feedback>
                         </Form.Group>      
                     </Panel>
                 }
-                <Panel header={`${2 + startIndexOffset}. Create your data source`}
+                <Panel header={
+                    <Tooltip title={!enabledDataSourceSection ? "Please enter project name and description first": ""}
+                             placement="leftTop">
+                        {`${2 + startIndexOffset}. Create your data source`}
+                    </Tooltip>
+                }
                        key={dataSourcePanelKey}
                        collapsible={enabledDataSourceSection ? "header": "disabled"}
                 >
@@ -382,7 +449,11 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                             onChange={
                                 event => setInputFields(
                                     {...inputFields, datasetName: event.target.value}
-                                )}/>
+                                )}
+                            required
+                        />
+                        <Form.Control.Feedback type="valid">Looks good!</Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">Please choose a name for your data source.</Form.Control.Feedback>
                     </Form.Group>
                     <Radio.Group onChange={(e: RadioChangeEvent) => {setChosenDataSource(e.target.value)}}
                                  value={chosenDataSource}
@@ -401,7 +472,10 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                                                 {...inputFields, s3Key: event.target.value}
                                         )}
                                         disabled={isUsingLocalFile}
+                                        required={!isUsingLocalFile}
                                     />
+                                    <Form.Control.Feedback type="valid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control.Feedback type="invalid">Please enter a path to your CSV file in S3.</Form.Control.Feedback>
                                 </Form.Group>
                             </Radio>
                             <Radio value={localFileOption}>
@@ -428,16 +502,18 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                                                         <ClipLoader color={MaximumBlue} loading={true} size={14}/>
                                                     </span>
                                                 </label>
-                                            :   <Button disabled={!isUsingLocalFile || !selectedFile}
-                                                        style={{
-                                                            background: MaximumBlue,
-                                                            borderColor: MaximumBlue,
-                                                            color: "white",
-                                                            opacity: isUsingLocalFile && selectedFile ? 1.0 : 0.5
-                                                        }}
-                                                        onClick={handleFileUpload}>
-                                                    Upload
-                                                </Button>
+                                            :   <Tooltip title={getUploadButtonTooltip()}>
+                                                    <Button disabled={getUploadButtonTooltip() !== null}
+                                                            style={{
+                                                                background: MaximumBlue,
+                                                                borderColor: MaximumBlue,
+                                                                color: "white",
+                                                                opacity: isUsingLocalFile && selectedFile ? 1.0 : 0.5
+                                                            }}
+                                                            onClick={handleFileUpload}>
+                                                        Upload
+                                                    </Button>
+                                                </Tooltip>
                                         }
                                     </div>
                                 </Space>
@@ -445,21 +521,28 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                         </Space>
                     </Radio.Group>
                     <Form.Group className="mt-2">
-                        <Button
-                            style={{
-                                background: MaximumBlue,
-                                borderColor: MaximumBlue,
-                                color: "white",
-                                opacity: createDataSourceButtonEnabled ? 1.0 : 0.5
-                            }}
-                            onClick={CreateDataSource}
-                            disabled={!createDataSourceButtonEnabled}
-                        >
-                            Create
-                        </Button>
+                        <Tooltip title={getCreatButtonTooltip()}>
+                            <Button
+                                style={{
+                                    background: MaximumBlue,
+                                    borderColor: MaximumBlue,
+                                    color: "white",
+                                    opacity: getCreatButtonTooltip() === null ? 1.0 : 0.5
+                                }}
+                                onClick={CreateDataSource}
+                                disabled={getCreatButtonTooltip() !== null}
+                            >
+                                Create
+                            </Button>
+                        </Tooltip>
                     </Form.Group>
                 </Panel>
-                <Panel header={`${3 + startIndexOffset}. Tag your Data`}
+                <Panel header={
+                    <Tooltip title={!enabledDataTagSection ? "Please name and create your data source first": ""}
+                             placement="leftTop">
+                        {`${3 + startIndexOffset}. Tag your Data`}
+                    </Tooltip>
+                }
                        key={tagYourDataPanelKey}
                        collapsible={enabledDataTagSection ? "header": "disabled"}>
                     {profileTable}
@@ -468,20 +551,22 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
 
             <Panel
                 header={
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        className="w-full mt-2 mb-2"
-                        disabled={!enabledDataTagSection}
-                        style={{
-                            background: MaximumBlue,
-                            borderColor: MaximumBlue,
-                            color: "white",
-                            opacity: enabledDataTagSection ? 1.0 : 0.5
-                        }}
-                    >
-                        {`${4 + startIndexOffset}. Create data profile`}
-                    </Button>
+                    <Tooltip title={getCreateProjectButtonTooltip()} placement="leftTop">
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            className="w-full mt-2 mb-2"
+                            disabled={!enabledDataTagSection}
+                            style={{
+                                background: MaximumBlue,
+                                borderColor: MaximumBlue,
+                                color: "white",
+                                opacity: enabledDataTagSection ? 1.0 : 0.5
+                            }}
+                        >
+                            {`${4 + startIndexOffset}. ` + (isNewProject ? "Create project" : "Create data profile")}
+                        </Button>
+                    </Tooltip>
                 }
                 key="4">
             </Panel>
