@@ -31,7 +31,9 @@ import {
     Position as HandlePosition
 } from 'react-flow-renderer'
 
-import { Controlled as CodeMirror } from 'react-codemirror2'
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs';
+
 import {loadDataTag} from "../../../../controller/fetchdatataglist";
 import {useSession} from "next-auth/react";
 import {NotificationType, sendNotification} from "../../../../controller/notification";
@@ -193,21 +195,12 @@ export default function PrescriptorNode(props): ReactElement {
             </div>
     })
     
-    const EvaluatorOverridePanel = <Card.Body>
-                                        <CodeMirror
-                                            value={EvaluatorOverrideCode}
-                                            options={{
-                                                tabSize: 4,
-                                                theme: 'material',
-                                                lineNumbers: true,
-                                                mode: 'python',
-                                            }}
-                                            onBeforeChange={(editor, editorData, value) => {
-                                                UpdateEvaluateOverrideCode(value)
-                                            }}
-                                        />
-
-                                    </Card.Body>
+    const EvaluatorOverridePanel =
+        <Card.Body>
+            <SyntaxHighlighter language="scala" style={docco} showLineNumbers={true}>
+                {EvaluatorOverrideCode}
+            </SyntaxHighlighter>
+        </Card.Body>
     
     // We need to maintain state for selected Representation
     // Possible options are: 

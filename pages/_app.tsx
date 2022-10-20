@@ -10,11 +10,11 @@ import '@blueprintjs/core/lib/css/blueprint.css'
 // External Libraries
 
 // Bootstrap
-import {Container} from "react-bootstrap";
+import {Container} from "react-bootstrap"
 
 // React
 import React from 'react'
-import 'react-pro-sidebar/dist/css/styles.css';
+import 'react-pro-sidebar/dist/css/styles.css'
 
 // NextJS Components
 import Head from 'next/head'
