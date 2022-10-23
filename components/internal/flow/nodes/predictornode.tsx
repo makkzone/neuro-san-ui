@@ -41,7 +41,7 @@ import {
     FetchPredictors
 } from '../../../../controller/predictor'
 import {loadDataTag} from "../../../../controller/fetchdatataglist"
-import {PredictorParams} from "../../../../predictorinfo"
+import {PredictorParams} from "../predictorinfo"
 import {StringBool} from "../../../../controller/base_types"
 import {useSession} from "next-auth/react"
 

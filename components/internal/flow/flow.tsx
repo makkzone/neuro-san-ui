@@ -23,7 +23,7 @@ import {EvaluateCandidateCode, InputDataNodeID, MaximumBlue, OutputOverrideCode}
 import {DataSource} from "../../../controller/datasources/types";
 import {CAOType, DataTag} from "../../../controller/datatag/types";
 import {NotificationType, sendNotification} from "../../../controller/notification";
-import {PredictorParams} from "../../../predictorinfo";
+import {PredictorParams} from "./predictorinfo";
 
 // Import Custom Nodes and Edges
 import EdgeTypes from './edges/types'
@@ -575,8 +575,6 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         if (!predictorNode) {
             console.error(`Unable to locate predictor with node ID ${predictorNodeID}`)
             return
-        } else {
-            console.debug({predictorNode})
         }
 
         // Only one RIO node allowed per Predictor
@@ -637,8 +635,6 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
                 if (edge.type === "prescriptoredge") {
                     console.debug("removing edge")
                     graphCopy = removeElements([edge], graphCopy)
-                } else {
-                    console.debug("wrong node type", {edge})
                 }
             }
 
@@ -677,8 +673,6 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         const numPredictorNodesLeft = FlowQueries.getPredictorNodes(graph).length - predictorIdsBeingRemoved.length
         if (numPredictorNodesLeft == 0) {
             removableElements.push(...FlowQueries.getPrescriptorNodes(graph))
-
-
         } else {
             // Also if the removable elements have predictor nodes we
             // need to clean up their outcomes from showing in the prescriptor
