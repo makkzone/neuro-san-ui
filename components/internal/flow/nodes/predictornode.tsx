@@ -502,8 +502,7 @@ export default function PredictorNode(props): ReactElement {
     return <BlueprintCard
         interactive={ true } 
         elevation={ Elevation.TWO } 
-        style={ { padding: 0, width: "10rem", height: "4rem" } }>
-                
+        style={{ padding: 0, width: "10rem", height: "4rem" }}>
             <Card border="warning" style={{ height: "100%" }}>
                 <Card.Body className="flex justify-center content-center">
                     <Text className="mr-2">{ ParentPredictorState.selectedPredictor || "Predictor" }</Text>

@@ -5,16 +5,13 @@ import {ReactElement} from 'react'
 
 // 3rd party components
 import {Card} from "react-bootstrap"
-import {GrSettingsOption} from "react-icons/gr"
 
 // React Flow
-import {
-    Handle,
-    Position as HandlePosition
-} from 'react-flow-renderer'
+import {Handle, Position as HandlePosition} from 'react-flow-renderer'
+import {GrSettingsOption} from "react-icons/gr"
 
 // Consts
-import {RIO_PARAMS, RioParamField} from "../rioinfo"
+import {ParamType, RIO_PARAMS} from "../rioinfo"
 
 // Define an interface for the structure
 // of the nodes
@@ -30,21 +27,46 @@ export interface PredictorNodeData {
 
 export default function RioNode(props): ReactElement {
     /*
-    This function is responsible to render the Predictor Node
+    This function renders the RIO node
     */
 
 
-    function getConfigFor(key, item) {
+    function getInputComponent(key, item) {
         return <div className="grid grid-cols-8 gap-4 mb-2" key={key} >
                 <div className="item1 col-span-2"><label className="capitalize">{key}: </label></div>
                 <div className="item2 col-span-5">
-                    <input
-                        type="text"
-                        // step="0.1"
-                        defaultValue={item.defaultValue}
-                        value={item.defaultValue}
-                        onChange={() => {}}
-                    />
+                    {
+                        item.type === ParamType.INT &&
+                        <input
+                            type="number"
+                            step="1"
+                            defaultValue={item.defaultValue.toString()}
+                            value={item.defaultValue.toString()}
+                            onChange={() => {}}
+                        />
+                    }
+                    {
+                        item.type === ParamType.BOOLEAN && 
+                            <input
+                                type="checkbox"
+                                defaultChecked={item.defaultValue}
+                                checked={item.defaultValue}
+                                onChange={() => {}}
+                            />
+                    }
+                    {
+                        item.type === ParamType.ENUM &&
+                        <select
+                            value={ item.defaultValue }
+                            onChange={() => {}}
+                            className="w-32"
+                        >
+                            {
+                                (item.allValues as Array<string>).map(
+                                    value => <option key={value} value={ value }>{ value }</option>)
+                            }
+                        </select>
+                    }
                 </div>
                 <div className="item3 col-span-1">
                     <Tooltip content={item.description} >
@@ -54,7 +76,7 @@ export default function RioNode(props): ReactElement {
             </div>
     }
 
-// Create the Component structure
+    // Create the outer Card
     return <BlueprintCard
         interactive={ true } 
         elevation={ Elevation.TWO } 
@@ -62,25 +84,25 @@ export default function RioNode(props): ReactElement {
 
         <Card border="warning" style={{height: "100%"}}>
             <Card.Body className="flex justify-center content-center">
-                <Text className="mr-2">{"RIO"}</Text>
+                <Text className="mr-2">Uncertainty model</Text>
                 <Popover content={
                     <>
-                        <div className="my-2 mx-2">
-                        <a target="_blank" href="https://gpflow.github.io/GPflow/" rel="noreferrer">
-                            For more information on these settings, click here.
-                        </a>
-                        </div>
-                        <Card.Body>
-                            {
-                                Object.keys(RIO_PARAMS).map(key => {
-                                    return getConfigFor(key, RIO_PARAMS[key])
-                                })
-                            }
+                        <Card.Body className="overflow-y-auto h-40 text-xs" id={ `rioconfig` }>
+                            <div className="mt-1 mb-2 mx-1">
+                                <a target="_blank" href="https://gpflow.github.io/GPflow/" rel="noreferrer">
+                                    For more information on these settings, click here.
+                                </a>
+                            </div>
+                                {
+                                    Object.keys(RIO_PARAMS).map(key => {
+                                        return getInputComponent(key, RIO_PARAMS[key])
+                                    })
+                                }
                         </Card.Body>
                     </>
                 }
                      statelessProps={{
-                         borderStyle: "double",
+                         height: "200px",
                          backgroundColor: "ghostwhite"
                      }}
                 >

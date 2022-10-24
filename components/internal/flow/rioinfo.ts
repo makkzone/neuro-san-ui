@@ -8,12 +8,12 @@ Configuration settings and constants for RIO node configuration popup
  */
 
 
-type RioParameterType = boolean|number|string
+type RioParameterType = boolean|number|string|[]
 
-enum ParamType {
+export enum ParamType {
     BOOLEAN,
     STRING,
-    NUMBER,
+    INT,
     ENUM
 }
 
@@ -33,11 +33,11 @@ enum FrameworkVariant {
 }
 
 enum ConfidenceInterval {
-    C5 = 5,
-    C10 = 10,
-    C15 = 15,
-    C20 = 20,
-    C95 = 95
+    C50 = 50,
+    C75 = 75,
+    C90 = 90,
+    C95 = 95,
+    C99 = 99
 }
 
 export interface RioParamField {
@@ -46,7 +46,9 @@ export interface RioParamField {
 
     // Data type of the parameter
     type: ParamType,
-    enumType?: {[key:string]: string | number}
+
+    // List of all available values. Only used for Enum types.
+    allValues?: []
 
     // Value is an optional field that can be used within a form
     // etc to denote user input
@@ -59,7 +61,8 @@ export const RIO_PARAMS = {
         defaultValue: ConfidenceInterval.C95,
         description: "Confidence interval for RIO corrections",
         type: ParamType.ENUM,
-        enumType: typeof(ConfidenceInterval)
+        allValues: Object.keys(ConfidenceInterval)
+
     },
 
     "use_ard": {
@@ -70,21 +73,28 @@ export const RIO_PARAMS = {
 
     "max_iterations_optimizer": {
         defaultValue: 1000,
-        description: " number of maximum iterations for optimizer",
-        type: ParamType.NUMBER
+        description: "Maximum iterations for optimizer",
+        type: ParamType.INT
     },
 
     "num_svgp_inducing_points": {
         defaultValue: 50,
-        description: "number of inducing points for the SVGP model",
-        type: ParamType.NUMBER
+        description: "Number of inducing points for the SVGP model",
+        type: ParamType.INT
     },
 
     "framework_variant": {
         defaultValue: FrameworkVariant.GP_CORRECTED,
-        description: "framework variant to use",
+        description: "Framework variant to use",
         type: ParamType.ENUM,
-        enumType: typeof(FrameworkVariant)
+        allValues: Object.keys(FrameworkVariant)
+    },
+
+    "kernel_type": {
+        defaultValue: KernelType.RBF_PLUS_RBF,
+        description: "Kernel type to use to train the model",
+        type: ParamType.ENUM,
+        allValues: Object.keys(KernelType)
     }
 
 }
