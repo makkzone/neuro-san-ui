@@ -1,14 +1,8 @@
 /*
-Configuration settings and constants for RIO node configuration popup
+Configuration settings and constants for uncertainty model node configuration popup
  */
 
-/*
- framework_variant: FrameworkVariant = FrameworkVariant.GP_CORRECTED,
-              kernel_type: KernelType = KernelType.RBF_PLUS_RBF,
- */
-
-
-type RioParameterType = boolean|number|string|[]
+type UncertaintyModelParameterType = boolean|number|string|[]
 
 export enum ParamType {
     BOOLEAN,
@@ -40,26 +34,30 @@ enum ConfidenceInterval {
     C99 = 99
 }
 
-export interface RioParamField {
-    defaultValue: RioParameterType,
+export interface UncertaintyModelParamField {
+    defaultValue: UncertaintyModelParameterType,
     description: string,
 
     // Data type of the parameter
     type: ParamType,
 
     // List of all available values. Only used for Enum types.
-    allValues?: []
+    allValues?: string[]
 
     // Value is an optional field that can be used within a form
     // etc to denote user input
-    value?: RioParameterType
+    value?: UncertaintyModelParameterType
+}
+
+export interface UncertaintyModelParamMapping {
+    [key: string]: UncertaintyModelParamField
 }
 
 
-export const RIO_PARAMS = {
+export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParamMapping = {
     "confidence_interval": {
         defaultValue: ConfidenceInterval.C95,
-        description: "Confidence interval for RIO corrections",
+        description: "Confidence interval for uncertainty model corrections",
         type: ParamType.ENUM,
         allValues: Object.keys(ConfidenceInterval)
 

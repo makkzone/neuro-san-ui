@@ -10,26 +10,23 @@ import {Card} from "react-bootstrap"
 import {Handle, Position as HandlePosition} from 'react-flow-renderer'
 import {GrSettingsOption} from "react-icons/gr"
 
-// Consts
-import {ParamType, RIO_PARAMS} from "../rioinfo"
+// Custom components
+import {ParamType, UNCERTAINTY_MODEL_PARAMS} from "../uncertaintymodelinfo"
 
 // Define an interface for the structure
-// of the nodes
-export interface PredictorNodeData {
+// of the node
+export interface UncertaintyModelNodeData {
     // The ID of the nodes. This will
     // be important to issues name to
     // form elements. The form elements thus
     // will be named nodeID-formElementType
     readonly NodeID: string,
-
-    readonly placeHolder: string
 }
 
-export default function RioNode(props): ReactElement {
+export default function UncertaintyModelNode(props): ReactElement {
     /*
-    This function renders the RIO node
+    This function renders the uncertainty model node
     */
-
 
     function getInputComponent(key, item) {
         return <div className="grid grid-cols-8 gap-4 mb-2" key={key} >
@@ -87,15 +84,15 @@ export default function RioNode(props): ReactElement {
                 <Text className="mr-2">Uncertainty model</Text>
                 <Popover content={
                     <>
-                        <Card.Body className="overflow-y-auto h-40 text-xs" id={ `rioconfig` }>
+                        <Card.Body className="overflow-y-auto h-40 text-xs" id={ "uncertainty_model_config" }>
                             <div className="mt-1 mb-2 mx-1">
                                 <a target="_blank" href="https://gpflow.github.io/GPflow/" rel="noreferrer">
                                     For more information on these settings, click here.
                                 </a>
                             </div>
                                 {
-                                    Object.keys(RIO_PARAMS).map(key => {
-                                        return getInputComponent(key, RIO_PARAMS[key])
+                                    Object.keys(UNCERTAINTY_MODEL_PARAMS).map(key => {
+                                        return getInputComponent(key, UNCERTAINTY_MODEL_PARAMS[key])
                                     })
                                 }
                         </Card.Body>

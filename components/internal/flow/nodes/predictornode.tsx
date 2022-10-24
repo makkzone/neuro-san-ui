@@ -80,8 +80,8 @@ export interface PredictorNodeData {
     readonly ParentPredictorState: PredictorState,
     readonly SetParentPredictorState: Dispatch<SetStateAction<PredictorState>>,
 
-    // Mutator method for adding a Rio node to the parent Flow
-    readonly AddRioNode: (nodeID: string) => void
+    // Mutator method for adding an uncertainty model node to the parent Flow
+    readonly AddUncertaintyModelNode: (nodeID: string) => void
 }
 
 
@@ -99,7 +99,7 @@ export default function PredictorNode(props): ReactElement {
     const currentUser: string = session.user.name
 
     // Unpack the data
-    const { NodeID, ParentPredictorState, SetParentPredictorState, AddRioNode } = data
+    const { NodeID, ParentPredictorState, SetParentPredictorState, AddUncertaintyModelNode } = data
 
     // Fetch the available metrics and predictors and these are not state dependant
     const metrics = {
@@ -615,13 +615,14 @@ export default function PredictorNode(props): ReactElement {
                                 className="absolute top-5 -right-4"
                                 style={{height: 0}}>O</button>
                     </Popover>
-                    <div style={{position: "absolute", right: "2px", top: "0px"}}>
+                    <div className="ml-3 mr-1" style={{position: "absolute", right: "2px", top: "0px"}}>
                         <Tooltip
                             showDelay={1}
-                            content="Add RIO node"
+                            content="Add uncertainty model node"
                         >
-                            <button type="button" style={{height: 15}}
-                                    onClick={() => AddRioNode(NodeID)}
+                            <button type="button"
+                                    style={{height: 15}}
+                                    onClick={() => AddUncertaintyModelNode(NodeID)}
                             >
                                 <BsPlusSquare size="0.6em" />
                             </button>

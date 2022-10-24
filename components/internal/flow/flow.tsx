@@ -409,7 +409,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
                 SelectedDataSourceId: this.state.flow[0].data.DataSource.id,
                 ParentPredictorState: this._getInitialPredictorState(),
                 SetParentPredictorState: state => this.PredictorSetStateHandler(state, NodeID),
-                AddRioNode: predictorNodeId => this._addRioNode(predictorNodeId)
+                AddUncertaintyModelNode: predictorNodeId => this._addUncertaintyNode(predictorNodeId)
             },
             position: { 
                 x: flowInstanceElem[0].position.x + 250, 
@@ -566,8 +566,8 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         this.setState({flow: graphCopy})
     }
 
-    // Adds a RIO node to the specified Predictor
-    _addRioNode(predictorNodeID: string): void {
+    // Adds an uncertainty model node to the specified Predictor
+    _addUncertaintyNode(predictorNodeID: string): void {
         const flow = this.state.flow;
 
         // Find associated predictor for this RIO node
@@ -581,9 +581,9 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         const downstreamNodes = getOutgoers(predictorNode, flow)
         if (downstreamNodes && downstreamNodes.length > 0) {
             for (const node of downstreamNodes) {
-                if (node.type === "rionode") {
-                    sendNotification(NotificationType.warning, "This predictor already has a RIO node",
-                        "Only one RIO node is allowed per predictor")
+                if (node.type === "uncertaintymodelnode") {
+                    sendNotification(NotificationType.warning, "This predictor already has an uncertainty model node",
+                        "Only one uncertainty model node is allowed per predictor")
                     return
                 }
             }
@@ -596,38 +596,37 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         const prescriptorNodes = FlowQueries.getPrescriptorNodes(flow)
         const prescriptorNode = prescriptorNodes && prescriptorNodes.length > 0 ? prescriptorNodes[0] : null
 
-        const rioNodeX = prescriptorNode
+        const uncertaintyNodeXPos = prescriptorNode
             ? (predictorNode.position.x + prescriptorNode.position.x) / 2
             : predictorNode.position.x + 200
 
         // Create a unique ID
-        const newRioNodeID = uuid()
+        const newNodeID = uuid()
 
-        // Add the RIO node
+        // Add the uncertainty model node
         graphCopy.push({
-            id: newRioNodeID,
-            type: "rionode",
+            id: newNodeID,
+            type: "uncertaintymodelnode",
             data:  {
-                NodeID: newRioNodeID,
-                Placeholder: "My RIO node"
+                NodeID: newNodeID,
             },
             position: {
-                x: rioNodeX,
+                x: uncertaintyNodeXPos,
                 y: predictorNode.position.y
             },
         })
 
-        // Now wire up the RIO node in the graph
-        // Connect the Predictor to the RIO node
+        // Now wire up the uncertainty model node in the graph
+        // Connect the Predictor to the uncertainty model node
         graphCopy.push({
             id: uuid(),
             source: predictorNode.id,
-            target: newRioNodeID,
+            target: newNodeID,
             animated: false,
             type: 'predictoredge'
         })
 
-        // If there's a Prescriptor, connect the new RIO node to that.
+        // If there's a Prescriptor, connect the new uncertainty model node to that.
         if (prescriptorNode) {
             // Disconnect the existing edge from Predictor to Prescriptor
             const edges = getConnectedEdges([predictorNode], flow)
@@ -641,7 +640,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
             // Connect the RIO node to the prescriptor
             graphCopy.push({
                 id: uuid(),
-                source: newRioNodeID,
+                source: newNodeID,
                 target: prescriptorNode.id,
                 animated: false,
                 type: 'predictoredge'
