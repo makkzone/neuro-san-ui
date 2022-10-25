@@ -129,7 +129,10 @@ export default function ProfileTable(props: ProfiletableProps) {
                             profile.data_tag.fields[field].discrete_categorical_values.map(
                                 (item) => (<option value={item} key={item} disabled>{item}</option>))
                         }
-                    </select> <button onClick={() => {
+                    </select> <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                        // Don't want to submit form here!
+                        e.preventDefault()
+
                         setFieldBeingEditedName(field)
                         setCurrentCategoryValues(profile.data_tag.fields[field].discrete_categorical_values)
                         setFieldEditorVisible(true)
@@ -228,7 +231,10 @@ export default function ProfileTable(props: ProfiletableProps) {
         <Modal title="Edit categorical values"
                visible={showFieldEditor}
                destroyOnClose={true}
-               onOk={() => {
+               onOk={(e: React.MouseEvent<HTMLElement>) => {
+                   // Don't want to submit form here!
+                   e.preventDefault()
+
                    const profileCopy = {...profile}
 
                    profileCopy.data_tag.fields[fieldBeingEditedName].discrete_categorical_values = currentCategoryValues
