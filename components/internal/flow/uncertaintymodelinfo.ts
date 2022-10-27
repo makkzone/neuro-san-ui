@@ -12,18 +12,18 @@ export enum ParamType {
 }
 
 enum KernelType {
-    RBF = 0,
-    RBFY = 1,
-    RBF_PLUS_RBF = 2
+    "RBF",
+    "RBFY",
+    "RBF_PLUS_RBF"
 }
 
 enum FrameworkVariant {
-    GP_CORRECTED = 0,
-    GP_CORRECTED_INPUT_ONLY = 1,
-    GP_CORRECTED_OUTPUT_ONLY = 2,
-    GP = 3,
-    GP_INPUT_ONLY = 4,
-    GP_OUTPUT_ONLY = 5
+    "GP Corrected",
+    "GP Corrected Input Only",
+    "GP Corrected Output Only",
+    "GP",
+    "GP Input Only",
+    "GP Output Only"
 }
 
 enum ConfidenceInterval {
@@ -47,6 +47,8 @@ export interface UncertaintyModelParamField {
     // Value is an optional field that can be used within a form
     // etc to denote user input
     value?: UncertaintyModelParameterType
+
+    isAdvanced: boolean
 }
 
 export interface UncertaintyModelParamMapping {
@@ -56,43 +58,49 @@ export interface UncertaintyModelParamMapping {
 
 export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParamMapping = {
     "confidence_interval": {
-        defaultValue: ConfidenceInterval.C95,
-        description: "Confidence interval for uncertainty model corrections",
+        defaultValue: ConfidenceInterval.C95.valueOf(),
+        description: "Confidence level (in %) for the confidence intervals",
         type: ParamType.ENUM,
-        allValues: Object.keys(ConfidenceInterval)
-
+        allValues: Object.values(ConfidenceInterval).filter((v) => !isNaN(Number(v))).map(v => String(v)),
+        isAdvanced: false
     },
 
     "use_ard": {
         defaultValue: true,
         description: "Enable Automatic Relevance Determination (ARD)",
-        type: ParamType.BOOLEAN
+        type: ParamType.BOOLEAN,
+        isAdvanced: true
     },
 
     "max_iterations_optimizer": {
         defaultValue: 1000,
         description: "Maximum iterations for optimizer",
-        type: ParamType.INT
+        type: ParamType.INT,
+        isAdvanced: true
     },
 
     "num_svgp_inducing_points": {
         defaultValue: 50,
         description: "Number of inducing points for the SVGP model",
-        type: ParamType.INT
+        type: ParamType.INT,
+        isAdvanced: true
     },
 
     "framework_variant": {
-        defaultValue: FrameworkVariant.GP_CORRECTED,
-        description: "Framework variant to use",
+        defaultValue: FrameworkVariant["GP Corrected"],
+        description: "Framework variant; the default is the standard method",
         type: ParamType.ENUM,
-        allValues: Object.keys(FrameworkVariant)
+        allValues: Object.keys(FrameworkVariant).filter((v) => isNaN(Number(v))).map(v => String(v)),
+        isAdvanced: true
     },
 
     "kernel_type": {
         defaultValue: KernelType.RBF_PLUS_RBF,
-        description: "Kernel type to use to train the model",
+        description: "Kernel type for the Gaussian Processes model. The default is the I/O kernel with " +
+            "radial basis function",
         type: ParamType.ENUM,
-        allValues: Object.keys(KernelType)
+        allValues: Object.keys(KernelType).filter((v) => isNaN(Number(v))).map(v => String(v)),
+        isAdvanced: true
     }
 
 }

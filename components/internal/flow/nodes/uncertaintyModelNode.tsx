@@ -30,8 +30,8 @@ export default function UncertaintyModelNode(props): ReactElement {
 
     function getInputComponent(key, item) {
         return <div className="grid grid-cols-8 gap-4 mb-2" key={key} >
-                <div className="item1 col-span-2"><label className="capitalize">{key}: </label></div>
-                <div className="item2 col-span-5">
+                <div className="item1 col-span-3"><label className="capitalize">{key}: </label></div>
+                <div className="item2 col-span-4">
                     {
                         item.type === ParamType.INT &&
                         <input
@@ -84,22 +84,41 @@ export default function UncertaintyModelNode(props): ReactElement {
                 <Text className="mr-2">Uncertainty model</Text>
                 <Popover content={
                     <>
-                        <Card.Body className="overflow-y-auto h-40 text-xs" id={ "uncertainty_model_config" }>
+                        <Card.Body className="h-40 text-xs" id={ "uncertainty_model_config" }>
                             <div className="mt-1 mb-2 mx-1">
                                 <a target="_blank" href="https://gpflow.github.io/GPflow/" rel="noreferrer">
-                                    For more information on these settings, click here.
+                                    For more information on these settings, view the GPFlow documentation here.
                                 </a>
                             </div>
+                            <div className="mt-3">
                                 {
-                                    Object.keys(UNCERTAINTY_MODEL_PARAMS).map(key => {
+                                    Object.keys(UNCERTAINTY_MODEL_PARAMS)
+                                        .filter(key => !UNCERTAINTY_MODEL_PARAMS[key].isAdvanced)
+                                        .map(key => {
                                         return getInputComponent(key, UNCERTAINTY_MODEL_PARAMS[key])
                                     })
                                 }
+                            </div>
+                            <div className="mt-4 mb-2">
+                                <Text>
+                                    Advanced settings (most users should not change these):
+                                </Text>
+                            </div>
+                            <div className="mt-3 mb-4">
+                                {
+                                    Object.keys(UNCERTAINTY_MODEL_PARAMS)
+                                        .filter(key => UNCERTAINTY_MODEL_PARAMS[key].isAdvanced)
+                                        .map(key => {
+                                            return getInputComponent(key, UNCERTAINTY_MODEL_PARAMS[key])
+                                        })
+                                }
+                            </div>
                         </Card.Body>
                     </>
                 }
                      statelessProps={{
-                         height: "200px",
+                         height: "280px",
+                         width: "700px",
                          backgroundColor: "ghostwhite"
                      }}
                 >
