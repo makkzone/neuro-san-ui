@@ -93,8 +93,8 @@ export default function DataSourceNode(props): React.ReactElement {
                                         // Hack to get valid id into the option tag
                                         const id = `data-source-node-option-${data.DataSource.id}`;
                                         return <option key={data.DataSource.id}
-                                                id={id}
-                                                value={data.DataSource.id}>{data.DataSource.name}</option>;
+                                                       id={id}
+                                                       value={data.DataSource.id}>{data.DataSource.name}</option>;
                                     })}
                                 </select>
                                 : "<none>"
