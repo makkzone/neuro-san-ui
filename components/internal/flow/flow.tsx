@@ -126,10 +126,8 @@ class FlowNodeStateUpdateHandler extends FlowState {
         const flow = this.state.flow
         this.setState({
             flow: flow.map(node => {
+                // If this is the right uncertainty model node
                 if (node.id === NodeID) {
-                    // If this is the right uncertainty model node
-                    console.debug("found state, node:", {node}, "new state: ", {newState})
-
                     node.data = {
                         ...node.data,
                         ParentUncertaintyNodeState: newState
@@ -630,7 +628,7 @@ class FlowUtils extends FlowNodeStateUpdateHandler {
         // Only one RIO node allowed per Predictor
         const downstreamNodes = getOutgoers(predictorNode, flow)
         const alreadyHasUncertaintyNode = downstreamNodes && downstreamNodes.length > 0 &&
-            downstreamNodes.filter(node => node.type === "uncertaintymodelnode").length > 0
+            downstreamNodes.some(node => node.type === "uncertaintymodelnode")
         if (alreadyHasUncertaintyNode) {
             sendNotification(NotificationType.warning, "This predictor already has an uncertainty model node",
                 "Only one uncertainty model node is allowed per predictor")
