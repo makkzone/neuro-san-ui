@@ -619,7 +619,7 @@ export default function PredictorNode(props): ReactElement {
                                 className="absolute top-5 -right-4"
                                 style={{height: 0}}>O</button>
                     </Popover>
-                    <div className="ml-3 mr-1" style={{position: "absolute", right: "2px", top: "1px"}}>
+                    <div className="px-1 my-1" style={{position: "absolute", right: "1px"}}>
                         <Tooltip
                             showDelay={1}
                             content="Add uncertainty model node"
