@@ -35,7 +35,6 @@ enum ConfidenceInterval {
 }
 
 export interface UncertaintyModelParamField {
-    defaultValue: UncertaintyModelParameterType,
     description: string,
 
     // Data type of the parameter
@@ -58,7 +57,6 @@ export interface UncertaintyModelParams {
 
 export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
     "confidence_interval": {
-        defaultValue: ConfidenceInterval.C95.valueOf(),
         value: ConfidenceInterval.C95.valueOf(),
         description: "Confidence level (in %) for the confidence intervals",
         type: ParamType.ENUM,
@@ -67,7 +65,6 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
     },
 
     "use_ard": {
-        defaultValue: true,
         value: true,
         description: "Enable Automatic Relevance Determination (ARD)",
         type: ParamType.BOOLEAN,
@@ -75,7 +72,6 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
     },
 
     "max_iterations_optimizer": {
-        defaultValue: 1000,
         value: 1000,
         description: "Maximum iterations for optimizer",
         type: ParamType.INT,
@@ -83,7 +79,6 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
     },
 
     "num_svgp_inducing_points": {
-        defaultValue: 50,
         value: 50,
         description: "Number of inducing points for the SVGP model",
         type: ParamType.INT,
@@ -91,7 +86,6 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
     },
 
     "framework_variant": {
-        defaultValue: FrameworkVariant["GP Corrected"],
         value: FrameworkVariant["GP Corrected"],
         description: "Framework variant; the default is the standard method",
         type: ParamType.ENUM,
@@ -100,7 +94,6 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
     },
 
     "kernel_type": {
-        defaultValue: KernelType.RBF_PLUS_RBF,
         value: KernelType.RBF_PLUS_RBF,
         description: "Kernel type for the Gaussian Processes model. The default is the I/O kernel with " +
             "radial basis function",
