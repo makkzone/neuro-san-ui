@@ -1,7 +1,4 @@
-
-// This is JS not TS so suppress warning
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const path = require("path");
+// Config file for NextJS
 
 module.exports = {
     typescript: {
@@ -24,23 +21,11 @@ module.exports = {
         unileafVersion: process.env.UNILEAF_VERSION
     },
 
-    entry: path.resolve(__dirname, 'main.js'),
-
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: 'bundle.min.js',
-        library: {
-            type: 'umd'
-        }
-    },
-
-    mode: 'production',
-
-    experimental: {
-        outputStandalone: true,
-    },
+    output: 'standalone',
 
     images: {
         domains: ['avatars.githubusercontent.com'],
     },
-}
+
+    poweredByHeader: false
+};

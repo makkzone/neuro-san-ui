@@ -77,7 +77,6 @@ export default function PrescriptorNode(props): ReactElement {
         NodeID, 
         ParentPrescriptorState, SetParentPrescriptorState,
         EvaluatorOverrideCode,
-        UpdateEvaluateOverrideCode,
         DeleteNode
     } = data
 
