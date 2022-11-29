@@ -12,18 +12,18 @@ export enum ParamType {
 }
 
 enum KernelType {
-    "RBF",
-    "RBFY",
-    "RBF_PLUS_RBF"
+    "RBF" = "RBF",
+    "RBFY" = "RBFY",
+    "RBF_PLUS_RBF" = "RBF_PLUS_RBF"
 }
 
 enum FrameworkVariant {
-    "GP Corrected",
-    "GP Corrected Input Only",
-    "GP Corrected Output Only",
-    "GP",
-    "GP Input Only",
-    "GP Output Only"
+    "GP Corrected" = "GP Corrected",
+    "GP Corrected Input Only" = "GP Corrected Input Only",
+    "GP Corrected Output Only" = "GP Corrected Output Only",
+    "GP" = "GP",
+    "GP Input Only" = "GP Input Only",
+    "GP Output Only" = "GP Output Only"
 }
 
 enum ConfidenceInterval {
@@ -86,7 +86,7 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
     },
 
     "framework_variant": {
-        value: FrameworkVariant["GP Corrected"],
+        value: FrameworkVariant["GP Corrected"].valueOf(),
         description: "Framework variant; the default is the standard method",
         type: ParamType.ENUM,
         allValues: Object.keys(FrameworkVariant).filter((v) => isNaN(Number(v))).map(v => String(v)),
@@ -94,7 +94,7 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
     },
 
     "kernel_type": {
-        value: KernelType.RBF_PLUS_RBF,
+        value: KernelType.RBF_PLUS_RBF.valueOf(),
         description: "Kernel type for the Gaussian Processes model. The default is the I/O kernel with " +
             "radial basis function",
         type: ParamType.ENUM,
