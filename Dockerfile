@@ -65,4 +65,6 @@ EXPOSE 3000
 # Disable NextJS spyware
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# This "server.js" file is generated at compile time by NextJS magic.
+# See: https://nextjs.org/docs/advanced-features/output-file-tracing
 CMD ["server.js"]

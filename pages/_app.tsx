@@ -10,11 +10,11 @@ import '@blueprintjs/core/lib/css/blueprint.css'
 // External Libraries
 
 // Bootstrap
-import {Container} from "react-bootstrap";
+import {Container, SSRProvider} from "react-bootstrap"
 
 // React
 import React from 'react'
-import 'react-pro-sidebar/dist/css/styles.css';
+import 'react-pro-sidebar/dist/css/styles.css'
 
 // NextJS Components
 import Head from 'next/head'
@@ -42,15 +42,17 @@ export default function LEAF({
   } else {
     Body =
     <>
-      <SessionProvider session={session}>
-        <Navbar Logo={LOGO} />
-        <Container>
-          {Component.authRequired && ENABLE_AUTHENTICATION
-              ? <Auth><Component {...pageProps} /></Auth>
-              : <Component {...pageProps} />
-          }
-        </Container>
-      </SessionProvider>
+      <SSRProvider>
+        <SessionProvider session={session}>
+          <Navbar Logo={LOGO} />
+          <Container>
+            {Component.authRequired && ENABLE_AUTHENTICATION
+                ? <Auth><Component {...pageProps} /></Auth>
+                : <Component {...pageProps} />
+            }
+          </Container>
+        </SessionProvider>
+      </SSRProvider>
     </>
   }
 

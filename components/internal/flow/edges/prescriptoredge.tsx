@@ -22,10 +22,8 @@ import {
     GrSettingsOption 
 } from "react-icons/gr"
 
-// Import Code Mirror
-import { Controlled as CodeMirror } from 'react-codemirror2'
-// require('codemirror/mode/python/python');
-
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs';
 
 const foreignObjectSize = 20;
 
@@ -57,21 +55,12 @@ export default function PrescriptorEdge({ id, sourceX, sourceY,
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [tabs] = useState(['Override Predictor Output'])
 
-    const PredictorOverride = <Card.Body> 
-                                    <CodeMirror
-                                        value={data.OutputOverrideCode}
-                                        options={{
-                                            tabSize: 4,
-                                            theme: 'material',
-                                            lineNumbers: true,
-                                            mode: 'python',
-                                        }}
-                                        onBeforeChange={
-                                            (editor, editorData, value) => data.UpdateOutputOverrideCode(value)
-
-                                        }
-                                    />
-                                </Card.Body>
+    const PredictorOverride =
+        <Card.Body>
+            <SyntaxHighlighter language="python" style={docco} showLineNumbers={true}>
+                {data.OutputOverrideCode}
+            </SyntaxHighlighter>
+        </Card.Body>
     const buttonId  = `gr-settings-option-${id}`
     return (
         <>
