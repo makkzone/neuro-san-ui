@@ -1,16 +1,21 @@
-// Config file for NextJS
+// @ts-check
 
-module.exports = {
+// enables IDEs to type check this config file.
+// See: https://nextjs.org/docs/basic-features/typescript
+
+/**
+ * @type {import('next').NextConfig}
+ **/
+const nextConfig = {
     typescript: {
-        // Temp hack: ignore build errors until deps are fixed
-        ignoreBuildErrors: true,
+        // Cause build to fail on Typescript transpilation errors
+        ignoreBuildErrors: false,
     },
     eslint: {
-	// We run eslint in CI/CD via a script that allows us
-	// to pass without being lint-free. Until such time as
-	// we are eslint-free, we need to ignore eslint during 
-	// the build process.
+        // We lint clean now so enable linting as part of the build
         ignoreDuringBuilds: false,
+
+        // Only these dirs will be scanned by ESLint
         dirs: ['components', 'controller', 'pages', 'public', 'styles', 'tests', 'utils', '.']
     },
 
@@ -30,3 +35,5 @@ module.exports = {
 
     poweredByHeader: false
 };
+
+module.exports = nextConfig;
