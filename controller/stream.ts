@@ -29,6 +29,7 @@ export default async function HackyStream<ObjectType extends MDServerObject>(
     // Check for error
     if (response.status != 200) {
         sendNotification(NotificationType.error, `Failed to fetch ${resourceName}`, response.statusText)
+        return null
     }
 
     const reader = response.body.getReader();
