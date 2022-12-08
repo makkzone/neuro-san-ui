@@ -1,3 +1,6 @@
+# UI Developer Start Guide
+This README is intended to help a new UI developer get up to speed toward making changes to the Unileaf UI.
+
 ## Set Up Prerequisites
 
 - Install `yarn` on your development host.
@@ -20,7 +23,7 @@ AUTH0_ISSUER=https://cognizant-ai.auth0.com/authorize
 AUTH0_DOMAIN=cognizant-ai.auth0.com
 ```
 
-## Run  the development server:
+## Run the development server:
 
 ```bash
 npm run dev
@@ -38,6 +41,14 @@ DEBUG='*,-send,-compression,-babel' npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+
+## Try making a simple change to the UI
+If you've made this far, you may try a simple change within the UI.
+Here's an example:
+- Modify `nextfront/pages/projects/[projectID]/index.tsx`
+  - add a logging message at the appropriate place in the tsx file
+    - `console.log(`Loaded project: ${projectId}`)`
+- You should notice that the code is compiled automatically and your change appears in the console output of the ui when loading a project.
 
 ## Learn More About Next.js
 
