@@ -24,6 +24,8 @@ AUTH0_DOMAIN=cognizant-ai.auth0.com
 npm run dev
 # or
 yarn dev
+# or, by setting the UNILEAF_VERSION value, the ui will display your current branch
+export UNILEAF_VERSION=$(git branch --show-current) && yarn run dev
 ```
 
 To run with verbose debugging:
