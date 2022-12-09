@@ -20,10 +20,10 @@ export default function MetricsTable(props: MetricstableProps) {
                 return <Table.Row key={`${nodeID}-${metricName}`}>
                     <Table.TextCell>{metricName}</Table.TextCell>
                     <Table.TextCell>{value}</Table.TextCell>
-                    <Table.TextCell>{rioMetrics && rioMetrics[metricName]}</Table.TextCell>
-                    <Table.TextCell>
-                        {rioMetrics && (Math.abs(rioMetrics[metricName] - value)/value * 100).toFixed(2)}%
-                    </Table.TextCell>
+                    {rioMetrics && <Table.TextCell>{rioMetrics[metricName]}</Table.TextCell>}
+                    {rioMetrics && <Table.TextCell>
+                        {(Math.abs(rioMetrics[metricName] - value)/value * 100).toFixed(2)}%
+                    </Table.TextCell>}
                 </Table.Row>
             }
         )
@@ -35,8 +35,8 @@ export default function MetricsTable(props: MetricstableProps) {
                     <Table.Head>
                         <Table.TextCell><b>Metric</b></Table.TextCell>
                         <Table.TextCell><b>Value</b></Table.TextCell>
-                        <Table.TextCell><b>RIO</b></Table.TextCell>
-                        <Table.TextCell><b>RIO diff</b></Table.TextCell>
+                        {rioMetrics && <Table.TextCell><b>RIO</b></Table.TextCell>}
+                        {rioMetrics && <Table.TextCell><b>RIO improvement</b></Table.TextCell>}
                     </Table.Head>
                     <Table.Body>
                         {cells}
