@@ -3,7 +3,7 @@ import {FiAlertCircle} from "react-icons/fi";
 import NewBar from "./newbar";
 import {InfoSignIcon, Position, Table, Tooltip} from "evergreen-ui"
 
-export interface MetricstableProps {
+interface MetricstableProps {
     readonly PredictorRunData
 }
 

@@ -42,7 +42,7 @@ const debug = Debug("flow")
 The following interface is used to define the props
 that the flow expects.
 */
-export interface FlowProps {
+interface FlowProps {
     // The project id this experiment belongs to
     ProjectID: number,
 

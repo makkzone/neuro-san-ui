@@ -14,7 +14,7 @@ import {NotificationType, sendNotification} from "../../../../controller/notific
 import {ParamType, UNCERTAINTY_MODEL_PARAMS} from "../uncertaintymodelinfo"
 
 // State of the uncertainty node
-export interface UncertaintyNodeState {
+interface UncertaintyNodeState {
     confidenceInterval: number,
     useArd: boolean,
     maxIterationsOptimizer: number,
@@ -25,7 +25,7 @@ export interface UncertaintyNodeState {
 
 // Define an interface for the structure
 // of the node
-export interface UncertaintyModelNodeData {
+interface UncertaintyModelNodeData {
     // The ID of the nodes. This will
     // be important to issues name to
     // form elements. The form elements thus

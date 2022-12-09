@@ -24,12 +24,12 @@ const LOGO_COLOR: string = "white";
 const NAV_ITEMS_COLOR: string = "white";
 
 // Declare the Props Interface
-export interface NavbarProps {
+interface NavbarProps {
     // Logo is the title of the NavBar
     readonly Logo: string
 }
 
-export function Navbar(props: NavbarProps): React.ReactElement {
+function Navbar(props: NavbarProps): React.ReactElement {
     /*
     This component is responsible for rendering the
     navbar component. The logo and the sidebar callback are configurable,

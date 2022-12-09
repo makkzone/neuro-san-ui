@@ -2,7 +2,7 @@
 // For custom model formats the request must specify
 // UNKNOWN_MODEL_FORMAT and a custom predictor image
 // with args when the adapter server is spun up.
-import {StringBool, StringString} from "../base_types";
+import {StringString} from "../base_types";
 
 export enum ModelFormat {
     // Ignored
@@ -123,7 +123,7 @@ export interface DeployRequest {
     config?: string
 }
 
-export interface GetDeploymentRequest {
+interface GetDeploymentRequest {
     // The unique deployment id
     deployment_id: string
 
@@ -147,7 +147,7 @@ export interface GetDeploymentsRequest {
 
 // This message is most likely going to evolve
 // as we add more environments.
-export interface DeployedModelReference {
+interface DeployedModelReference {
     // The host required to query the model
     model_host?: string
 
@@ -155,7 +155,7 @@ export interface DeployedModelReference {
     base_url?: string
 }
 
-export interface ModelStatus {
+interface ModelStatus {
     // The status of the deployment
     status: string
 
@@ -178,19 +178,4 @@ export interface DeployedModel {
 
 export interface Deployments {
     deployed_models: DeployedModel[]
-}
-
-export interface TearDownRequest {
-    deployment_id: string
-
-    // The environment where the model is deployed
-    model_serving_environment: ModelServingEnvironment
-}
-
-export interface KServeModelServerStatusSummary {
-    inference_server_status: DeploymentStatus
-
-    model_server_alive: boolean
-
-    models_ready: StringBool
 }

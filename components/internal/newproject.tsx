@@ -37,7 +37,7 @@ const debug = Debug("new_project")
 const MAX_ALLOWED_UPLOAD_SIZE_BYTES = 200 * 1000 * 1000  // 200 MB in "decimal"
 
 // Declare the Props for this component
-export interface NewProps {
+interface NewProps {
     // A flag to tell if it is to be used in a
     // DataSource mode only
     ProjectID?: number

@@ -20,7 +20,7 @@ import {useLocalStorage} from "../../utils/use_local_storage";
 import decode from "../../utils/conversion";
 import {useSession} from "next-auth/react";
 
-export interface RunProps {
+interface RunProps {
     /* 
     ProjectId: Rendered in run page
     RunID: Used to fetch run using backend

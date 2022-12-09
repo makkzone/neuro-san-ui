@@ -104,7 +104,9 @@ const D2DText = styled.p`
     margin-top: 5.021rem;
     text-align: right;
 `
-
+// Main function.
+// Has to be export default for NextJS so tell ts-prune to ignore
+// ts-prune-ignore-next
 export default function Index(): React.ReactElement {
   return (
     <OuterContainer>
