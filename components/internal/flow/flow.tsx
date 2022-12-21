@@ -38,10 +38,10 @@ import Debug from "debug"
 
 const debug = Debug("flow")
 
-/*
-The following interface is used to define the props
-that the flow expects.
-*/
+/**
+ * This interface is used to define the props
+ * that the flow expects.
+ */
 interface FlowProps {
     // The project id this experiment belongs to
     ProjectID: number,
@@ -58,7 +58,14 @@ interface FlowProps {
     ElementsSelectable: boolean
 }
 
+/**
+ * This is the main flow component/function. It handles display the experiment graph and allowing the user to
+ * update the graph by adding and removing nodes, dragging nodes, zooming in and out etc.
+ * Most of the actual work is done by the {@link https://reactflow.dev/|react-flow component}
+ * @param props Input props for this component. See {@link FlowProps} interface for details.
+ */
 export default function Flow(props: FlowProps) {
+
     const projectId = props.ProjectID
 
     const setParentState = props.SetParentState
