@@ -110,9 +110,9 @@ export default function Index(): React.ReactElement{
  
   // Dynamically set the title to the current host
   useEffect(() => {
-    var subdomain:string  = window.location.host.split('.')[0]
-    var title:string = subdomain.charAt(0).toUpperCase() + subdomain.slice(1)
-    document.title =`${title}`
+    const subdomain  = window.location.host.split('.')[0]
+    const title = `${subdomain[0].toUpperCase()}${subdomain.substring(1)}` 
+    document.title = title
   },[]);
 
   return (
