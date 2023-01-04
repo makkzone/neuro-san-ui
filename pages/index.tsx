@@ -106,13 +106,14 @@ const D2DText = styled.p`
     text-align: right;
 `
 
-export default function Index(): React.ReactElement {
-    // Dynamically set the title to the current host
-    useEffect(() => {
-        var subdomain:string  = window.location.host.split('.')[0]
-        var title:string = subdomain.charAt(0).toUpperCase() + subdomain.slice(1)
-        document.title =`${title}`
-    },[]);
+export default function Index(): React.ReactElement{
+ 
+  // Dynamically set the title to the current host
+  useEffect(() => {
+    var subdomain:string  = window.location.host.split('.')[0]
+    var title:string = subdomain.charAt(0).toUpperCase() + subdomain.slice(1)
+    document.title =`${title}`
+  },[]);
 
   return (
     <OuterContainer>
