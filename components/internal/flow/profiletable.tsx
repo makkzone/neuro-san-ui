@@ -8,7 +8,7 @@ import {empty} from "../../../utils/objects";
 import {reasonToHumanReadable} from "../../../controller/datasources/types";
 import {Profile} from "../../../controller/dataprofile/types"
 
-export interface ProfiletableProps {
+interface ProfiletableProps {
     Profile: Profile
     ProfileUpdateHandler: (value: Profile) => void
 }

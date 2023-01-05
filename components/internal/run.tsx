@@ -20,7 +20,7 @@ import {useLocalStorage} from "../../utils/use_local_storage";
 import decode from "../../utils/conversion";
 import {useSession} from "next-auth/react";
 
-export interface RunProps {
+interface RunProps {
     /* 
     ProjectId: Rendered in run page
     RunID: Used to fetch run using backend
@@ -46,7 +46,6 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [predictorPlotData, setPredictorPlotData] = useState(null)
     const [prescriptorPlotData, setPrescriptorPlotData] = useState(null)
     const [paretoPlotData, setParetoPlotData] = useState({})
-    const [flowInstance, setFlowInstance] = useState(null)
     const [nodeToCIDMap, updateNodeToCIDMap] = useState({})
     const [run, setRun] = useState(null)
     const [rules, setRules] = useState(null)
@@ -280,13 +279,6 @@ export default function RunPage(props: RunProps): React.ReactElement {
         }
     }, [paretoPlotData])
 
-    // Fit flow when displaying Run
-    useEffect(() => {
-        if (flowInstance) {
-            flowInstance.fitView()
-        }
-    }, [flowInstance])
-
     const PlotDiv = []
     if (predictorPlotData) {
         PlotDiv.push(<MetricsTable PredictorRunData={predictorPlotData} />)
@@ -395,7 +387,6 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
                     ProjectID={props.ProjectId}
                     Flow={flow}
                     ElementsSelectable={false}
-                    onLoad={reactFlowInstance => {setFlowInstance(reactFlowInstance)}}
                 />
             </ReactFlowProvider>
         </div>
