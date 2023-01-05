@@ -28,6 +28,9 @@ import Navbar from "../components/navbar"
 import {ENABLE_AUTHENTICATION, LOGO} from "../const"
 import {Auth} from "../components/auth";
 
+// Main function.
+// Has to be export default for NextJS so tell ts-prune to ignore
+// ts-prune-ignore-next
 export default function LEAF({
   Component,
   pageProps: { session, ...pageProps }

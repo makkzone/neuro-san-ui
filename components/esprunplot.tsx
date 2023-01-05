@@ -8,11 +8,11 @@ import {FiAlertCircle, FiPlay, FiStopCircle} from "react-icons/fi";
 import {MaximumBlue} from "../const";
 import {NotificationType, sendNotification} from "../controller/notification";
 
-export interface EspRunPlotProps {
+interface EspRunPlotProps {
     readonly PrescriptorRunData
 }
 
-export interface ParetoPlotProps {
+interface ParetoPlotProps {
 
     // The pareto front data
     readonly Pareto

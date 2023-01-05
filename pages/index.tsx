@@ -107,13 +107,16 @@ const D2DText = styled.p`
     text-align: right;
 `
 
-export default function Index(): React.ReactElement{
- 
+// Main function.
+// Has to be export default for NextJS so tell ts-prune to ignore
+// ts-prune-ignore-next
+export default function Index(): React.ReactElement {
+
   // Dynamically set the title to the current host
   useEffect(() => {
     document.title = getTitleBase()
   },[]);
-
+  
   return (
     <OuterContainer>
       <Marginer>

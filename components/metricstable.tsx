@@ -1,9 +1,9 @@
 import React from "react";
 import {FiAlertCircle} from "react-icons/fi";
 import NewBar from "./newbar";
-import {Table} from "evergreen-ui"
+import {InfoSignIcon, Position, Table, Tooltip} from "evergreen-ui"
 
-export interface MetricstableProps {
+interface MetricstableProps {
     readonly PredictorRunData
 }
 
@@ -14,11 +14,16 @@ export default function MetricsTable(props: MetricstableProps) {
     Object.keys(PredictorRunData).forEach(nodeID => {
 
         const metrics = PredictorRunData[nodeID].metrics
+        const rioMetrics = PredictorRunData[nodeID].rioMetrics
         const cells = Object.keys(metrics).map((metricName) => {
                 const value = metrics[metricName]
                 return <Table.Row key={`${nodeID}-${metricName}`}>
                     <Table.TextCell>{metricName}</Table.TextCell>
                     <Table.TextCell>{value}</Table.TextCell>
+                    {rioMetrics && <Table.TextCell>{rioMetrics[metricName]}</Table.TextCell>}
+                    {rioMetrics && <Table.TextCell>
+                        {((value - rioMetrics[metricName])/value * 100).toFixed(2)}%
+                    </Table.TextCell>}
                 </Table.Row>
             }
         )
@@ -28,8 +33,23 @@ export default function MetricsTable(props: MetricstableProps) {
                 <p>Node ID: {nodeID}</p>
                 <Table.Body>
                     <Table.Head>
-                        <Table.TextCell>Metric</Table.TextCell>
-                        <Table.TextCell>Value</Table.TextCell>
+                        <Table.TextCell><b>Metric</b></Table.TextCell>
+                        <Table.TextCell><b>Value</b></Table.TextCell>
+                        {rioMetrics && <Table.TextCell><b>RIO</b></Table.TextCell>}
+                        {rioMetrics &&
+                            <Table.TextCell>
+                                <div style={{display: "flex"}}>
+                                    <b>RIO diff</b>
+                                    <Tooltip
+                                        content="Difference between original predictor metric and RIO-enhanced predictor metric, as a percentage"
+                                        statelessProps={{className: "opacity-75"}}
+                                        position={Position.TOP_RIGHT}
+                                    >
+                                        <div className="ps-1"><InfoSignIcon color="blue" size={10}/></div>
+                                    </Tooltip>
+                                </div>
+                            </Table.TextCell>
+                        }
                     </Table.Head>
                     <Table.Body>
                         {cells}
@@ -37,9 +57,7 @@ export default function MetricsTable(props: MetricstableProps) {
                 </Table.Body>
             </div>
         )
-
     })
-
 
     return <>
         <NewBar Title="Predictor Metrics" DisplayNewLink={ false } />
