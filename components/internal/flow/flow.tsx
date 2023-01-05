@@ -116,12 +116,11 @@ export default function Flow(props: FlowProps) {
 
             return node
         })
-
-        debug("FS: ", initialFlowValue)
-
     } else {
         initialFlowValue = _initializeFlow()
     }
+
+    debug("FS: ", initialFlowValue)
 
     // The flow is the collection of nodes and edges all identified by a node type and a uuid
     const [flow, setFlow] = useStateWithCallback(initialFlowValue)
