@@ -111,7 +111,7 @@ const D2DText = styled.p`
 // Has to be export default for NextJS so tell ts-prune to ignore
 // ts-prune-ignore-next
 export default function Index(): React.ReactElement {
-
+  // no op change
   // Dynamically set the title to the current host
   useEffect(() => {
     document.title = getTitleBase()
