@@ -9,7 +9,7 @@ import { BsFillPlusSquareFill } from 'react-icons/bs';
 import {AiFillEdit} from "react-icons/ai";
 
 // Define the Props Interface
-export interface NavbarProps {
+interface NavbarProps {
     Title: string,
     LinkComponentProps?: LinkProps,
     DisplayNewLink?: boolean,

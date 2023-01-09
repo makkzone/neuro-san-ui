@@ -16,7 +16,7 @@ const DEPLOY_ROUTE = MD_BASE_URL + "/api/v1/serving/deploy"
 const QUERY_DEPLOYMENTS_URL = MD_BASE_URL + "/api/v1/serving/deployments"
 const V2_MODELS_ENDPOINT = "v2/models"
 
-export function generateDeploymentID(run_id: number,
+function generateDeploymentID(run_id: number,
                                      experiment_id: number,
                                      project_id: number,
                                      cid?: string): string {
@@ -29,7 +29,7 @@ export function generateDeploymentID(run_id: number,
 
 }
 
-export async function deployModel(
+async function deployModel(
     deployment_id: string,
     run_id: number,
     experiment_id: number,
@@ -137,7 +137,7 @@ export async function deployRun(
     }
 }
 
-export async function isRunDeployed(model_serving_environment: ModelServingEnvironment = ModelServingEnvironment.KSERVE,
+async function isRunDeployed(model_serving_environment: ModelServingEnvironment = ModelServingEnvironment.KSERVE,
                                     run_id: number,
                                     deployment_id: string,
 ): Promise<boolean> {
@@ -152,7 +152,7 @@ export async function isRunDeployed(model_serving_environment: ModelServingEnvir
     return deployments.deployed_models.map(model => model.model_status.deployment_id).includes(deployment_id)
 }
 
-export async function getDeployments(
+async function getDeployments(
     run_id: number,
     model_serving_environment: ModelServingEnvironment = ModelServingEnvironment.KSERVE): Promise<Deployments> {
 
@@ -207,7 +207,7 @@ function getModelInferenceUrl(baseUrl: string, name: string) {
  * @return An object with an array of predictors and prescriptors. Each item in the arrays is a ready-to-use kserve
  * endpoint that can be accessed for inferencing that model.
  */
-export async function getModels(
+async function getModels(
     baseUrl: string,
     runId: number,
     cid: string) {

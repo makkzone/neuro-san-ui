@@ -34,7 +34,7 @@ enum ConfidenceInterval {
     C99 = 99
 }
 
-export interface UncertaintyModelParamField {
+interface UncertaintyModelParamField {
     description: string,
 
     // Data type of the parameter

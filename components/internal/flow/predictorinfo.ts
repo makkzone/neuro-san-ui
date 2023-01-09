@@ -2,7 +2,7 @@
 Configuration settings and constants for predictor configuration popup
  */
 
-export interface PredictorParamFields {
+interface PredictorParamFields {
     default_value: boolean | number | string,
     description: string,
 
@@ -19,7 +19,7 @@ export interface PredictorParams {
     [key: string]: PredictorParamFields
 }
 
-export interface SupportedModels {
+interface SupportedModels {
     [key: string]: PredictorParams
 }
 

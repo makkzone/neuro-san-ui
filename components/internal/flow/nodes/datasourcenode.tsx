@@ -19,7 +19,7 @@ import {useSession} from "next-auth/react";
 import Debug from "debug"
 const debug = Debug("data_source_node")
 
-export interface DataSourceNodeData {
+interface DataSourceNodeData {
     // Project ID that this new experiment belongs to.
     readonly ProjectID: number,
 

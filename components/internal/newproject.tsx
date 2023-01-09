@@ -37,7 +37,7 @@ const debug = Debug("new_project")
 const MAX_ALLOWED_UPLOAD_SIZE_BYTES = 200 * 1000 * 1000  // 200 MB in "decimal"
 
 // Declare the Props for this component
-export interface NewProps {
+interface NewProps {
     // A flag to tell if it is to be used in a
     // DataSource mode only
     ProjectID?: number
@@ -202,7 +202,8 @@ export default function NewProject(props: NewProps) {
             name: datasetName,
             s3_key: s3Key,
             request_user: currentUser,
-            rejectedColumns: profile.data_source.rejectedColumns
+            rejectedColumns: profile.data_source.rejectedColumns,
+            headers: profile.data_source.headers
         }
 
         const savedDataSource: DataSource = await AccessionDatasource(dataSourceMessage)
