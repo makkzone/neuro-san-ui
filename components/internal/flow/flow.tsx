@@ -1,5 +1,4 @@
 // React Flow
-import {cloneDeep} from "lodash";
 import ReactFlow, {
     addEdge,
     Background,
@@ -588,7 +587,7 @@ export default function Flow(props: FlowProps) {
        This function returns the initial uncertainty node state for when a user first adds the node to the flow
        */
 
-        return cloneDeep(UNCERTAINTY_MODEL_PARAMS)
+        return structuredClone(UNCERTAINTY_MODEL_PARAMS)
     }
 
     // Adds an uncertainty model node to the specified Predictor

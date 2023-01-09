@@ -32,7 +32,6 @@
     "debug": "4.3.4",
     "evergreen-ui": "6.7.1",
     "http-status": "1.5.3",
-    "lodash": "4.17.21",
     "next": "12.2.5",
     "next-auth": "4.17.0",
     "pretty-bytes": "6.0.0",
