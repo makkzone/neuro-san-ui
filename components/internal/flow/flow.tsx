@@ -78,7 +78,7 @@ export default function Flow(props: FlowProps) {
     const [flowInstance, setFlowInstance] = useState(null)
 
     let initialFlowValue
-    if (props.Flow) {
+    if (props.Flow && props.Flow.length > 0) {
 
         // If an existing flow is passed, we just assign the nodes the handlers
         initialFlowValue = props.Flow.map(node => {
