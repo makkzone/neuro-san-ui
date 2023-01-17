@@ -303,9 +303,9 @@ export default function PrescriptorNode(props): ReactElement {
                     <input style={{width: "2rem"}}
                         id={ `${NodeID}-prescriptor-units-input` }
                         type="range" 
+                        step="1" 
                         min="0"
                         max="5"
-                        step="1" 
                         value={ representationConfig.max_exponent }
                         onChange={event => {
                             const modifiedRulesState = {...ParentPrescriptorState}
@@ -321,7 +321,7 @@ export default function PrescriptorNode(props): ReactElement {
                         type="range" 
                         step="1" 
                         min="1"
-                        min="5"
+                        max="5"
                         value={ representationConfig.number_of_building_block_conditions }
                         onChange={event => {
                             const modifiedRulesState = {...ParentPrescriptorState}
