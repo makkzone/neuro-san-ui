@@ -307,7 +307,7 @@ export default function PrescriptorNode(props): ReactElement {
                         type="range" 
                         step="1" 
                         min="0"
-                        max="5"
+                        max="9"
                         value={ representationConfig.max_exponent }
                         onChange={event => {
                             const modifiedRulesState = {...ParentPrescriptorState}
@@ -323,7 +323,7 @@ export default function PrescriptorNode(props): ReactElement {
                         type="range" 
                         step="1" 
                         min="1"
-                        max="5"
+                        max="9"
                         value={ representationConfig.number_of_building_block_conditions }
                         onChange={event => {
                             const modifiedRulesState = {...ParentPrescriptorState}
@@ -340,7 +340,7 @@ export default function PrescriptorNode(props): ReactElement {
                         type="range" 
                         step="1" 
                         min="1"
-                        max="5"
+                        max="99"
                         value={ representationConfig.number_of_building_block_rules }
                         onChange={event => {
                             const modifiedRulesState = {...ParentPrescriptorState}
