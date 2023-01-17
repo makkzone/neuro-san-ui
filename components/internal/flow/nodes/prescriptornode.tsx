@@ -302,7 +302,9 @@ export default function PrescriptorNode(props): ReactElement {
                     <label className="mr-2">Max Exponent: </label>
                     <input style={{width: "2rem"}}
                         id={ `${NodeID}-prescriptor-units-input` }
-                        type="number" 
+                        type="range" 
+                        min="0"
+                        max="5"
                         step="1" 
                         value={ representationConfig.max_exponent }
                         onChange={event => {
@@ -316,8 +318,10 @@ export default function PrescriptorNode(props): ReactElement {
                     <label className="mr-2">Num Building Block Conditions: </label>
                     <input style={{width: "2rem"}}
                         id={ `${NodeID}-prescriptor-num-building-block-conditions-input` }
-                        type="number" 
+                        type="range" 
                         step="1" 
+                        min="1"
+                        min="5"
                         value={ representationConfig.number_of_building_block_conditions }
                         onChange={event => {
                             const modifiedRulesState = {...ParentPrescriptorState}
@@ -331,8 +335,10 @@ export default function PrescriptorNode(props): ReactElement {
                     <label className="mr-2">Num Building Block Rules: </label>
                     <input style={{width: "2rem"}}
                         id={ `${NodeID}-prescriptor-num-building-block-rules-input` }
-                        type="number" 
+                        type="range" 
                         step="1" 
+                        min="1"
+                        max="5"
                         value={ representationConfig.number_of_building_block_rules }
                         onChange={event => {
                             const modifiedRulesState = {...ParentPrescriptorState}
