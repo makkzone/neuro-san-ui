@@ -13,7 +13,7 @@ This README is intended to help a new UI developer get up to speed toward making
   - Assuming you've cloned the unileaf repo: `cd unileaf/nextfront && yarn install`
 - Set env variable to specify the gateway. 
   - Most likely you'll want the dev namespace: `export MD_SERVER_URL=https://gateway-dev.unileaf.evolution.ml:30002`
-- In your nextfront directory, create a file named `.env` which contains the following keys. Ask a current UI developer for the values.
+- In your nextfront directory, create a file named `.env` which contains the following keys. Ask a current UI developer for the redacted values or get them self-serve from the leaf-team-vault server (see below).
 ```
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=<redacted>
@@ -27,6 +27,7 @@ AUTH0_DOMAIN=cognizant-ai.auth0.com
 - Values for the redacted can be obtained from the leaf-team vault server with these commands:
 -- vault kv get /secret/auth0/unileaf-dev
 -- vault kv get /secret/github-app/authorize-unileaf-dev
+-- vault kv get /secret/nextauth/unileaf-dev
 - Be sure to chmod 600 this .env file to keep secret values secret
 
 ## Run the development server:
