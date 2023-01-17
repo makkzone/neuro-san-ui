@@ -5,8 +5,10 @@ This README is intended to help a new UI developer get up to speed toward making
 
 - Install `yarn` on your development host.
   - Example using current version on mac: `brew install yarn@1.22.19`
+  - For Ubuntu, see this link: https://classic.yarnpkg.com/lang/en/docs/cli/self-update/
 - Install `node` on your development host. 
   - Example using current version on mac: `brew install node@16`
+  - For Ubuntu, see this link: https://joshtronic.com/2021/05/09/how-to-install-nodejs-16-on-ubuntu-2004-lts/
 - Install app dependencies. 
   - Assuming you've cloned the unileaf repo: `cd unileaf/nextfront && yarn install`
 - Set env variable to specify the gateway. 
