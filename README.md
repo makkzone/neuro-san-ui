@@ -24,6 +24,10 @@ AUTH0_CLIENT_SECRET=redacted
 AUTH0_ISSUER=https://cognizant-ai.auth0.com/authorize
 AUTH0_DOMAIN=cognizant-ai.auth0.com
 ```
+- Values for the redacted can be obtained from the leaf-team vault server with these commands:
+-- vault kv get /secret/auth0/unileaf-dev
+-- vault kv get /secret/github-app/authorize-unileaf-dev
+- Be sure to chmod 600 this .env file to keep secret values secret
 
 ## Run the development server:
 
