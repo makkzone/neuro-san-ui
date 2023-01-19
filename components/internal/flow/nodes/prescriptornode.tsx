@@ -304,9 +304,10 @@ export default function PrescriptorNode(props): ReactElement {
             <div className="grid grid-cols-3 gap-1 mb-2 justify-items-center"
             >
                 <div className="grid grid-cols-1 gap-1 mb-2 justify-items-start">
-                    <label className="mr-2">Max Exponent:</label>
+                    <label className="mr-2" id={ `${NodeID}-prescriptor-max-exponent-label` }>
+                        Max Exponent:
+                    </label>
                     <SliderComponent style={{width: "100%"}}
-                        id={ `${NodeID}-prescriptor-units-input` }
                         step={1} 
                         min={0}
                         max={9}
@@ -319,9 +320,10 @@ export default function PrescriptorNode(props): ReactElement {
                     /> 
                 </div>
                 <div className="grid grid-cols-1 gap-1 mb-2 justify-items-start">
-                    <label className="mr-2"># Building Block Conditions:</label>
+                    <label className="mr-2" id={ `${NodeID}-prescriptor-num-building-block-conditions-label` }>
+                        # Building Block Conditions:
+                    </label>
                     <SliderComponent style={{width: "100%"}}
-                        id={ `${NodeID}-prescriptor-num-building-block-conditions-input` }
                         step={1} 
                         min={1}
                         max={9}
@@ -334,9 +336,10 @@ export default function PrescriptorNode(props): ReactElement {
                     /> 
                 </div>
                 <div className="grid grid-cols-1 gap-1 mb-2 justify-items-start">
-                    <label className="mr-2"># Building Block Rules:</label>
+                    <label className="mr-2" id={ `${NodeID}-prescriptor-num-building-block-rules-label` }>
+                        # Building Block Rules:
+                    </label>
                     <SliderComponent style={{width: "100%"}}
-                        id={ `${NodeID}-prescriptor-num-building-block-rules-input` }
                         step={1} 
                         min={1}
                         max={99}
