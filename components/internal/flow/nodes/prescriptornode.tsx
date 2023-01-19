@@ -356,7 +356,6 @@ export default function PrescriptorNode(props): ReactElement {
     if ("representation_config" in ParentPrescriptorState) {
         useRepresentationConfig = ParentPrescriptorState.representation_config
     }
-    const RulesConfiguration = createRulesConfig(useRepresentationConfig)
 
     const PrescriptorRepresentationPanel = <Card.Body>
 
@@ -413,7 +412,7 @@ export default function PrescriptorNode(props): ReactElement {
                                                     }
                                                     {
                                                         ParentPrescriptorState.LEAF.representation === "RuleBased" && <div>
-                                                            {RulesConfiguration}
+                                                            {createRulesConfig(useRepresentationConfig)}
                                                         </div>
                                                     }
                                                 </div>
