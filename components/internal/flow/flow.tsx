@@ -457,7 +457,7 @@ export default function Flow(props: FlowProps) {
             )
         }
 
-        setFlow(graphCopy, () => tidyView())
+        setFlow(graphCopy)
         setParentState(graphCopy)
     }
 
