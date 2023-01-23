@@ -41,9 +41,10 @@ export default function ESPRunPlot(props: EspRunPlotProps) {
         const cells = []
         Objectives.forEach(objective => {
                 const bumpData = PrescriptorRunData[nodeID][objective]
+                const objectiveMetricGraphLabelId = `${objective}-metric-graph-label`
                 cells.push(
                     <Table.Row style={{height: "100%"}} key={`${nodeID}-${objective}`}>
-                        <Table.TextCell>{objective}</Table.TextCell>
+                        <Table.TextCell id={objectiveMetricGraphLabel}>{objective}</Table.TextCell>
                         <Table.TextCell >
                             <div className="pl-4" style={{height: "25rem", width: "100%"}}>
                                 <ResponsiveLine
