@@ -880,28 +880,35 @@ export default function Flow(props: FlowProps) {
     }
 
     // Build the Contents of the Flow
+    const buttonStyle = {background: MaximumBlue, borderColor: MaximumBlue};
     return <Container>
         {/* Only render if ElementsSelectable is true */}
         {elementsSelectable &&
             <div className="grid grid-cols-3 gap-4 mb-4">
-                <Button size="sm"
+                <Button
+                    id="add_predictor_btn"
+                    size="sm"
                     onClick={() => _addPredictorNode()}
                     type="button"
-                    style={{background: MaximumBlue, borderColor: MaximumBlue}}
+                    style={buttonStyle}
                 >
                     Add Predictor
                 </Button>
-                <Button size="sm"
-                        onClick={() => _addUncertaintyModelNodes()}
-                        type="button"
-                        style={{background: MaximumBlue, borderColor: MaximumBlue}}
+                <Button
+                    id="add_uncertainty_model_btn"
+                    size="sm"
+                    onClick={() => _addUncertaintyModelNodes()}
+                    type="button"
+                    style={buttonStyle}
                 >
                     Add Uncertainty Model
                 </Button>
-                <Button size="sm"
+                <Button
+                    id="add_prescriptor_btn"
+                    size="sm"
                     onClick={() => _addPrescriptorNode()}
                     type="button"
-                    style={{background: MaximumBlue, borderColor: MaximumBlue}}
+                    style={buttonStyle}
                 >
                     Add Prescriptor
                 </Button>
