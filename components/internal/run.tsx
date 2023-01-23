@@ -316,7 +316,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         const dmsLink = `/projects/${projectId}/experiments/${experimentId}/runs/${runId}/prescriptors/
 ${prescriptorID}/?data_source_id=${dataSourceId}`
         return <>
-            <Link
+            <Link id="dms-link"
                 href={dmsLink}
             >
                 <a style={{

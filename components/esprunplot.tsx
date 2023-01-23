@@ -120,7 +120,7 @@ export default function ESPRunPlot(props: EspRunPlotProps) {
 
 
     return <>
-        <NewBar Title="Prescriptor Metrics" DisplayNewLink={ false } />
+        <NewBar id="prescriptor-metrics" Title="Prescriptor Metrics" DisplayNewLink={ false } />
         {nodePlots && nodePlots.length > 0
             ? nodePlots
             :   <>
@@ -280,7 +280,7 @@ function ParetoPlot(props) {
         <div className="flex mt-4 ">
 
             {/* This button enables the animation */}
-            <Button
+            <Button id="generation-play-button"
                 style={{background: MaximumBlue, borderColor: MaximumBlue}}
                 type="button"
                 className="mr-4"
@@ -462,7 +462,7 @@ export function ParetoPlotTable(props: ParetoPlotProps) {
     })
 
     return <>
-        <NewBar Title="Pareto Prescriptors" DisplayNewLink={ false } />
+        <NewBar id="pareto-prescriptors" Title="Pareto Prescriptors" DisplayNewLink={ false } />
         {nodePlots}
     </>
 }
