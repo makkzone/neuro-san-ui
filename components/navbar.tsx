@@ -71,6 +71,7 @@ function Navbar(props: NavbarProps): React.ReactElement {
                             { signedIn && ENABLE_AUTHENTICATION && session && session.user &&
                                 <Dropdown as={NavItem} >
                                     <Dropdown.Toggle as={NavLink} className="px-3 py-0"
+                                                     id="user-dropdown-toggle"
                                                      style={{color: NAV_ITEMS_COLOR, background: MaximumBlue}}>
                                         { session.user.image &&
                                             <Image
