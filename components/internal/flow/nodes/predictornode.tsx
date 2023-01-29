@@ -500,8 +500,8 @@ export default function PredictorNode(props): ReactElement {
     const DataSplitConfigurationPanel = <Card.Body onMouseDown={(event) => { event.stopPropagation() }}>
         <Container>
             <Row className="mx-2 my-8">
-                <Col md={1} className="mr-4">
-                    <label id="train_label">Train: </label>
+                <Col md={2} className="mr-4" id="train_label">
+                    Train:
                 </Col>
                 <Col md={9}>
                     <Slider
@@ -519,8 +519,8 @@ export default function PredictorNode(props): ReactElement {
                 </Col>
             </Row>
             <Row className="mx-2 my-8">
-                <Col md={1} className="mr-4">
-                    <label id="test_label">Test:</label>
+                <Col md={2} className="mr-4" id="test_label">
+                   Test:
                 </Col>
                 <Col md={9}>
                     <Slider
@@ -528,7 +528,6 @@ export default function PredictorNode(props): ReactElement {
                         min={0}
                         max={100}
                         value={ParentPredictorState.testSliderValue}
-                        included={true}
                         marks={marks}
                         handleRender={(node) => {
                             return (
@@ -539,8 +538,8 @@ export default function PredictorNode(props): ReactElement {
                 </Col>
             </Row>
             <Row className="mx-2 my-8">
-                <Col md="auto">
-                    <label id="split_rng_label">RNG seed:</label>
+                <Col md="auto" id="split_rng_label">
+                    RNG seed:
                 </Col>
                 <Col>
                     <input id="split_rng_value"
