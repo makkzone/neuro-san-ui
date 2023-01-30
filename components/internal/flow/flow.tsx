@@ -93,19 +93,22 @@ export default function Flow(props: FlowProps) {
                     SetParentPredictorState: state => PredictorSetStateHandler(state, node.id),
                     DeleteNode: nodeId => _deleteNodeById(nodeId),
                     AddUncertaintyModelNode: nodeId => _addUncertaintyNodes([nodeId]),
-                    GetFlow: () => GetFlow()
+                    GetFlow: () => GetFlow(),
+                    GetElementIndex: nodeId => _getElementIndex(nodeId)
                 }
             } else if (node.type === 'prescriptornode') {
                 node.data = {
                     ...node.data,
                     SetParentPrescriptorState: state => PrescriptorSetStateHandler(state, node.id),
-                    DeleteNode: nodeId => _deleteNodeById(nodeId)
+                    DeleteNode: nodeId => _deleteNodeById(nodeId),
+                    GetElementIndex: nodeId => _getElementIndex(nodeId)
                 }
             } else if (node.type === 'uncertaintymodelnode') {
                 node.data = {
                     ...node.data,
                     SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, node.id),
-                    DeleteNode: prescriptorNodeId => _deleteNodeById(prescriptorNodeId)
+                    DeleteNode: prescriptorNodeId => _deleteNodeById(prescriptorNodeId),
+                    GetElementIndex: nodeId => _getElementIndex(nodeId)
                 }
             } else if (node.type === "prescriptoredge") {
                 node.data = {
@@ -402,6 +405,11 @@ export default function Flow(props: FlowProps) {
 
     function GetFlow() {
         return flow
+    }
+
+    function _getElementIndex(nodeID: string) {
+        let index = 0
+        return index
     }
 
     function _addPredictorNode() {

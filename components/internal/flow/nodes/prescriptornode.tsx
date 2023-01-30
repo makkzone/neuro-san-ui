@@ -59,6 +59,9 @@ interface PrescriptorNodeData {
 
     // Mutator method to delete this node from the parent flow
     readonly DeleteNode: (nodeID: string) => void
+
+    // Gets a simpler index for testing ids (at least)
+    readonly GetElementIndex: (nodeID: string) => number
 }
 
 // For RuleBased
@@ -82,9 +85,11 @@ export default function PrescriptorNode(props): ReactElement {
     // Unpack the mapping
     const { 
         NodeID, 
-        ParentPrescriptorState, SetParentPrescriptorState,
+        ParentPrescriptorState,
+        SetParentPrescriptorState,
         EvaluatorOverrideCode,
-        DeleteNode
+        DeleteNode,
+        GetElementIndex
     } = data
 
     const updateCAOState = ( event, espType: string ) => {

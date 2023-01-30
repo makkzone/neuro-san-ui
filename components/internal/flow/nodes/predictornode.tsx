@@ -90,6 +90,9 @@ interface PredictorNodeData {
     // For now, disabled eslint and use any[] so at least we have _some_ kind of type hint.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     readonly GetFlow: () => any[]
+
+    // Gets a simpler index for testing ids (at least)
+    readonly GetElementIndex: (nodeID: string) => number
 }
 
 export default function PredictorNode(props): ReactElement {
@@ -104,7 +107,16 @@ export default function PredictorNode(props): ReactElement {
     const currentUser: string = session.user.name
 
     // Unpack the data
-    const { NodeID, ParentPredictorState, SetParentPredictorState, DeleteNode, AddUncertaintyModelNode, GetFlow } = data
+    const {
+        NodeID,
+        // ??? There seem to be a few fields from PredictorNodeData missing here. 
+        ParentPredictorState,
+        SetParentPredictorState,
+        DeleteNode,
+        AddUncertaintyModelNode,
+        GetFlow,
+        GetElementIndex
+    } = data
 
     // Fetch the available metrics and predictors and these are not state dependant
     const metrics = {
