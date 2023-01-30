@@ -131,7 +131,7 @@ export default function Flow(props: FlowProps) {
     useEffect(() => tidyView(), [flow.length])
 
     // Initial population of the element type -> uuid list mapping used for simplified testing ids
-    let initialMap = FlowQueries.getElementTypeToUuidList(flow)
+    const initialMap = FlowQueries.getElementTypeToUuidList(flow)
     const [elementTypeToUuidList, setElementTypeToUuidList] = useStateWithCallback(initialMap)
 
     function DataNodeStateUpdateHandler(dataSource: DataSource, dataTag: DataTag) {
@@ -412,8 +412,8 @@ export default function Flow(props: FlowProps) {
     function _getElementIndex(nodeID: string) {
         const map = elementTypeToUuidList;
 
-        let element = FlowQueries.getNodeById(map, nodeID);
-        let index = FlowQueries.getIndexForElement(map, element);
+        const element = FlowQueries.getNodeById(map, nodeID);
+        const index = FlowQueries.getIndexForElement(map, element);
         return index
     }
 
@@ -835,12 +835,12 @@ export default function Flow(props: FlowProps) {
         }
 
         // Update the uuid index map for testing ids
-        let map = elementTypeToUuidList;
+        const map = elementTypeToUuidList;
         removableElements.forEach( (element) => {
-            let uuidIndex = FlowQueries.getIndexForElement(map, element);
+            const uuidIndex = FlowQueries.getIndexForElement(map, element);
             if (uuidIndex >= 0) {
 
-                let uuidList = map[element.type].
+                const uuidList = map[element.type].
 
                 // Update the list with a marker that says the node has been deleted
                 // This lets the other indexes in the list not to have to change.

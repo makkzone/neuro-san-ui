@@ -104,7 +104,7 @@ export class FlowQueries {
         */
 
         // Start with an empty dictionary
-        let elementTypeToUuidList = {};
+        const elementTypeToUuidList = {};
 
         // Loop through each flow element.
         // Find out its type and start building a list of ids
