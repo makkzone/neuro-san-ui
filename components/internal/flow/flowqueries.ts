@@ -112,7 +112,7 @@ export class FlowQueries {
 
             // See if the list for the element type already exists.
             // Use that value if it exists already.
-            let uuidList = string[] = [];
+            let uuidList: string[] = [];
             if (element.type in elementTypeToUuidList) {
                 uuidList = elementTypeToUuidList[element.type];
             }

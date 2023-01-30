@@ -733,7 +733,7 @@ export default function Flow(props: FlowProps) {
         const map = elementTypeToUuidList
 
         // Allow for the list of elementType not to exist just yet
-        let uuidList = string[] = [];
+        let uuidList: string[] = [];
         if (elementType in map) {
             uuidList = uuidList.push(elementId)
         }
