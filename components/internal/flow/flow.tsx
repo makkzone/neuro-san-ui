@@ -886,7 +886,8 @@ export default function Flow(props: FlowProps) {
         // naturally already be aligned, and there can only be one prescriptor node currently.
         const predictorNodes = FlowQueries.getPredictorNodes(nodes)
         if (predictorNodes.length > 1) {
-            predictorNodes.forEach(node => {node.position.x = predictorNodes[0].position.x})
+            const minX = Math.min(...predictorNodes.map(node => node.position.x))
+            predictorNodes.forEach(node => {node.position.x = minX})
         }
 
         // Update flow with new tidied nodes and fit to view
