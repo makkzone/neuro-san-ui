@@ -132,6 +132,8 @@ export default function Flow(props: FlowProps) {
 
     // Initial population of the element type -> uuid list mapping used for simplified testing ids
     const initialMap = FlowQueries.getElementTypeToUuidList(initialFlowValue)
+    debug("initial uuid map: ", initialMap)
+
     const [elementTypeToUuidList, setElementTypeToUuidList] = useStateWithCallback(initialMap)
 
     function DataNodeStateUpdateHandler(dataSource: DataSource, dataTag: DataTag) {

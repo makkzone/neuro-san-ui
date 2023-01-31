@@ -1,6 +1,11 @@
 import {isEdge, isNode} from "react-flow-renderer";
 import {CAOType} from "../../../controller/datatag/types";
 
+// Debug
+import Debug from "debug"
+
+const debug = Debug("flowqueries")
+
 /**
  * Contains various methods for query items from the experiment flow
  */
@@ -110,16 +115,20 @@ export class FlowQueries {
         // Find out its type and start building a list of ids
         for (const element of graph) {
 
+            // Always use strings for keys
+            const elementType = String(element.type);
+            const keys = Array.from(elementTypeToUuidList.keys());
+
             // See if the list for the element type already exists.
             // Use that value if it exists already.
             let uuidList: string[] = [];
-            if (element.type in elementTypeToUuidList) {
-                uuidList = elementTypeToUuidList.get(element.type);
+            if (keys.includes(elementType) === true) {
+                uuidList = elementTypeToUuidList.get(elementType);
             }
 
             // Add to the uuidList and be sure the new list is in the dictionary
             uuidList.push(element.id);
-            elementTypeToUuidList.set(element.type, uuidList);
+            elementTypeToUuidList.set(elementType, uuidList);
         }
 
         // Now that we have the uuid list for each element type populated,
@@ -146,28 +155,46 @@ export class FlowQueries {
             elementTypeToUuidList.set(key, uuidList);
         }
 
+        debug({elementTypeToUuidList});
+
         return elementTypeToUuidList;
     }
 
-    static getIndexForElement(elementTypeToUuidList, element): number {
+    static getIndexForElement(elementTypeToUuidList: Map<string, string[]>, element): number {
         /*
         Given an elementTypeToUuidList dictionary (see method above)
         return the index of a given element.  This index is used for ids in testing.
         */
 
+        debug({element});
+        debug({elementTypeToUuidList});
+
         // Default value if no element type in list
         let index = -1;
 
         // First be sure the element type is even in the dictionary
-        if (element.type in elementTypeToUuidList) {
+        const elementType = String(element.type);
+        const keys = Array.from(elementTypeToUuidList.keys());
+        if (keys.includes(elementType) === true) {
 
             // Find the list for the appropriate element type
-            const uuidList = elementTypeToUuidList.get(element.type);
+            const uuidList = elementTypeToUuidList.get(elementType);
+            const elementId = element.id;
+
+            debug("Looking for ");
+            debug({elementId});
+            debug(" in ");
+            debug({uuidList});
 
             // Find the uuid of the element in the list
             // Will return -1 if the id itself is not in the list.
-            index = uuidList.indexOf(element.id);
+            index = uuidList.indexOf(elementId);
+        } else {
+            debug({elementType});
+            debug(" not found");
         }
+
+        debug({index});
 
         // Not in the dictionary
         return index;

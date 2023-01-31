@@ -118,7 +118,7 @@ export default function PredictorNode(props): ReactElement {
         GetElementIndex
     } = data
 
-    const flowIndex = GetElementIndex(NodeID)
+    const flowIndex = GetElementIndex(NodeID) + 1
 
     // Fetch the available metrics and predictors and these are not state dependant
     const metrics = {

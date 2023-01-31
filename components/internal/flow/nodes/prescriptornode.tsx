@@ -92,7 +92,7 @@ export default function PrescriptorNode(props): ReactElement {
         GetElementIndex
     } = data
 
-    const flowIndex = GetElementIndex(NodeID)
+    const flowIndex = GetElementIndex(NodeID) + 1
 
     const updateCAOState = ( event, espType: string ) => {
         const { name, checked } = event.target
