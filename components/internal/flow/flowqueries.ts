@@ -91,7 +91,7 @@ export class FlowQueries {
         return graph.filter(e => isEdge(e))
     }
 
-    static getElementTypeToUuidList(graph) {
+    static getElementTypeToUuidList(graph): {
         /*
         Return a dictionary whose keys are graph element types
         and whose values are a sorted list of id (assumed uuid) strings.
@@ -104,7 +104,7 @@ export class FlowQueries {
         */
 
         // Start with an empty dictionary
-        let elementTypeToUuidList: { [id: string]: string[]; } = {};
+        let elementTypeToUuidList = new Map<string, string[]>();
 
         // Loop through each flow element.
         // Find out its type and start building a list of ids
@@ -114,21 +114,21 @@ export class FlowQueries {
             // Use that value if it exists already.
             let uuidList: string[] = [];
             if (element.type in elementTypeToUuidList) {
-                uuidList = elementTypeToUuidList[element.type];
+                uuidList = elementTypeToUuidList.get(element.type);
             }
 
             // Add to the uuidList and be sure the new list is in the dictionary
             uuidList.push(element.id);
-            elementTypeToUuidList[element.type] = uuidList;
+            elementTypeToUuidList.set(element.type, uuidList);
         }
 
         // Now that we have the uuid list for each element type populated,
         // sort each list so that we have an initial index for each element
         // of each type.
-        for (let key in elementTypeToUuidList) {
+        for (const key in elementTypeToUuidList) {
 
             // Get the list we have for the given key/type
-            let uuidList = elementTypeToUuidList[key];
+            let uuidList = elementTypeToUuidList.get(key);
 
             // Sort it by uuid string
             uuidList = uuidList.sort((n1,n2) => {
@@ -143,7 +143,7 @@ export class FlowQueries {
             });
 
             // Put the sorted list back in the dictionary
-            elementTypeToUuidList[key] = uuidList;
+            elementTypeToUuidList.set(key, uuidList);
         }
 
         return elementTypeToUuidList;
@@ -162,7 +162,7 @@ export class FlowQueries {
         if (element.type in elementTypeToUuidList) {
 
             // Find the list for the appropriate element type
-            const uuidList = elementTypeToUuidList[element.type];
+            const uuidList = elementTypeToUuidList.get(element.type);
 
             // Find the uuid of the element in the list
             // Will return -1 if the id itself is not in the list.

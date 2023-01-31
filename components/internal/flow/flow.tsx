@@ -738,7 +738,7 @@ export default function Flow(props: FlowProps) {
         if (elementType in map) {
             uuidList.push(elementId)
         }
-        map[elementType] = uuidList
+        map.set(elementType, uuidList)
 
         setElementTypeToUuidList(map)
     }
@@ -841,12 +841,12 @@ export default function Flow(props: FlowProps) {
             const uuidIndex = FlowQueries.getIndexForElement(map, element);
             if (uuidIndex >= 0) {
 
-                const uuidList = map[element.type].
+                const uuidList = map.get(element.type);
 
                 // Update the list with a marker that says the node has been deleted
                 // This lets the other indexes in the list not to have to change.
                 uuidList[uuidIndex] = "deleted";
-                map[element.type] = uuidList;
+                map.set(element.type, uuidList);
             }
         });
 
