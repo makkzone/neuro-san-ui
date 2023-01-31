@@ -412,7 +412,11 @@ export default function Flow(props: FlowProps) {
     }
 
     function _getElementIndex(nodeID: string) {
-        const graph = flow
+        /*
+        Function used as a means for Flow graph elements to query what their
+        per-element index is for creating easier to handle id strings for testing.
+        */
+        const graph = flow;
         const map = elementTypeToUuidList;
 
         const element = FlowQueries.getNodeByID(graph, nodeID);
