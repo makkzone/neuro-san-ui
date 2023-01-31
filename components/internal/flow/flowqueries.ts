@@ -125,7 +125,7 @@ export class FlowQueries {
         // Now that we have the uuid list for each element type populated,
         // sort each list so that we have an initial index for each element
         // of each type.
-        for (const key of elementTypeToUuidList.keys()) {
+        for (let key in elementTypeToUuidList) {
 
             // Get the list we have for the given key/type
             let uuidList = elementTypeToUuidList[key];
