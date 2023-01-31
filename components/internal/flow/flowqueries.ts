@@ -91,7 +91,7 @@ export class FlowQueries {
         return graph.filter(e => isEdge(e))
     }
 
-    static getElementTypeToUuidList(graph): {
+    static getElementTypeToUuidList(graph): Map<string, string[]> {
         /*
         Return a dictionary whose keys are graph element types
         and whose values are a sorted list of id (assumed uuid) strings.
@@ -104,7 +104,7 @@ export class FlowQueries {
         */
 
         // Start with an empty dictionary
-        let elementTypeToUuidList = new Map<string, string[]>();
+        let elementTypeToUuidList: Map<string, string[]> = new Map<string, string[]>();
 
         // Loop through each flow element.
         // Find out its type and start building a list of ids
@@ -149,7 +149,7 @@ export class FlowQueries {
         return elementTypeToUuidList;
     }
 
-    static getIndexForElement(elementTypeToUuidList, element) {
+    static getIndexForElement(elementTypeToUuidList, element): number {
         /*
         Given an elementTypeToUuidList dictionary (see method above)
         return the index of a given element.  This index is used for ids in testing.
