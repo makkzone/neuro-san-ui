@@ -165,7 +165,6 @@ export class FlowQueries {
         return the index of a given element.  This index is used for ids in testing.
         */
 
-        debug({element});
         debug({elementTypeToUuidList});
 
         // Default value if no element type in list
@@ -179,17 +178,13 @@ export class FlowQueries {
             const uuidList = elementTypeToUuidList.get(elementType);
             const elementId = element.id;
 
-            debug("Looking for ");
             debug({elementId});
-            debug(" in ");
-            debug({uuidList});
 
             // Find the uuid of the element in the list
             // Will return -1 if the id itself is not in the list.
             index = uuidList.indexOf(elementId);
         } else {
             debug({elementType});
-            debug(" not found");
         }
 
         debug({index});

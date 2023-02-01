@@ -737,7 +737,7 @@ export default function Flow(props: FlowProps) {
 
         // Allow for the list of elementType not to exist just yet
         let uuidList: string[] = [];
-        if (elementTypeToUuidList.has(elementType) === true) {
+        if (elementTypeToUuidList.has(elementType)) {
             uuidList = elementTypeToUuidList.get(elementType);
         }
         uuidList.push(elementId);
