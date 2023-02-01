@@ -92,7 +92,7 @@ export default function MetricsTable(props: MetricstableProps) {
                                 <div style={{display: "flex"}}>
                                     <b>RIO improvement</b>
                                     <Tooltip
-                                        content="Improvement of RIO-enhanced predictor metric over original predictor metric, as a percentage"
+                                        content="Improvement of uncertainty model enhanced predictor metric over original predictor metric, as a percentage"
                                         statelessProps={{className: "opacity-75"}}
                                         position={Position.TOP_RIGHT}
                                     >
