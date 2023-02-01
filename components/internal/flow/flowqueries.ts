@@ -139,10 +139,7 @@ export class FlowQueries {
             let uuidList = elementTypeToUuidList.get(key);
 
             // Sort it by uuid string
-            uuidList = uuidList.sort();
-
-            // Put the sorted list back in the dictionary
-            elementTypeToUuidList.set(key, uuidList);
+            uuidList.sort();
         }
 
         debug({elementTypeToUuidList});
