@@ -136,7 +136,7 @@ export class FlowQueries {
         for (const key in elementTypeToUuidList) {
 
             // Get the list we have for the given key/type
-            let uuidList = elementTypeToUuidList.get(key);
+            const uuidList = elementTypeToUuidList.get(key);
 
             // Sort it by uuid string
             uuidList.sort();
