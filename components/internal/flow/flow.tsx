@@ -416,11 +416,8 @@ export default function Flow(props: FlowProps) {
         Function used as a means for Flow graph elements to query what their
         per-element index is for creating easier to handle id strings for testing.
         */
-        const graph = flow;
-        const map = elementTypeToUuidList;
-
-        const element = FlowQueries.getNodeByID(graph, nodeID);
-        const index = FlowQueries.getIndexForElement(map, element);
+        const element = FlowQueries.getNodeByID(flow, nodeID);
+        const index = FlowQueries.getIndexForElement(elementTypeToUuidList, element);
         return index
     }
 
@@ -738,18 +735,17 @@ export default function Flow(props: FlowProps) {
         for testing ids.
         */
 
-        const map = elementTypeToUuidList;
-        const keys = Array.from(map.keys());
+        const keys = Array.from(elementTypeToUuidList.keys());
 
         // Allow for the list of elementType not to exist just yet
         let uuidList: string[] = [];
         if (keys.includes(elementType) === true) {
-            uuidList = map.get(elementType);
+            uuidList = elementTypeToUuidList.get(elementType);
         }
         uuidList.push(elementId);
-        map.set(elementType, uuidList);
+        elementTypeToUuidList.set(elementType, uuidList);
 
-        setElementTypeToUuidList(map);
+        setElementTypeToUuidList(elementTypeToUuidList);
     }
 
     function _deleteNodeById(nodeID: string) {
@@ -757,8 +753,7 @@ export default function Flow(props: FlowProps) {
         Simple "shim" method to allow nodes to delete themselves using their own NodeID, which
         each node knows.
          */
-        const graph = flow
-        _deleteNode([FlowQueries.getNodeByID(graph, nodeID)], graph)
+        _deleteNode([FlowQueries.getNodeByID(flow, nodeID)], flow)
     }
 
     function _deleteNode(elementsToRemove, graph) {
@@ -845,18 +840,17 @@ export default function Flow(props: FlowProps) {
         }
 
         // Update the uuid index map for testing ids
-        const map = elementTypeToUuidList;
         removableElements.forEach( (element) => {
-            const uuidIndex = FlowQueries.getIndexForElement(map, element);
+            const uuidIndex = FlowQueries.getIndexForElement(elementTypeToUuidList, element);
             if (uuidIndex >= 0) {
 
                 const elementType = String(element.type);
-                const uuidList = map.get(elementType);
+                const uuidList = elementTypeToUuidList.get(elementType);
 
                 // Update the list with a marker that says the node has been deleted
                 // This lets the other indexes in the list not to have to change.
                 uuidList[uuidIndex] = "deleted";
-                map.set(elementType, uuidList);
+                elementTypeToUuidList.set(elementType, uuidList);
             }
         });
 
@@ -864,7 +858,7 @@ export default function Flow(props: FlowProps) {
         const flowWithElementsDeleted = removeElements(removableElements, graph);
         setFlow(flowWithElementsDeleted)
         setParentState(flowWithElementsDeleted)
-        setElementTypeToUuidList(map)
+        setElementTypeToUuidList(elementTypeToUuidList)
     }
 
     function onNodeDragStop(event, node) {

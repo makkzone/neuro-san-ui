@@ -109,7 +109,6 @@ export default function PredictorNode(props): ReactElement {
     // Unpack the data
     const {
         NodeID,
-        // ??? There seem to be a few fields from PredictorNodeData missing here. 
         ParentPredictorState,
         SetParentPredictorState,
         DeleteNode,
