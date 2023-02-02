@@ -4,23 +4,39 @@ import {Dispatch, ReactElement, SetStateAction, useEffect, useState} from 'react
 // 3rd party components
 import {Row, Col, Card, Container} from "react-bootstrap"
 import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
-import {InfoSignIcon, Popover, Position, Tab, Tablist, Text, Tooltip,} from "evergreen-ui"
+import {
+    InfoSignIcon,
+    Popover,
+    Position,
+    Tab,
+    Tablist,
+    Text,
+    Tooltip,
+} from "evergreen-ui"
 import {BsPlusSquare} from "react-icons/bs"
-import {GrSettingsOption} from "react-icons/gr"
+import { GrSettingsOption } from "react-icons/gr"
 import Slider from "rc-slider"
 import 'rc-slider/assets/index.css'
 import {useSession} from "next-auth/react"
 import {Tooltip as AntdTooltip} from "antd"
 
 // React Flow
-import {getOutgoers, Handle, Position as HandlePosition} from 'react-flow-renderer'
+import {
+    getOutgoers,
+    Handle,
+    Position as HandlePosition
+} from 'react-flow-renderer'
 
 import {AiFillDelete} from "react-icons/ai";
 import {StringBool} from "../../../../controller/base_types"
 import {NotificationType, sendNotification} from "../../../../controller/notification";
 
 // Controllers
-import {FetchMetrics, FetchParams, FetchPredictors} from '../../../../controller/predictor'
+import {
+    FetchMetrics,
+    FetchParams,
+    FetchPredictors
+} from '../../../../controller/predictor'
 import {loadDataTag} from "../../../../controller/fetchdatataglist"
 import {FlowQueries} from "../flowqueries";
 import {PredictorParams} from "../predictorinfo"
