@@ -49,21 +49,21 @@ function Navbar(props: NavbarProps): React.ReactElement {
                     <BootstrapNavbar.Collapse id="responsive-navbar-nav">
                         <Nav className="me-auto"/>
                         <Nav>
-                            <Nav.Item className="px-3" style={{color: NAV_ITEMS_COLOR}}>
+                            <Nav.Item id="build" className="px-3" style={{color: NAV_ITEMS_COLOR}}>
                                 Build: {UNILEAF_VERSION ?? "Unknown"}
                             </Nav.Item>
                             <Nav.Item className="px-3">
-                                <Link href={`/projects`} >
+                                <Link id="project-links" href={`/projects`} >
                                     <a style={{color: NAV_ITEMS_COLOR}}>Projects</a>
                                 </Link>
                             </Nav.Item>
                             <Dropdown as={NavItem} >
-                              <Dropdown.Toggle as={NavLink} className="px-3 py-0"
+                              <Dropdown.Toggle as={NavLink} id="help-toggle" className="px-3 py-0"
                                                style={{color: NAV_ITEMS_COLOR, background: MaximumBlue}}>
                                   Help
                               </Dropdown.Toggle>
                               <Dropdown.Menu>
-                                <Dropdown.Item href="/userguide" target="_blank">
+                                <Dropdown.Item id="user-guide" href="/userguide" target="_blank">
                                     User guide
                                 </Dropdown.Item>
                               </Dropdown.Menu>
