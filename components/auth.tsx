@@ -64,5 +64,5 @@ export function Auth({ children }) {
 
     // Session is being fetched, or no user.
     // If no user, useEffect() will redirect.
-    return <div>Loading session...</div>
+    return <div id="loading-session">Loading session...</div>
 }
