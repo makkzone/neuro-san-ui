@@ -17,7 +17,7 @@ interface NavbarProps {
     LinkCallback?,
     ButtonComponent?,
     EditableCallback?,
-    InstanceId?: string,
+    InstanceId?: string
 }
 
 export default function NewBar(props: NavbarProps) {
