@@ -75,12 +75,13 @@ export default function ProfileTable(props: ProfiletableProps) {
     const fieldRows = fieldsInCsvOrder.map((field) =>
         <tr key={field} style={{backgroundColor: caoColorCoding[fields[field].esp_type]}}>
             <td className={tableCellClassName}>
-                <span className={"px-2 inline-flex text-xs leading-5 font-semibold rounded-full"}>
+                <span id={field}
+                    className={"px-2 inline-flex text-xs leading-5 font-semibold rounded-full"}>
                     {field}
                 </span>
             </td>
             <td className={tableCellClassName}>
-                <select id="data-field-select"
+                <select id={ `${field}-esp-type-select` }
                     name={`${field}-esp_type`}
                     value={fields[field].esp_type}
                     className="w-32"
@@ -90,13 +91,13 @@ export default function ProfileTable(props: ProfiletableProps) {
                         setProfile(profileCopy)
                     }}
                 >
-                    <option id="data-field-context" value="CONTEXT">CONTEXT</option>
-                    <option id="data-field-action" value="ACTION">ACTION</option>
-                    <option id="data-field-outcome" value="OUTCOME">OUTCOME</option>
+                    <option id={ `${field}-esp-type-context` } value="CONTEXT">CONTEXT</option>
+                    <option id={ `${field}-esp-type-action` } value="ACTION">ACTION</option>
+                    <option id={ `${field}-esp-type-outcome` } value="OUTCOME">OUTCOME</option>
                 </select>
             </td>
             <td className={tableCellClassName}>
-                <select id="data-type-select"
+                <select id={ `${field}-data-type-select` }
                     name={`${field}-data_type`}
                     value={fields[field].data_type}
                     className="w-32"
@@ -106,14 +107,14 @@ export default function ProfileTable(props: ProfiletableProps) {
                         setProfile(profileCopy)
                     }}
                 >
-                    <option id="data-type-int" value="INT">INT</option>
-                    <option id="data-type-string" value="STRING">STRING</option>
-                    <option id="data-type-float" value="FLOAT">FLOAT</option>
-                    <option id="data-type-bool" value="BOOL">BOOL</option>
+                    <option id={ `${field}-data-type-int` }    value="INT">INT</option>
+                    <option id={ `${field}-data-type-string` } value="STRING">STRING</option>
+                    <option id={ `${field}-data-type-float` }  value="FLOAT">FLOAT</option>
+                    <option id={ `${field}-data-type-bool` }   value="BOOL">BOOL</option>
                 </select>
             </td>
             <td className={tableCellClassName}>
-                <select id="data-continuity-select"
+                <select id={ `${field}-data-continuity-select` }
                     name={`${field}-valued`}
                     value={fields[field].valued}
                     className="w-32"
@@ -123,11 +124,11 @@ export default function ProfileTable(props: ProfiletableProps) {
                         setProfile(profileCopy)
                     }}
                 >
-                    <option id="categorical-option"
+                    <option id={ `${field}-data-continuity-categorical` }
                         value="CATEGORICAL">
                         CATEGORICAL
                     </option>
-                    <option id="continuous-option"
+                    <option id={ `${field}-data-continuity-continuous` }
                         value="CONTINUOUS">
                         CONTINUOUS
                     </option>
@@ -136,21 +137,21 @@ export default function ProfileTable(props: ProfiletableProps) {
             <td className={tableCellClassName}>
                 {fields[field].valued === "CATEGORICAL" ?
                     <span style={{"display": "flex"}}>
-                    <select id="categorical-select"
+                    <select id={ `${field}-categorical-select` }
                         name={`${field}-values`}
                         className="w-32"
                     >
-                        <option id="categorical-click-for-values"
+                        <option id={ `${field}-categorical-click-for-values` }
                             value="" disabled selected>
                             Click for values:
                         </option>
                         {
                             fields[field].discrete_categorical_values.map(
-                                (item) => (<option id={ `categorical-value-${item}` }
+                                (item) => (<option id={ `${field}-categorical-value-${item}` }
                                                 value={item} key={item} disabled>{item}</option>))
                         }
                     </select>
-                    <button id="set-current-category-values"
+                    <button id={ `${field}-set-current-category-values` }
                         onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                             // Don't want to submit form here!
                             e.preventDefault()
@@ -167,6 +168,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                 {fields[field].valued === "CONTINUOUS" ?
                     <Form.Group className="mb-3">
                         <Form.Control
+                            id={`${field}-min-range`}
                             name={`${field}-min-range`}
                             type="number"
                             value={fields[field].range[0]}
@@ -181,6 +183,7 @@ export default function ProfileTable(props: ProfiletableProps) {
             <td className={rangeTableCellClassName}>
                 {fields[field].valued === "CONTINUOUS" ? <Form.Group className="mb-3">
                     <Form.Control
+                        id={`${field}-max-range`}
                         name={`${field}-max-range`}
                         type="number"
                         value={fields[field].range[1]}
@@ -218,14 +221,15 @@ export default function ProfileTable(props: ProfiletableProps) {
                 .map((name) =>
                     <tr key={name} style={{backgroundColor: caoColorCoding.REJECTED, whiteSpace: "nowrap"}}>
                         <td className={tableCellClassName}>
-                            <span className={"px-2 text-xs leading-5 font-semibold rounded-full flex-nowrap opacity-50"}
+                            <span id={ `${name}-rejected` }
+                                  className={"px-2 text-xs leading-5 font-semibold rounded-full flex-nowrap opacity-50"}
                                   style={{display: "flex", flexWrap: "nowrap"}}>
                                 <AiFillWarning size="20" className="mr-2"/>
                                 {name}
                             </span>
                         </td>
                         <td className={tableCellClassName}>
-                            <span
+                            <span id={ `${name}-rejection-reason` }
                                 className={"px-2 text-xs leading-5 font-semibold rounded-full flex-nowrap opacity-50"}>
                                 {`${rejectedColumns[name]}: ${reasonToHumanReadable(rejectedColumns[name])}`}
                             </span>
@@ -274,10 +278,11 @@ export default function ProfileTable(props: ProfiletableProps) {
         >
             <Container>
                 <Row>
-                    <label>Field: {fieldBeingEditedName}</label>
+                    <label id="field-being-edited">Field: {fieldBeingEditedName}</label>
                 </Row>
                 <Row className="pt-3">
                     <Checkbox
+                        id="field-editor-checkbox"
                         value={currentCategoryOrdered}
                         onChange={e => setCurrentCategoryOrdered(e.target.value)}
                     >
@@ -309,13 +314,13 @@ export default function ProfileTable(props: ProfiletableProps) {
                                                         >
                                                             <Col className="mx-0 px-1">
                                                                 <ListGroup.Item as="li" className="values">
-                                                                    <div>
+                                                                    <div id={ `${val}` }>
                                                                         {val}
                                                                     </div>
                                                                 </ListGroup.Item>
                                                             </Col>
                                                             <Col className="d-flex vertical-align-middle mx-0 px-1">
-                                                                <button id="delete-value"
+                                                                <button id={ `${val}-delete-value` }
                                                                     onClick={() => {
                                                                         deleteValue(val)
                                                                     }}
@@ -327,7 +332,6 @@ export default function ProfileTable(props: ProfiletableProps) {
                                                                         }}
                                                                         className="hover:text-red-700"/>
                                                                 </button>
-
                                                             </Col>
                                                         </Row>
                                                     }}
@@ -342,20 +346,22 @@ export default function ProfileTable(props: ProfiletableProps) {
                     </Droppable>}
                 </Row>
                 <Row className="pt-4">
-                    <label>Add category value:</label>
+                    <label id="add-category-value">Add category value:</label>
                 </Row>
                 <Row className="pt-1">
                     <Input.Group compact>
-                        <Input style={{width: 'calc(100% - 200px)'}}
-                           placeholder="Enter value"
-                           onChange={
-                               event => {
-                                   setNewItem(event.target.value)
-                               }
-                           }
+                        <Input id="add-category-value-input" 
+                            style={{width: 'calc(100% - 200px)'}}
+                            placeholder="Enter value"
+                            onChange={
+                                event => {
+                                    setNewItem(event.target.value)
+                                }
+                            }
                         >
                         </Input>
-                        <Button type="primary"
+                        <Button id="add-category-value-button"
+                            type="primary"
                             onClick ={() => {
                                 setCurrentCategoryValues([...currentCategoryValues, newItem])
                             }}
