@@ -348,7 +348,7 @@ function ParetoPlot(props) {
             />
         </div>
 
-        <ResponsiveLine id="responsive-line"
+        <ResponsiveLine
             pointSymbol={CustomSymbol}
             pointSize={12}
             pointBorderWidth={1}
