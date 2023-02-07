@@ -39,19 +39,21 @@ export default function LEAF({
   const router = useRouter()
   let Body
   if (router.pathname === "/") {
-    Body = <div>
-      <Component {...pageProps} />
+    Body = <div id="body-div">
+      <Component id="body-component" {...pageProps} />
     </div>
   } else {
     Body =
     <>
-      <SSRProvider>
-        <SessionProvider session={session}>
-          <Navbar Logo={LOGO} />
-          <Container>
+      <SSRProvider id="ssr-provider">
+        <SessionProvider id="session-provider" session={session}>
+          <Navbar id="nav-bar" Logo={LOGO} />
+          <Container id="body-container">
             {Component.authRequired && ENABLE_AUTHENTICATION
-                ? <Auth><Component {...pageProps} /></Auth>
-                : <Component {...pageProps} />
+                ? <Auth id="body-auth">
+                    <Component id="body-auth-component" {...pageProps} />
+                  </Auth>
+                : <Component id="body-non-auth-component" {...pageProps} />
             }
           </Container>
         </SessionProvider>
@@ -60,11 +62,11 @@ export default function LEAF({
   }
 
   return (
-  <div>
-    <Head>
-      <title>Unileaf</title>
-      <meta name="description" content="Evolutionary AI" />
-      <link rel="icon" href="/leaffavicon.png" />
+  <div id="unileaf">
+    <Head id="unileaf-head">
+      <title id="unileaf-title">Unileaf</title>
+      <meta id="unileaf-description" name="description" content="Evolutionary AI" />
+      <link id="unileaf-link" rel="icon" href="/leaffavicon.png" />
     </Head>
     {
       Body
