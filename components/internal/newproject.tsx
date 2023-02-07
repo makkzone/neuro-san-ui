@@ -38,6 +38,10 @@ const MAX_ALLOWED_UPLOAD_SIZE_BYTES = 200 * 1000 * 1000  // 200 MB in "decimal"
 
 // Declare the Props for this component
 interface NewProps {
+
+    // For testing
+    id: string,
+
     // A flag to tell if it is to be used in a
     // DataSource mode only
     ProjectID?: number
@@ -376,7 +380,7 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
         }
     }
 
-    return <Container>
+    return <Container id={props.id}>
         <Form
             onSubmit={event => void createDataProfile(event)}
             target="_blank"
