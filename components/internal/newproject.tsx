@@ -272,7 +272,7 @@ export default function NewProject(props: NewProps) {
 
     const startIndexOffset = props.ProjectID ? -1 : 0
 
-    const idPrefix = {props.id}
+    const idPrefix = props.id
     const profileTable = <ProfileTable id={ `${idPrefix}-profile-table` }
                                         Profile={profile}
                                         ProfileUpdateHandler={setProfile} />
