@@ -10,6 +10,7 @@ import {AiFillEdit} from "react-icons/ai";
 
 // Define the Props Interface
 interface NavbarProps {
+    id: string,
     Title: string,
     LinkComponentProps?: LinkProps,
     DisplayNewLink?: boolean,
@@ -89,7 +90,7 @@ export default function NewBar(props: NavbarProps) {
         title = <h3 className="h3" id={ `${idPrefix}-title` }>{ props.Title }</h3>
     }
 
-    return <div className="flex justify-between py-6 items-center border-b-2 border-black">
+    return <div id={props.id} className="flex justify-between py-6 items-center border-b-2 border-black">
                 {title}
                 { newButton }
             </div>

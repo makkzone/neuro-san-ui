@@ -361,7 +361,8 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
         // the rules are in to get a decent coloring scheme
         PlotDiv.push(
             <>
-                <NewBar Title="Rules" DisplayNewLink={ false } />
+                <NewBar id="rules-bar" InstanceId="rules"
+                        Title="Rules" DisplayNewLink={ false } />
                 <div className="my-2 py-2"
                      style={{
                          whiteSpace: "pre",
