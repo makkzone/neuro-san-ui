@@ -33,6 +33,12 @@ export function isSignedIn(session: Session, status: string): boolean {
 // ./pages/api/auth/[...nextauth].js
 const AUTHENTICATION_PROVIDER = "auth0";
 
+// Declare the Props Interface
+interface AuthProps {
+    // id is a string handle to the element used for testing
+    id: string
+}
+
 /**
  * Higher-level component to wrap pages that require authentication.
  *
@@ -41,7 +47,7 @@ const AUTHENTICATION_PROVIDER = "auth0";
  * @param children Contained components protected by the authentication guard
  * @return children (protected) components if user is authenticated, otherwise "Loading" message.
  */
-export function Auth({ children }) {
+export function Auth(props: NavbarProps, { children }) {
     const { data: session, status } = useSession()
 
     const isUser = !!session?.user
@@ -64,5 +70,5 @@ export function Auth({ children }) {
 
     // Session is being fetched, or no user.
     // If no user, useEffect() will redirect.
-    return <div id="loading-session">Loading session...</div>
+    return <div id={props.id}>Loading session...</div>
 }

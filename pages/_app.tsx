@@ -45,8 +45,12 @@ export default function LEAF({
   } else {
     Body =
     <>
-      <SSRProvider id="ssr-provider">
-        <SessionProvider id="session-provider" session={session}>
+      { /* 2/6/23 DEF - SSRProvider does not have an id property when compiling */ }
+      <SSRProvider      // eslint_disable-line enforce-ids-in-jsx/missing-ids
+            >
+        { /* 2/6/23 DEF - SessionProvider does not have an id property when compiling */ }
+        <SessionProvider        // eslint_disable-line enforce-ids-in-jsx/missing-ids 
+                session={session}>
           <Navbar id="nav-bar" Logo={LOGO} />
           <Container id="body-container">
             {Component.authRequired && ENABLE_AUTHENTICATION
