@@ -67,7 +67,9 @@ export default function LEAF({
 
   return (
   <div id="unileaf">
-    <Head id="unileaf-head">
+    { /* 2/6/23 DEF - Head does not have an id property when compiling */ }
+    <Head      // eslint_disable-line enforce-ids-in-jsx/missing-ids
+        >
       <title id="unileaf-title">Unileaf</title>
       <meta id="unileaf-description" name="description" content="Evolutionary AI" />
       <link id="unileaf-link" rel="icon" href="/leaffavicon.png" />
