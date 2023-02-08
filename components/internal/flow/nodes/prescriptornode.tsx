@@ -487,9 +487,9 @@ export default function PrescriptorNode(props): ReactElement {
     // Create the configuration Panel
     const EvolutionConfigurationPanel = <Card.Body id={ `${flowPrefix}-evolution-configuration-panel` } 
         className="overflow-y-auto h-40 text-xs">
-        <div id={ `${flowPrefix}-evolution-configuration-div` } 
+        <div id={ `${flowPrefix}-evolution-configuration` } 
             className="flex flex-col mb-2">
-            <div id={ `${flowPrefix}-num-generations-div` }
+            <div id={ `${flowPrefix}-num-generations` }
                 className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
                 <label id={ `${flowPrefix}-num-generations-label` } >
                     Num Generations
@@ -511,7 +511,7 @@ export default function PrescriptorNode(props): ReactElement {
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-population-size-div` } 
+            <div id={ `${flowPrefix}-population-size` } 
                 className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
                 <label id={ `${flowPrefix}-population-size-label` } >
                     Population Size
@@ -533,7 +533,7 @@ export default function PrescriptorNode(props): ReactElement {
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-num-elites-div` } 
+            <div id={ `${flowPrefix}-num-elites` } 
                 className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
                 <label id={ `${flowPrefix}-num-elites-label` } >
                     Num Elites
@@ -555,7 +555,7 @@ export default function PrescriptorNode(props): ReactElement {
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-parent-selection-div` } 
+            <div id={ `${flowPrefix}-parent-selection` } 
                 className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
                 <label id={ `${flowPrefix}-parent-selection-label` } >
                     Parent Selection
@@ -579,13 +579,13 @@ export default function PrescriptorNode(props): ReactElement {
                     </option>
                 </select>
             </div>
-            <div id={ `${flowPrefix}-remove-population-percetange-div` } 
+            <div id={ `${flowPrefix}-remove-population-percetange` } 
                 className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
                 <label id={ `${flowPrefix}-remove-population-percentage-label` } >
                     Remove Population %
                 </label>
                 <input style={{width: "3rem"}}
-                    id={ `${flowPrefix}-remove-population-percentage` }
+                    id={ `${flowPrefix}-remove-population-percentage-input` }
                     type="number" 
                     step="0.01" 
                     defaultValue={ 0.8 }
@@ -601,7 +601,7 @@ export default function PrescriptorNode(props): ReactElement {
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-mutation-div` } 
+            <div id={ `${flowPrefix}-mutation` } 
                 className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
                 <label id={ `${flowPrefix}-mutation-label` } >
                     Mutation Type
@@ -633,7 +633,7 @@ export default function PrescriptorNode(props): ReactElement {
                     </option>
                 </select>
             </div>
-            <div id={ `${flowPrefix}-mutation-probability-div` } 
+            <div id={ `${flowPrefix}-mutation-probability` } 
                 className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
                 <label id={ `${flowPrefix}-mutation-probability-label` } >
                     Mutation Probability
@@ -655,7 +655,7 @@ export default function PrescriptorNode(props): ReactElement {
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-mutation-factor-div` } 
+            <div id={ `${flowPrefix}-mutation-factor` } 
                 className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
                 <label id={ `${flowPrefix}-mutation-factor-label` } >
                     Mutation Factor
@@ -677,13 +677,13 @@ export default function PrescriptorNode(props): ReactElement {
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-initialization-distribution-div` } 
+            <div id={ `${flowPrefix}-initialization-distribution` } 
                 className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
                 <label id={ `${flowPrefix}-initialization-distribution-label` } >
                     Initialization Distribution
                 </label>
                 <select defaultValue="orthogonal"
-                    id={ `${flowPrefix}-distribution-select` }
+                    id={ `${flowPrefix}-initialization-distribution-select` }
                     value={ ParentPrescriptorState.evolution.initialization_distribution }
                     onChange={
                         event => SetParentPrescriptorState({
@@ -695,25 +695,25 @@ export default function PrescriptorNode(props): ReactElement {
                             })
                     }
                 >
-                    <option id={ `${flowPrefix}-distribution-orthogonal` }
+                    <option id={ `${flowPrefix}-initialization-distribution-orthogonal` }
                         value="orthogonal">
                         Orthogonal
                     </option>
-                    <option id={ `${flowPrefix}-distribution-uniform` }
+                    <option id={ `${flowPrefix}-initialization-distribution-uniform` }
                         value="uniform">
                         Uniform
                     </option>
-                    <option id={ `${flowPrefix}-distribution-normal` }
+                    <option id={ `${flowPrefix}-initialization-distribution-normal` }
                         value="normal">
                         Normal
                     </option>
-                    <option id={ `${flowPrefix}-distribution-cauchy` }
+                    <option id={ `${flowPrefix}-initialization-distribution-cauchy` }
                         value="cauchy">
                         Cauchy
                     </option>
                 </select>
             </div>
-            <div id={ `${flowPrefix}-initialization-range-div` } 
+            <div id={ `${flowPrefix}-initialization-range` } 
                 className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
                 <label id={ `${flowPrefix}-initialization-range-label` } >
                     Initialization Range
@@ -736,7 +736,6 @@ export default function PrescriptorNode(props): ReactElement {
                 /> 
             </div>
         </div>
-        
     </Card.Body>
 
     // Create the Component structure
