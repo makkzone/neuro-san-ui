@@ -401,7 +401,9 @@ size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
             // multiple "submit"-type steps so that doesn't work for us.
             validated={true}
         >
-            <Collapse id="project-collapse" accordion expandIconPosition="right"
+            <Collapse       // eslint_disable-line enforce-ids-in-jsx/missing-ids 
+                            // 2/6/23 DEF - Collapse does not have an id property when compiling
+                accordion expandIconPosition="right"
                 defaultActiveKey={isNewProject ? projectDetailsPanelKey : dataSourcePanelKey}
             >
                 { isNewProject &&
