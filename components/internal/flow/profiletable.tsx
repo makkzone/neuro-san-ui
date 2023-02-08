@@ -377,7 +377,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                 <Row id="add-category-value-row" className="pt-1">
                     <Input.Group    // eslint_disable-line enforce-ids-in-jsx/missing-ids
                                     // 2/6/23 DEF - DragDropContext does not have an id property when compiling
-                        compact id="add-category-value-group">
+                        compact>
                         <Input id="add-category-value-input" 
                             style={{width: 'calc(100% - 200px)'}}
                             placeholder="Enter value"
