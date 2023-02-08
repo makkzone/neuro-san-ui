@@ -271,7 +271,8 @@ export default function ProfileTable(props: ProfiletableProps) {
     }
 
     const editCategoryValuesModal =
-        <Modal id="edit-category-values-modal"
+        <Modal    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                  // 2/6/23 DEF - Modal doesn't have an id property when compiling
                title="Edit categorical values"
                visible={showFieldEditor}
                destroyOnClose={true}
@@ -309,7 +310,9 @@ export default function ProfileTable(props: ProfiletableProps) {
                 <p id="values-separator"/>
                 <Row id="values-droppable-row">
                     {/* Drag-drop list of values */}
-                    {<Droppable id="values-droppable" droppableId="values">
+                    {<Droppable    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                                   // 2/6/23 DEF - Droppable doesn't have an id property when compiling
+                        droppableId="values">
                         {(provided) => (
                             <Container id="values-droppable-container">
                                 <ListGroup as="ol"
@@ -320,7 +323,8 @@ export default function ProfileTable(props: ProfiletableProps) {
                                     {
                                         profile && fieldBeingEditedName ? currentCategoryValues.map((val, index) => {
                                             return (
-                                                <Draggable id={ `${val}-draggable`}
+                                                <Draggable    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                                                    // 2/6/23 DEF - Draggable doesn't have an id property when compiling
                                                     key={val} draggableId={val} index={index}>
                                                     {(provided, snapshot) => {
                                                         const opacity =
@@ -371,7 +375,9 @@ export default function ProfileTable(props: ProfiletableProps) {
                     <label id="add-category-label">Add category value:</label>
                 </Row>
                 <Row id="add-category-value-row" className="pt-1">
-                    <Input.Group compact id="add-category-value-group">
+                    <Input.Group    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                                    // 2/6/23 DEF - DragDropContext does not have an id property when compiling
+                        compact id="add-category-value-group">
                         <Input id="add-category-value-input" 
                             style={{width: 'calc(100% - 200px)'}}
                             placeholder="Enter value"
@@ -399,7 +405,8 @@ export default function ProfileTable(props: ProfiletableProps) {
     const propsId = `${props.id}`
 
     // Wrap everything in a DragDropContext as recommended by react-beautiful-dnd doc
-    return <DragDropContext id={ `${propsId}` }
+    return <DragDropContext    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                               // 2/6/23 DEF - DragDropContext does not have an id property when compiling
         onDragEnd={(dragResult) => {
             // Prevent dragging out of bounds
             if (!dragResult.destination) return;
@@ -411,10 +418,10 @@ export default function ProfileTable(props: ProfiletableProps) {
             setCurrentCategoryValues(items)
         }
     }>
-        <div id="profile-table-div-1"
+        <div id={ `${propsId}` }
             className="flex flex-col mt-4">
             {editCategoryValuesModal}
-            <div id="profile-table-div-2"
+            <div id="profile-table-div"
                 className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div id="profile-table-div-3"
                     className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">

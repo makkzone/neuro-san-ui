@@ -321,8 +321,9 @@ export default function PrescriptorNode(props): ReactElement {
                 <Col id={ `${flowPrefix}-max-exponent-label` } md={5}>
                     Max Exponent:
                 </Col>
-                <Col id={ `${flowPrefix}-max-exponent-slider-column` } md={4}>
-                    <Slider id={ `${flowPrefix}-max-exponent-slider` }
+                <Col id={ `${flowPrefix}-max-exponent-slider` } md={4}>
+                    <Slider     // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                                // 2/6/23 DEF - Slider does not have an id property when compiling
                         step={1}
                         min={0}
                         max={9}
@@ -352,8 +353,9 @@ export default function PrescriptorNode(props): ReactElement {
                 <Col id={`${flowPrefix}-number-of-building-block-conditions-label`}  md={5}>
                     # Building Block Conditions:
                 </Col>
-                <Col id={ `${flowPrefix}-number-of-building-block-conditions-slider-column` } md={4}>
-                    <Slider id={ `${flowPrefix}-number-of-building-block-conditions-slider` }
+                <Col id={ `${flowPrefix}-number-of-building-block-conditions-slider` } md={4}>
+                    <Slider     // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                                // 2/6/23 DEF - Slider does not have an id property when compiling
                         step={1}
                         min={1}
                         max={9}
@@ -383,8 +385,9 @@ export default function PrescriptorNode(props): ReactElement {
                 <Col id={`${flowPrefix}-number-of-building-block-rules-label`} md={5}>
                     # Building Block Rules:
                 </Col>
-                <Col id={ `${flowPrefix}-number-of-building-block-rules-slider-column` } md={4}>
-                    <Slider id={ `${flowPrefix}-number-of-building-block-rules-slider` }
+                <Col id={ `${flowPrefix}-number-of-building-block-rules-slider` } md={4}>
+                    <Slider     // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                                // 2/6/23 DEF - Slider does not have an id property when compiling
                         step={1}
                         min={1}
                         max={99}
@@ -753,7 +756,8 @@ export default function PrescriptorNode(props): ReactElement {
                 </Text>
                 <div id={ `${flowPrefix}-settings-div` } 
                     onMouseDown={(event) => {event.stopPropagation()}}>
-                    <Popover id={ `${flowPrefix}-settings-popover` } 
+                    <Popover    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                                // 2/6/23 DEF - Popover does not have an id property when compiling
                         content={ <>
                             <Tablist id={ `${flowPrefix}-settings-tablist` } 
                                 marginBottom={16} flexBasis={240} marginRight={24}>
@@ -786,7 +790,8 @@ export default function PrescriptorNode(props): ReactElement {
                             </button>
                         </div>
                     </Popover>
-                    <Popover id={ `${flowPrefix}-context-popover` } 
+                    <Popover    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                                // 2/6/23 DEF - Popover does not have an id property when compiling
                         position={Position.LEFT}
                         content={
                             <Card.Body id={ `${flowPrefix}-context-card` } 
@@ -814,7 +819,8 @@ export default function PrescriptorNode(props): ReactElement {
                             className="absolute top-5 -left-4"
                             style={{height: 0}}>C</button>
                     </Popover>
-                    <Popover id={ `${flowPrefix}-actions-popover` } 
+                    <Popover    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                                // 2/6/23 DEF - Popover does not have an id property when compiling
                         position={Position.RIGHT}
                         content={
                             <Card.Body id={ `${flowPrefix}-actions-card` } 

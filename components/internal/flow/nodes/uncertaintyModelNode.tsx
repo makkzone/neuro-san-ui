@@ -162,7 +162,8 @@ export default function UncertaintyModelNode(props): ReactElement {
                 </Text>
                 <div id={ `${flowPrefix}-popover-div` }
                     onMouseDown={(event) => {event.stopPropagation()}}>
-                    <Popover id={ `${flowPrefix}-popover` }
+                    <Popover    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                                // 2/6/23 DEF - Popover does not have an id property when compiling
                         content={
                         <>
                             <Card.Body id={ `${flowPrefix}-uncertainty-model-config` }
