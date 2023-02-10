@@ -1,12 +1,12 @@
 import {
     DeployedModel,
-    Deployments, DeploymentStatus,
+    Deployments,
+    DeploymentStatus,
     DeployRequest,
     GetDeploymentsRequest,
     ModelFormat,
     ModelMetaData,
     ModelServingEnvironment,
-    ModelStatus,
     TearDownRequest
 } from "./types";
 import {StringString} from "../base_types";
@@ -148,42 +148,57 @@ export async function deployRun(
 }
 
 /**
- * Undeploy (tear down) all the models associated with a run -- predictors, prescriptor(s), uncertainty models
- * @param project_id Project ID for these models
- * @param run Run object for these models
- * @param cid "Candidate ID" (individual prescriptor ID). Optional. If omitted, all prescriptors will be undeployed.
- * @param modelServingEnv Type of model serving environment. Optional. Currently only KServe is supported.
- * @return JSON result of undeploy operation
- *
+ * This function cleans up the model deployments using the <code>navigator.sendBeacon</code> browser feature. It is 
+ * intended to be set up as an event handler for when the user closes the tab or navigates away from the app.
+ * 
+ * For documentation on this API see {@link https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon}
+ * 
+ * @param project_id Numeric current Project ID
+ * @param run The Run that we wish to undeploy
+ * @return void Works by "side effects".
  */
-export async function undeployRun(project_id: number,
-                                  run: Run,
-                                  cid: string = null,
-                                  modelServingEnv: ModelServingEnvironment = ModelServingEnvironment.KSERVE
-// Typescript lib uses "any" so we have to as well
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any> {
-
-    // Fetch the already deployed models
+export function undeployRunUsingBeacon(project_id: number,
+                                       run: Run) {
+    // Get deployment ID that we want to undeploy
     const deployment_id: string = generateDeploymentID(
         run.id,
         run.experiment_id,
         project_id,
-        cid
+        null
     )
-
-    const model_status: ModelStatus = {
-        status: DeploymentStatus[DeploymentStatus.DEPLOYMENT_STATUS_UNKNOWN],
-        deployment_id: "",
-        labels: {}
-    }
-
-    model_status.deployment_id = deployment_id
 
     // Generate the request
     const tearDownRequest: TearDownRequest = {
         deployment_id: deployment_id,
-        model_serving_environment: modelServingEnv
+        model_serving_environment: ModelServingEnvironment.KSERVE
+    }
+    navigator.sendBeacon(TEARDOWN_MODELS_ROUTE, JSON.stringify(tearDownRequest))
+}
+
+/**
+ * Undeploy (tear down) all the models associated with a run -- predictors, prescriptor(s), uncertainty models
+ * @param project_id Project ID for these models
+ * @param run Run object for these models
+ * @return A <code>Promise</code> that resolves either to <code>null</code> or the JSON result of the undeploy operation
+ */
+export async function undeployRun(project_id: number,
+                                  run: Run
+// Typescript lib uses "any" so we have to as well
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> {
+
+    // Get deployment ID that we want to undeploy
+    const deployment_id: string = generateDeploymentID(
+        run.id,
+        run.experiment_id,
+        project_id,
+        null
+    )
+
+    // Generate the request
+    const tearDownRequest: TearDownRequest = {
+        deployment_id: deployment_id,
+        model_serving_environment: ModelServingEnvironment.KSERVE
     }
 
     try {
@@ -198,7 +213,7 @@ export async function undeployRun(project_id: number,
 
         if (response.status != 200) {
             console.error("Error:", response.statusText)
-            return null
+            return new Promise<null>(null)
         }
 
         return response.json()
