@@ -155,7 +155,7 @@ export async function deployRun(
  * 
  * @param project_id Numeric current Project ID
  * @param run The Run that we wish to undeploy
- * @return void Works by "side effects".
+ * @return <code>void<code> -- works by "side effects".
  */
 export function undeployRunUsingBeacon(project_id: number,
                                        run: Run) {
