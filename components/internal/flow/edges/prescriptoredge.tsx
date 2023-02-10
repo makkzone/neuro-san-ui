@@ -82,7 +82,7 @@ export default function PrescriptorEdge({ id, sourceX, sourceY,
                 className="edgebutton-foreignobject"
                 requiredExtensions="http://www.w3.org/1999/xhtml"
             >
-                <Popover    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                <Popover    // eslint-disable-line enforce-ids-in-jsx/missing-ids
                             // 2/6/23 DEF - Popover does not have an id property when compiling
                     position={Position.LEFT}
                     minWidth='1rem'

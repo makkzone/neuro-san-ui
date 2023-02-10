@@ -502,7 +502,7 @@ export default function PredictorNode(props): ReactElement {
                     </div>
                     <div id={ `${flowPrefix}-${param}-tooltip-div` }
                         className="item3 col-span-1">
-                        <Tooltip    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                        <Tooltip    // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                     // 2/6/23 DEF - Tooltip does not have an id property when compiling
                             content={ParentPredictorState.predictorParams[param].description} >
                             <InfoSignIcon id={ `${flowPrefix}-${param}-tooltip-info-sign-icon` }/>
@@ -531,7 +531,7 @@ export default function PredictorNode(props): ReactElement {
                     Train:
                 </Col>
                 <Col id={ `${flowPrefix}-train-slider` } md={9}>
-                    <Slider     // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                    <Slider     // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 // 2/6/23 DEF - Slider does not have an id property when compiling
                         onChange={event => onTrainSliderChange(event)}
                         min={0}
@@ -554,7 +554,7 @@ export default function PredictorNode(props): ReactElement {
                     Test:
                 </Col>
                 <Col id={ `${flowPrefix}-test-slider` } md={9}>
-                    <Slider     // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                    <Slider     // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 // 2/6/23 DEF - Slider does not have an id property when compiling
                         onChange={ event => onTestSliderChange(event) }
                         min={0}
@@ -605,7 +605,7 @@ export default function PredictorNode(props): ReactElement {
                 </Text>
                 <div id={ `${flowPrefix}-settings-div` }
                     onMouseDown={(event) => {event.stopPropagation()}}>
-                    <Popover    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                    <Popover    // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 // 2/6/23 DEF - Tooltip does not have an id property when compiling
                         content={ <>
                             <Tablist id={ `${flowPrefix}-settings-tablist` }
@@ -639,7 +639,7 @@ export default function PredictorNode(props): ReactElement {
                             </button>
                         </div>
                     </Popover>
-                    <Popover    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                    <Popover    // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 // 2/6/23 DEF - Tooltip does not have an id property when compiling
                         position={Position.LEFT}
                         content={
@@ -669,7 +669,7 @@ export default function PredictorNode(props): ReactElement {
                             className="absolute top-2 -left-4"
                             style={{height: 0}}>C</button>
                     </Popover>
-                    <Popover    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                    <Popover    // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 // 2/6/23 DEF - Tooltip does not have an id property when compiling
                         position={Position.LEFT}
                         content={
@@ -701,7 +701,7 @@ export default function PredictorNode(props): ReactElement {
                                 className="absolute bottom-6 -left-4"
                                 style={{height: 0}}>A</button>
                     </Popover>
-                    <Popover    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                    <Popover    // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 // 2/6/23 DEF - Tooltip does not have an id property when compiling
                         position={Position.RIGHT}
                         content={
@@ -732,7 +732,7 @@ export default function PredictorNode(props): ReactElement {
                                 style={{height: 0}}>O
                         </button>
                     </Popover>
-                    <Tooltip    // eslint_disable-line enforce-ids-in-jsx/missing-ids
+                    <Tooltip    // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 // 2/6/23 DEF - Tooltip does not have an id property when compiling
                         showDelay={1}
                         content={
