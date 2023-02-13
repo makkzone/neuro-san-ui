@@ -257,7 +257,6 @@ export default function PrescriptorNode(props): ReactElement {
                         stateCopy.network.hidden_layers.splice(idx, 1)
                         SetParentPrescriptorState(stateCopy)
                     }
-                    }
                 }}>
                 <MdDelete id={ `${flowPrefix}-hidden-layer-${idx}-delete` }/>
             </button>
