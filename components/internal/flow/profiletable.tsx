@@ -273,27 +273,33 @@ export default function ProfileTable(props: ProfiletableProps) {
     const editCategoryValuesModal =
         <Modal    // eslint-disable-line enforce-ids-in-jsx/missing-ids
                   // 2/6/23 DEF - Modal doesn't have an id property when compiling
-               title="Edit categorical values"
-               visible={showFieldEditor}
-               destroyOnClose={true}
-               onOk={(e: React.MouseEvent<HTMLElement>) => {
-                   // Don't want to submit form here!
-                   e.preventDefault()
+                title="Edit categorical values"
+                visible={showFieldEditor}
+                destroyOnClose={true}
+                okButtonProps={{
+                    id: "edit-categoical-values-ok-button"
+                }}
+                onOk={(e: React.MouseEvent<HTMLElement>) => {
+                    // Don't want to submit form here!
+                    e.preventDefault()
 
-                   const profileCopy = {...profile}
+                    const profileCopy = {...profile}
 
-                   profileCopy.data_tag.fields[fieldBeingEditedName].discrete_categorical_values = currentCategoryValues
-                   profileCopy.data_tag.fields[fieldBeingEditedName].is_ordered = currentCategoryOrdered
-                   setProfile(profileCopy)
+                    profileCopy.data_tag.fields[fieldBeingEditedName].discrete_categorical_values = currentCategoryValues
+                    profileCopy.data_tag.fields[fieldBeingEditedName].is_ordered = currentCategoryOrdered
+                    setProfile(profileCopy)
 
-                   setCurrentCategoryValues([])
-                   setFieldBeingEditedName(undefined)
-                   setFieldEditorVisible(false)
-               }}
-               onCancel={() => {
-                   setFieldEditorVisible(false)
-                   setFieldBeingEditedName(undefined)
-               }}
+                    setCurrentCategoryValues([])
+                    setFieldBeingEditedName(undefined)
+                    setFieldEditorVisible(false)
+                }}
+                cancelButtonProps={{
+                    id: "edit-categoical-values-cancel-button"
+                }}
+                onCancel={() => {
+                    setFieldEditorVisible(false)
+                    setFieldBeingEditedName(undefined)
+                }}
         >
             <Container id="field-container">
                 <Row id="field-being-edited-row">
