@@ -5,6 +5,7 @@ import { Card } from "react-bootstrap"
 // Import React Flow
 import {
     Handle,
+    NodeProps,
     Position
 } from 'react-flow-renderer'
 
@@ -32,9 +33,9 @@ interface DataSourceNodeData {
 }
 
 
-export default function DataSourceNode(props): React.ReactElement {
+const DataSourceNode: React.FC<NodeProps<DataSourceNodeData>> = (props) => {
 
-    const data: DataSourceNodeData = props.data
+    const data = props.data
     const projectId: number = data.ProjectID
 
     const [taggedDataList, setTaggedDataList] = useState([])
@@ -108,3 +109,5 @@ export default function DataSourceNode(props): React.ReactElement {
         </BlueprintCard>
         
 }
+
+export default DataSourceNode;
