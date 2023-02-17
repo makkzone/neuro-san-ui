@@ -292,7 +292,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                     setFieldEditorVisible(false)
                 }}
                 okButtonProps={{
-                    id: "edit-categoical-values-ok-button"
+                    id: "edit-categorical-values-ok-button"
                 }}
                 okType="default"
                 onCancel={() => {
@@ -300,7 +300,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                     setFieldBeingEditedName(undefined)
                 }}
                 cancelButtonProps={{
-                    id: "edit-categoical-values-cancel-button"
+                    id: "edit-categorical-values-cancel-button"
                 }}
         >
             <Container id="field-container">
