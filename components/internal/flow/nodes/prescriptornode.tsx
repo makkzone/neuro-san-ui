@@ -740,7 +740,7 @@ export default function PrescriptorNode(props): ReactElement {
                     type="number" 
                     step="0.01" 
                     min={0.0}
-                    min={2.0}
+                    max={2.0}
                     defaultValue={ 1 }
                     value={ ParentPrescriptorState.evolution.initialization_range }
                     onChange={
