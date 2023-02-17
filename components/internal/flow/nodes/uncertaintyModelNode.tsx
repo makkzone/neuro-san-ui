@@ -100,6 +100,8 @@ export default function UncertaintyModelNode(props): ReactElement {
                         id={`${paramPrefix}-value`}
                         type="number"
                         step="1"
+                        min={ParentUncertaintyNodeState[param].min.toString()}
+                        max={ParentUncertaintyNodeState[param].max.toString()}
                         value={ParentUncertaintyNodeState[param].value.toString()}
                         onChange={event => onParamChange(event, param)}
                         style={{width: "100%"}}

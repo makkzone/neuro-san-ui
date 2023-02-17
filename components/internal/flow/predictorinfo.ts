@@ -28,6 +28,8 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
         "n_estimators": {
             "default_value": 100,
             "description": "The number of trees in the forest.",
+            "max": 200,
+            "min": 1,
             "type": "int"
         },
         "criterion": {
@@ -44,11 +46,15 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
                            If None, then nodes are expanded until all 
                            leaves are pure or until all leaves contain less than 
                            min_samples_split samples.`,
+            "max": 200,
+            "min": 1,
             "type": "int"
         },
         "min_samples_split": {
             "default_value": 2,
             "description": "The minimum number of samples required to split an internal node.",
+            "max": 4,
+            "min": 1,
             "type": "float"
         },
         "min_samples_leaf": {
@@ -63,6 +69,8 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
             If float, then min_samples_leaf is a fraction and ceil(min_samples_leaf * n_samples) 
             are the minimum number of samples for each node.
             `,
+            "max": 4,
+            "min": 1,
             "type": "float"
         },
         "min_weight_fraction_leaf": {
@@ -70,6 +78,8 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
             "description": `The minimum weighted fraction of the sum total of
                            weights (of all the input samples) required to be at a leaf node. 
                            Samples have equal weight when sample_weight is not provided.`,
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "max_features": {
@@ -94,6 +104,8 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
             "description": `Grow trees with max_leaf_nodes in best-first fashion. 
                            Best nodes are defined as relative reduction in impurity. 
                            If None then unlimited number of leaf nodes.`,
+            "max": 200,
+            "min": 1,
             "type": "int"
         },
         "min_impurity_decrease": {
@@ -111,6 +123,8 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
             
             N, N_t, N_t_R and N_t_L all refer to the weighted sum, if sample_weight is passed.
             `,
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "bootstrap": {
@@ -130,6 +144,8 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
                            decision_path and apply are all parallelized over the trees. 
                            None means 1 unless in a joblib.parallel_backend context. 
                            -1 means using all processors. See Glossary for more details.`,
+            "max": 8,
+            "min": 1,
             "type": "int"
         },
         "random_state": {
@@ -138,6 +154,8 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
                            used when building trees (if bootstrap=True) and the sampling of the 
                            features to consider when looking for the best split at each 
                            node (if max_features < n_features)`,
+            "max": 8,
+            "min": 0,
             "type": "int"
         },
         "warm_start": {
@@ -151,6 +169,8 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
             "description": `Complexity parameter used for Minimal Cost-Complexity Pruning. 
                            The subtree with the largest cost complexity that is smaller than 
                            ccp_alpha will be chosen. By default, no pruning is performed. `,
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "max_samples": {
@@ -163,6 +183,8 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
             If float, then draw max_samples * X.shape[0] samples. 
             Thus, max_samples should be in the interval (0, 1).
             `,
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         }
     },
@@ -193,16 +215,22 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
             "default_value": 100,
             "description": `Number of gradient boosted trees.  
                            Equivalent to number of boosting rounds.`,
+            "max": 200,
+            "min": 1,
             "type": "int"
         },
         "max_depth": {
             "default_value": 6,
             "description": "Maximum tree depth for base learners.",
+            "max": 16,
+            "min": 2,
             "type": "int"
         },
         "learning_rate": {
             "default_value": 0.3,
             "description": "Boosting learning rate (xgb's 'eta')",
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "verbosity": {
@@ -234,73 +262,101 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
             balance the threads.  Creating thread contention will significantly slow dowm both
             algorithms.
             `,
+            "max": 8,
+            "min": 1,
             "type": "int"
         },
         "gamma": {
             "default_value": 0.0,
             "description": `Minimum loss reduction required to make a further 
                            partition on a leaf node of the tree.`,
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "min_child_weight": {
             "default_value": 1.0,
             "description": `Minimum loss reduction required to make a further 
                            partition on a leaf node of the tree.`,
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "max_delta_step": {
             "default_value": 0.0,
             "description": "Maximum delta step we allow each tree's weight estimation to be.",
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "subsample": {
             "default_value": 1.0,
             "description": "Subsample ratio of the training instance.",
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "colsample_bytree": {
             "default_value": 1.0,
             "description": "Subsample ratio of columns when constructing each tree.",
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "colsample_bylevel": {
             "default_value": 1.0,
             "description": "Subsample ratio of columns for each level.",
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "colsample_bynode": {
             "default_value": 1.0,
             "description": "Subsample ratio of columns for each split.",
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "reg_alpha": {
             "default_value": 0.0,
             "description": "L1 regularization term on weights",
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "reg_lambda": {
             "default_value": 0.0,
             "description": "L2 regularization term on weights",
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "scale_pos_weight": {
             "default_value": 1.0,
             "description": "Balancing of positive and negative weights.",
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "random_state": {
             "default_value": 0,
             "description": "Random number seed.",
+            "max": 1000000,
+            "min": 0,
             "type": "int"
         },
         "base_score": {
             "default_value": 0.5,
             "description": "The initial prediction score of all instances, global bias.",
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "num_parallel_tree": {
             "default_value": 1,
             "description": "Used for boosting random forest.",
+            "max": 8,
+            "min": 1,
             "type": "int"
         },
         "importance_type": {
@@ -341,6 +397,8 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
         "n_estimators": {
             "default_value": 100,
             "description": "The number of trees in the forest.",
+            "max": 200,
+            "min": 2,
             "type": "int"
         },
         "criterion": {
@@ -357,11 +415,15 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
                            If None, then nodes are expanded until all 
                            leaves are pure or until all leaves contain less than 
                            min_samples_split samples.`,
+            "max": 200,
+            "min": 1,
             "type": "int"
         },
         "min_samples_split": {
             "default_value": 2,
             "description": "The minimum number of samples required to split an internal node.",
+            "max": 4,
+            "min": 1,
             "type": "float"
         },
         "min_samples_leaf": {
@@ -376,6 +438,8 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
             If float, then min_samples_leaf is a fraction and ceil(min_samples_leaf * n_samples) 
             are the minimum number of samples for each node.
             `,
+            "max": 4,
+            "min": 1,
             "type": "float"
         },
         "min_weight_fraction_leaf": {
@@ -383,6 +447,8 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
             "description": `The minimum weighted fraction of the sum total of
                            weights (of all the input samples) required to be at a leaf node. 
                            Samples have equal weight when sample_weight is not provided.`,
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "max_features": {
@@ -407,6 +473,8 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
             "description": `Grow trees with max_leaf_nodes in best-first fashion. 
                            Best nodes are defined as relative reduction in impurity. 
                            If None then unlimited number of leaf nodes.`,
+            "max": 200,
+            "min": 1,
             "type": "int"
         },
         "min_impurity_decrease": {
@@ -424,6 +492,8 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
             
             N, N_t, N_t_R and N_t_L all refer to the weighted sum, if sample_weight is passed.
             `,
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "bootstrap": {
@@ -443,6 +513,8 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
                            decision_path and apply are all parallelized over the trees. 
                            None means 1 unless in a joblib.parallel_backend context. 
                            -1 means using all processors. See Glossary for more details.`,
+            "max": 8,
+            "min": 1,
             "type": "int"
         },
         "random_state": {
@@ -451,6 +523,8 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
                            used when building trees (if bootstrap=True) and the sampling of the 
                            features to consider when looking for the best split at each 
                            node (if max_features < n_features)`,
+            "max": 8,
+            "min": 0,
             "type": "int"
         },
         "warm_start": {
@@ -464,6 +538,8 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
             "description": `Complexity parameter used for Minimal Cost-Complexity Pruning. 
                            The subtree with the largest cost complexity that is smaller than 
                            ccp_alpha will be chosen. By default, no pruning is performed. `,
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         },
         "max_samples": {
@@ -476,6 +552,8 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
             If float, then draw max_samples * X.shape[0] samples. 
             Thus, max_samples should be in the interval (0, 1).
             `,
+            "max": 1.0,
+            "min": 0.0,
             "type": "float"
         }
     }

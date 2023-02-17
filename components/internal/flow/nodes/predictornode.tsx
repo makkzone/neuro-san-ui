@@ -436,6 +436,8 @@ export default function PredictorNode(props): ReactElement {
                                 <input id={ `${flowPrefix}-${param}-value` }
                                     type="number"
                                     step="1"
+                                    min={ParentPredictorState.predictorParams[param].min.toString()}
+                                    max={ParentPredictorState.predictorParams[param].max.toString()}
                                     defaultValue={ParentPredictorState.predictorParams[param].default_value.toString()}
                                     value={ParentPredictorState.predictorParams[param].value.toString()}
                                     onChange={event => onParamChange(event, param)}
@@ -446,6 +448,8 @@ export default function PredictorNode(props): ReactElement {
                                 <input id={ `${flowPrefix}-${param}-value` }
                                     type="number"
                                     step="0.1"
+                                    min={ParentPredictorState.predictorParams[param].min.toString()}
+                                    max={ParentPredictorState.predictorParams[param].max.toString()}
                                     defaultValue={ParentPredictorState.predictorParams[param].default_value.toString()}
                                     value={ParentPredictorState.predictorParams[param].value.toString()}
                                     onChange={event => onParamChange(event, param)}

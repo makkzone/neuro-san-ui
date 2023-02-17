@@ -74,6 +74,8 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
     "max_iterations_optimizer": {
         value: 1000,
         description: "Maximum iterations for optimizer",
+        max: 2000,
+        min: 100,
         type: ParamType.INT,
         isAdvanced: true
     },
@@ -81,6 +83,8 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
     "num_svgp_inducing_points": {
         value: 50,
         description: "Number of inducing points for the SVGP model",
+        max: 100,
+        min: 1,
         type: ParamType.INT,
         isAdvanced: true
     },
