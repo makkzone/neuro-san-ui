@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 // Import Flow Renderer
 import {
     EdgeProps,
+  Node,
   getBezierPath,
   getEdgeCenter
 } from 'react-flow-renderer';
@@ -31,7 +32,9 @@ type PrescriptorEdgeData = {
     OutputOverrideCode: string
 }
 
-const PrescriptorEdge: React.FC<EdgeProps<PrescriptorEdgeData>>  = ({ id, sourceX, sourceY,
+export type PrescriptorEdge = Node<PrescriptorEdgeData>;
+
+const PrescriptorEdgeComponent: React.FC<EdgeProps<PrescriptorEdgeData>>  = ({ id, sourceX, sourceY,
                                         targetX, targetY,
                                         sourcePosition, targetPosition,
                                         style = {}, data, markerEnd
@@ -124,4 +127,4 @@ const PrescriptorEdge: React.FC<EdgeProps<PrescriptorEdgeData>>  = ({ id, source
     )
 }
 
-export default PrescriptorEdge;
+export default PrescriptorEdgeComponent;

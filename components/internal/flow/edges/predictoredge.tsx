@@ -1,11 +1,15 @@
 // Import Flow Renderer
 import {
   EdgeProps,
-  getBezierPath,
-  getMarkerEnd,
+  Node,
+  getBezierPath
 } from 'react-flow-renderer';
 
-const PredictorEdge: React.FC<EdgeProps> = ({ id, sourceX, sourceY,
+type PredictorEdgeData = null;
+
+export type PredictorEdge = Node<PredictorEdgeData>;
+
+const PredictorEdgeComponent: React.FC<EdgeProps<PredictorEdgeData>> = ({ id, sourceX, sourceY,
                                         targetX, targetY,
                                         sourcePosition, targetPosition,
                                         style = {}, markerEnd
@@ -28,4 +32,4 @@ const PredictorEdge: React.FC<EdgeProps> = ({ id, sourceX, sourceY,
             />
 }
 
-export default PredictorEdge;
+export default PredictorEdgeComponent;

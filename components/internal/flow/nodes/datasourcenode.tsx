@@ -5,6 +5,7 @@ import { Card } from "react-bootstrap"
 // Import React Flow
 import {
     Handle,
+    Node,
     NodeProps,
     Position
 } from 'react-flow-renderer'
@@ -32,8 +33,9 @@ interface DataSourceNodeData {
     readonly SelfStateUpdateHandler
 }
 
+export type DataSourceNode = Node<DataSourceNodeData>;
 
-const DataSourceNode: React.FC<NodeProps<DataSourceNodeData>> = (props) => {
+const DataSourceNodeComponent: React.FC<NodeProps<DataSourceNodeData>> = (props) => {
 
     const data = props.data
     const projectId: number = data.ProjectID
@@ -110,4 +112,4 @@ const DataSourceNode: React.FC<NodeProps<DataSourceNodeData>> = (props) => {
         
 }
 
-export default DataSourceNode;
+export default DataSourceNodeComponent;

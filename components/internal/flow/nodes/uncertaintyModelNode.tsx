@@ -1,11 +1,11 @@
 // React components
-import {Dispatch, ReactElement, SetStateAction, useState} from 'react'
+import {Dispatch, SetStateAction, useState} from 'react'
 
 // 3rd party components
 import {Card, Collapse} from "react-bootstrap"
 import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
 import {InfoSignIcon, Popover, Text, Tooltip,} from "evergreen-ui"
-import {Handle, Position as HandlePosition, NodeProps} from 'react-flow-renderer'
+import {Handle, Position as HandlePosition, NodeProps, Node} from 'react-flow-renderer'
 import {AiFillDelete} from "react-icons/ai";
 import {GrSettingsOption} from "react-icons/gr"
 import {NotificationType, sendNotification} from "../../../../controller/notification";
@@ -42,7 +42,9 @@ interface UncertaintyModelNodeData {
     readonly GetElementIndex: (nodeID: string) => number
 }
 
-const UncertaintyModelNode: React.FC<NodeProps<UncertaintyModelNodeData>> = (props) => {
+export type UncertaintyModelNode = Node<UncertaintyModelNodeData>;
+
+const UncertaintyModelNodeComponent: React.FC<NodeProps<UncertaintyModelNodeData>> = (props) => {
     /*
     This function renders the uncertainty model node
     */
@@ -284,4 +286,4 @@ const UncertaintyModelNode: React.FC<NodeProps<UncertaintyModelNodeData>> = (pro
     </BlueprintCard>
 }
 
-export default UncertaintyModelNode;
+export default UncertaintyModelNodeComponent;

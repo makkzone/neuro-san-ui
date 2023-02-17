@@ -1,7 +1,7 @@
 // Import React components
 import {
     useState,
-    useEffect, ReactElement
+    useEffect
 } from 'react'
 
 // Import 3rd party components
@@ -30,7 +30,8 @@ import {Tooltip as AntdTooltip} from "antd"
 import {
     Handle,
     Position as HandlePosition,
-    NodeProps
+    NodeProps,
+    Node
 } from 'react-flow-renderer'
 
 import SyntaxHighlighter from 'react-syntax-highlighter';
@@ -72,7 +73,9 @@ const defaultRepresentationConfig = {
     number_of_building_block_rules: 3
 }
 
-const PrescriptorNode: React.FC<NodeProps<PrescriptorNodeData>> = (props) => {
+export type PrescriptorNode = Node<PrescriptorNodeData>;
+
+const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (props) => {
     /*
     This function is responsible for rendering the prescriptor node.
     */
@@ -897,4 +900,4 @@ const PrescriptorNode: React.FC<NodeProps<PrescriptorNodeData>> = (props) => {
     </BlueprintCard>
 }
 
-export default PrescriptorNode;
+export default PrescriptorNodeComponent;

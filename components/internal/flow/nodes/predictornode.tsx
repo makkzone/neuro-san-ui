@@ -25,6 +25,7 @@ import {
     getOutgoers,
     Handle,
     Position as HandlePosition,
+    Node,
     NodeProps
 } from 'react-flow-renderer'
 
@@ -95,7 +96,9 @@ interface PredictorNodeData {
     readonly GetElementIndex: (nodeID: string) => number
 }
 
-const PredictorNode: React.FC<NodeProps<PredictorNodeData>> = (props) => {
+export type PredictorNode = Node<PredictorNodeData>
+
+const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) => {
     /*
     This function is responsible to render the Predictor Node
     */
@@ -780,4 +783,4 @@ const PredictorNode: React.FC<NodeProps<PredictorNodeData>> = (props) => {
     </BlueprintCard>
 }
 
-export default PredictorNode;
+export default PredictorNodeComponent;
