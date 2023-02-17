@@ -5,8 +5,7 @@ import React, { useState } from 'react';
 import {
     EdgeProps,
   getBezierPath,
-  getEdgeCenter,
-  getMarkerEnd,
+  getEdgeCenter
 } from 'react-flow-renderer';
 
 // Import third party components
@@ -28,7 +27,11 @@ import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs';
 
 const foreignObjectSize = 20;
 
-const PrescriptorEdge: React.FC<EdgeProps>  = ({ id, sourceX, sourceY,
+type PrescriptorEdgeData = {
+    OutputOverrideCode: string
+}
+
+const PrescriptorEdge: React.FC<EdgeProps<PrescriptorEdgeData>>  = ({ id, sourceX, sourceY,
                                         targetX, targetY,
                                         sourcePosition, targetPosition,
                                         style = {}, data, markerEnd
