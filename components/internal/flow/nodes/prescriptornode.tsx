@@ -601,7 +601,7 @@ export default function PrescriptorNode(props): ReactElement {
                     id={ `${flowPrefix}-remove-population-percentage-input` }
                     type="number" 
                     step="0.01" 
-                    min={0.0}
+                    min={0.01}
                     max={0.99}
                     defaultValue={ 0.8 }
                     value={ ParentPrescriptorState.evolution.remove_population_pct }
