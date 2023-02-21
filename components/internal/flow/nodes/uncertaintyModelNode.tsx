@@ -84,6 +84,7 @@ export default function UncertaintyModelNode(props): ReactElement {
 
     const flowIndex = GetElementIndex(NodeID) + 1
     const flowPrefix = `uncertaintynode-${flowIndex}`
+    const defaultParams = UNCERTAINTY_MODEL_PARAMS
 
     function getInputComponent(param, item) {
         const paramPrefix = `${flowPrefix}-${param}`
@@ -95,13 +96,14 @@ export default function UncertaintyModelNode(props): ReactElement {
             <div id={ `${paramPrefix}-data-type-div` }
                 className="item2 col-span-4">
                 {
-                    item.type === ParamType.INT &&
+                    (item.type === ParamType.INT ||
+                     item.type === ParamType.FLOAT) &&
                     <input
                         id={`${paramPrefix}-value`}
                         type="number"
                         step="1"
-                        min={ParentUncertaintyNodeState[param].min.toString()}
-                        max={ParentUncertaintyNodeState[param].max.toString()}
+                        min={defaultParams[param].min.toString()}
+                        max={defaultParams[param].max.toString()}
                         value={ParentUncertaintyNodeState[param].value.toString()}
                         onChange={event => onParamChange(event, param)}
                         style={{width: "100%"}}
