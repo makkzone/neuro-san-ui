@@ -19,6 +19,7 @@ import Slider from "rc-slider"
 import 'rc-slider/assets/index.css'
 import {useSession} from "next-auth/react"
 import {Tooltip as AntdTooltip} from "antd"
+import {ConfigNumeric} from "../confignumeric"
 
 // React Flow
 import {
@@ -436,27 +437,13 @@ export default function PredictorNode(props): ReactElement {
                     <div id={ `${flowPrefix}-${param}-data-type-div` }
                         className="item2 col-span-8">
                         {
-                            defaultParams[param].type === "int" &&
-                                <input id={ `${flowPrefix}-${param}-value` }
-                                    type="number"
-                                    step="1"
-                                    min={defaultParams[param].min.toString()}
-                                    max={defaultParams[param].max.toString()}
-                                    defaultValue={defaultParams[param].default_value.toString()}
-                                    value={ParentPredictorState.predictorParams[param].value.toString()}
-                                    onChange={event => onParamChange(event, param)}
-                                />
-                        }
-                        {
-                            defaultParams[param].type === "float" &&
-                                <input id={ `${flowPrefix}-${param}-value` }
-                                    type="number"
-                                    step="0.1"
-                                    min={defaultParams[param].min.toString()}
-                                    max={defaultParams[param].max.toString()}
-                                    defaultValue={defaultParams[param].default_value.toString()}
-                                    value={ParentPredictorState.predictorParams[param].value.toString()}
-                                    onChange={event => onParamChange(event, param)}
+                            (defaultParams[param].type === "int" ||
+                             defaultParams[param].type === "float") &&
+                                <ConfigNumeric id={ `${flowPrefix}-${param}-value` }
+                                    ParamName={ `${param}` }
+                                    DefaultParam={defaultParams[param]}
+                                    Value={ParentPredictorState.predictorParams[param].value}
+                                    OnParamChange={event => onParamChange(event, param)}
                                 />
                         }
                         {

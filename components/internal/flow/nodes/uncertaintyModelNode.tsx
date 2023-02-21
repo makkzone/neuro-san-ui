@@ -9,6 +9,7 @@ import {Handle, Position as HandlePosition} from 'react-flow-renderer'
 import {AiFillDelete} from "react-icons/ai";
 import {GrSettingsOption} from "react-icons/gr"
 import {NotificationType, sendNotification} from "../../../../controller/notification";
+import {ConfigNumeric} from "../confignumeric"
 
 // Custom components
 import {ParamType, UNCERTAINTY_MODEL_PARAMS} from "../uncertaintymodelinfo"
@@ -98,14 +99,12 @@ export default function UncertaintyModelNode(props): ReactElement {
                 {
                     (item.type === ParamType.INT ||
                      item.type === ParamType.FLOAT) &&
-                    <input
+                    <ConfigNumeric
                         id={`${paramPrefix}-value`}
-                        type="number"
-                        step="1"
-                        min={defaultParams[param].min.toString()}
-                        max={defaultParams[param].max.toString()}
-                        value={ParentUncertaintyNodeState[param].value.toString()}
-                        onChange={event => onParamChange(event, param)}
+                        ParamName={ `${param}` }
+                        DefaultParam={defaultParams[param]}
+                        Value={ParentUncertaintyNodeState[param].value}
+                        OnParamChange={event => onParamChange(event, param)}
                         style={{width: "100%"}}
                     />
                 }
