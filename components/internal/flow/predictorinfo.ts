@@ -2,7 +2,7 @@
 Configuration settings and constants for predictor configuration popup
  */
 
-interface PredictorParamFields {
+export interface PredictorParamFields {
     default_value: boolean | number | string,
     description: string,
 
