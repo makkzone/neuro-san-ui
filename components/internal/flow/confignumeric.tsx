@@ -1,3 +1,4 @@
+import React from 'react'
 
 /**
  * This interface is used to define the props that the numeric input expects
@@ -20,7 +21,7 @@ interface ConfigNumericProps {
     defaultParam: object,
 
     // Function to be called when input changes
-    onParamChange
+    onParamChange: (event: React.FormEvent<HTMLInputElement>, paramName: string) => void
 }
 
 

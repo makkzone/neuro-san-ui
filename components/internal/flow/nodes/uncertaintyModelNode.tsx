@@ -1,5 +1,5 @@
 // React components
-import {Dispatch, ReactElement, SetStateAction, useState} from 'react'
+import React, {Dispatch, ReactElement, SetStateAction, useState} from 'react'
 
 // 3rd party components
 import {Card, Collapse} from "react-bootstrap"
@@ -62,7 +62,7 @@ export default function UncertaintyModelNode(props): ReactElement {
     // For showing advanced configuration settings
     const [showAdvanced, setShowAdvanced] = useState(false)
 
-    const onParamChange = (event, paramName) => {
+    const onParamChange = (event: React.FormEvent<HTMLInputElement>, paramName: string) => void {
         /*
         This function is used to update the state of the predictor
         parameters.

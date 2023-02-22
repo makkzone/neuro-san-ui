@@ -1,5 +1,5 @@
 // React components
-import {Dispatch, ReactElement, SetStateAction, useEffect, useState} from 'react'
+import React, {Dispatch, ReactElement, SetStateAction, useEffect, useState} from 'react'
 
 // 3rd party components
 import {Row, Col, Card, Container} from "react-bootstrap"
@@ -281,7 +281,7 @@ export default function PredictorNode(props): ReactElement {
 
     }
 
-    const onParamChange = (event, paramName) => {
+    const onParamChange = (event: React.FormEvent<HtmlInputElement>, paramName: string) => void {
         /*
         This function is used to update the state of the predictor
         parameters.
