@@ -101,7 +101,7 @@ export default function UncertaintyModelNode(props): ReactElement {
                      item.type === ParamType.FLOAT) &&
                     <ConfigNumeric
                         id={`${paramPrefix}-value`}
-                        ParamName={ `${param}` }
+                        ParamName={param}
                         DefaultParam={defaultParams[param]}
                         Value={ParentUncertaintyNodeState[param].value.toString()}
                         OnParamChange={event => onParamChange(event, param)}
