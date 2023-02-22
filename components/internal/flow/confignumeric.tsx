@@ -32,7 +32,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
         */
 
         // Default step if one is not defined in defaults for param
-        step = "1"  // For integers
+        let step = "1"  // For integers
         if (defaultParam.type === "float") {
             step = "0.01"
         }
@@ -53,7 +53,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
         */
 
         // Default min if one is not defined in defaults for param
-        min = undefined
+        let min = undefined
         if (defaultParam.hasOwnProperty('min')) {
             min = defaultParam.min.toString()
         }
@@ -70,7 +70,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
         */
 
         // Default max if one is not defined in defaults for param
-        max = undefined
+        let max = undefined
         if (defaultParam.hasOwnProperty('max')) {
             max = defaultParam.max.toString()
         }
@@ -86,7 +86,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
                 undefined if none exists in the defaultParam.
         */
 
-        default_value = undefined
+        let default_value = undefined
         if (defaultParam.hasOwnProperty('default_value')) {
             default_value = defaultParam.default_value.toString()
         }
