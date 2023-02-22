@@ -47,7 +47,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
         }
 
         if (defaultParam.hasOwnProperty('step')) {
-            step = defaultParam.step
+            step = defaultParam.step.toString()
         }
 
         return step
