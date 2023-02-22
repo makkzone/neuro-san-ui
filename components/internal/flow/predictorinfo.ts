@@ -32,7 +32,7 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
         "n_estimators": {
             "default_value": 100,
             "description": "The number of trees in the forest.",
-            "max": 200,
+            "max": 1000,
             "min": 1,
             "type": "int"
         },
@@ -55,10 +55,11 @@ export const SUPPORTED_REGRESSION_MODELS: SupportedModels = {
             "type": "int"
         },
         "min_samples_split": {
-            "default_value": 2,
-            "description": "The minimum number of samples required to split an internal node.",
-            "max": 4,
-            "min": 1,
+            "default_value": 0.02,
+            "description": `The minimum number of samples required to split an internal node
+                            as specified by a percentage of actual samples.`,
+            "max": 0.99,
+            "min": 0.01
             "type": "float"
         },
         "min_samples_leaf": {
