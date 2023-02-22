@@ -11,16 +11,16 @@ interface ConfigNumericProps {
     style?
 
     // Name of the parameter represented by the component
-    ParamName: string,
+    paramName: string,
 
     // Initial value of the component
-    Value: string,
+    value: string,
 
     // Default config for param represented by input
-    DefaultParam: object,
+    defaultParam: object,
 
     // Function to be called when input changes
-    OnParamChange
+    onParamChange
 }
 
 
@@ -91,11 +91,11 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
 
 
     const id = props.id
-    const param = props.ParamName
-    const useStep = getStep(props.DefaultParam)
-    const useMin = getMin(props.DefaultParam)
-    const useMax = getMax(props.DefaultParam)
-    const useDefaultValue = getDefaultValue(props.DefaultParam)
+    const param = props.paramName
+    const useStep = getStep(props.defaultParam)
+    const useMin = getMin(props.defaultParam)
+    const useMax = getMax(props.defaultParam)
+    const useDefaultValue = getDefaultValue(props.defaultParam)
     const value = props.Value.toString()
 
     return  <input id={id}
@@ -105,7 +105,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
                 max={useMax}
                 defaultValue={useDefaultValue}
                 value={value}
-                onChange={event => props.OnParamChange(event, param)}
+                onChange={event => props.onParamChange(event, param)}
                 style={props.style}
             />
 }
