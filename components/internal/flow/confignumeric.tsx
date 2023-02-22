@@ -95,7 +95,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
     const useMin = getMin(props.defaultParam)
     const useMax = getMax(props.defaultParam)
     const useDefaultValue = getDefaultValue(props.defaultParam)
-    const value = props.Value.toString()
+    const value = props.value.toString()
 
     return  <input id={id}
                 type="number"
