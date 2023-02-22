@@ -30,13 +30,13 @@ interface ConfigNumericProps {
  */
 export default function ConfigNumeric(props: ConfigNumericProps) {
 
+    /**
+     *  Get the step from the default parameter description
+     *  @param defaultParam the default parameter
+     *  @return the step in the structure, if that exists, or a default
+     *      given the parameter's type.
+     */
     function getStepFromDefaultParam(defaultParam): string {
-        /*
-        Get the step from the default parameter description
-        @param defaultParam the default parameter
-        @return the step in the structure, if that exists, or a default
-                given the parameter's type.
-        */
 
         // Default step if one is not defined in defaults for param
         let step = "1"  // For integers
@@ -51,13 +51,13 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
         return step
     }
 
+    /**
+     *  Get the minimum from the default parameter description
+     *  @param defaultParam the default parameter
+     *  @return the minimum in the structure, if that exists,
+     *          undefined if none exists in the defaultParam.
+     */
     function getMinFromDefaultParam(defaultParam): string {
-        /*
-        Get the minimum from the default parameter description
-        @param defaultParam the default parameter
-        @return the minimum in the structure, if that exists,
-                undefined if none exists in the defaultParam.
-        */
 
         // Default min if one is not defined in defaults for param
         let min = undefined
@@ -68,13 +68,13 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
         return min
     }
 
+    /**
+     *  Get the maximum from the default parameter description
+     *  @param defaultParam the default parameter
+     *  @return the maximum in the structure, if that exists,
+     *          undefined if none exists in the defaultParam.
+     */
     function getMaxFromDefaultParam(defaultParam): string {
-        /*
-        Get the maximum from the default parameter description
-        @param defaultParam the default parameter
-        @return the maximum in the structure, if that exists,
-                undefined if none exists in the defaultParam.
-        */
 
         // Default max if one is not defined in defaults for param
         let max = undefined
@@ -85,13 +85,13 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
         return max
     }
 
+    /**
+     *  Get the default value from the default parameter description
+     *  @param defaultParam the default parameter description
+     *  @return the default_value in the structure, if that exists,
+     *          undefined if none exists in the defaultParam.
+     */
     function getDefaultValueFromDefaultParam(defaultParam): string {
-        /*
-        Get the default value from the default parameter description
-        @param defaultParam the default parameter description
-        @return the default_value in the structure, if that exists,
-                undefined if none exists in the defaultParam.
-        */
 
         let default_value = undefined
         if (defaultParam.hasOwnProperty('default_value')) {
