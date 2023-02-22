@@ -19,7 +19,7 @@ import Slider from "rc-slider"
 import 'rc-slider/assets/index.css'
 import {useSession} from "next-auth/react"
 import {Tooltip as AntdTooltip} from "antd"
-import {ConfigNumeric} from "../confignumeric"
+import ConfigNumeric from "../confignumeric"
 
 // React Flow
 import {

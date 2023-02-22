@@ -9,7 +9,7 @@ import {Handle, Position as HandlePosition} from 'react-flow-renderer'
 import {AiFillDelete} from "react-icons/ai";
 import {GrSettingsOption} from "react-icons/gr"
 import {NotificationType, sendNotification} from "../../../../controller/notification";
-import {ConfigNumeric} from "../confignumeric"
+import ConfigNumeric from "../confignumeric"
 
 // Custom components
 import {ParamType, UNCERTAINTY_MODEL_PARAMS} from "../uncertaintymodelinfo"
