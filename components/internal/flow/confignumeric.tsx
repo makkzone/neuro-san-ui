@@ -1,3 +1,6 @@
+import {PredictorParamFields} from "predictorinfo"
+import {UncertaintyModelParamField} from "uncertaintymodelinfo"
+
 /**
  * This interface is used to define the props that the numeric input expects
  */
@@ -16,7 +19,7 @@ interface ConfigNumericProps {
     value: string,
 
     // Default config for param represented by input
-    defaultParam: object,
+    defaultParam: PredictorParamFields | UncertaintyModelParamField,
 
     // Function to be called when input changes
     onParamChange: (event, paramName: string) => void
@@ -35,7 +38,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the step in the structure, if that exists, or a default
      *      given the parameter's type.
      */
-    function getStep(defaultParam): string {
+    function getStep(defaultParam: PredictorParamFields | UncertaintyModelParamField): string {
 
         // Default step if one is not defined in defaults for param
         let step = "1"  // For integers
@@ -56,11 +59,10 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the minimum in the structure, if that exists,
      *          undefined if none exists in the defaultParam.
      */
-    function getMin(defaultParam): string {
+    function getMin(defaultParam: PredictorParamFields | UncertaintyModelParamField): string {
 
         // Default min if one is not defined in defaults for param
-        const min = defaultParam.min != null && defaultParam.min.toString()
-        return min
+        return defaultParam.min != null && defaultParam.min.toString()
     }
 
     /**
@@ -69,11 +71,10 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the maximum in the structure, if that exists,
      *          undefined if none exists in the defaultParam.
      */
-    function getMax(defaultParam): string {
+    function getMax(defaultParam: PredictorParamFields | UncertaintyModelParamField): string {
 
         // Default max if one is not defined in defaults for param
-        const max = defaultParam.max != null && defaultParam.max.toString()
-        return max
+        return defaultParam.max != null && defaultParam.max.toString()
     }
 
     /**
@@ -82,12 +83,10 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the default_value in the structure, if that exists,
      *          undefined if none exists in the defaultParam.
      */
-    function getDefaultValue(defaultParam): string {
+    function getDefaultValue(defaultParam: PredictorParamFields | UncertaintyModelParamField): string {
 
-        const default_value = defaultParam.default_value != null && defaultParam.default_value.toString()
-        return default_value
+        return defaultParam.default_value != null && defaultParam.default_value.toString()
     }
-
 
     const id = props.id
     const param = props.paramName
