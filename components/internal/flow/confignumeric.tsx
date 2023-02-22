@@ -36,7 +36,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the step in the structure, if that exists, or a default
      *      given the parameter's type.
      */
-    function getStepFromDefaultParam(defaultParam): string {
+    function getStep(defaultParam): string {
 
         // Default step if one is not defined in defaults for param
         let step = "1"  // For integers
@@ -57,7 +57,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the minimum in the structure, if that exists,
      *          undefined if none exists in the defaultParam.
      */
-    function getMinFromDefaultParam(defaultParam): string {
+    function getMin(defaultParam): string {
 
         // Default min if one is not defined in defaults for param
         const min = defaultParam.min != null && defaultParam.min.toString()
@@ -70,7 +70,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the maximum in the structure, if that exists,
      *          undefined if none exists in the defaultParam.
      */
-    function getMaxFromDefaultParam(defaultParam): string {
+    function getMax(defaultParam): string {
 
         // Default max if one is not defined in defaults for param
         const max = defaultParam.max != null && defaultParam.max.toString()
@@ -83,7 +83,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the default_value in the structure, if that exists,
      *          undefined if none exists in the defaultParam.
      */
-    function getDefaultValueFromDefaultParam(defaultParam): string {
+    function getDefaultValue(defaultParam): string {
 
         const default_value = defaultParam.default_value != null && defaultParam.default_value.toString()
         return default_value
@@ -92,10 +92,10 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
 
     const id = props.id
     const param = props.ParamName
-    const useStep = getStepFromDefaultParam(props.DefaultParam)
-    const useMin = getMinFromDefaultParam(props.DefaultParam)
-    const useMax = getMaxFromDefaultParam(props.DefaultParam)
-    const useDefaultValue = getDefaultValueFromDefaultParam(props.DefaultParam)
+    const useStep = getStep(props.DefaultParam)
+    const useMin = getMin(props.DefaultParam)
+    const useMax = getMax(props.DefaultParam)
+    const useDefaultValue = getDefaultValue(props.DefaultParam)
     const value = props.Value.toString()
 
     return  <input id={id}
