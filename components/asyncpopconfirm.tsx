@@ -102,6 +102,5 @@ export function AsyncPopconfirm(props: AsyncPopconfirmProps) {
                         visible: NOT_VISIBLE
                     })
                 }} 
-            >
-            </Popconfirm>
+            />
 }
