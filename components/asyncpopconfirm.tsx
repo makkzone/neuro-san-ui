@@ -1,4 +1,4 @@
-import {Popconfirm, TooltipPlacement} from "antd"
+import {Popconfirm} from "antd"
 import {ReactNode} from "react"
 
 const NOT_VISIBLE: number = -1
@@ -34,8 +34,6 @@ interface AsyncPopconfirmProps {
     confirmData?: object,
 
     index?: number,
-
-    placement?: TooltipPlacement
 }
 
 /**
@@ -65,7 +63,6 @@ export function AsyncPopconfirm(props: AsyncPopconfirmProps) {
     const onConfirm = props.onConfirm
     const confirmData = props.confirmData
     const index = (props.index !== undefined) ? props.index : VISIBLE
-    const placement = (props.placement !== undefined) ? props.placement : "left"
 
     const title = (typeof props.message == "string" || props.message instanceof String)
                     ? <span id={ `${id}-message` }>{message}</span>
@@ -81,7 +78,7 @@ export function AsyncPopconfirm(props: AsyncPopconfirmProps) {
     return <Popconfirm id={id}
                 open={isVisible(confirmProps, index)}
                 title={title}
-                placement={placement}
+                placement="left"
                 okType="default"
                 okButtonProps={{
                     id: `${id}-ok-button`
