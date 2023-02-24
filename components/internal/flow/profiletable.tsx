@@ -25,7 +25,7 @@ export default function ProfileTable(props: ProfiletableProps) {
     const [newItem, setNewItem] = useState(null)
 
     // Declare table headers
-    const TableHeaders = [
+    const tableHeaders = [
         "Field Name",
         "ESP Type/Error",
         "Data Type",
@@ -35,17 +35,23 @@ export default function ProfileTable(props: ProfiletableProps) {
         "Max",
         "Mean",
         "Sum",
-        "Std Dev",
-        "Has Nan",
+        "Std Dev"
     ]
+    
     // Create Table header elements
     const tableHeaderElements: React.ReactElement[] = [];
-    TableHeaders.forEach(header => {
+
+    function isContinuous(field: string) {
+        return fields[field].valued === "CONTINUOUS"
+    }
+
+    tableHeaders.forEach(header => {
         tableHeaderElements.push(
             <th id={header}
                 key={header}
                 scope="col"
-                className="px-10 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+               
             >
                 { header }
             </th>
@@ -60,8 +66,7 @@ export default function ProfileTable(props: ProfiletableProps) {
         "REJECTED": "#D4B4B4FF"
     }
 
-    const tableCellClassName = "px-10 py-3 text-center text-xs font-medium text-gray-900 tracking-wider"
-    const rangeTableCellClassName = "px-2 py-3 text-center text-xs font-medium text-gray-900 tracking-wider"
+    const tableCellClassName = "py-3 text-center text-xs font-medium text-gray-900 tracking-wider"
 
     // Fields are in arbitrary order as returned from DataProfiler (gRPC runtime jumbles the keys since maps are
     // defined as not having a key order)
@@ -77,18 +82,22 @@ export default function ProfileTable(props: ProfiletableProps) {
     const fieldRows = fieldsInCsvOrder.map((field) =>
         <tr id={ `${field}` }
             key={field}
-            style={{backgroundColor: caoColorCoding[fields[field].esp_type]}}>
+            style={{backgroundColor: caoColorCoding[fields[field].esp_type]}}
+        >
+            {/*Field name*/}
             <td id={ `${field}-name` } className={tableCellClassName}>
                 <span id={ `${field}-name-label` }
-                    className={"px-2 inline-flex text-xs leading-5 font-semibold rounded-full"}>
+                >
                     {field}
                 </span>
             </td>
+            
+            {/*CAO type*/}
             <td id={ `${field}-esp-type` } className={tableCellClassName}>
                 <select id={ `${field}-esp-type-select` }
                     name={`${field}-esp_type`}
                     value={fields[field].esp_type}
-                    className="w-32"
+                    className="w-18"
                     onChange={event => {
                         const profileCopy = {...profile}
                         profileCopy.data_tag.fields[field].esp_type = event.target.value
@@ -100,11 +109,13 @@ export default function ProfileTable(props: ProfiletableProps) {
                     <option id={ `${field}-esp-type-outcome` } value="OUTCOME">OUTCOME</option>
                 </select>
             </td>
+            
+            {/*Data type -- float, int etc. */}
             <td id={ `${field}-data-type` } className={tableCellClassName}>
                 <select id={ `${field}-data-type-select` }
                     name={`${field}-data_type`}
                     value={fields[field].data_type}
-                    className="w-32"
+                    className="w-16"
                     onChange={event => {
                         const profileCopy = {...profile}
                         profileCopy.data_tag.fields[field].data_type = DataType[event.target.value]
@@ -117,11 +128,13 @@ export default function ProfileTable(props: ProfiletableProps) {
                     <option id={ `${field}-data-type-bool` }   value="BOOL">BOOL</option>
                 </select>
             </td>
-            <td id={ `${field}-data-continuity` } className={tableCellClassName}>
+            
+            {/*Valued type (categorical or continuous)*/}
+            <td id={ `${field}-data-continuity` } className={tableCellClassName} >
                 <select id={ `${field}-data-continuity-select` }
                     name={`${field}-valued`}
                     value={fields[field].valued}
-                    className="w-32"
+                    className="w-24"
                     onChange={event => {
                         const profileCopy = {...profile}
                         profileCopy.data_tag.fields[field].valued = event.target.value
@@ -138,7 +151,9 @@ export default function ProfileTable(props: ProfiletableProps) {
                     </option>
                 </select>
             </td>
-            <td id={ `${field}-categorical` } className={tableCellClassName}>
+            
+            {/*Available values, if categorical*/}
+            <td id={ `${field}-categorical` } className={tableCellClassName} >
                 {fields[field].valued === "CATEGORICAL"
                     ?   <span id={ `${field}-categorical-span` } style={{"display": "flex"}}>
                             <select id={ `${field}-categorical-select` }
@@ -175,11 +190,15 @@ export default function ProfileTable(props: ProfiletableProps) {
                     :   "N/A"
                 }
             </td>
-            <td id={ `${field}-min-range` } className={rangeTableCellClassName}>
-                {fields[field].valued === "CONTINUOUS"
-                    ?   <Form.Group id={ `${field}-min-range-data` } className="mb-3">
+            
+            {/*Min value*/}
+            <td id={ `${field}-min-range` } className={tableCellClassName} >
+                {isContinuous(field)
+                    ?   <Form.Group id={ `${field}-min-range-data` }>
                             <Form.Control
                                 id={`${field}-min-range-control`}
+                                className="m-0 p-0 mx-auto"
+                                style={{width: "16ch"}}
                                 name={`${field}-min-range`}
                                 type="number"
                                 value={fields[field].range[0]}
@@ -193,10 +212,15 @@ export default function ProfileTable(props: ProfiletableProps) {
                     :   "N/A"
                 }
             </td>
-            <td id={ `${field}-max-range` } className={rangeTableCellClassName}>
-                {fields[field].valued === "CONTINUOUS"
-                    ?   <Form.Group id={ `${field}-max-range-group` } className="mb-3">
-                            <Form.Control id={`${field}-max-range-control`}
+            
+            {/*Max value*/}
+            <td id={ `${field}-max-range` } className={tableCellClassName}>
+                {isContinuous(field)
+                    ?   <Form.Group id={ `${field}-max-range-group` }>
+                            <Form.Control 
+                                id={`${field}-max-range-control`}
+                                className="m-0 p-0 mx-auto"
+                                style={{width: "16ch"}}
                                 name={`${field}-max-range`}
                                 type="number"
                                 value={fields[field].range[1]}
@@ -210,17 +234,20 @@ export default function ProfileTable(props: ProfiletableProps) {
                     : "N/A"
                 }
             </td>
+            
+            {/*Mean*/}
             <td id={ `${field}-mean` } className={tableCellClassName}>
-                {fields[field].valued === "CONTINUOUS" ? fields[field].mean : "N/A"}
+                {isContinuous(field) ? fields[field].mean : "N/A"}
             </td>
+            
+            {/*Sum*/}
             <td id={ `${field}-sum` } className={tableCellClassName}>
-                {fields[field].valued === "CONTINUOUS" ? fields[field].sum : "N/A"}
+                {isContinuous(field) ? fields[field].sum : "N/A"}
             </td>
+            
+            {/*Stddev*/}
             <td id={ `${field}-std-dev` } className={tableCellClassName}>
-                {fields[field].valued === "CONTINUOUS" ? fields[field].std_dev : "N/A"}
-            </td>
-            <td id={ `${field}-has-nan` } className={tableCellClassName}>
-                {fields[field].has_nan.toString()}
+                {isContinuous(field) ? fields[field].std_dev : "N/A"}
             </td>
         </tr>
     )
@@ -274,7 +301,7 @@ export default function ProfileTable(props: ProfiletableProps) {
         <Modal    // eslint-disable-line enforce-ids-in-jsx/missing-ids
                   // 2/6/23 DEF - Modal doesn't have an id property when compiling
                 title="Edit categorical values"
-                visible={showFieldEditor}
+                open={showFieldEditor}
                 destroyOnClose={true}
                 closable={false}
                 onOk={(e: React.MouseEvent<HTMLElement>) => {
@@ -417,7 +444,9 @@ export default function ProfileTable(props: ProfiletableProps) {
                                // 2/6/23 DEF - DragDropContext does not have an id property when compiling
         onDragEnd={(dragResult) => {
             // Prevent dragging out of bounds
-            if (!dragResult.destination) return;
+            if (!dragResult.destination) {
+                return;
+            }
 
             // Reorder list based on where user dropped item
             const items = currentCategoryValues.slice()
@@ -435,7 +464,8 @@ export default function ProfileTable(props: ProfiletableProps) {
                     className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                     <div id="profile-table-div-4"
                         className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                        <table id="profile-table" className="min-w-full divide-y divide-gray-200">
+                        <table id="profile-table" className="min-w-full divide-y divide-gray-200" 
+                        >
                             <thead id="profile-table-header" className="bg-gray-50">
                                 <tr id="profile-table-header-elements">
                                     {tableHeaderElements}
