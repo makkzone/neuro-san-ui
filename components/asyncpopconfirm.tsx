@@ -40,10 +40,10 @@ interface AsyncPopconfirmProps {
 }
 
 /**
- * Exposed function that can asynchronously bring up the AsycnPopconfirm component
+ * Exposed function so onClick functions (for buttons, say) can bring up the AsyncPopconfirm component
  * XXX Doc params
  */
-export async function showAsyncPopconfirm(confirmProps: ConfirmProps,
+export function showAsyncPopconfirm(confirmProps: ConfirmProps,
                                           setConfirmProps: (confirmProps: ConfirmProps) => void,
                                           confirmData: object = null,
                                           index: number = VISIBLE) {
