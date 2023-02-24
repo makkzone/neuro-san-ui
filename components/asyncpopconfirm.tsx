@@ -1,5 +1,6 @@
 import {Popconfirm} from "antd"
 import {ReactNode} from "react"
+import {TooltipPlacement} from "antd/tooltip"
 
 const NOT_VISIBLE: number = -1
 const VISIBLE: number = 1
@@ -35,7 +36,7 @@ interface AsyncPopconfirmProps {
 
     index?: number,
 
-    placement?: string
+    placement?: TooltipPlacement
 }
 
 /**
