@@ -445,10 +445,9 @@ export default function PredictorNode(props): ReactElement {
                                     paramName={param}
                                     defaultParam={defaultParams[param]}
                                     value={
-                                        const valueFrom = ParentPredictorState.predictorParams[param]
-                                        return valueFrom != null &&
-                                               valueFrom.value != null &&
-                                               valueFrom.value.toString()
+                                        ParentPredictorState.predictorParams[param] != null &&
+                                        ParentPredictorState.predictorParams[param].value != null &&
+                                        ParentPredictorState.predictorParams[param].value.toString()
                                     }
                                     onParamChange={event => onParamChange(event, param)}
                                 />
