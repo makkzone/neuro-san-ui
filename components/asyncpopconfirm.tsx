@@ -84,8 +84,9 @@ export function AsyncPopconfirm(props: AsyncPopconfirmProps) {
                 okButtonProps={{
                     id: `${id}-ok-button`
                 }}
-                onOk={ async() => {
-                   setConfirmProps({
+                onOk={ async(event) => {
+                    event.preventDefault()
+                    setConfirmProps({
                         ...confirmProps,
                         visible: NOT_VISIBLE
                     }) 
@@ -94,7 +95,8 @@ export function AsyncPopconfirm(props: AsyncPopconfirmProps) {
                 cancelButtonProps={{
                     id: `${id}-cancel-button`
                 }}
-                onCancel={ () => {
+                onCancel={ (event) => {
+                    event.preventDefault()
                     setConfirmProps({
                         ...confirmProps,
                         visible: NOT_VISIBLE
