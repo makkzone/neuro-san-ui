@@ -1,4 +1,4 @@
-import {Popconfirm} from "antd"
+import {Modal} from "antd"
 import {ReactNode} from "react"
 
 const NOT_VISIBLE: number = -1
@@ -75,15 +75,17 @@ export function AsyncPopconfirm(props: AsyncPopconfirmProps) {
         return (confirmProps.visible === index)
     }
 
-    return <Popconfirm id={id}
+    return <Modal id={id}
                 open={isVisible(confirmProps, index)}
-                title={title}
+                //title={title}
                 placement="left"
                 okType="default"
+                okText="Confirm"
+                closable={false}
                 okButtonProps={{
                     id: `${id}-ok-button`
                 }}
-                onConfirm={ async() => {
+                onOk={ async() => {
                    setConfirmProps({
                         ...confirmProps,
                         visible: NOT_VISIBLE
@@ -99,5 +101,7 @@ export function AsyncPopconfirm(props: AsyncPopconfirmProps) {
                         visible: NOT_VISIBLE
                     })
                 }} 
-            />
+            >
+            {message}
+            </Modal>
 }
