@@ -8,11 +8,13 @@ import ReactFlow, {
     applyNodeChanges,
     getConnectedEdges,
     getIncomers,
-    getOutgoers
+    getOutgoers,
+    ReactFlowProvider,
+    NodeChange
 } from 'react-flow-renderer'
 
 // Framework
-import React, {useCallback, useEffect, useState} from 'react'
+import React, {useCallback, useEffect, useMemo, useState} from 'react'
 
 // ID Gen
 import uuid from "react-uuid"
@@ -88,61 +90,65 @@ export default function Flow(props: FlowProps) {
 
     const [flowInstance, setFlowInstance] = useState(null)
 
-    let initialFlowValue
-    if (props.Flow && props.Flow.length > 0) {
-        // If an existing flow is passed, we just assign the nodes the handlers
-        initialFlowValue = props.Flow.map(node => {
-            if (node.type === 'datanode') {
-                node.data = {
-                    ...node.data,
-                    SelfStateUpdateHandler: DataNodeStateUpdateHandler
+    const [initialNodes, initialEdges] = useMemo(() => {
+        let initialFlowValue
+        if (props.Flow && props.Flow.length > 0) {
+            // If an existing flow is passed, we just assign the nodes the handlers
+            initialFlowValue = props.Flow.map(node => {
+                if (node.type === 'datanode') {
+                    node.data = {
+                        ...node.data,
+                        SelfStateUpdateHandler: DataNodeStateUpdateHandler
+                    }
+                } else if (node.type === 'predictornode') {
+                    node.data = {
+                        ...node.data,
+                        SetParentPredictorState: state => PredictorSetStateHandler(state, node.id),
+                        DeleteNode: nodeId => _deleteNodeById(nodeId),
+                        GetElementIndex: nodeId => _getElementIndex(nodeId)
+                    }
+                } else if (node.type === 'prescriptornode') {
+                    node.data = {
+                        ...node.data,
+                        SetParentPrescriptorState: state => PrescriptorSetStateHandler(state, node.id),
+                        DeleteNode: nodeId => _deleteNodeById(nodeId),
+                        GetElementIndex: nodeId => _getElementIndex(nodeId)
+                    }
+                } else if (node.type === 'uncertaintymodelnode') {
+                    node.data = {
+                        ...node.data,
+                        SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, node.id),
+                        DeleteNode: prescriptorNodeId => _deleteNodeById(prescriptorNodeId),
+                        GetElementIndex: nodeId => _getElementIndex(nodeId)
+                    }
+                } else if (node.type === "prescriptoredge") {
+                    node.data = {
+                        ...node.data,
+                        UpdateOutputOverrideCode: value => UpdateOutputOverrideCode(node.id, value)
+                    }
                 }
-            } else if (node.type === 'predictornode') {
-                node.data = {
-                    ...node.data,
-                    SetParentPredictorState: state => PredictorSetStateHandler(state, node.id),
-                    DeleteNode: nodeId => _deleteNodeById(nodeId),
-                    GetElementIndex: nodeId => _getElementIndex(nodeId)
-                }
-            } else if (node.type === 'prescriptornode') {
-                node.data = {
-                    ...node.data,
-                    SetParentPrescriptorState: state => PrescriptorSetStateHandler(state, node.id),
-                    DeleteNode: nodeId => _deleteNodeById(nodeId),
-                    GetElementIndex: nodeId => _getElementIndex(nodeId)
-                }
-            } else if (node.type === 'uncertaintymodelnode') {
-                node.data = {
-                    ...node.data,
-                    SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, node.id),
-                    DeleteNode: prescriptorNodeId => _deleteNodeById(prescriptorNodeId),
-                    GetElementIndex: nodeId => _getElementIndex(nodeId)
-                }
-            } else if (node.type === "prescriptoredge") {
-                node.data = {
-                    ...node.data,
-                    UpdateOutputOverrideCode: value => UpdateOutputOverrideCode(node.id, value)
-                }
-            }
+    
+                return node
+            })
+        } else {
+            initialFlowValue = _initializeFlow()
+        }
+        return [FlowQueries.getAllNodes(initialFlowValue), FlowQueries.getAllEdges(initialFlowValue)]
+    }, [props.Flow])
+    
 
-            return node
-        })
-    } else {
-        initialFlowValue = _initializeFlow()
-    }
-
-    debug("FS: ", initialFlowValue)
+    // debug("FS: ", initialFlowValue)
 
     // The flow is the collection of nodes and edges all identified by a node type and a uuid
     // const [flow, setFlow] = useStateWithCallback(initialFlowValue)
-    const [nodes, setNodes] = useStateWithCallback<NodeType[]>(FlowQueries.getAllNodes(initialFlowValue))
-    const [edges, setEdges] = useStateWithCallback<EdgeType[]>(FlowQueries.getAllEdges(initialFlowValue))
+    const [nodes, setNodes] = useStateWithCallback<NodeType[]>(FlowQueries.getAllNodes(initialNodes))
+    const [edges, setEdges] = useStateWithCallback<EdgeType[]>(initialEdges)
 
     // Tidy flow when nodes are added or removed
-    // useEffect(() => tidyView(), [nodes, edges])
+    useEffect(() => tidyView(), [nodes.length, edges.length])
 
     // Initial population of the element type -> uuid list mapping used for simplified testing ids
-    const initialMap = FlowQueries.getElementTypeToUuidList(initialFlowValue)
+    const initialMap = FlowQueries.getElementTypeToUuidList(initialNodes, initialEdges)
     debug("initial uuid map: ", initialMap)
 
     const [elementTypeToUuidList, setElementTypeToUuidList] = useStateWithCallback(initialMap)
@@ -323,7 +329,7 @@ export default function Flow(props: FlowProps) {
                 ProjectID: projectId,
                 SelfStateUpdateHandler: DataNodeStateUpdateHandler
             },
-            position: {x: 100, y: 100}
+            position: {x: 500, y: 500}
         }
         nodes.push(dataSourceNode)
 
@@ -799,11 +805,10 @@ export default function Flow(props: FlowProps) {
                     node => 
                     getOutgoers<NodeData, PredictorNodeData>(node, nodes, edges).
                     filter(node => node.type === "uncertaintymodelnode") as UncertaintyModelNode[]
-                    )
+                )
             removableNodes.push(...uncertaintyNodesToRemove)
             // Also get the edges associated with this uncertainty node
             removableEdges.push(...getConnectedEdges(uncertaintyNodesToRemove, edges))
-
         }
 
         // If this delete will remove all predictors, also delete the prescriptor
@@ -811,7 +816,7 @@ export default function Flow(props: FlowProps) {
         if (numPredictorNodesLeft == 0) {
             removableNodes.push(...prescriptorNodes)
              // Also get the edges associated with this prescriptor node
-             removableEdges.push(...getConnectedEdges(prescriptorNodes, edges))
+            //  removableEdges.push(...getConnectedEdges(prescriptorNodes, edges))
         } else {
             // Also if the removable elements have predictor nodes we
             // need to clean up their outcomes from showing in the prescriptor
@@ -877,20 +882,22 @@ export default function Flow(props: FlowProps) {
         }))
         const leftNodes = applyNodeChanges<NodeData>(changes, nodes) as NodeType[]
 
-        // We might have duplicates in the edges list, so remove them
+        // // We might have duplicates in the edges list, so remove them
         // removableEdges = removableEdges.filter((value, index, self) => 
         //     index === self.findIndex((t) => (
         //         t.id === value.id
         //     ))
         // )
-        // const leftEdges = applyEdgeChanges(changes, removableEdges)
+        const leftEdges = applyEdgeChanges(changes, removableEdges)
         
         // Update the flow, removing the deleted nodes
         setNodes(leftNodes)
-        // setEdges(leftEdges)
+        setEdges(leftEdges)
         setParentState([...leftNodes, ...edges])
         setElementTypeToUuidList(elementTypeToUuidList)
     }
+
+    useEffect(() => {console.log(nodes, edges)}, [nodes, edges])
 
     function onNodeDragStop(event, node) {
         /*
@@ -923,9 +930,9 @@ export default function Flow(props: FlowProps) {
         setFlowInstance(reactFlowInstance)
     }
 
-    // useEffect(() => {
-    //     setParentState && setParentState([...nodes, ...edges])
-    // }, [nodes, edges])
+    useEffect(() => {
+        setParentState && setParentState([...nodes, ...edges])
+    }, [nodes, edges])
 
     /**
      * Tidies up the experiment graph using the "dagr" library
@@ -990,8 +997,15 @@ export default function Flow(props: FlowProps) {
     const propsId = `${props.id}`
 
     const onNodesChange = useCallback(
-        (changes) => setNodes((ns) => applyNodeChanges(changes, ns)),
-        []
+        (changes: NodeChange[]) => {
+            // Get the Id of the data node
+            const dataNode = FlowQueries.getDataNodes(nodes)[0]
+            if (changes.some(change => change.type === "remove" && change.id === dataNode.id)) {
+                // If the node being removed is a data node, then we do not remove it
+                return
+            }
+            setNodes((ns) => applyNodeChanges<NodeData>(changes, ns) as NodeType[])
+        }, []
       );
       const onEdgesChange = useCallback(
         (changes) => setEdges((es) => applyEdgeChanges(changes, es)),
@@ -1032,30 +1046,33 @@ export default function Flow(props: FlowProps) {
             </div>
         }
         <div id="react-flow-div" style={{width: '100%', height: "50vh"}}>
-            <ReactFlow id="react-flow"
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onNodesDelete={nodes => _onElementsRemove(nodes)}
-                onConnect={void(0)}  // Prevent user manually connecting nodes
-                onLoad={(instance) => _onLoad(instance)}
-                snapToGrid={true} 
-                snapGrid={[10, 10]}
-                nodeTypes={NodeTypes}
-                edgeTypes={EdgeTypes}
-                onNodeDragStop={(event, node) => onNodeDragStop(event, node)}
-            >
-                <Controls id="react-flow-controls"
-                    style={{
-                        position: "absolute",
-                        top: "0px",
-                        left: "0px"
-                    }}
-                    onFitView={() => tidyView()}
-                />
-                <Background id="react-flow-background" color="#000" gap={5}/>
-            </ReactFlow>
+            {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
+            <ReactFlowProvider>
+                <ReactFlow id="react-flow"
+                    nodes={nodes}
+                    edges={edges}
+                    onNodesChange={onNodesChange}
+                    onEdgesChange={onEdgesChange}
+                    onNodesDelete={nodes => _onElementsRemove(nodes)}
+                    onConnect={void(0)}  // Prevent user manually connecting nodes
+                    onLoad={(instance) => _onLoad(instance)}
+                    snapToGrid={true} 
+                    snapGrid={[10, 10]}
+                    nodeTypes={NodeTypes}
+                    edgeTypes={EdgeTypes}
+                    onNodeDragStop={(event, node) => onNodeDragStop(event, node)}
+                >
+                    <Controls id="react-flow-controls"
+                        style={{
+                            position: "absolute",
+                            top: "0px",
+                            left: "0px"
+                        }}
+                        onFitView={() => tidyView()}
+                    />
+                    <Background id="react-flow-background" color="#000" gap={5}/>
+                </ReactFlow>
+            </ReactFlowProvider>
         </div>
     </Container>
 }

@@ -1,3 +1,4 @@
+import { EdgeType } from './edges/types';
 import { DataSourceNode } from './nodes/datasourcenode';
 import { PredictorNode } from './nodes/predictornode';
 import {isEdge, isNode} from "react-flow-renderer";
@@ -101,7 +102,7 @@ export class FlowQueries {
         return graph.filter(e => isEdge(e))
     }
 
-    static getElementTypeToUuidList(graph): Map<string, string[]> {
+    static getElementTypeToUuidList(nodes: NodeType[], edges: EdgeType[]): Map<string, string[]> {
         /*
         Return a dictionary whose keys are graph element types
         and whose values are a sorted list of id (assumed uuid) strings.
@@ -112,6 +113,8 @@ export class FlowQueries {
         Note that more persistence-oriented work would need to be done for these ids
         to be consistent across different pages with operations performed on the graph.
         */
+
+        const graph = [...nodes, ...edges]
 
         // Start with an empty dictionary
         const elementTypeToUuidList: Map<string, string[]> = new Map<string, string[]>();
@@ -152,7 +155,7 @@ export class FlowQueries {
         return elementTypeToUuidList;
     }
 
-    static getIndexForElement(elementTypeToUuidList: Map<string, string[]>, element): number {
+    static getIndexForElement(elementTypeToUuidList: Map<string, string[]>, element: NodeType): number {
         /*
         Given an elementTypeToUuidList dictionary (see method above)
         return the index of a given element.  This index is used for ids in testing.
