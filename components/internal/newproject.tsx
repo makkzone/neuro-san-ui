@@ -604,7 +604,6 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
         // Prompt user if not CSV file
         if (selectedFile.type !== EXPECTED_FILE_TYPE) {
             Modal.confirm({
-                // 2/6/23 DEF - Modal does not have an id property when compiling
                 title: `Is ${fileName} a CSV file?`,
                 content:
                     <span id="csv-confirm-message">
