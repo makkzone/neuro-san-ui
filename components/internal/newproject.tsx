@@ -98,11 +98,11 @@ export default function NewProject(props: NewProps) {
 
     // For showing advanced data source settings
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false)
-    
+
     function getCreateDataProfilePanel() {
         return <Panel id="create-project-or-data-profile-button-panel"
                       header={
-                          <Tooltip        // eslint-disable-line enforce-ids-in-jsx/missing-ids 
+                          <Tooltip        // eslint-disable-line enforce-ids-in-jsx/missing-ids
                               // 2/6/23 DEF - Tooltip does not have an id property when compiling
                               title={getCreateProjectButtonTooltip()} placement="leftTop">
                               <Button id="create-project-or-data-profile-button"
@@ -128,7 +128,7 @@ export default function NewProject(props: NewProps) {
     function getProfileTablePanel() {
         return <Panel id="profile-table-panel"
                       header={
-                          <Tooltip        // eslint-disable-line enforce-ids-in-jsx/missing-ids 
+                          <Tooltip        // eslint-disable-line enforce-ids-in-jsx/missing-ids
                               // 2/6/23 DEF - Tooltip does not have an id property when compiling
                               title={enabledDataTagSection ? "" : "Please create your data source first"}
                               placement="leftTop">
@@ -144,7 +144,7 @@ export default function NewProject(props: NewProps) {
     function getDataSourcePanel() {
         return <Panel id="data-source-panel"
                       header={
-                          <Tooltip  // eslint-disable-line enforce-ids-in-jsx/missing-ids 
+                          <Tooltip  // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                     // 2/6/23 DEF - Tooltip does not have an id property
                               title={enabledDataSourceSection ? "" : "Please enter project name and description first"}
                               placement="leftTop">
@@ -169,7 +169,7 @@ export default function NewProject(props: NewProps) {
                                     onClick={() => setShowAdvanced(!showAdvanced)}
                                     size="small"
                             >
-                                <div id="advanced-btn-text" 
+                                <div id="advanced-btn-text"
                                      style={{color: "black", textDecoration: "underline #000 dotted"}}
                                 >
                                     {showAdvanced
@@ -285,7 +285,7 @@ export default function NewProject(props: NewProps) {
                     Please enter a path to your CSV file in S3.
                 </Form.Control.Feedback>
                 <Form.Group id="create-data-source-group" className="mt-2">
-                    <Tooltip    // eslint-disable-line enforce-ids-in-jsx/missing-ids 
+                    <Tooltip    // eslint-disable-line enforce-ids-in-jsx/missing-ids
                         // 2/6/23 DEF - Tooltip does not have an id property when compiling
                         title={getCreatButtonTooltip()}>
                         <Button id="create-data-source-button"
@@ -308,15 +308,15 @@ export default function NewProject(props: NewProps) {
     }
 
     function getFileUploadForm() {
-        return  <Space id="local-file-space" 
-                       direction="vertical" 
+        return  <Space id="local-file-space"
+                       direction="vertical"
                        size="middle"
                 >
                     <div id="local-file-upload-div" style={{display: "inline-flex"}}>
                         From a local file
                         <Tooltip    // eslint-disable-line enforce-ids-in-jsx/missing-ids
                             // Tooltip does not have an id property when compiling
-                            title={`Use this option to upload a CSV file containing your training data. \ 
+                            title={`Use this option to upload a CSV file containing your training data. \
                                         Note: file size limited to ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}.`}
                         >
                             <div id="file-upload-bubble" className="ps-1">
@@ -346,7 +346,7 @@ export default function NewProject(props: NewProps) {
                                     <b id="file-type" className="mx-2">
                                         filetype:
                                     </b>
-                                    <span id="file_type_span" 
+                                    <span id="file_type_span"
                                           style={{color: selectedFile.type === EXPECTED_FILE_TYPE ? "black" : "red"}}
                                     >
                                     {selectedFile.type}</span>,
@@ -367,12 +367,12 @@ export default function NewProject(props: NewProps) {
                             ? <label id="uploading-label">
                                 Uploading {selectedFile.name}
                                 <span id="uploading-clip-loader-span" className="ml-2">
-                                                                <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids 
+                                                                <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                                                     // 2/6/23 DEF - ClipLoader doesn't have id property when compiling
                                                                     color={MaximumBlue} loading={true} size={14}/>
                                                             </span>
                             </label>
-                            : <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids 
+                            : <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 // 2/6/23 DEF - Tooltip does not have an id property when compiling
                                 title={getUploadButtonTooltip()}>
                                 <Button id="upload-file-button"
@@ -505,7 +505,7 @@ export default function NewProject(props: NewProps) {
         let datasetName
         if (isUsingLocalFile) {
             // If it's a file upload, use the name of the file the user selected for the dataset name.
-            datasetName = selectedFile.name    
+            datasetName = selectedFile.name
         } else {
             // User selected an existing S3 object, so use its "file name" for the dataset name
             datasetName = getFileName(inputFields.s3Key)
@@ -596,7 +596,7 @@ export default function NewProject(props: NewProps) {
         const fileName: string = selectedFile.name;
         if (fileTooLarge) {
             sendNotification(NotificationType.error,
-                `File "${fileName}" is ${prettyBytes(selectedFile.size)} in size, which exceeds the maximum 
+                `File "${fileName}" is ${prettyBytes(selectedFile.size)} in size, which exceeds the maximum
 allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
             return
         }
@@ -605,17 +605,25 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
         if (selectedFile.type !== EXPECTED_FILE_TYPE) {
             Modal.confirm({
                 // 2/6/23 DEF - Modal does not have an id property when compiling
-                title: `${fileName} not a CSV file?`,
-                content: "Only CSV files are supported, but the file you have selected of type "${selectedFile.type}" does not appear to be a CSV file.",
+                title: `Is ${fileName} a CSV file?`,
+                content:
+                    <span id="csv-confirm-message">
+                        Only CSV files are supported, but the file you have selected of type "${selectedFile.type}" does
+                        <b id="emphasis"> not </b>
+                        appear to be a CSV file."
+                        <br id="csv-confirm-message-1"/>
+                        <br id="csv-confirm-message-1"/>
+                        Are you sure you wish to proceed?
+                    </span>,
                 okButtonProps: {
-                    id: `not-a-csv-confirm-ok-button`
+                    id: `csv-confirm-ok-button`
                 },
                 okText: "Confirm",
                 onOk: async () => {
                     await proceedWithFileUpload(fileName)
                 },
                 cancelButtonProps: {
-                    id: `not-a-csv-confirm-cancel-button`
+                    id: `csv-confirm-cancel-button`
                 },
             })
         }
@@ -627,17 +635,17 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
         // Determine where in S3 to store the file. For now, based on user name (from Github) and filename.
         // Assumption: all Github usernames and all local filenames are valid for S3 paths. This...may be risky.
         setIsUploading(true)
-        
+
         // Split into filename + extension
         const {name, ext} = splitFilename(fileName)
-        
+
         // Sanitize both name and extension in preparation for S3 path
         const safePath = toSafeFilename(name)
         const safeExt = ext.length > 0 ? toSafeFilename(ext) : "csv"
-        
+
         const s3Path = `data/${session.user.name}/${safePath}.${safeExt}`
         setInputFields({
-                ...inputFields, 
+                ...inputFields,
                 uploadedFileS3Key: s3Path
         })
 
@@ -734,7 +742,7 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
             // multiple "submit"-type steps so that doesn't work for us.
             validated={true}
         >
-            <Collapse       // eslint-disable-line enforce-ids-in-jsx/missing-ids 
+            <Collapse       // eslint-disable-line enforce-ids-in-jsx/missing-ids
                             // 2/6/23 DEF - Collapse does not have an id property when compiling
                 accordion expandIconPosition="right"
                 defaultActiveKey={isNewProject ? projectDetailsPanelKey : dataSourcePanelKey}
