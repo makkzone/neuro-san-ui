@@ -625,6 +625,9 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                     id: "csv-confirm-cancel-button"
                 },
             })
+        } else {
+            // File known to be a CSV. No need for a dialog.
+            await proceedWithFileUpload(fileName)
         }
     }
 
