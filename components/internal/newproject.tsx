@@ -615,14 +615,14 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                         Are you sure you wish to proceed?
                     </span>,
                 okButtonProps: {
-                    id: `csv-confirm-ok-button`
+                    id: "csv-confirm-ok-button"
                 },
                 okText: "Confirm",
                 onOk: async () => {
                     await proceedWithFileUpload(fileName)
                 },
                 cancelButtonProps: {
-                    id: `csv-confirm-cancel-button`
+                    id: "csv-confirm-cancel-button"
                 },
             })
         }
