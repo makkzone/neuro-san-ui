@@ -608,9 +608,8 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
                 title: `Is ${fileName} a CSV file?`,
                 content:
                     <span id="csv-confirm-message">
-                        Only CSV files are supported, but the file you have selected of type "${selectedFile.type}" does
-                        <b id="emphasis"> not </b>
-                        appear to be a CSV file."
+                        Only CSV files are supported, but the file you have selected of type
+                        &quot;${selectedFile.type}&quot; does not appear to be a CSV file.
                         <br id="csv-confirm-message-1"/>
                         <br id="csv-confirm-message-1"/>
                         Are you sure you wish to proceed?
