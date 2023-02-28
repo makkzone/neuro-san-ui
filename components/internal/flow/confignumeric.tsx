@@ -62,7 +62,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
     function getMin(defaultParam: PredictorParamFields | UncertaintyModelParamField): string {
 
         // Default min if one is not defined in defaults for param
-        return defaultParam.min != null ? defaultParam.min.toString() : undefined
+        return defaultParam.min != null ? defaultParam.min.toString() : null
     }
 
     /**
@@ -74,7 +74,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
     function getMax(defaultParam: PredictorParamFields | UncertaintyModelParamField): string {
 
         // Default max if one is not defined in defaults for param
-        return defaultParam.max != null ? defaultParam.max.toString() : undefined
+        return defaultParam.max != null ? defaultParam.max.toString() : null
     }
 
     /**
@@ -85,7 +85,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      */
     function getDefaultValue(defaultParam: PredictorParamFields | UncertaintyModelParamField): string {
 
-        return defaultParam.default_value != null ? defaultParam.default_value.toString() : undefined
+        return defaultParam.default_value != null ? defaultParam.default_value.toString() : null
     }
 
     const id = props.id
