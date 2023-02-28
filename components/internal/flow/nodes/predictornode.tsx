@@ -461,7 +461,7 @@ export default function PredictorNode(props): ReactElement {
                                         ParentPredictorState.predictorParams[param].value != null)
                                             ? Boolean(ParentPredictorState.predictorParams[param].value)
                                             : defaultParams[param].default_value != null
-                                                ? defaultParams[param].default_value
+                                                ? Boolean(defaultParams[param].default_value)
                                                 : undefined
                                     }
                                     onChange={event => onPredictorParamCheckBoxChange(event, param)}

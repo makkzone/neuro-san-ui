@@ -122,7 +122,7 @@ export default function UncertaintyModelNode(props): ReactElement {
                                 ParentUncertaintyNodeState[param].value != null)
                                     ? Boolean(ParentUncertaintyNodeState[param].value)
                                     : defaultParams[param].default_value != null
-                                        ? defaultParams[param].default_value
+                                        ? Boolean(defaultParams[param].default_value)
                                         : undefined
                             }
                             onChange={event => onCheckboxChange(event, param)}
