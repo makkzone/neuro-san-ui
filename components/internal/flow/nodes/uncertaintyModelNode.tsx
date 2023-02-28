@@ -117,7 +117,11 @@ export default function UncertaintyModelNode(props): ReactElement {
                         <input
                             id={`${paramPrefix}-value`}
                             type="checkbox"
-                            checked={Boolean(ParentUncertaintyNodeState[param].value)}
+                            checked={
+                                ParentUncertaintyNodeState[param] != null &&
+                                ParentUncertaintyNodeState[param].value != null &&
+                                Boolean(ParentUncertaintyNodeState[param].value)
+                            }
                             onChange={event => onCheckboxChange(event, param)}
                         />
                 }
@@ -125,7 +129,11 @@ export default function UncertaintyModelNode(props): ReactElement {
                     item.type === ParamType.ENUM &&
                     <select
                         id={`${paramPrefix}-value`}
-                        value={ParentUncertaintyNodeState[param].value.toString()}
+                        value={
+                            ParentUncertaintyNodeState[param] != null &&
+                            ParentUncertaintyNodeState[param].value != null &&
+                            ParentUncertaintyNodeState[param].value.toString()
+                        }
                         onChange={event => onParamChange(event, param)}
                         style={{width: "100%"}}
                     >

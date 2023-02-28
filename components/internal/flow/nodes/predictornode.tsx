@@ -457,7 +457,11 @@ export default function PredictorNode(props): ReactElement {
                                 <input id={ `${flowPrefix}-${param}-value` }
                                     type="checkbox"
                                     defaultChecked={Boolean(defaultParams[param].default_value)}
-                                    checked={Boolean(ParentPredictorState.predictorParams[param].value)}
+                                    checked={
+                                        ParentPredictorState.predictorParams[param] != null &&
+                                        ParentPredictorState.predictorParams[param].value != null &&
+                                        Boolean(ParentPredictorState.predictorParams[param].value)
+                                    }
                                     onChange={event => onPredictorParamCheckBoxChange(event, param)}
                                 />
                             )
@@ -465,7 +469,11 @@ export default function PredictorNode(props): ReactElement {
                         {
                             typeof(defaultParams[param].type) === "object" &&
                                 <select id={ `${flowPrefix}-${param}-value` }
-                                    value={ ParentPredictorState.predictorParams[param].value.toString() }
+                                    value={
+                                        ParentPredictorState.predictorParams[param] != null &&
+                                        ParentPredictorState.predictorParams[param].value != null &&
+                                        ParentPredictorState.predictorParams[param].value.toString()
+                                    }
                                     onChange={event => onParamChange(event, param)}
                                     className="w-32"
                                 >
@@ -484,7 +492,11 @@ export default function PredictorNode(props): ReactElement {
                                     className="w-full"
                                     type="text"
                                     defaultValue={defaultParams[param].default_value.toString()}
-                                    value={ParentPredictorState.predictorParams[param].value.toString()}
+                                    value={
+                                        ParentPredictorState.predictorParams[param] != null &&
+                                        ParentPredictorState.predictorParams[param].value != null &&
+                                        ParentPredictorState.predictorParams[param].value.toString()
+                                    }
                                     onChange={event => onParamChange(event, param)}
                                 />
                             )
@@ -495,7 +507,11 @@ export default function PredictorNode(props): ReactElement {
                                     className="w-full"
                                     type="password"
                                     defaultValue={defaultParams[param].default_value.toString()}
-                                    value={ParentPredictorState.predictorParams[param].value.toString()}
+                                    value={
+                                        ParentPredictorState.predictorParams[param] != null &&
+                                        ParentPredictorState.predictorParams[param].value != null &&
+                                        ParentPredictorState.predictorParams[param].value.toString()
+                                    }
                                     onChange={event => onParamChange(event, param)}
                                 />
                             )
