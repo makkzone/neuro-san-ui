@@ -106,7 +106,7 @@ export default function UncertaintyModelNode(props): ReactElement {
                         value={
                             ParentUncertaintyNodeState[param] != null &&
                             ParentUncertaintyNodeState[param].value != null &&
-                            ParentUncertaintyNodeState[param].value.toString()
+                            ParentUncertaintyNodeState[param].value
                         }
                         onParamChange={event => onParamChange(event, param)}
                         style={{width: "100%"}}
@@ -118,9 +118,12 @@ export default function UncertaintyModelNode(props): ReactElement {
                             id={`${paramPrefix}-value`}
                             type="checkbox"
                             checked={
-                                ParentUncertaintyNodeState[param] != null &&
-                                ParentUncertaintyNodeState[param].value != null &&
-                                Boolean(ParentUncertaintyNodeState[param].value)
+                                (ParentUncertaintyNodeState[param] != null &&
+                                ParentUncertaintyNodeState[param].value != null)
+                                    ? Boolean(ParentUncertaintyNodeState[param].value)
+                                    : defaultParams[param].default_value != null
+                                        ? defaultParams[param].default_value
+                                        : undefined
                             }
                             onChange={event => onCheckboxChange(event, param)}
                         />
@@ -130,9 +133,12 @@ export default function UncertaintyModelNode(props): ReactElement {
                     <select
                         id={`${paramPrefix}-value`}
                         value={
-                            ParentUncertaintyNodeState[param] != null &&
-                            ParentUncertaintyNodeState[param].value != null &&
-                            ParentUncertaintyNodeState[param].value.toString()
+                            (ParentUncertaintyNodeState[param] != null &&
+                            ParentUncertaintyNodeState[param].value != null)
+                                ? ParentUncertaintyNodeState[param].value.toString()
+                                : defaultParams[param].default_value != null
+                                    ? defaultParams[param].default_value.toString()
+                                    : undefined
                         }
                         onChange={event => onParamChange(event, param)}
                         style={{width: "100%"}}

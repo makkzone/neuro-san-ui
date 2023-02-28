@@ -93,19 +93,16 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
     const useStep = getStep(props.defaultParam)
     const useMin = getMin(props.defaultParam)
     const useMax = getMax(props.defaultParam)
-    const value = (props.value != null && props.value != "undefined")
+    const useDefaultValue = getDefaultValue(props.defaultParam)
+    const value = (props.value != null)
                         ? props.value.toString()
-                        : undefined
-    const useDefaultValue = value === undefined
-                                ? getDefaultValue(props.defaultParam)
-                                : undefined
+                        : useDefaultValue
 
     return  <input id={id}
                 type="number"
                 step={useStep}
                 min={useMin}
                 max={useMax}
-                defaultValue={useDefaultValue}
                 value={value}
                 onChange={event => props.onParamChange(event, param)}
                 style={props.style}

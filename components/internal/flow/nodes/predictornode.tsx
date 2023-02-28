@@ -447,7 +447,7 @@ export default function PredictorNode(props): ReactElement {
                                     value={
                                         ParentPredictorState.predictorParams[param] != null &&
                                         ParentPredictorState.predictorParams[param].value != null &&
-                                        ParentPredictorState.predictorParams[param].value.toString()
+                                        ParentPredictorState.predictorParams[param].value
                                     }
                                     onParamChange={event => onParamChange(event, param)}
                                 />
@@ -460,7 +460,9 @@ export default function PredictorNode(props): ReactElement {
                                         (ParentPredictorState.predictorParams[param] != null &&
                                         ParentPredictorState.predictorParams[param].value != null)
                                             ? Boolean(ParentPredictorState.predictorParams[param].value)
-                                            : defaultParams[param]
+                                            : defaultParams[param].default_value != null
+                                                ? defaultParams[param].default_value
+                                                : undefined
                                     }
                                     onChange={event => onPredictorParamCheckBoxChange(event, param)}
                                 />
@@ -470,9 +472,12 @@ export default function PredictorNode(props): ReactElement {
                             typeof(defaultParams[param].type) === "object" &&
                                 <select id={ `${flowPrefix}-${param}-value` }
                                     value={
-                                        ParentPredictorState.predictorParams[param] != null &&
-                                        ParentPredictorState.predictorParams[param].value != null &&
-                                        ParentPredictorState.predictorParams[param].value.toString()
+                                        (ParentPredictorState.predictorParams[param] != null &&
+                                        ParentPredictorState.predictorParams[param].value != null)
+                                            ? ParentPredictorState.predictorParams[param].value.toString()
+                                            : defaultParams[param].default_value != null
+                                                ? defaultParams[param].default_value.toString()
+                                                : undefined
                                     }
                                     onChange={event => onParamChange(event, param)}
                                     className="w-32"
