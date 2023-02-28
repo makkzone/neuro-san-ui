@@ -7,6 +7,7 @@ import {DataType} from "../../../controller/datatag/types";
 import {empty} from "../../../utils/objects";
 import {reasonToHumanReadable} from "../../../controller/datasources/types";
 import {Profile} from "../../../controller/dataprofile/types"
+import BlankLines from "../../blanklines"
 
 interface ProfiletableProps {
     id: string
@@ -278,8 +279,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                                 {`${rejectedColumns[name]}: ${reasonToHumanReadable(rejectedColumns[name])}`}
                             </span>
                         </td>
-                        {/* Hack to pad table row. There must be a better way. */}
-                        {[...Array(9)].map((_, i) => <td id={ `${name}-padding-${i}` } key={i}/>)}
+                        <BlankLines id={`${name}-padding`} numLines={9} />
                     </tr>
                 )
             : []
