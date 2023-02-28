@@ -16,7 +16,7 @@ interface ConfigNumericProps {
     paramName: string,
 
     // Initial value of the component
-    value: string,
+    value: string | number | boolean,
 
     // Default config for param represented by input
     defaultParam: PredictorParamFields | UncertaintyModelParamField,
