@@ -95,7 +95,6 @@ export default function Flow(props: FlowProps) {
                     ...node.data,
                     SetParentPredictorState: state => PredictorSetStateHandler(state, node.id),
                     DeleteNode: nodeId => _deleteNodeById(nodeId),
-                    AddUncertaintyModelNode: nodeId => _addUncertaintyNodes([nodeId]),
                     GetFlow: () => GetFlow(),
                     GetElementIndex: nodeId => _getElementIndex(nodeId)
                 }
