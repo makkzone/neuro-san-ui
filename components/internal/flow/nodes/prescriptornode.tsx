@@ -167,7 +167,7 @@ export default function PrescriptorNode(props): ReactElement {
     const [tabs] = useState(['Representation', 'Evolution Parameters', 'Objective Configuration', 'Override Evaluator'])
 
     // Create a min/max selector for each desired outcome
-    const ObjectiveConfigurationPanel = ParentPrescriptorState.evolution.fitness.map(metric => {
+    const objectiveConfigurationPanel = ParentPrescriptorState.evolution.fitness.map(metric => {
         const metricPrefix = `${flowPrefix}-metric-${metric.name}`
         return <div id={ `${metricPrefix}` }
             className="p-2 grid grid-cols-2 gap-4 mb-2"
@@ -216,7 +216,7 @@ export default function PrescriptorNode(props): ReactElement {
         </div>
     })
     
-    const EvaluatorOverridePanel =
+    const evaluatorOverridePanel =
         <Card.Body id={ `${flowPrefix}-evaluator-override-code` }>
             <SyntaxHighlighter id={ `${flowPrefix}-evaluator-override-code-syntax-highlighter` }
                 language="python" style={docco} showLineNumbers={true}>
@@ -230,7 +230,7 @@ export default function PrescriptorNode(props): ReactElement {
     // 2. rules
 
     // Create the Neural Network Hidden layer utility
-    const ActivationFunctions = [
+    const activationFunctions = [
         "tanh",
         "relu",
         "linear",
@@ -263,7 +263,7 @@ export default function PrescriptorNode(props): ReactElement {
             <div id={ `${flowPrefix}-hidden-layer-${idx}-neural-net-config` }
                 className="grid grid-cols-3 gap-1 mb-2 justify-items-center">
                 <div id={ `${flowPrefix}-hidden-layer-${idx}-units` }>
-                    <label id={ `${flowPrefix}-hidden-layer-${idx}-units-label` }className="mr-2">
+                    <label id={ `${flowPrefix}-hidden-layer-${idx}-units-label` } className="mr-2">
                         Units: </label>
                     <input style={{width: "2rem"}}
                         id={ `${flowPrefix}-hidden-layer-${idx}-units-input` }
@@ -291,7 +291,7 @@ export default function PrescriptorNode(props): ReactElement {
                             SetParentPrescriptorState(modifiedHiddenLayerState)
                         }}
                     >
-                        {ActivationFunctions.map(activationFn =>
+                        {activationFunctions.map(activationFn =>
                             <option id={ `${flowPrefix}-hidden-layer-${idx}-activation-${activationFn}` }
                                 key={`hidden-layer-activation-${activationFn}`}
                                 value={activationFn}>
@@ -302,7 +302,7 @@ export default function PrescriptorNode(props): ReactElement {
                 </div>
 
                 <div id={ `${flowPrefix}-hidden-layer-${idx}-use-bias` }>
-                    <label id={ `${flowPrefix}-hidden-layer-${idx}-use-bias-label` }className="mr-2">
+                    <label id={ `${flowPrefix}-hidden-layer-${idx}-use-bias-label` } className="mr-2">
                         Use Bias: </label>
                     <input id={ `${flowPrefix}-hidden-layer-${idx}-use-bias-input` }
                         type="checkbox" 
@@ -318,7 +318,7 @@ export default function PrescriptorNode(props): ReactElement {
             </div>
         </div>
     )
-    const NeuralNetworkConfiguration = ParentPrescriptorState.network.hidden_layers.map((hiddenLayer, idx) => createNeuralNetworkLayer(hiddenLayer, idx))
+    const neuralNetworkConfiguration = ParentPrescriptorState.network.hidden_layers.map((hiddenLayer, idx) => createNeuralNetworkLayer(hiddenLayer, idx))
 
     const createRulesConfig = (representationConfig) =>
         <Container id={`${flowPrefix}-rules-config`}
@@ -426,7 +426,7 @@ export default function PrescriptorNode(props): ReactElement {
         useRepresentationConfig = ParentPrescriptorState.representation_config
     }
 
-    const PrescriptorRepresentationPanel = <Card.Body id={ `${flowPrefix}-representation-panel` }>
+    const prescriptorRepresentationPanel = <Card.Body id={ `${flowPrefix}-representation-panel` }>
         <div id={ `${flowPrefix}-representation-div` }
             className="flex justify-between mb-4 content-center">
             <label id={ `${flowPrefix}-representation-label` } >
@@ -460,7 +460,7 @@ export default function PrescriptorNode(props): ReactElement {
             {
                 ParentPrescriptorState.LEAF.representation === "NNWeights" &&
                     <div id={ `${flowPrefix}-nn-weights-div` } className="overflow-y-auto h-40">
-                        {NeuralNetworkConfiguration}
+                        {neuralNetworkConfiguration}
                         <button type="button" className="float-right"
                             id={ `${flowPrefix}-nn-weights-button` }
                             onClick={() => {
@@ -491,9 +491,11 @@ export default function PrescriptorNode(props): ReactElement {
 
     </Card.Body>
 
+    const numericInputWidth = {width: "32ch"}
+
     // Create the configuration Panel
-    const EvolutionConfigurationPanel = <Card.Body id={ `${flowPrefix}-evolution-configuration-panel` } 
-        className="overflow-y-auto h-40 text-xs">
+    const evolutionConfigurationPanel = <Card.Body id={ `${flowPrefix}-evolution-configuration-panel` }
+                                                   className="overflow-y-auto h-40 text-xs">
         <div id={ `${flowPrefix}-evolution-configuration` } 
             className="flex flex-col mb-2">
             <div id={ `${flowPrefix}-num-generations` }
@@ -501,7 +503,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-num-generations-label` } >
                     Num Generations
                 </label>
-                <input style={{width: "3rem"}}
+                <input style={numericInputWidth}
                     id={ `${flowPrefix}-num-generations-input` }
                     type="number" 
                     step="1" 
@@ -525,7 +527,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-population-size-label` } >
                     Population Size
                 </label>
-                <input style={{width: "3rem"}}
+                <input style={numericInputWidth}
                     id={ `${flowPrefix}-population-size-input` }
                     type="number" 
                     step="1" 
@@ -549,7 +551,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-num-elites-label` } >
                     Num Elites
                 </label>
-                <input style={{width: "3rem"}}
+                <input style={numericInputWidth}
                     id={ `${flowPrefix}-num-elites-input` }
                     type="number" 
                     step="1" 
@@ -573,7 +575,8 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-parent-selection-label` } >
                     Parent Selection
                 </label>
-                <select defaultValue="tournament"
+                <select defaultValue="tournament" 
+                    style={numericInputWidth}
                     id={ `${flowPrefix}-parent-selection-select` }
                     value={ ParentPrescriptorState.evolution.parent_selection }
                     onChange={
@@ -597,7 +600,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-remove-population-percentage-label` } >
                     Remove Population %
                 </label>
-                <input style={{width: "3rem"}}
+                <input style={numericInputWidth}
                     id={ `${flowPrefix}-remove-population-percentage-input` }
                     type="number" 
                     step="0.01" 
@@ -622,6 +625,7 @@ export default function PrescriptorNode(props): ReactElement {
                     Mutation Type
                 </label>
                 <select defaultValue="gaussian_noise_percentage"
+                    style={numericInputWidth}
                     id={ `${flowPrefix}-mutation-select` }
                     value={ ParentPrescriptorState.evolution.mutation_type }
                     onChange={
@@ -653,7 +657,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-mutation-probability-label` } >
                     Mutation Probability
                 </label>
-                <input style={{width: "2rem"}}
+                <input style={numericInputWidth}
                     id={ `${flowPrefix}-mutation-probability-input` }
                     type="number" 
                     step="0.1" 
@@ -677,7 +681,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-mutation-factor-label` } >
                     Mutation Factor
                 </label>
-                <input style={{width: "2rem"}}
+                <input style={numericInputWidth}
                     id={ `${flowPrefix}-mutation-factor-input` }
                     type="number" 
                     step="0.01" 
@@ -699,7 +703,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-initialization-distribution-label` } >
                     Initialization Distribution
                 </label>
-                <select defaultValue="orthogonal"
+                <select defaultValue="orthogonal" style={numericInputWidth}
                     id={ `${flowPrefix}-initialization-distribution-select` }
                     value={ ParentPrescriptorState.evolution.initialization_distribution }
                     onChange={
@@ -735,7 +739,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-initialization-range-label` } >
                     Initialization Range
                 </label>
-                <input style={{width: "2rem"}}
+                <input style={numericInputWidth}
                     id={ `${flowPrefix}-initialization-range-input` }
                     type="number" 
                     step="0.01" 
@@ -793,10 +797,10 @@ export default function PrescriptorNode(props): ReactElement {
                                     </Tab>
                                 ))}
                             </Tablist>
-                            {selectedIndex === 0 && PrescriptorRepresentationPanel}
-                            {selectedIndex === 1 && EvolutionConfigurationPanel}
-                            {selectedIndex === 2 && ObjectiveConfigurationPanel}
-                            {selectedIndex === 3 && EvaluatorOverridePanel}
+                            {selectedIndex === 0 && prescriptorRepresentationPanel}
+                            {selectedIndex === 1 && evolutionConfigurationPanel}
+                            {selectedIndex === 2 && objectiveConfigurationPanel}
+                            {selectedIndex === 3 && evaluatorOverridePanel}
                         </>
                     }
                          statelessProps={{
