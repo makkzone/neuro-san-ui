@@ -491,7 +491,7 @@ export default function PrescriptorNode(props): ReactElement {
 
     </Card.Body>
 
-    const numericInputWidth = {width: "32ch"}
+    const inputFieldWidth = {width: "32ch"}
 
     // Create the configuration Panel
     const evolutionConfigurationPanel = <Card.Body id={ `${flowPrefix}-evolution-configuration-panel` }
@@ -503,7 +503,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-num-generations-label` } >
                     Num Generations
                 </label>
-                <input style={numericInputWidth}
+                <input style={inputFieldWidth}
                     id={ `${flowPrefix}-num-generations-input` }
                     type="number" 
                     step="1" 
@@ -527,7 +527,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-population-size-label` } >
                     Population Size
                 </label>
-                <input style={numericInputWidth}
+                <input style={inputFieldWidth}
                     id={ `${flowPrefix}-population-size-input` }
                     type="number" 
                     step="1" 
@@ -551,7 +551,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-num-elites-label` } >
                     Num Elites
                 </label>
-                <input style={numericInputWidth}
+                <input style={inputFieldWidth}
                     id={ `${flowPrefix}-num-elites-input` }
                     type="number" 
                     step="1" 
@@ -576,7 +576,7 @@ export default function PrescriptorNode(props): ReactElement {
                     Parent Selection
                 </label>
                 <select defaultValue="tournament" 
-                    style={numericInputWidth}
+                    style={inputFieldWidth}
                     id={ `${flowPrefix}-parent-selection-select` }
                     value={ ParentPrescriptorState.evolution.parent_selection }
                     onChange={
@@ -600,7 +600,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-remove-population-percentage-label` } >
                     Remove Population %
                 </label>
-                <input style={numericInputWidth}
+                <input style={inputFieldWidth}
                     id={ `${flowPrefix}-remove-population-percentage-input` }
                     type="number" 
                     step="0.01" 
@@ -625,7 +625,7 @@ export default function PrescriptorNode(props): ReactElement {
                     Mutation Type
                 </label>
                 <select defaultValue="gaussian_noise_percentage"
-                    style={numericInputWidth}
+                    style={inputFieldWidth}
                     id={ `${flowPrefix}-mutation-select` }
                     value={ ParentPrescriptorState.evolution.mutation_type }
                     onChange={
@@ -657,7 +657,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-mutation-probability-label` } >
                     Mutation Probability
                 </label>
-                <input style={numericInputWidth}
+                <input style={inputFieldWidth}
                     id={ `${flowPrefix}-mutation-probability-input` }
                     type="number" 
                     step="0.1" 
@@ -681,7 +681,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-mutation-factor-label` } >
                     Mutation Factor
                 </label>
-                <input style={numericInputWidth}
+                <input style={inputFieldWidth}
                     id={ `${flowPrefix}-mutation-factor-input` }
                     type="number" 
                     step="0.01" 
@@ -703,7 +703,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-initialization-distribution-label` } >
                     Initialization Distribution
                 </label>
-                <select defaultValue="orthogonal" style={numericInputWidth}
+                <select defaultValue="orthogonal" style={inputFieldWidth}
                     id={ `${flowPrefix}-initialization-distribution-select` }
                     value={ ParentPrescriptorState.evolution.initialization_distribution }
                     onChange={
@@ -739,7 +739,7 @@ export default function PrescriptorNode(props): ReactElement {
                 <label id={ `${flowPrefix}-initialization-range-label` } >
                     Initialization Range
                 </label>
-                <input style={numericInputWidth}
+                <input style={inputFieldWidth}
                     id={ `${flowPrefix}-initialization-range-input` }
                     type="number" 
                     step="0.01" 
