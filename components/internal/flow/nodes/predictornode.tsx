@@ -41,6 +41,8 @@ import {loadDataTag} from "../../../../controller/fetchdatataglist"
 import {FlowQueries} from "../flowqueries";
 import {PredictorParams} from "../predictorinfo"
 
+import {DataTag} from "../../../../controller/datatag/types"
+
 
 // Interface for Predictor CAO
 export interface CAOChecked {
@@ -127,7 +129,7 @@ export default function PredictorNode(props): ReactElement {
     }
 
     // Since predictors change
-    const [taggedData, setTaggedData] = useState(null)
+    const [taggedData, setTaggedData] = useState<DataTag>(null)
 
     //Set the dropdown defaults here since the dropdown is created here
     const DEFAULT_CLASSIFIER_METRIC = Array.from(metrics["classifier"].keys())[0]
@@ -186,6 +188,9 @@ export default function PredictorNode(props): ReactElement {
             const CAOState: CAOChecked = ParentPredictorState.caoState
 
             if (taggedData) {
+                // For predictors with only one outcome, we want to check it by default
+                const hasOnlyOneOutcome: boolean = Object.values(taggedData.fields)
+                    .filter(f => f.esp_type === "OUTCOME").length === 1
                 Object.keys(taggedData.fields).forEach(fieldName => {
                     const field = taggedData.fields[fieldName]
                     switch (field.esp_type.toString()) {
@@ -196,7 +201,7 @@ export default function PredictorNode(props): ReactElement {
                             CAOState.action[fieldName] = CAOState.action[fieldName] ?? true
                             break
                         case "OUTCOME":
-                            CAOState.outcome[fieldName] = CAOState.outcome[fieldName] ?? false
+                            CAOState.outcome[fieldName] = CAOState.outcome[fieldName] ?? hasOnlyOneOutcome
                             break
                     }
                 })
