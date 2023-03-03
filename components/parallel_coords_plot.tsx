@@ -4,38 +4,43 @@ import React from "react"
 // Have to import Plotly this weird way
 // See: https://github.com/plotly/react-plotly.js/issues/272
 import dynamic from "next/dynamic";
+import {dimensions} from "ui-box"
 const Plot = dynamic(() => import("react-plotly.js"), { ssr: false, })
 
 export function ParallelCoordsPlot(props) {
+    const pareto = props.Pareto
+    console.debug("pareto", pareto)
+    
+    const objectives = pareto[Object.keys(pareto)[0]].objectives
+    // const objectives = ["objective0", "objective1", "objective2"]
+    
+    console.debug(objectives)
+    const data = pareto[Object.keys(pareto)[0]].data 
+    const gen1 = data.find( item => item.id === "Gen 1")
+    console.debug(gen1)
+
+    const dimensions = objectives.map((objective, idx) => {
+        const values = gen1.data.map(item => item[`objective${idx}`])
+        console.debug("values", values)
+        return (
+            {
+                label: objective,
+                range: [18, 170],
+                values: values
+            }
+        )
+    })
+    
+    
     const plot = <Plot // eslint-disable-line enforce-ids-in-jsx/missing-ids
                        // "Plot" lacks an "id" attribute
         data={[
             {
                 type: 'parcoords',
-                dimensions: [{
-                    range: [1, 5],
-                    constraintrange: [1, 2],
-                    label: 'A',
-                    values: [1,4]
-                }, {
-                    range: [1,5],
-                    label: 'B',
-                    values: [3,1.5],
-                    tickvals: [1.5,3,4.5]
-                }, {
-                    range: [1, 5],
-                    label: 'C',
-                    values: [2,4],
-                    tickvals: [1,2,4,5],
-                    ticktext: ['text 1','text 2','text 4','text 5']
-                }, {
-                    range: [1, 5],
-                    label: 'D',
-                    values: [4,2]
-                }]
+                dimensions: dimensions
             },
         ]}
-        // layout={{width: 320, height: 240, title: 'A Fancy Plot'}}
+        layout={{width: 1200, height: "100%"}}
     />
 
     return <>
