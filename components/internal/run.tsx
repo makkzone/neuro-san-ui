@@ -4,7 +4,7 @@ import {BrowserFetchRuns, FetchSingleRunArtifact} from "../../controller/run/fet
 import {constructRunMetricsForRunPlot} from "../../controller/run/results";
 import {empty} from "../../utils/objects";
 import MetricsTable from "../metricstable";
-import ESPRunPlot, {ParetoPlotTable} from "../esprunplot";
+import ESPRunPlot from "../esprunplot";
 import NewBar from "../newbar";
 import {Button} from "react-bootstrap";
 import {MaximumBlue} from "../../const";
@@ -20,6 +20,7 @@ import {useLocalStorage} from "../../utils/use_local_storage";
 import decode from "../../utils/conversion";
 import {useSession} from "next-auth/react";
 import {ParallelCoordsPlot} from "../parallel_coords_plot"
+import {ParetoPlotTable} from "../pareto_plot_2d"
 
 interface RunProps {
     /* 
@@ -303,25 +304,22 @@ export default function RunPage(props: RunProps): React.ReactElement {
     );
     
     if (objectivesCount && Object.keys(paretoPlotData).length > 0) {
-        if (objectivesCount === 2) {
-            plotDiv.push(
-                <ParetoPlotTable 
-                    id="pareto-plot-table"
-                    Pareto={paretoPlotData}
-                    NodeToCIDMap={nodeToCIDMap}
-                    PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap}
-                />
-            )
-        } else {
-            plotDiv.push(
-                <ParallelCoordsPlot 
-                    id="parallel-coords-table"
-                    Pareto={paretoPlotData}
-                    NodeToCIDMap={nodeToCIDMap}
-                    PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap}
-                />
-            )
-        }
+        plotDiv.push(
+            <ParetoPlotTable 
+                id="pareto-plot-table"
+                Pareto={paretoPlotData}
+                NodeToCIDMap={nodeToCIDMap}
+                PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap}
+            />
+        )
+        plotDiv.push(
+            <ParallelCoordsPlot 
+                id="parallel-coords-table"
+                Pareto={paretoPlotData}
+                NodeToCIDMap={nodeToCIDMap}
+                PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap}
+            />
+        )
     }
 
     // Decide whether DMS button should be enabled
