@@ -19,8 +19,8 @@ import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs';
 import {useLocalStorage} from "../../utils/use_local_storage";
 import decode from "../../utils/conversion";
 import {useSession} from "next-auth/react";
-import {ParallelCoordsPlot} from "../parallel_coords_plot"
-import {ParetoPlotTable} from "../pareto_plot_2d"
+import {ParallelCoordsPlot} from "../pareto/parallel_coords_plot"
+import {ParetoPlotTable} from "../pareto/pareto_plot_2d"
 
 interface RunProps {
     /* 
@@ -298,7 +298,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
 
     // Figure out how many objectives we have. Sum over all prescriptors.
     const prescriptorNodes = flow && FlowQueries.getPrescriptorNodes(flow)
-    const objectivesCount = prescriptorNodes ?.reduce(
+    const objectivesCount = prescriptorNodes?.reduce(
         (accumulator, node) => accumulator +  Object.keys(node.data.ParentPrescriptorState.evolution.fitness).length,
         0
     );

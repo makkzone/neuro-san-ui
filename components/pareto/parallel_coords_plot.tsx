@@ -1,11 +1,11 @@
-import NewBar from "./newbar"
+import NewBar from "../newbar"
 import React from "react"
 
 // Have to import Plotly this weird way
 // See: https://github.com/plotly/react-plotly.js/issues/272
 import dynamic from "next/dynamic";
 import {Slider} from "antd"
-import {MaximumBlue} from "../const"
+import {MaximumBlue} from "../../const"
 import {useMemo} from "react"
 import {Button} from "react-bootstrap"
 import {FiStopCircle} from "react-icons/fi"
@@ -49,54 +49,99 @@ export function ParallelCoordsPlot(props) {
             }
         )
     })
+
+    const flatData = useMemo(function () {
+        return data
+            .map(genData => genData.data)
+            .flat()
+    }, [])
+
+    const x = useMemo(function () {
+        return flatData.map(row => row.objective0)
+    }, [])
+
+    const y = useMemo(function () {
+        return flatData.map(row => row.objective1)
+    }, [])
+
+    const z = useMemo(function () {
+        return flatData.map(row => row.objective2)
+    }, [])
+
+    const percentMargin = 5/100.0
     
+    const minX = useMemo(function () {
+        return Math.min(...x) * (1 - percentMargin)
+    }, [])
+
+    const minY = useMemo(function () {
+        return Math.min(...y)  * (1 - percentMargin)
+    }, [])
+
+    const minZ = useMemo(function () {
+        return Math.min(...z)  * (1 - percentMargin)
+    }, [])
+
+    const maxX = useMemo(function () {
+        return Math.max(...x) * (1 + percentMargin)
+    }, [])
+
+    const maxY = useMemo(function () {
+        return Math.max(...y) * (1 + percentMargin)
+    }, [])
+
+    const maxZ = useMemo(function () {
+        return Math.max(...z) * (1 + percentMargin)
+    }, [])
     const zData = genData.data.map(item => [item.objective0, item.objective1, item.objective2])
     console.log(zData)
     const plot = <Plot // eslint-disable-line enforce-ids-in-jsx/missing-ids
                        // "Plot" lacks an "id" attribute
         data={[
             {
-                type: 'surface',
-                z: zData,
-                // line: {color: genData.data.map((o, idx) => idx)},
-                xaxis: "A",
-                yaxis: "B",
-                zaxis: "C",
+                type: 'mesh3d',
+                x: genData.data.map(item => item.objective0),
+                y: genData.data.map(item => item.objective1),
+                z: genData.data.map(item => item.objective2)
             },
         ]}
         layout={{
             width: 1200, height: 600,
-            scene: {xaxis: {
-                title: {
-                    text: objectives[0],
-                    font: {
-                        family: 'Courier New, monospace',
-                        size: 18,
-                        color: '#7f7f7f'
-                    }
+            scene: {
+                xaxis: {
+                    range: [minX, maxX],
+                    title: {
+                        text: objectives[0],
+                        font: {
+                            family: 'Courier New, monospace',
+                            size: 18,
+                            color: '#7f7f7f'
+                        }
+                    },
                 },
-            },
-            yaxis: {
-                title: {
-                    text: objectives[1],
-                    font: {
-                        family: 'Courier New, monospace',
-                        size: 18,
-                        color: '#7f7f7f'
-                    }
+                yaxis: {
+                    range: [minY, maxY],
+                    title: {
+                        text: objectives[1],
+                        font: {
+                            family: 'Courier New, monospace',
+                            size: 18,
+                            color: '#7f7f7f'
+                        }
+                    },
                 },
-            },
-            zaxis: {
-                title: {
-                    text: objectives[2],
-                    font: {
-                        family: 'Courier New, monospace',
-                        size: 18,
-                        color: '#7f7f7f'
-                    }
+                zaxis: {
+                    range: [minZ, maxZ],
+                    title: {
+                        text: objectives[2],
+                        font: {
+                            family: 'Courier New, monospace',
+                            size: 18,
+                            color: '#7f7f7f'
+                        }
+                    },
                 },
-            },
-        }}}
+            }}}
         style={{width: "100T%"}}
     />
 
