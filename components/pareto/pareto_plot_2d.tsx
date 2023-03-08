@@ -1,95 +1,42 @@
-import {Table} from "evergreen-ui"
-import NewBar from "../newbar"
 import React from "react"
 import {useMemo} from "react"
 import {useState} from "react"
-import {useEffect} from "react"
 import {sendNotification} from "../../controller/notification"
 import {NotificationType} from "../../controller/notification"
-import {Button} from "react-bootstrap"
 import {Card} from "react-bootstrap"
 import {Container} from "react-bootstrap"
-import {MaximumBlue} from "../../const"
-import {FiStopCircle} from "react-icons/fi"
-import {FiPlay} from "react-icons/fi"
-import {Slider} from "antd"
 import {ResponsiveLine} from "@nivo/line"
 import {ParetoPlotProps} from "./types"
+import {GenerationsAnimation} from "./generations_animation"
 
 /**
- * This function encloses the ParetoPlot component to
- * render a table of Pareto Plots incase there are multiple Prescriptor nodes/experiments
+ * This function generates a 2-dimensional pareto plot.
  * 
  * @param props Data for rendering table. See {@link ParetoPlotProps}.
  */
-export function ParetoPlotTable(props: ParetoPlotProps) {
+export function ParetoPlot2D(props: ParetoPlotProps) {
+    const pareto = props.Pareto
 
-    const nodePlots = []
+    const prescriptorNodeId = Object.keys(pareto)[0]
+    const objectives = pareto[prescriptorNodeId].objectives
 
-    // For Each node create a table
-    Object.keys(props.Pareto).forEach((nodeID, idx) => {
+    const xLabel = objectives[0]
+    const yLabel = objectives[1]
+    
+    // For now, only one prescriptor per experiment supported, so grab [0]
+    const data = pareto[prescriptorNodeId].data
 
-        const node = props.Pareto[nodeID]
-        const objectives = node.objectives
-
-        const plots = []
-
-        plots.push(
-            <div id={`two-d-pareto-plot-div-${idx}`}
-                 className="pb-28" style={{height: "35rem", width: "100%"}}>
-                <ParetoPlot id={`pareto-plot-${idx}`}
-                            data={node.data}
-                            xLabel={objectives[0]}
-                            yLabel={objectives[1]}
-                            SelectedCID={props.NodeToCIDMap[nodeID]}
-                            SelectedCIDStateUpdator={(cid: string) => {
-                                props.PrescriptorNodeToCIDMapUpdater(value => {
-                                    return {
-                                        ...value,
-                                        [nodeID]: cid
-                                    }
-                                })
-                            }}
-                />
-            </div>
-        )
-
-        nodePlots.push(
-            <div id="plot-table">
-                <Table.Body id="plot-table-body">
-                    <Table.Head id="plot-table-header">
-                        <Table.TextCell id="plot-table-label">Plot</Table.TextCell>
-                    </Table.Head>
-                    <Table.Body id="plot-table-cells">
-                        {plots}
-                    </Table.Body>
-                </Table.Body>
-            </div>
-        )
-    })
-
-    const propsId = `${props.id}`
-
-    return <>
-        <div id={`${propsId}`}>
-            <NewBar id="pareto-prescriptors-bar"
-                    InstanceId="pareto-prescriptors"
-                    Title="Pareto Prescriptors"
-                    DisplayNewLink={false}/>
-            {nodePlots}
-        </div>
-    </>
-} 
-
-// ParetoPlot renders a react component that is capable of
-// animating over several generations of an ESP Run.
-function ParetoPlot(props) {
-
-    // Unpack props
-    const {xLabel, yLabel} = props;
-    const data = props.data
-    const selectedCIDStateUpdator = props.SelectedCIDStateUpdator
-    const selectedCID = props.SelectedCID
+    const numberOfGenerations = data.length
+    
+    const selectedCID = props.NodeToCIDMap[prescriptorNodeId]
+    
+    const selectedCIDStateUpdator = (cid: string) =>
+        props.PrescriptorNodeToCIDMapUpdater(value => {
+            return {
+                ...value,
+                [prescriptorNodeId]: cid
+            }
+        })
 
     // Compute the min and the max of all the values for the plot below
     // We do this rather than letting the plot decide because while animating
@@ -126,10 +73,6 @@ function ParetoPlot(props) {
         return Math.max(...y)
     }, [])
 
-    const numGen = useMemo(function () {
-        return data.length
-    }, [])
-
     // Create a cache of all the generations by the generation
     // name in a hash table for fast lookup.
     // This useMemo has a dependency selectedCID that denotes
@@ -139,10 +82,12 @@ function ParetoPlot(props) {
         const gendata = {}
         let row
         for (row of data) {
-            // Line plot requires coordinates to be named (x, y) so add them to the data
+            // Line plot requires coordinates to be named (x, y) rathern than (objective0, objective1)
             row.data.forEach((val, idx) => {
                 row.data[idx].x = row.data[idx].objective0
                 row.data[idx].y = row.data[idx].objective1
+                // delete row.data[idx].objective0
+                // delete row.data[idx].objective1
             })
             gendata[row.id] = [row]
         }
@@ -163,54 +108,27 @@ function ParetoPlot(props) {
     }, [selectedCID])
 
     // We manage the selected state to display only data of selected generation.
-    const [selectedGen, setSelectedGen] = useState(numGen)
-
-    // Maintain the state of the animation if its playing or not
-    const [playing, setPlaying] = useState(false)
-
-    // Maintain the state of the setInterval Object that is used to play
-    // We keep this so we can clear it when component is unmounted
-    const [playingInterval, setPlayingInterval] = useState(null)
-
-    // No setup but returning a teardown function that clears the timer if it hadn't
-    // been cleaned up.
-    // The timer gets cleaned up when either the stop animation button is pressed or
-    // the animation ends. But if the Run drawer is closed before that happens - the timer
-    // does not get cleaned up. This ensures that it gets cleaned up on unmount
-    useEffect(function () {
-        if (playingInterval) {
-            return function cleanup() {
-                clearInterval(playingInterval)
-            }
-        }
-    }, [])
+    const [selectedGen, setSelectedGen] = useState(1)
 
     // Generate mars for the slider
     const marks = {}
-    marks[numGen + 1] = `All Gen`
+    marks[numberOfGenerations + 1] = `All Gen`
 
     // On Click handler - only rendered at the last generation as those are the
     // candidates we persist
-    // The default click handler shows the Notification if the
-    // selected Candidate is not of the last generation - we cannot yet perform inference
-    // on those as those don't exist
-
-    let onClickHandler: (point, event) => void
-
-    onClickHandler = () => {
-        sendNotification(NotificationType.error, "Model Selection Error",
-            "Only models from the last generation can be used with the decision interface")
-    }
-    // Override the default onclick handler to actually update the selected model
-    // if it is selected from the last generation
-    if (selectedGen === numGen) {
-        onClickHandler = node => {
+    // The default click handler shows the Notification if the selected Candidate is not of the last generation - we
+    // cannot yet perform inference on those as those don't exist.
+    const onClickHandler: (point, event) => void = selectedGen === numberOfGenerations ? 
+        node => {
             selectedCIDStateUpdator(node.data.cid)
         }
-    }
+        : () => {
+            sendNotification(NotificationType.error, "Model Selection Error",
+                "Only models from the last generation can be used with the decision interface")
+        }
 
     // A custom Point symbol for the scatter plot
-    const CustomSymbol = ({size, color, borderWidth, borderColor}) => (
+    const customSymbol = ({size, color, borderWidth, borderColor}) => (
         <g id="scatter-plot-custom-symbols">
             <circle id="scatter-plot-circle-1"
                     fill="#fff"
@@ -228,15 +146,21 @@ function ParetoPlot(props) {
         </g>
     )
 
+    const plotData = cachedDataByGen[`Gen ${selectedGen}`] ?? data
+
+    // Use constant color for animation or individual generations so it's less jarring, but multicolor when 
+    // showing all generations 
+    const colors = selectedGen === numberOfGenerations + 1 ? undefined: () => '#ff0000'
+    
     const plot = <ResponsiveLine // eslint-disable-line enforce-ids-in-jsx/missing-ids
-        pointSymbol={CustomSymbol}
+        pointSymbol={customSymbol}
         pointSize={12}
         pointBorderWidth={1}
         pointBorderColor={{
             from: 'color',
             modifiers: [['darker', 0.3]]
         }}
-        colors={() => 'rgba(255,0,0,0.51)'}
+        colors={colors}
         curve="monotoneX"
         tooltip={({point}) => {
             return <Card id="responsive-line-tooltip">
@@ -246,7 +170,7 @@ function ParetoPlot(props) {
                 </Container>
             </Card>
         }}
-        data={cachedDataByGen[`Gen ${selectedGen}`] ?? data}
+        data={plotData}
         margin={{top: 60, right: 140, bottom: 70, left: 90}}
         xScale={{type: 'linear', min: minX, max: maxX}}
         xFormat=">-.2f"
@@ -301,66 +225,12 @@ function ParetoPlot(props) {
     />
     
     return <>
-        <div id="two-d-pareto-plot-div" className="flex mt-4 ">
-
-            {/* This button enables the animation */}
-            <Button id="generation-play-button"
-                    style={{background: MaximumBlue, borderColor: MaximumBlue}}
-                    type="button"
-                    className="mr-4"
-                    onClick={() => {
-                        // If the animation is not playing start the animation by using
-                        // a setInterval that updates the states ever half second
-                        if (!playing) {
-                            if (selectedGen >= numGen) {
-                                setSelectedGen(1)
-                            }
-                            setPlaying(true)
-                            const interval = setInterval(function () {
-                                setSelectedGen(selectedGen => {
-                                    if (selectedGen === numGen) {
-                                        clearInterval(interval)
-                                        setPlaying(false)
-                                        return selectedGen
-                                    }
-                                    return selectedGen + 1
-                                })
-                            }, 100)
-                            setPlayingInterval(interval)
-                        } else {
-                            // If the timer was already started - meaning the stop button is
-                            // pressed - clear the timer
-                            clearInterval(playingInterval)
-                            setPlayingInterval(null)
-                            setPlaying(false)
-                        }
-
-                    }}
-            >{playing ? <FiStopCircle id="generation-play-stop"/> : <FiPlay id="generation-play-play"/>}</Button>
-
-            <Slider id="selected-generation-slider"
-                    defaultValue={numGen}
-                    marks={marks}
-                    min={1}
-                    max={numGen + 1}
-                    value={selectedGen}
-                    dots={true}
-                    disabled={playing}
-                    onChange={value => {
-                        setSelectedGen(value)
-                    }}
-                    handleStyle={{
-                        borderColor: MaximumBlue,
-                        color: MaximumBlue
-                    }}
-                    trackStyle={{
-                        backgroundColor: MaximumBlue
-                    }}
-                    className="w-full mr-6"
-            />
-        </div>
-
-        { /* 2/6/23 DEF - ResponsiveLine does not have an id tag when compiled */}
-        {plot}
+        <GenerationsAnimation
+            id="generations-animation"
+            NumberOfGenerations={numberOfGenerations}
+            Plot={plot}
+            SetSelectedGen={(gen: number) => setSelectedGen(gen)}
+            SelectedGen={selectedGen}
+        />
     </>
 }

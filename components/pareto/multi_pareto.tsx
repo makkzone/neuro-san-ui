@@ -10,7 +10,7 @@ import {Table} from "evergreen-ui"
 import {InfoSignIcon} from "evergreen-ui"
 import {Tooltip} from "evergreen-ui"
 import {ParallelCoordsPlot} from "./parallel_coords_plot";
-import {ParetoPlotTable} from "./pareto_plot_2d";
+import {ParetoPlot2D} from "./pareto_plot_2d";
 import {ParetoPlotProps} from "./types"
 import {SurfacePlot3D} from "./surface_plot_3d"
 
@@ -21,7 +21,6 @@ import {SurfacePlot3D} from "./surface_plot_3d"
 export function MultiPareto(props: ParetoPlotProps) {
 
     const objectivesCount = props.ObjectivesCount
-    console.debug(objectivesCount)
     
     // Options for select dialog
     const options = [
@@ -57,9 +56,6 @@ export function MultiPareto(props: ParetoPlotProps) {
     
     // For Each node create a table
     Object.keys(props.Pareto).forEach((nodeID, idx) => {
-
-        const node = props.Pareto[nodeID]
-
         const cells = []
 
         cells.push(
@@ -84,7 +80,7 @@ export function MultiPareto(props: ParetoPlotProps) {
                         {/* 2D pareto */}
                         {
                             selectedChartType.value === "2d_pareto" &&
-                            <ParetoPlotTable
+                            <ParetoPlot2D
                                 id="pareto-plot-table"
                                 Pareto={props.Pareto}
                                 NodeToCIDMap={props.NodeToCIDMap}
@@ -131,15 +127,10 @@ export function MultiPareto(props: ParetoPlotProps) {
             <br id="pareto-plot-br" />
             <Container fluid id="pareto-plot-container">
                 <Row id="plot-type-row">
-                    <h4 id="plot-type-h4">Plot type:</h4>
-                </Row>
-                <Row id="select-chart-row">
-                    <Col id="select-chart-col" style={{marginTop: "16px"}} md={11}>
-                        {paretoChartSelect}
-                    </Col>
-                    <Col id="tooltip-column">
+                    <Col id="tooltip-column" style={{display: "flex"}}>
+                        <h4 id="plot-type-h4">Plot type:</h4>
                         <Tooltip    // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                    // Tooltip does not have an id property
+                            // Tooltip does not have an id property
                             content={"Some plot types may not be available, depending on the number of outcomes " +
                                 "in your experiment"}>
                             <div id="plot-info-bubble" className="ps-1">
@@ -148,6 +139,11 @@ export function MultiPareto(props: ParetoPlotProps) {
                                 </sup>
                             </div>
                         </Tooltip>
+                    </Col>
+                </Row>
+                <Row id="select-chart-row">
+                    <Col id="select-chart-col" style={{marginTop: "16px"}}>
+                        {paretoChartSelect}
                     </Col>
                 </Row>
                 <Row id="pareto-plot-row" style={{marginTop: "16px"}}>

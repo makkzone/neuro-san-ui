@@ -1,4 +1,3 @@
-import NewBar from "../newbar"
 import React from "react"
 
 import dynamic from "next/dynamic";
@@ -37,7 +36,6 @@ export function SurfacePlot3D(props: ParetoPlotProps) {
     // We keep this so we can clear it when component is unmounted
     const [playingInterval, setPlayingInterval] = useState(null)
 
-    console.debug("selected", selectedGen)
     const genData = data.find( item => item.id === `Gen ${selectedGen || 1}`)
     objectives.map((objective, idx) => {
         const values = genData.data.map(item => item[`objective${idx}`])

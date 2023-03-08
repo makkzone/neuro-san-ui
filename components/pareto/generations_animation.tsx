@@ -68,8 +68,8 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
     const marks = {}
     marks[numberOfGenerations + 1] = `All Gen`
     
-    return <div id={id}>
-        <div id="generations-animtations-div" className="flex mt-4">
+    return <>
+        <div id={id} className="flex mt-4">
             <Button id="generation-play-button"
                     style={{background: MaximumBlue, borderColor: MaximumBlue}}
                     type="button"
@@ -128,5 +128,5 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
             />
         </div>
         {plot}
-    </div>
+    </>
 }
