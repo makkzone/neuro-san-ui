@@ -20,8 +20,9 @@ export function ParallelCoordsPlot(props: ParetoPlotProps): JSX.Element {
     const pareto = props.Pareto
     
     const objectives = pareto[Object.keys(pareto)[0]].objectives
-    
-    const data = pareto[Object.keys(pareto)[0]].data 
+
+    // For now, only one prescriptor per experiment supported, so grab [0]
+    const data = pareto[Object.keys(pareto)[0]].data
 
     const numberOfGenerations = useMemo(function () {
         return data.length
