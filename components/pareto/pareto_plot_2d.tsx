@@ -82,7 +82,7 @@ export function ParetoPlot2D(props: ParetoPlotProps) {
         const gendata = {}
         let row
         for (row of data) {
-            // Line plot requires coordinates to be named (x, y) rathern than (objective0, objective1)
+            // Line plot requires coordinates to be named (x, y) rather than (objective0, objective1)
             row.data.forEach((val, idx) => {
                 row.data[idx].x = row.data[idx].objective0
                 row.data[idx].y = row.data[idx].objective1
@@ -115,10 +115,10 @@ export function ParetoPlot2D(props: ParetoPlotProps) {
     marks[numberOfGenerations + 1] = `All Gen`
 
     // On Click handler - only rendered at the last generation as those are the
-    // candidates we persist
+    // candidates we persist.
     // The default click handler shows the Notification if the selected Candidate is not of the last generation - we
     // cannot yet perform inference on those as those don't exist.
-    const onClickHandler: (point, event) => void = selectedGen === numberOfGenerations ? 
+    const onClickHandler: (point, _) => void = selectedGen === numberOfGenerations ? 
         node => {
             selectedCIDStateUpdator(node.data.cid)
         }

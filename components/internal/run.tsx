@@ -20,6 +20,7 @@ import {useLocalStorage} from "../../utils/use_local_storage";
 import decode from "../../utils/conversion";
 import {useSession} from "next-auth/react";
 import { MultiPareto } from "../pareto/multi_pareto";
+import BlankLines from "../blanklines"
 
 interface RunProps {
     /* 
@@ -312,24 +313,10 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 ObjectivesCount={objectivesCount}
             />
         )
-        // plotDiv.push(
-        //     <ParetoPlotTable 
-        //         id="pareto-plot-table"
-        //         Pareto={paretoPlotData}
-        //         NodeToCIDMap={nodeToCIDMap}
-        //         PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap}
-        //     />
-        // )
-        // plotDiv.push(
-        //     <ParallelCoordsPlot 
-        //         id="parallel-coords-table"
-        //         Pareto={paretoPlotData}
-        //         NodeToCIDMap={nodeToCIDMap}
-        //         PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap}
-        //     />
-        // )
     }
 
+    plotDiv.push(<BlankLines numLines={6} />)
+    
     // Decide whether DMS button should be enabled
     function shouldEnableDMS() {
         return !empty(nodeToCIDMap)
