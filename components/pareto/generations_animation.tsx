@@ -25,6 +25,9 @@ interface GenerationsAnimationParams {
     
     // Currently selected generation
     SelectedGen: number
+    
+    // Whether the type of plot allows user to show all generations simultaneously
+    ShowAllGenerations?: boolean
 }
 
 /**
@@ -41,6 +44,8 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
     const selectedGen: number = props.SelectedGen
     
     const setSelectedGen: (number) => void = props.SetSelectedGen
+    
+    const showAllGenerations = props?.ShowAllGenerations ?? true
     
     // Maintain the state of the animation if its playing or not
     const [playing, setPlaying] = useState(false)
@@ -64,9 +69,13 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
         }
     }, [])
 
-    // Generate mars for the slider
+    // Allow user to show all generations at once, if permitted by plot type
     const marks = {}
-    marks[numberOfGenerations + 1] = `All Gen`
+    if (showAllGenerations) {
+        marks[numberOfGenerations + 1] = `All Gen`
+    }
+
+    const maxGenerations = showAllGenerations ? numberOfGenerations + 1 : numberOfGenerations
     
     return <>
         <div id={id} className="flex mt-4">
@@ -110,7 +119,7 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
                     defaultValue={numberOfGenerations}
                     marks={marks}
                     min={1}
-                    max={numberOfGenerations + 1}
+                    max={maxGenerations}
                     value={selectedGen}
                     dots={true}
                     disabled={playing}

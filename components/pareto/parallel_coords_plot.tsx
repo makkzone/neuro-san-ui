@@ -2,17 +2,12 @@ import React from "react"
 import {useMemo} from "react"
 import {useState} from "react"
 
-import dynamic from "next/dynamic";
 import {ParetoPlotProps} from "./types"
 import {GenerationsAnimation} from "./generations_animation"
 import ReactEcharts from "echarts-for-react";
 import {EChartsOption} from "echarts-for-react/src/types"
 import {sendNotification} from "../../controller/notification"
 import {NotificationType} from "../../controller/notification"
-
-// Have to import Plotly this weird way
-// See: https://github.com/plotly/react-plotly.js/issues/272
-const Plot = dynamic(() => import("react-plotly.js"), { ssr: false, })
 
 /**
  * This component generates a parallel coordinates plot. See {@link https://en.wikipedia.org/wiki/Parallel_coordinates}
@@ -104,7 +99,6 @@ export function ParallelCoordsPlot(props: ParetoPlotProps): JSX.Element {
                     data: data.map((d) => Object.values(d)),
                     lineStyle: {
                         normal: {
-                            // color: "auto",
                             type: "gradient",
                             width: 2,
                             opacity: 0.5,
@@ -117,12 +111,11 @@ export function ParallelCoordsPlot(props: ParetoPlotProps): JSX.Element {
                         },
                     },
                     selectedMode: "single", // enable selection mode
-                    // set event handler for line selection
-                },
+                }
             ],
             tooltip: {
                 trigger: "item",
-                formatter: (params: any) => {
+                formatter: (params) => {
                     const paraVals = params.value.filter(k => k !== "cid").map((value, idx) => `${objectives[idx] || "prescriptor"}: ${value.toString()}`).join("<br />")
                     paraVals
                     return paraVals
@@ -144,6 +137,7 @@ export function ParallelCoordsPlot(props: ParetoPlotProps): JSX.Element {
             Plot={plot}  
             SetSelectedGen={(gen: number) => setSelectedGen(gen)} 
             SelectedGen={selectedGen}
+            ShowAllGenerations={false}
         />
     </>
 }
