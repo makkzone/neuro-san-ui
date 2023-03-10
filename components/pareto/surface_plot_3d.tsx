@@ -1,6 +1,5 @@
 import React from "react"
 
-import dynamic from "next/dynamic";
 import {Slider} from "antd"
 import {MaximumBlue} from "../../const"
 import {useMemo} from "react"
@@ -10,10 +9,6 @@ import {FiPlay} from "react-icons/fi"
 import {useState} from "react"
 import {useEffect} from "react"
 import {ParetoPlotProps} from "./types"
-
-// Have to import Plotly this weird way
-// See: https://github.com/plotly/react-plotly.js/issues/272
-const Plot = dynamic(() => import("react-plotly.js"), { ssr: false, })
 
 export function SurfacePlot3D(props: ParetoPlotProps) {
     const pareto = props.Pareto
