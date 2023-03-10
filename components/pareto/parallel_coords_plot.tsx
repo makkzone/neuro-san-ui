@@ -35,6 +35,8 @@ export function ParallelCoordsPlot(props: ParetoPlotProps): JSX.Element {
 
     const genData = data.find( item => item.id === `Gen ${selectedGen || 1}`)
     
+    // Calculate min and max values for each objective across all generations. This allows us to scale the chart
+    // appropriately for the animation.
     const minMaxPerObjective = Object.fromEntries(objectives.map((objective, idx) => {
         const minObjectiveValue = Math.min(...data.flatMap(gen => gen.data.map(cid => cid[`objective${idx}`])))
         const maxObjectiveValue = Math.max(...data.flatMap(gen => gen.data.map(cid => cid[`objective${idx}`])))
@@ -47,10 +49,6 @@ export function ParallelCoordsPlot(props: ParetoPlotProps): JSX.Element {
         ]
     }))
     
-    interface Props {
-        data: Array<Record<string, number>>
-    }
-
     // How much to extend axes above and below min/max values
     const scalePadding = 0.05
 
@@ -77,56 +75,52 @@ export function ParallelCoordsPlot(props: ParetoPlotProps): JSX.Element {
                 "Only models from the last generation can be used with the decision interface")
         }
 
-    const ParallelCoordinatesChart: React.FC<Props> = ({ data }) => {
-        const option: EChartsOption = {
-            animation: false,
-            // Use first data item to get list of objectives. Skip "cid" as it isn't a real data item.
-            parallelAxis: Object.keys(data[0]).filter(k => k !== "cid").map((key, idx) => {
-                return {
-                    dim: key,
-                    name: objectives[idx],
-                    type: "value",
-                    min: (minMaxPerObjective[key].min * (1 - scalePadding)).toFixed(2),
-                    max: (minMaxPerObjective[key].max * (1 + scalePadding)).toFixed(2)
-                };
-            }),
-            series: [
-                {
-                    type: "parallel",
-                    data: data.map((d) => Object.values(d)),
-                    lineStyle: {
-                        normal: {
-                            type: "gradient",
-                            width: 2,
-                            opacity: 0.5,
-                        },
+    const option: EChartsOption = {
+        animation: false,
+        // Use first data item to get list of objectives. Skip "cid" as it isn't a real data item.
+        parallelAxis: Object.keys(genData.data[0]).filter(k => k !== "cid").map((key, idx) => {
+            return {
+                dim: key,
+                name: objectives[idx],
+                type: "value",
+                min: (minMaxPerObjective[key].min * (1 - scalePadding)).toFixed(2),
+                max: (minMaxPerObjective[key].max * (1 + scalePadding)).toFixed(2)
+            };
+        }),
+        series: [
+            {
+                type: "parallel",
+                data: genData.data.map((d) => Object.values(d)),
+                lineStyle: {
+                    normal: {
+                        type: "gradient",
+                        width: 2,
+                        opacity: 0.5,
                     },
-                    colorBy: "data",
-                    emphasis: {
-                        lineStyle: {
-                            width: 4,
-                        },
-                    },
-                }
-            ],
-            tooltip: {
-                trigger: "item",
-                formatter: (params) => {
-                    return params.value.filter(k => k !== "cid").map((value, idx) => `${objectives[idx] || "prescriptor"}: ${value.toString()}`).join("<br />")
                 },
+                colorBy: "data",
+                emphasis: {
+                    lineStyle: {
+                        width: 4,
+                    },
+                },
+            }
+        ],
+        tooltip: {
+            trigger: "item",
+            formatter: (params) => {
+                return params.value.filter(k => k !== "cid").map((value, idx) => `${objectives[idx] || "prescriptor"}: ${value.toString()}`).join("<br />")
             },
-            
-        };
+        },
+    }
 
-        return <ReactEcharts 
-            option={option} 
-            onEvents={{click: onChartClick}} 
+    const plot =
+        <ReactEcharts
+            option={option}
+            onEvents={{click: onChartClick}}
             style={{height: "600px"}}
         />
-    };
 
-    const plot = <ParallelCoordinatesChart data={genData.data}/>
-    
     return <>
         <GenerationsAnimation 
             id="generations-animation" 
