@@ -10,6 +10,10 @@ import {sendNotification} from "../../controller/notification"
 import {NotificationType} from "../../controller/notification"
 import {cloneDeep} from "lodash"
 
+// This is a load-bearing import. Even though it doesn't appear to be used, it _has_ to be here or else the 3D
+// surface plot just plain will not show up.
+import 'echarts-gl'
+
 /**
  * This component generates a 3D surface plot. See {@link https://en.wikipedia.org/wiki/Parallel_coordinates}
  * for details.
