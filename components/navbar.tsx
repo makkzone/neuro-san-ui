@@ -5,21 +5,28 @@
 // React
 import React from 'react'
 
+// Third party
+import Breadcrumbs from "nextjs-breadcrumbs"
+import {Container, Dropdown, Nav, Navbar as BootstrapNavbar, NavItem, NavLink} from "react-bootstrap"
+import {Row} from "react-bootstrap"
+import {startCase} from "lodash"
+
 // Import Constants
 import {ENABLE_AUTHENTICATION, MaximumBlue, UNILEAF_VERSION} from '../const'
 
 // Styling Libraries
-import {Container, Dropdown, Nav, Navbar as BootstrapNavbar, NavItem, NavLink} from "react-bootstrap";
+
 import Image from 'next/image'
-import Link from "next/link";
+import Link from "next/link"
 
 // Authentication
-import {signOut, useSession} from "next-auth/react";
+import {signOut, useSession} from "next-auth/react"
 
 // Custom components
-import {isSignedIn} from "./auth";
-import {Row} from "react-bootstrap"
-import Breadcrumbs from "nextjs-breadcrumbs"
+import {isSignedIn} from "./auth"
+
+
+
 
 // Define Constants
 const LOGO_COLOR: string = "white";
@@ -122,7 +129,7 @@ function Navbar(props: NavbarProps): React.ReactElement {
             </BootstrapNavbar>
         </Row>
         <Row>
-            <Breadcrumbs useDefaultStyle rootLabel="Home"/>
+            <Breadcrumbs useDefaultStyle rootLabel="Home" transformLabel={label => startCase(label)}/>
         </Row>
     </Container>
 }
