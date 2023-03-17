@@ -6,8 +6,6 @@ import {EChartsOption} from "echarts-for-react/src/types"
 // surface plot just plain will not show up.
 import 'echarts-gl'
 
-import {cloneDeep} from "lodash"
-
 import {ParetoPlotProps} from "./types"
 import {EchartParetoPlot} from "./echart_pareto_plot"
 
@@ -29,14 +27,17 @@ export function SurfacePlot3D(props: ParetoPlotProps): JSX.Element {
     const optionsGenerator: EChartsOption = function (genData, objectives, minMaxPerObjective, selectedGen) {
         const plotData = genData.map(row => [row.objective0, row.objective1, row.objective2, row.cid])
 
+        // Desaturated red-pink, 35% opacity
         const plotColor = "rgb(244, 118, 97, 0.35)"
         
+        // Extract the "x,y,z" coordinates from this generation's plot data
         const pd = plotData.map(row => ({
                 name: row[3],
                 value: row.slice(0, 3),
-                itemStyle: {color: plotColor},
-                symbol: "circle",
-                symbolSize: 15
+                itemStyle: {
+                    color: plotColor,
+                    symbol: "circle", // not working. TODO: figure out how to show data points
+                },
             }) 
         )
 
@@ -86,8 +87,7 @@ export function SurfacePlot3D(props: ParetoPlotProps): JSX.Element {
                         symbol: 'circle',
                         symbolSize: 10
                     },
-                    shading: "realistic",
-                    symbol: "pin",
+                    symbol: "circle",  // not working
                     symbolSize: 60
                    
                 }
