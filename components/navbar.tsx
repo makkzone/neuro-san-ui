@@ -36,8 +36,11 @@ const NAV_ITEMS_COLOR: string = "white";
 interface NavbarProps {
     // id is a string handle to the element used for testing
     id: string
+    
     // Logo is the title of the NavBar
     readonly Logo: string
+    
+    readonly WithBreadcrumbs?: boolean
 }
 
 function Navbar(props: NavbarProps): React.ReactElement {
@@ -52,6 +55,8 @@ function Navbar(props: NavbarProps): React.ReactElement {
 
     const propsId = `${props.id}`
 
+    const withBreadcrumbs = props.WithBreadcrumbs ?? true
+    
     return <Container id="nav-bar-container">
         <Row id="nav-bar-menu-row">
             <BootstrapNavbar id={`${propsId}`}
@@ -128,14 +133,17 @@ function Navbar(props: NavbarProps): React.ReactElement {
                 </BootstrapNavbar.Collapse>
             </BootstrapNavbar>
         </Row>
-        <Row id="nav-bar-breadcrumbs-row">
-            <Breadcrumbs    // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                            // Breadcrumbs lacks an id attribute    
-                useDefaultStyle 
-                rootLabel="Home" 
-                transformLabel={label => startCase(label)}
-            />
-        </Row>
+        {
+            withBreadcrumbs && 
+                <Row id="nav-bar-breadcrumbs-row">
+                    <Breadcrumbs    // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                    // Breadcrumbs lacks an id attribute    
+                        useDefaultStyle 
+                        rootLabel="Home" 
+                        transformLabel={label => startCase(label)}
+                    />
+                </Row>
+        }
     </Container>
 }
 

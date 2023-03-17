@@ -52,7 +52,7 @@ export default function LEAF({
         { /* 2/6/23 DEF - SessionProvider does not have an id property when compiling */ }
         <SessionProvider        // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 session={session}>
-          <Navbar id="nav-bar" Logo={LOGO} />
+          <Navbar id="nav-bar" Logo={LOGO} WithBreadcrumbs={Component.withBreadcrumbs ?? true}/>
           <Container id="body-container">
             {Component.authRequired && ENABLE_AUTHENTICATION
                 ? <Auth         // eslint-disable-line enforce-ids-in-jsx/missing-ids
