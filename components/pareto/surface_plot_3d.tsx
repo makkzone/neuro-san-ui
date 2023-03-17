@@ -22,27 +22,24 @@ import {EchartParetoPlot} from "./echart_pareto_plot"
  * @param props See {@link ParetoPlotProps} for details.
  */
 export function SurfacePlot3D(props: ParetoPlotProps): JSX.Element {
-    // Make a deep copy as we will be modifying it (adding x and y values for plot)
-    const paretoClone = cloneDeep(props.Pareto)
-
-    const paretoPlotProps: ParetoPlotProps = {
-        ...props,
-        Pareto: paretoClone
-    }
 
     // How much to extend axes above and below min/max values
     const scalePadding = 0.05
 
     const optionsGenerator: EChartsOption = function (genData, objectives, minMaxPerObjective, selectedGen) {
         const plotData = genData.map(row => [row.objective0, row.objective1, row.objective2, row.cid])
+
+        const plotColor = "rgb(244, 118, 97, 0.35)"
         
-        // Need to have objectives as (x, y, z) coordinates for plotting
-        genData.forEach(row => {
-            row.x = row.objective0
-            row.y = row.objective1
-            row.z = row.objective2
-        })
-        
+        const pd = plotData.map(row => ({
+                name: row[3],
+                value: row.slice(0, 3),
+                itemStyle: {color: plotColor},
+                symbol: "circle",
+                symbolSize: 15
+            }) 
+        )
+
         return {
             animation: false,
             xAxis3D: {
@@ -50,18 +47,27 @@ export function SurfacePlot3D(props: ParetoPlotProps): JSX.Element {
                 name: objectives[0],
                 min: (minMaxPerObjective.objective0.min * (1 - scalePadding)).toFixed(2),
                 max: (minMaxPerObjective.objective0.max * (1 + scalePadding)).toFixed(2),
+                axisPointer: {
+                    show: false
+                }
             },
             yAxis3D: {
                 type: 'value',
                 name: objectives[1],
                 min: (minMaxPerObjective.objective1.min * (1 - scalePadding)).toFixed(2),
                 max: (minMaxPerObjective.objective1.max * (1 + scalePadding)).toFixed(2),
+                axisPointer: {
+                    show: false
+                }
             },
             zAxis3D: {
                 type: 'value',
                 name: objectives[2],
                 min: (minMaxPerObjective.objective2.min * (1 - scalePadding)).toFixed(2),
                 max: (minMaxPerObjective.objective2.max * (1 + scalePadding)).toFixed(2),
+                axisPointer: {
+                    show: false
+                }
             },
             grid3D: {
                 viewControl: {
@@ -72,23 +78,37 @@ export function SurfacePlot3D(props: ParetoPlotProps): JSX.Element {
                 {
                     name: `Generation ${selectedGen}`,
                     type: 'surface',
-                    data: plotData,
+                    data: pd,
                     itemStyle: {
                         borderWidth: 2,
                         borderColor: "black",
                         opacity: 1,
-                    }
+                        symbol: 'circle',
+                        symbolSize: 10
+                    },
+                    shading: "realistic",
+                    symbol: "pin",
+                    symbolSize: 60
+                   
                 }
             ],
+            legend: {
+                orient: 'vertical',
+                right: "25%",
+                top: '10%',
+                selectedMode: false
+            },
             tooltip: {
                 trigger: "item",
                 formatter: (params) => {
-                    return params.value
+                    return `Prescriptor: ${params.data.name}` + "<br />" +
+                        params.data.value
                         .filter(k => k !== "cid")
                         .map((value, idx) => `${objectives[idx] || "prescriptor"}: ${value.toString()}`)
                         .join("<br />")
                 },
             },
+            color: plotColor,
         }
     }
 
@@ -97,7 +117,7 @@ export function SurfacePlot3D(props: ParetoPlotProps): JSX.Element {
                     id="surface-plot"
                     style={{height: "100%"}}
                     optionsGenerator={optionsGenerator}
-                    paretoProps={paretoPlotProps}
+                    paretoProps={props}
                     objectivesCount={props.ObjectivesCount}
                     minObjectives={3}
                     maxObjectives={3}

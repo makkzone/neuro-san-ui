@@ -80,6 +80,9 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
     if (showAllGenerations) {
         marks[numberOfGenerations + 1] = `All Gen`
     }
+    
+    marks[1] = 1
+    marks[numberOfGenerations] = numberOfGenerations
 
     const maxGenerations = showAllGenerations ? numberOfGenerations + 1 : numberOfGenerations
     
