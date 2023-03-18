@@ -146,6 +146,7 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
                 {playing ? <FiStopCircle id="generation-play-stop"/> : <FiPlay id="generation-play-play"/>}
             </Button>
             <Select id="select-playback-speed"
+                    isDisabled={playing}
                     styles={{control: styles => ({...styles, width: "100px", height: "100%", margin: "0 25px"})}}
                     options={playbackSpeedOptions}
                     value={playbackSpeed}
