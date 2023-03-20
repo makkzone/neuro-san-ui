@@ -5,9 +5,8 @@ import React, { useState } from 'react';
 import {
     EdgeProps,
     Edge,
-  getBezierPath,
-  getEdgeCenter
-} from 'react-flow-renderer';
+  getBezierPath
+} from 'reactflow';
 
 // Import third party components
 import { 
@@ -40,20 +39,13 @@ const PrescriptorEdgeComponent: React.FC<EdgeProps<PrescriptorEdgeData>>  = ({ i
                                         sourcePosition, targetPosition,
                                         style = {}, data, markerEnd
                                         }) => {
-    const edgePath = getBezierPath({
+    const [edgePath, edgeCenterX, edgeCenterY] = getBezierPath({
         sourceX,
         sourceY,
         sourcePosition,
         targetX,
         targetY,
         targetPosition,
-    })
-    
-    const [edgeCenterX, edgeCenterY] = getEdgeCenter({
-        sourceX,
-        sourceY,
-        targetX,
-        targetY,
     })
 
     // We want to have a tabbed predictor configuration

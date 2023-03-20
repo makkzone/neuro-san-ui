@@ -5,7 +5,7 @@ import {Dispatch, SetStateAction, useState} from 'react'
 import {Card, Collapse} from "react-bootstrap"
 import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
 import {InfoSignIcon, Popover, Text, Tooltip,} from "evergreen-ui"
-import {Handle, Position as HandlePosition, NodeProps, Node} from 'react-flow-renderer'
+import {Handle, Position as HandlePosition, NodeProps, Node} from 'reactflow'
 import {AiFillDelete} from "react-icons/ai";
 import {GrSettingsOption} from "react-icons/gr"
 import {NotificationType, sendNotification} from "../../../../controller/notification";

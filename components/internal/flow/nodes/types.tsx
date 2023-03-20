@@ -1,5 +1,5 @@
 // Import Custom Components
-import { NodeTypes as RFNodeTypes } from 'react-flow-renderer'
+import { NodeTypes as RFNodeTypes } from 'reactflow'
 import DataSourceNodeComponent, { DataSourceNode, DataSourceNodeData } from './datasourcenode'
 import PredictorNodeComponent, { PredictorNode, PredictorNodeData } from './predictornode'
 import PrescriptorNodeComponent, { PrescriptorNode, PrescriptorNodeData } from './prescriptornode'

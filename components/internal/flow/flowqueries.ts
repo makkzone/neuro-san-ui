@@ -1,7 +1,7 @@
 import { EdgeType } from './edges/types';
 import { DataSourceNode } from './nodes/datasourcenode';
 import { PredictorNode } from './nodes/predictornode';
-import {isEdge, isNode} from "react-flow-renderer";
+import {isEdge, isNode} from "reactflow";
 import {CAOType} from "../../../controller/datatag/types";
 
 // Debug

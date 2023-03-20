@@ -10,8 +10,9 @@ import ReactFlow, {
     getIncomers,
     getOutgoers,
     ReactFlowProvider,
-    NodeChange
-} from 'react-flow-renderer'
+    NodeChange,
+    EdgeRemoveChange
+} from 'reactflow'
 
 // Framework
 import React, {useCallback, useEffect, useMemo, useState} from 'react'
@@ -21,7 +22,7 @@ import uuid from "react-uuid"
 
 // Dagre (graph layout library)
 import dagre from 'dagre'
-
+``
 // Custom components
 import {FlowQueries} from "./flowqueries"
 import {useStateWithCallback} from "../../../utils/react_utils"
@@ -790,6 +791,8 @@ export default function Flow(props: FlowProps) {
         const removableNodes = nodesToDelete.filter(element => element.type != "datanode")
         // Also get the edges associated with this uncertainty node
         const removableEdges = getConnectedEdges(removableNodes, edges)
+        console.log({removableEdges})
+        // debugger
 
         const predictorNodesBeingRemoved = FlowQueries.getPredictorNodes(nodesToDelete)
         const predictorIdsBeingRemoved = predictorNodesBeingRemoved.map(node => node.id)
@@ -876,11 +879,11 @@ export default function Flow(props: FlowProps) {
         });
 
         // Construct a list of changes
-        const changes = removableNodes.map<NodeRemoveChange>(element => ({
+        const nodeChanges = removableNodes.map<NodeRemoveChange>(element => ({
             type: "remove",
             id: element.id
         }))
-        const leftNodes = applyNodeChanges<NodeData>(changes, nodes) as NodeType[]
+        const leftNodes = applyNodeChanges<NodeData>(nodeChanges, nodes) as NodeType[]
 
         // // We might have duplicates in the edges list, so remove them
         // removableEdges = removableEdges.filter((value, index, self) => 
@@ -888,16 +891,22 @@ export default function Flow(props: FlowProps) {
         //         t.id === value.id
         //     ))
         // )
-        const leftEdges = applyEdgeChanges(changes, removableEdges)
+        const edgeChanges = removableEdges.map<EdgeRemoveChange>(element => ({
+            type: "remove",
+            id: element.id
+        }))
+        
+        const leftEdges = applyEdgeChanges(edgeChanges, edges) as EdgeType[]
+
+        console.log("Left Nodes", leftNodes)
+        console.log("Left Edges", leftEdges)
         
         // Update the flow, removing the deleted nodes
         setNodes(leftNodes)
         setEdges(leftEdges)
-        setParentState([...nodes, ...leftEdges])
+        setParentState([...leftNodes, ...leftEdges])
         setElementTypeToUuidList(elementTypeToUuidList)
     }
-
-    useEffect(() => {console.log(nodes, edges)}, [nodes, edges])
 
     function onNodeDragStop(event, node) {
         /*
@@ -1073,7 +1082,8 @@ export default function Flow(props: FlowProps) {
                         }}
                         onFitView={() => tidyView()}
                     />
-                    <Background id="react-flow-background" color="#000" gap={5}/>
+                        {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
+                        <Background color="#000" gap={5}/>
                 </ReactFlow>
             </ReactFlowProvider>
         </div>

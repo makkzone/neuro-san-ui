@@ -3,7 +3,7 @@ import {
   EdgeProps,
   Edge,
   getBezierPath
-} from 'react-flow-renderer';
+} from 'reactflow';
 
 type PredictorEdgeData = null;
 
@@ -14,7 +14,7 @@ const PredictorEdgeComponent: React.FC<EdgeProps<PredictorEdgeData>> = ({ id, so
                                         sourcePosition, targetPosition,
                                         style = {}, markerEnd
                                         }) => {
-    const edgePath = getBezierPath({
+    const [edgePath] = getBezierPath({
         sourceX,
         sourceY,
         sourcePosition,

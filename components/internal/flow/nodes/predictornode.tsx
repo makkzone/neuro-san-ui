@@ -1,5 +1,5 @@
 // React components
-import {Dispatch, ReactElement, SetStateAction, useEffect, useState} from 'react'
+import {Dispatch, SetStateAction, useEffect, useState} from 'react'
 
 // 3rd party components
 import {Row, Col, Card, Container} from "react-bootstrap"
@@ -29,7 +29,7 @@ import {
     NodeProps,
     useEdges,
     useNodes
-} from 'react-flow-renderer'
+} from 'reactflow'
 
 import {AiFillDelete} from "react-icons/ai";
 import {StringBool} from "../../../../controller/base_types"

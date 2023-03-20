@@ -1,5 +1,5 @@
 // Import Custom Components
-import { EdgeTypes as RFEdgeTypes } from 'react-flow-renderer';
+import { EdgeTypes as RFEdgeTypes } from 'reactflow';
 import PredictorEdgeComponent, { PredictorEdge } from './predictoredge';
 import PrescriptorEdgeComponent, { PrescriptorEdge } from './prescriptoredge'
 

@@ -32,7 +32,7 @@ import {
     Position as HandlePosition,
     NodeProps,
     Node
-} from 'react-flow-renderer'
+} from 'reactflow'
 
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs';

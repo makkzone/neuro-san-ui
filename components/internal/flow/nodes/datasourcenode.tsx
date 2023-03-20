@@ -8,7 +8,7 @@ import {
     Node,
     NodeProps,
     Position
-} from 'react-flow-renderer'
+} from 'reactflow'
 
 import { Card as BlueprintCard, Elevation } from "@blueprintjs/core";
 
