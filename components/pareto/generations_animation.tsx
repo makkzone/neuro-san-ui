@@ -1,11 +1,14 @@
-import {Button} from "react-bootstrap"
-import {MaximumBlue} from "../../const"
-import {FiStopCircle} from "react-icons/fi"
-import {FiPlay} from "react-icons/fi"
-import {Slider} from "antd"
 import React from "react"
 import {useEffect} from "react"
 import {useState} from "react"
+
+import Select from "react-select"
+import {Button} from "react-bootstrap"
+import {FiPlay} from "react-icons/fi"
+import {FiStopCircle} from "react-icons/fi"
+
+import {MaximumBlue} from "../../const"
+import {Slider} from "antd"
 
 /**
  * Params for the GenerationsAnimation component.
@@ -56,9 +59,23 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
     // Maintain the state of the animation if its playing or not
     const [playing, setPlaying] = useState(false)
 
-    // Maintain the state of the setInterval Object that is used to play
+    // Maintain the state of the setInterval Object (interval timer) that is used to play
     // We keep this so we can clear it when component is unmounted
     const [playingInterval, setPlayingInterval] = useState(null)
+
+    // The various playback speeds. The "value" property is used to scale the interval between frames.
+    const playbackSpeedOptions = [
+        {value: "0.1", label: "0.10x"},
+        {value: "0.25", label: "0.25x"},
+        {value: "0.5", label: "0.5x"},
+        {value: "1.0", label: "1.0x"},
+        {value: "2", label: "2.0x"},
+        {value: "4", label: "4.0x"},
+        {value: "8", label: "8.0x"},
+    ]
+    
+    // Current playback speed. Default to 1.0x
+    const [playbackSpeed, setPlaybackSpeed] = useState(playbackSpeedOptions[3])
     
     // No setup but returning a teardown function that clears the timer if it hadn't
     // been cleaned up.
@@ -80,6 +97,10 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
     if (showAllGenerations) {
         marks[numberOfGenerations + 1] = `All Gen`
     }
+    
+    // Add marks for ends of range of generations
+    marks[1] = 1
+    marks[numberOfGenerations] = numberOfGenerations
 
     const maxGenerations = showAllGenerations ? numberOfGenerations + 1 : numberOfGenerations
     
@@ -103,6 +124,11 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
                                 setSelectedGen(1)
                             }
                             setPlaying(true)
+                            
+                            // Just divide by the current scaling value to get how long we should pause between
+                            // frames. For example, if we would normally pause 100ms, and playback speed is 2x, 
+                            // divide: 100ms / 2.0 = 50ms and that's how long we wait, resulting in 2x speed playback.
+                            const adjustedFrameDelay = frameDelayMs / parseFloat(playbackSpeed.value)
                             const interval = setInterval(function () {
                                 setSelectedGen(selectedGen => {
                                     if (selectedGen === numberOfGenerations) {
@@ -112,14 +138,20 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
                                     }
                                     return selectedGen + 1
                                 })
-                            }, frameDelayMs)
+                            }, adjustedFrameDelay)
                             setPlayingInterval(interval)
                         }
                     }}
             >
                 {playing ? <FiStopCircle id="generation-play-stop"/> : <FiPlay id="generation-play-play"/>}
             </Button>
-
+            <Select id="select-playback-speed"
+                    isDisabled={playing}
+                    styles={{control: styles => ({...styles, width: "100px", height: "100%", margin: "0 25px"})}}
+                    options={playbackSpeedOptions}
+                    value={playbackSpeed}
+                    onChange={newOption => setPlaybackSpeed(newOption)}
+            />
             <Slider id="selected-generation-slider"
                     defaultValue={numberOfGenerations}
                     marks={marks}

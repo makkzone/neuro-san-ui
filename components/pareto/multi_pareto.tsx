@@ -59,8 +59,8 @@ export function MultiPareto(props: ParetoPlotProps) {
         
     // Create selection list for Pareto plot types
     const paretoChartSelect = <Select id="pareto-chart-type-select"
-                                      inputId="dms-actions-select-input"
-                                      instanceId="dms-actions-select"
+                                      inputId="pareto-chart-type-select"
+                                      instanceId="pareto-chart-type-select"
                                       options={options}
                                       value={selectedChartType}
                                       isOptionDisabled={(option) => option.isDisabled}
