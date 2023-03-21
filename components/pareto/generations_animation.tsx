@@ -95,7 +95,13 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
     // Allow user to show all generations at once, if permitted by plot type
     const marks = {}
     if (showAllGenerations) {
-        marks[numberOfGenerations + 1] = `All Gen`
+        marks[numberOfGenerations + 1] = {
+            label: "All Gen",
+            style: {
+                marginTop: "-45px",  // To move it above the slider to avoid clashing with generation label
+                textDecoration: "underline"
+            }
+        }
     }
     
     // Add marks for ends of range of generations

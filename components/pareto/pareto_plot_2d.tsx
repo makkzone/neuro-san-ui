@@ -28,7 +28,7 @@ export function ParetoPlot2D(props: ParetoPlotProps) {
     // For now, only one prescriptor per experiment supported, so grab [0]
     const data = pareto[prescriptorNodeId].data
 
-    const numberOfGenerations = data.length
+    const numberOfGenerations = useMemo(() => data.length, [data])
     
     const selectedCID = props.NodeToCIDMap[prescriptorNodeId]
     
@@ -75,6 +75,13 @@ export function ParetoPlot2D(props: ParetoPlotProps) {
         return Math.max(...y)
     }, [])
 
+    // Need to change objective names from "objective0, objective1" to "x, y" because the Line plot requires those
+    // exact names.
+    data.forEach(row => row.data.forEach(cid => {
+        cid.x = cid.objective0
+        cid.y = cid.objective1
+    }))    
+    
     // Create a cache of all the generations by the generation
     // name in a hash table for fast lookup.
     // This useMemo has a dependency selectedCID that denotes
@@ -84,11 +91,6 @@ export function ParetoPlot2D(props: ParetoPlotProps) {
         const gendata = {}
         let row
         for (row of data) {
-            // Line plot requires coordinates to be named (x, y) rather than (objective0, objective1)
-            row.data.forEach((val, idx) => {
-                row.data[idx].x = row.data[idx].objective0
-                row.data[idx].y = row.data[idx].objective1
-            })
             gendata[row.id] = [row]
         }
 
@@ -107,8 +109,9 @@ export function ParetoPlot2D(props: ParetoPlotProps) {
 
     }, [selectedCID])
 
-    // We manage the selected state to display only data of selected generation.
-    const [selectedGen, setSelectedGen] = useState(1)
+    // We manage the selected state to display only data of selected generation. Default to last generation (since
+    // that is the only one user can select candidates from for exploring in DMS).
+    const [selectedGen, setSelectedGen] = useState(numberOfGenerations)
 
     if (props.ObjectivesCount !== 2) {
         return <>ParetoPlot2D display is only valid for 2 objectives</>
@@ -150,11 +153,13 @@ export function ParetoPlot2D(props: ParetoPlotProps) {
         </g>
     )
 
-    const plotData = cachedDataByGen[`Gen ${selectedGen}`] ?? data
-
+    const allGensSelected = selectedGen === numberOfGenerations + 1
+    
+    const plotData = allGensSelected ? data : cachedDataByGen[`Gen ${selectedGen}`]
+    
     // Use constant color for animation or individual generations so it's less jarring, but multicolor when 
-    // showing all generations 
-    const colors = selectedGen === numberOfGenerations + 1 ? undefined: () => '#ff0000'
+    // showing all generations. Here "undefined" means "dealer's choice".
+    const colors = allGensSelected ? undefined: () => '#f47661'
     
     const plot = <ResponsiveLine // eslint-disable-line enforce-ids-in-jsx/missing-ids
         pointSymbol={customSymbol}
