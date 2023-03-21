@@ -25,15 +25,13 @@ export function SurfacePlot3D(props: ParetoPlotProps): JSX.Element {
     const scalePadding = 0.05
 
     const optionsGenerator: EChartsOption = function (genData, objectives, minMaxPerObjective, selectedGen) {
-        const plotData = genData.map(row => [row.objective0, row.objective1, row.objective2, row.cid])
-
         // Desaturated red-pink, 35% opacity
         const plotColor = "rgb(244, 118, 97, 0.35)"
         
         // Extract the "x,y,z" coordinates from this generation's plot data
-        const pd = plotData.map(row => ({
+        const plotData = genData.map(row => ({
                 name: row[3],
-                value: row.slice(0, 3),
+                value: Object.values(row),
                 itemStyle: {
                     color: plotColor,
                     symbol: "circle", // not working. TODO: figure out how to show data points
@@ -79,7 +77,7 @@ export function SurfacePlot3D(props: ParetoPlotProps): JSX.Element {
                 {
                     name: `Generation ${selectedGen}`,
                     type: 'surface',
-                    data: pd,
+                    data: plotData,
                     itemStyle: {
                         borderWidth: 2,
                         borderColor: "black",
@@ -93,16 +91,15 @@ export function SurfacePlot3D(props: ParetoPlotProps): JSX.Element {
                 }
             ],
             legend: {
-                orient: 'vertical',
                 right: "25%",
                 top: '10%',
-                selectedMode: false
+                selectedMode: false,
+                animation: false,
             },
             tooltip: {
                 trigger: "item",
                 formatter: (params) => {
-                    return `Prescriptor: ${params.data.name}` + "<br />" +
-                        params.data.value
+                    return params.data.value
                         .filter(k => k !== "cid")
                         .map((value, idx) => `${objectives[idx] || "prescriptor"}: ${value.toString()}`)
                         .join("<br />")
