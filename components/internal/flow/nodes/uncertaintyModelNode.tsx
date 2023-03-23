@@ -14,16 +14,6 @@ import ConfigNumeric from "../confignumeric"
 // Custom components
 import {ParamType, UNCERTAINTY_MODEL_PARAMS, UncertaintyModelParams} from "../uncertaintymodelinfo"
 
-// State of the uncertainty node
-interface UncertaintyNodeState {
-    confidenceInterval: number,
-    useArd: boolean,
-    maxIterationsOptimizer: number,
-    numSvgInducingPoints: number,
-    frameworkVariant: string,
-    kernelType: string
-}
-
 // Define an interface for the structure
 // of the node
 export interface UncertaintyModelNodeData {
