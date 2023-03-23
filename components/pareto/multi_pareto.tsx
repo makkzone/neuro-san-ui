@@ -12,7 +12,7 @@ import {Tooltip} from "evergreen-ui"
 import {ParallelCoordsPlot} from "./parallel_coords_plot";
 import {ParetoPlot2D} from "./pareto_plot_2d";
 import {ParetoPlotProps} from "./types"
-import {ParetoPlot3D} from "./surface_plot_3d"
+import {ParetoPlot3D} from "./pareto_plot_3d"
 import {RadarPlot} from "./radar_plot"
 
 /**

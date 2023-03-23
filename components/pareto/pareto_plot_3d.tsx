@@ -25,8 +25,13 @@ export function ParetoPlot3D(props: ParetoPlotProps): JSX.Element {
     const scalePadding = 0.05
 
     const optionsGenerator: EChartsOption = function (genData, objectives, minMaxPerObjective, selectedGen) {
-        // Desaturated red-pink, 35% opacity
-        const plotColor = "rgb(244, 118, 97, 0.35)"
+        const plotSubType = props.PlotSubtype ?? "surface"
+        
+        // Make it translucent for surface plot for easier viewing, but opaque for other plots like scatter & line.
+        const opacity = plotSubType === "surface" ? 0.35 : 1.0
+
+        // Desaturated red-pink, 35% opacity for surface plot
+        const plotColor = `rgba(244, 118, 97, ${opacity})`
         
         // Extract the "x,y,z" coordinates from this generation's plot data
         const plotData = genData.map(row => ({
@@ -76,12 +81,15 @@ export function ParetoPlot3D(props: ParetoPlotProps): JSX.Element {
             series: [
                 {
                     name: `Generation ${selectedGen}`,
-                    type: props.PlotSubtype ?? "surface",
+                    type: plotSubType,
                     data: plotData,
                     itemStyle: {
                         borderWidth: 2,
                         borderColor: "black",
                         opacity: 1,
+                    },
+                    lineStyle: {
+                        width: 4
                     },
                 }
             ],
