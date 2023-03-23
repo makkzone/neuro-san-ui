@@ -11,7 +11,8 @@ import ReactFlow, {
     getOutgoers,
     ReactFlowProvider,
     NodeChange,
-    EdgeRemoveChange
+    EdgeRemoveChange,
+    ReactFlowInstance
 } from 'reactflow'
 
 // Framework
@@ -89,7 +90,7 @@ export default function Flow(props: FlowProps) {
 
     const elementsSelectable = props.ElementsSelectable
 
-    const [flowInstance, setFlowInstance] = useState(null)
+    const [flowInstance, setFlowInstance] = useState<ReactFlowInstance>(null)
 
     const [initialNodes, initialEdges] = useMemo(() => {
         let initialFlowValue
@@ -145,10 +146,19 @@ export default function Flow(props: FlowProps) {
     const [nodes, setNodes] = useState<NodeType[]>(FlowQueries.getAllNodes(initialNodes))
     const [edges, setEdges] = useState<EdgeType[]>(initialEdges)
 
+    const [fitInterval, setFitInterval] = useState<NodeJS.Timeout>(null)
     // Tidy flow when nodes are added or removed
     useEffect(() => {
-        tidyView()
-    }, [nodes.length])
+        if (flowInstance) {
+            const interval = setInterval(() => {
+                const fitted = flowInstance.fitView()
+                if (fitted && fitInterval) {
+                    clearInterval(fitInterval)
+                }
+            })
+            setFitInterval(interval)
+        }
+    }, [nodes.length, edges.length])
 
     // Initial population of the element type -> uuid list mapping used for simplified testing ids
     const initialMap = FlowQueries.getElementTypeToUuidList(initialNodes, initialEdges)
@@ -993,7 +1003,7 @@ export default function Flow(props: FlowProps) {
         setNodes(_nodes)
     }
 
-    useEffect(() => {flowInstance && flowInstance.fitView()}, [nodes])
+    // useEffect(() => {flowInstance && flowInstance.fitView()}, [nodes])
 
     // Build the Contents of the Flow
     const buttonStyle = {background: MaximumBlue, borderColor: MaximumBlue};
