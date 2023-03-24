@@ -413,10 +413,6 @@ export default function Flow(props: FlowProps) {
         _addUncertaintyNodes(predictorsWithoutUncertaintyNodes)
     }
 
-    // function GetFlow() {
-    //     return flow
-    // }
-
     function _getElementIndex(nodeID: string) {
         /*
         Function used as a means for Flow graph elements to query what their
