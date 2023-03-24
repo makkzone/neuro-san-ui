@@ -143,7 +143,10 @@ export default function Flow(props: FlowProps) {
     const [edges, setEdges] = useState<EdgeType[]>(initialEdges)
 
     // Tidy flow when nodes are added or removed
-    useEffect(() => tidyView(), [nodes.length, edges.length])
+    useEffect(() => {
+        tidyView()
+        flowInstance.fitView()
+    }, [nodes.length, edges.length])
 
     // Initial population of the element type -> uuid list mapping used for simplified testing ids
     const initialMap = FlowQueries.getElementTypeToUuidList(initialNodes, initialEdges)
