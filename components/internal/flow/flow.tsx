@@ -940,9 +940,6 @@ export default function Flow(props: FlowProps) {
         const nodeHeight = 36;
 
         // Don't want to update nodes directly in existing flow so make a copy
-        // const flowCopy = flow.slice()
-        // const nodes = FlowQueries.getAllNodes(flowCopy)
-        // const edges = FlowQueries.getAllEdges(flowCopy)
         const _nodes = nodes.slice()
 
         _nodes.forEach((node) => {
