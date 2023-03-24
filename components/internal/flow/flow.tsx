@@ -439,7 +439,6 @@ export default function Flow(props: FlowProps) {
         const NodeID = uuid()
 
         // Add the Predictor Node
-        // const flowInstanceElem = flowInstance.getElements()
         const MaxPredictorNodeY = Math.max(
             ...FlowQueries.getPredictorNodes(nodes).map(node => node.position.y),
             nodes[0].position.y - 100
