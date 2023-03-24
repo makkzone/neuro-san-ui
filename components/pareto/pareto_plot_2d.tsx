@@ -113,6 +113,9 @@ export function ParetoPlot2D(props: ParetoPlotProps) {
     // that is the only one user can select candidates from for exploring in DMS).
     const [selectedGen, setSelectedGen] = useState(numberOfGenerations)
 
+    // Maintain the state of the animation if its playing or not
+    const [playing, setPlaying] = useState(false)
+    
     if (props.ObjectivesCount !== 2) {
         return <>ParetoPlot2D display is only valid for 2 objectives</>
     }
@@ -242,6 +245,8 @@ export function ParetoPlot2D(props: ParetoPlotProps) {
             SelectedGen={selectedGen}
             ShowAllGenerations={true}
             FrameDelayMs={100}
+            Playing={playing}
+            SetPlaying={setPlaying}
         />
     </>
 }

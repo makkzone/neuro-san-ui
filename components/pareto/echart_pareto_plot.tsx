@@ -78,12 +78,25 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
 
     }, [data])
 
-    // Calculate min and max values for each objective across all generations. This allows us to scale the chart
-    // appropriately for the animation.
+    // Maintain the state of the animation if its playing or not
+    const [playing, setPlaying] = useState(false)
+
+    // Generation for which we are displaying data. Default to last generation.
+    const [selectedGen, setSelectedGen] = useState(numberOfGenerations)
+    
+    // Calculate min and max values for each objective across all generations (if playing animation) or for current
+    // generation (if user is viewing a zingle generation). 
+    // This allows us to scale the chart appropriately for the animation or for viewing a single generation
     const minMaxPerObjective = useMemo(function () {
+        const genData = cachedDataByGen[`Gen ${selectedGen}`]
         return Object.fromEntries(objectives.map((objective, idx) => {
-            const minObjectiveValue = Math.min(...data.flatMap(gen => gen.data.map(cid => cid[`objective${idx}`])))
-            const maxObjectiveValue = Math.max(...data.flatMap(gen => gen.data.map(cid => cid[`objective${idx}`])))
+            const minObjectiveValue = playing 
+                ? Math.min(...data.flatMap(gen => gen.data.map(cid => cid[`objective${idx}`]))) 
+                : Math.min(...genData.map(row => row[`objective${idx}`]))
+            const maxObjectiveValue = playing 
+                ? Math.max(...data.flatMap(gen => gen.data.map(cid => cid[`objective${idx}`])))
+                : Math.max(...genData.map(row => row[`objective${idx}`]))
+            console.debug("min max", minObjectiveValue, maxObjectiveValue)
             return [
                 `objective${idx}`,
                 {
@@ -92,10 +105,7 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
                 }
             ]
         }))
-    }, [data, objectives])
-    
-    // Generation for which we are displaying data. Default to last generation.
-    const [selectedGen, setSelectedGen] = useState(numberOfGenerations)
+    }, [data, objectives, playing, selectedGen])
 
     // Make sure parent didn't use wrong kind of plot for number of objectives
     if (props.objectivesCount < minObjectives) {
@@ -160,6 +170,8 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
             SelectedGen={selectedGen}
             ShowAllGenerations={false}
             FrameDelayMs={frameDelayMs}
+            SetPlaying={setPlaying}
+            Playing={playing}
         />
     </>
 }
