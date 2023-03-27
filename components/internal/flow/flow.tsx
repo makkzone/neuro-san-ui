@@ -145,7 +145,7 @@ export default function Flow(props: FlowProps) {
     // Tidy flow when nodes are added or removed
     useEffect(() => {
         tidyView()
-        flowInstance.fitView()
+        flowInstance && flowInstance.fitView()
     }, [nodes.length, edges.length])
 
     // Initial population of the element type -> uuid list mapping used for simplified testing ids
