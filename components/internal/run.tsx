@@ -6,6 +6,7 @@ import {empty} from "../../utils/objects";
 import MetricsTable from "../metricstable";
 import ESPRunPlot from "../esprunplot";
 import NewBar from "../newbar";
+import {Col, Container, Row} from "react-bootstrap"
 import {Button} from "react-bootstrap";
 import {MaximumBlue} from "../../const";
 import ClipLoader from "react-spinners/ClipLoader";
@@ -19,8 +20,13 @@ import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs';
 import {useLocalStorage} from "../../utils/use_local_storage";
 import decode from "../../utils/conversion";
 import {useSession} from "next-auth/react";
-import { MultiPareto } from "../pareto/multi_pareto";
-import { NodeType } from "./flow/nodes/types";
+import {MultiPareto} from "../pareto/multi_pareto";
+import {NodeType} from "./flow/nodes/types";
+import Tab from 'react-bootstrap/Tab'
+import Tabs from 'react-bootstrap/Tabs'
+import {Radio} from "antd"
+import {Space} from "antd"
+import {RadioChangeEvent} from "antd"
 
 interface RunProps {
     /* 
@@ -58,6 +64,8 @@ export default function RunPage(props: RunProps): React.ReactElement {
 
     const [, setPrescriptors] = useLocalStorage("prescriptors", null);
 
+    const [selectedRulesFormat, setSelectedRulesFormat] = useState("interpreted")
+    
     function cacheRun(run: Run) {
         /*
         Takes the fetched fields from this run page and updates
@@ -387,20 +395,76 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
         // the rules are in to get a decent coloring scheme
         plotDiv.push(
             <>
-                <NewBar id="rules-bar" InstanceId="rules"
-                        Title="Rules" DisplayNewLink={ false } />
-                <div id="rules-div" className="my-2 py-2"
-                     style={{
-                         whiteSpace: "pre",
-                         backgroundColor: "whitesmoke"
-                     }}
-                >
-                    <SyntaxHighlighter id="syntax-highlighter"
-                        language="scala" style={docco} showLineNumbers={true}>
-                        {rules}
-                    </SyntaxHighlighter>
-                </div>
-            </>
+            <NewBar id="rules-bar" InstanceId="rules"
+                    Title="Rules" DisplayNewLink={ false } />
+            <Tabs
+                defaultActiveKey="decoded"
+                id="rules-tabs"
+                className="my-10"
+                justify
+            >
+                <Tab eventKey="decoded" title="Details" style={{height: "400px"}}>
+                    <Container>
+                        <Row style={{marginTop: 10}}>
+                            <Col md={10}>
+                                {selectedRulesFormat === "raw" 
+                                    ?   <div id="rules-div" className="my-2 py-2" 
+                                             style={{
+                                             whiteSpace: "pre",
+                                             backgroundColor: "whitesmoke"
+                                         }}
+                                        >
+                                            <SyntaxHighlighter id="syntax-highlighter"
+                                                               language="scala" style={docco} showLineNumbers={true}>
+                                                {rules}
+                                            </SyntaxHighlighter>
+                                    </div>
+                                    :
+                                    <div>
+                                        <br />
+                                        <br />
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                                        <br />
+                                        <br />
+                                        <br />
+                                        <br />
+                                        Powered by OpenAI™ GPT-4™ technology
+                                        <br />
+                                        <br />
+                                        <br />
+                                        <br />
+                                        <br />
+                                    </div>
+                                }
+                            </Col>
+                            <Col md={2}>
+                                <Radio.Group value={selectedRulesFormat}
+                                             onChange={(e: RadioChangeEvent) => {
+                                                 setSelectedRulesFormat(e.target.value)
+                                             }}
+                                >
+                                    <Space direction="vertical" size="middle">
+                                        <Radio value="raw">Raw</Radio>
+                                        <Radio value="interpreted">Interpreted (Beta)</Radio>
+                                    </Space>
+                                </Radio.Group>
+                            </Col>
+                        </Row>
+                    </Container>
+                </Tab>
+                <Tab eventKey="insights" title="Insights" style={{height: 400}}>
+                    <div id="rules-div" className="my-2 py-2"
+                         style={{
+                             whiteSpace: "pre",
+                             backgroundColor: "whitesmoke",
+                             height: "400px"
+                         }}
+                    >
+                       Some insights about the rules from GPT-4 here
+                    </div>
+                </Tab>
+            </Tabs>
+            </> 
         )
     }
     
