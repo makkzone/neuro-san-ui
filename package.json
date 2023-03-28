@@ -31,6 +31,7 @@
     "echarts-gl": "2.0.9",
     "evergreen-ui": "6.7.1",
     "http-status": "1.5.3",
+    "langchain": "^0.0.43",
     "lodash": "4.17.21",
     "next": "12.2.5",
     "next-auth": "4.20.1",
