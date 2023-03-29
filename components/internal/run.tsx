@@ -31,6 +31,9 @@ import ReactMarkdown from "react-markdown";
 import {addResponseMessage, Widget } from 'react-chat-widget';
 import {dropMessages} from "react-chat-widget"
 import {toggleMsgLoader} from "react-chat-widget"
+import {Collapse} from "antd"
+import {renderCustomComponent} from "react-chat-widget"
+import {InfoSignIcon} from "evergreen-ui"
 
 interface RunProps {
     /* 
@@ -615,9 +618,23 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
         )
     }
 
+    type CustomComponentProps = {
+        message: string;
+    };
+
+    
+    const CustomComponent: React.FC<CustomComponentProps> = ({ message }) => {
+        return (
+            <div style={{fontSize: "smaller"}}>
+                <InfoSignIcon  id="plot-info-bubble-icon" color="blue" size={10}/>
+                <Collapse>
+                    <Collapse.Panel header="Show sources" key={1} >{message}</Collapse.Panel>
+                </Collapse>
+            </div>
+        );
+    };
+    
     const handleNewUserMessage = async (newMessage) => {
-        console.log("new message", newMessage)
-        
         toggleMsgLoader()
 
         try {
@@ -637,12 +654,22 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
             }
             const data = await response.json()
             const min = 1000;
-            const max = 3000;
+            const max = 2500;
             const delay = Math.floor(Math.random() * (max - min + 1)) + min;
-            setTimeout(function () {
-                toggleMsgLoader()
-                addResponseMessage(data.answer)
-            }, delay);
+            if (data.answer) {
+                setTimeout(function () {
+                    try {
+                        addResponseMessage(data.answer)
+                        const sources = data.sources
+                        if (sources) {
+                            const message = sources.map(source => `Source: ${source.source.replace(/\n/g, "")} from this snippet: "${source.snippet.replace(/\n/g, "")}" page: ${source.page ?? "n/a"}`).join("\n")
+                            renderCustomComponent(CustomComponent, {message: message}, false)
+                        }
+                    } finally {
+                        toggleMsgLoader()
+                    }
+                }, delay);
+            }
         } catch (error) {
             console.debug("error", error)
         }
