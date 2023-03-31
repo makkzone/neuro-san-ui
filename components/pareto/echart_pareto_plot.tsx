@@ -1,4 +1,4 @@
-import React from "react"
+import React, {useEffect, useRef } from "react"
 import {useMemo} from "react"
 import {useState} from "react"
 import {CSSProperties} from "react"
@@ -37,6 +37,8 @@ interface EchartPlotProps {
     // Options to pass to ECharts
     optionsGenerator: (genData, objectives, minMaxPerObjective, selectedGen) => EChartsOption
 }
+
+const ANT_DRAWER_CLASS_NAME = ".ant-drawer-body"
 
 /**
  * This component wraps a generic EChart plot.
@@ -107,6 +109,30 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
         }))
     }, [data, objectives, playing, selectedGen])
 
+    // Keep a ref to the chart so we can handle events manually
+    const chartRef = useRef(null);
+
+    useEffect(() => {
+        const chart = chartRef.current.getEchartsInstance();
+        const container = chart.getDom();
+
+        // This allows us to scroll the outer container when the mouse is over the chart. Also works for trackpad
+        // scrolling.
+        // It's a bit hacky since it depends on the antd classname -- but it's the only way I could find to do this.
+        const handleWheel = (e) => {
+            const parents =  container.closest(ANT_DRAWER_CLASS_NAME)
+            
+            // Bubble up the mousewheel event.
+            parents && (parents.scrollTop += e.deltaY)
+        };
+
+        container.addEventListener("wheel", handleWheel);
+
+        return () => {
+            container.removeEventListener("wheel", handleWheel);
+        };
+    }, []);
+        
     // Make sure parent didn't use wrong kind of plot for number of objectives
     if (props.objectivesCount < minObjectives) {
         return <>{`This type of plot is only valid for ≥ ${minObjectives} objectives`}</>
@@ -153,6 +179,7 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
         <div id="echart-pareto-plot-div" style={{height: "100%"}}>
             <ReactEcharts   // eslint-disable-line enforce-ids-in-jsx/missing-ids
                             // ReactEcharts lacks an id attribute
+                ref={chartRef}
                 style={{height: "100%"}}
                 option={options}
                 onEvents={{click: onChartClick}}

@@ -65,7 +65,8 @@ export function ParetoPlot3D(props: ParetoPlotProps): JSX.Element {
             },
             grid3D: {
                 viewControl: {
-                    projection: 'orthographic'
+                    projection: 'orthographic',
+                    zoomSensitivity: 0  // Disable mousewheel zooming on chart
                 },
                 axisPointer: {
                     show: false
