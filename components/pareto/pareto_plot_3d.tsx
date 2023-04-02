@@ -1,4 +1,5 @@
 import React from "react"
+import {useMemo} from "react"
 
 // ECharts
 import {EChartsOption} from "echarts-for-react/src/types"
@@ -8,6 +9,7 @@ import 'echarts-gl'
 
 import {ParetoPlotProps} from "./types"
 import {EchartParetoPlot} from "./echart_pareto_plot"
+import {getDataTable} from "./utils.js"
 
 /**
  * This component generates a 3D surface plot. 
@@ -22,8 +24,22 @@ import {EchartParetoPlot} from "./echart_pareto_plot"
 export function ParetoPlot3D(props: ParetoPlotProps): JSX.Element {
 
     // How much to extend axes above and below min/max values
-    const scalePadding = 0.05
+    const scalePadding = 0.01
 
+    const pareto = props.Pareto
+
+    // First (and only, for now) prescriptor node ID
+    const firstPrescriptorNodeID = Object.keys(pareto)[0]
+
+    // Associated prescriptor node
+    const firstPrescriptorNode = pareto[firstPrescriptorNodeID]
+
+    // For now, only one prescriptor per experiment supported, so grab [0]
+    // Number of generations for this Run
+    const numberOfGenerations = useMemo(function () {
+        return firstPrescriptorNode.data.length
+    }, [])
+    
     const optionsGenerator: EChartsOption = function (genData, objectives, minMaxPerObjective, selectedGen) {
         const plotSubType = props.PlotSubtype ?? "surface"
         
@@ -33,9 +49,12 @@ export function ParetoPlot3D(props: ParetoPlotProps): JSX.Element {
         // Desaturated red-pink, 35% opacity for surface plot
         const plotColor = `rgba(244, 118, 97, ${opacity})`
         
+        // We want to show darker plot symbols for last gen to hint to the user that they are clickable
+        const isLastGeneration = selectedGen === numberOfGenerations
+        
         // Extract the "x,y,z" coordinates from this generation's plot data
         const plotData = genData.map(row => ({
-                name: row[3],
+                name: row.cid,
                 value: Object.values(row),
                 itemStyle: {
                     color: plotColor,
@@ -43,7 +62,57 @@ export function ParetoPlot3D(props: ParetoPlotProps): JSX.Element {
             }) 
         )
 
+        // Create the series data for the plot
+        const series = [
+            {
+                name: `Generation ${selectedGen}`,
+                type: plotSubType,
+                data: plotData,
+                itemStyle: {
+                    borderWidth: 2,
+                    borderColor: "black",
+                    opacity: 1,
+                },
+                lineStyle: {
+                    width: 4
+                },
+            }
+        ]
+        
+        // For surface and line plots, overlay with a scatter plot so the points are obvious
+        if (plotSubType === "surface" || plotSubType === "line3D") {
+            series.push(
+                {
+                    name: `Generation ${selectedGen}`,
+                    type: "scatter3D",
+                    data: plotData,
+                    itemStyle: {
+                        borderWidth: 0.25,
+                        borderColor: isLastGeneration ? "black" : "lightgray",
+                        opacity: isLastGeneration ? 1.0 : 0.2,
+                    },
+                    lineStyle: {
+                        width: 1,
+                    },
+                }    
+            )
+        }
+        
         return {
+            toolbox: {
+                // Add desired toolbox features
+                feature: {
+                    saveAsImage: {},
+                    dataView: { 
+                        readOnly: true,
+                        // optionToContent allows us to create a nicely formatted data table when the user clicks 
+                        // that tool.
+                        optionToContent: function (opt) {
+                            return getDataTable(opt.series[0].data, objectives)
+                        }
+                    },
+                }
+            },
             animation: false,
             xAxis3D: {
                 type: 'value',
@@ -72,24 +141,13 @@ export function ParetoPlot3D(props: ParetoPlotProps): JSX.Element {
                     show: false
                 }
             },
-            series: [
-                {
-                    name: `Generation ${selectedGen}`,
-                    type: plotSubType,
-                    data: plotData,
-                    itemStyle: {
-                        borderWidth: 2,
-                        borderColor: "black",
-                        opacity: 1,
-                    },
-                    lineStyle: {
-                        width: 4
-                    },
-                }
-            ],
-            // Would like to have a legend: {} item here, but adding it causes a crash when user clicks on the plot.
-            // "this.__layers is null" in the bowels of zrender (a lib used by Echart). Something to do with handling
-            // of layers within the chart -- needs investigation (TODO).
+            series: series,
+            legend: {
+                right: "25%",
+                top: '10%',
+                selectedMode: false,
+                animation: false,
+            },
             tooltip: {
                 trigger: "item",
                 formatter: (params) => {

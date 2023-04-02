@@ -9,6 +9,7 @@ import ReactEcharts from "echarts-for-react";
 import {EChartsOption} from "echarts-for-react/src/types"
 import {sendNotification} from "../../controller/notification"
 import {NotificationType} from "../../controller/notification"
+import {useCallback} from "react"
 
 interface EchartPlotProps {
     // Component ID
@@ -51,7 +52,7 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
     // First (and only, for now) prescriptor node ID
     const firstPrescriptorNodeID = Object.keys(pareto)[0]
 
-    // Associated presctriptor node
+    // Associated prescriptor node
     const firstPrescriptorNode = pareto[firstPrescriptorNodeID]
     
     // Retrieve objectives
@@ -132,7 +133,42 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
             container.removeEventListener("wheel", handleWheel);
         };
     }, []);
+
+
+    // Get data for selected gen from cache
+    const genData = cachedDataByGen[`Gen ${selectedGen}`]
+    
+    // Retrieve "options" (all data for EChart and associated options) for selected generation
+    const options = props.optionsGenerator(genData, objectives, minMaxPerObjective, selectedGen)
+
+    // On Click handler - only rendered at the last generation as those are the
+    // candidates we persist.
+    // The default click handler shows the Notification if the selected Candidate is not of the last generation - we
+    // cannot yet perform inference on those as those don't exist.
+    const onChartClick = useCallback(selectedGen === numberOfGenerations ?
+        params => {
+            // Bit hacky -- assume that CID (prescriptor ID) is the last item in params. Which is should be unless
+            // the API changes, but there's no doubt a better way to do this.
+            const selectedCID = params.value[params.value.length - 1]
+            selectedCIDStateUpdator(selectedCID)
+        }
+        : () => {
+            sendNotification(NotificationType.error, "Model Selection Error",
+                "Only models from the last generation can be used with the decision interface")
+        }, [selectedGen])
         
+    // Build EChart plot. Memoize it so we don't unnecessarily re-render it
+    const plot = useMemo(() => {
+        return <div id="echart-pareto-plot-div" style={{height: "100%"}}>
+            <ReactEcharts   // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                // ReactEcharts lacks an id attribute
+                ref={chartRef}
+                style={{height: "100%"}}
+                option={options}
+                onEvents={{click: onChartClick}}
+            />
+        </div>}, [options, onChartClick])
+    
     // Make sure parent didn't use wrong kind of plot for number of objectives
     if (props.objectivesCount < minObjectives) {
         return <>{`This type of plot is only valid for ≥ ${minObjectives} objectives`}</>
@@ -142,8 +178,6 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
         return <>{`This type of plot is only valid for ≤ ${props.maxObjectives} objectives`}</>
     }
 
-    // Get data for selected gen from cache
-    const genData = cachedDataByGen[`Gen ${selectedGen}`]
     
     // Handle when user clicks on a prescriptor candidate
     function selectedCIDStateUpdator(cid: string) {
@@ -154,37 +188,6 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
             }
         })
     }
-
-    // On Click handler - only rendered at the last generation as those are the
-    // candidates we persist.
-    // The default click handler shows the Notification if the selected Candidate is not of the last generation - we
-    // cannot yet perform inference on those as those don't exist.
-    const onChartClick: (params) => void = selectedGen === numberOfGenerations ?
-        params => {
-            // Bit hacky -- assume that CID (prescriptor ID) is the last item in params. Which is should be unless
-            // the API changes, but there's no doubt a better way to do this.
-            const selectedCID = params.value[params.value.length - 1]
-            selectedCIDStateUpdator(selectedCID)
-        }
-        : () => {
-            sendNotification(NotificationType.error, "Model Selection Error",
-                "Only models from the last generation can be used with the decision interface")
-        }
-
-    // Retrieve "options" (all data for EChart and associated options) for selectede generation
-    const options = props.optionsGenerator(genData, objectives, minMaxPerObjective, selectedGen)
-    
-    // Build EChart plot
-    const plot =
-        <div id="echart-pareto-plot-div" style={{height: "100%"}}>
-            <ReactEcharts   // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                            // ReactEcharts lacks an id attribute
-                ref={chartRef}
-                style={{height: "100%"}}
-                option={options}
-                onEvents={{click: onChartClick}}
-            />
-        </div>
 
     // Wrap plot in animation component and return it
     const id = props.id

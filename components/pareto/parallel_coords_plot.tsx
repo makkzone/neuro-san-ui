@@ -4,6 +4,7 @@ import {EChartsOption} from "echarts-for-react/src/types"
 
 import {ParetoPlotProps} from "./types"
 import {EchartParetoPlot} from "./echart_pareto_plot"
+import {getDataTable} from "./utils.js"
 
 /**
  * This component generates a parallel coordinates plot. See {@link https://en.wikipedia.org/wiki/Parallel_coordinates}
@@ -16,7 +17,28 @@ export function ParallelCoordsPlot(props: ParetoPlotProps): JSX.Element {
     const scalePadding = 0.05
 
     const optionsGenerator: EChartsOption = function (genData, objectives, minMaxPerObjective) {
+        const plotData = genData.map(row => ({
+                name: row.cid,
+                value: Object.values(row)
+            })
+        )
+        
         return {
+            toolbox: {
+                // Add desired toolbox features
+                feature: {
+                    saveAsImage: {},
+                    dataView: {
+                        readOnly: true,
+                        // optionToContent allows us to create a nicely formatted data table when the user clicks 
+                        // that tool.
+                        optionToContent: function (opt) {
+                            console.debug("optionToContent for parallel", opt)
+                            return getDataTable(opt.series[0].data, objectives)
+                        }
+                    },
+                }
+            },
             animation: false,
             parallel: {
                 left: "5%",                     // Location of parallel coordinate system.
@@ -44,7 +66,7 @@ export function ParallelCoordsPlot(props: ParetoPlotProps): JSX.Element {
             series: [
                 {
                     type: "parallel",
-                    data: genData.map((d) => Object.values(d)),
+                    data: plotData,
                     lineStyle: {
                         normal: {
                             type: "gradient",

@@ -33,7 +33,7 @@ export function MultiPareto(props: ParetoPlotProps) {
             value: "2d_pareto", isDisabled: objectivesCount > 2},
 
         // 3D plots can handle exactly 3 dimensions
-        {label: "3D Surface Plot (experimental)" + (objectivesCount === 3 ? "" : " (only available for 3 objectives)"), 
+        {label: "3D Surface Plot (Beta)" + (objectivesCount === 3 ? "" : " (only available for 3 objectives)"), 
             value: "surface", isDisabled: objectivesCount !== 3},
 
         // 3D plots can handle exactly 3 dimensions
