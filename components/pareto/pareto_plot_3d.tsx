@@ -34,7 +34,6 @@ export function ParetoPlot3D(props: ParetoPlotProps): JSX.Element {
     // Associated prescriptor node
     const firstPrescriptorNode = pareto[firstPrescriptorNodeID]
 
-    // For now, only one prescriptor per experiment supported, so grab [0]
     // Number of generations for this Run
     const numberOfGenerations = useMemo(function () {
         return firstPrescriptorNode.data.length
