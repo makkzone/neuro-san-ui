@@ -157,7 +157,16 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
                 "Only models from the last generation can be used with the decision interface")
         }, [selectedGen])
         
-    // Build EChart plot. Memoize it so we don't unnecessarily re-render it
+    // Build EChart plot.
+    /*
+    We memoize the plot for two reasons -- a good reason and the real reason.
+    Good reason: performance. Don't re-render things you don't need to, like the plot when the source data hasn't 
+    changed for example.
+
+    Real reason: letting the plot re-render in onClick was causing crashes in the bowels of ECharts/zrender beyond 
+    what any of us knows how to debug. This steps around the issue.
+    ECharts ticket for this: https://github.com/apache/echarts/issues/18459
+     */
     const plot = useMemo(() => {
         return <div id="echart-pareto-plot-div" style={{height: "100%"}}>
             <ReactEcharts   // eslint-disable-line enforce-ids-in-jsx/missing-ids
