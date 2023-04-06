@@ -102,20 +102,34 @@ export default function MetricsTable(props: MetricstableProps) {
                         </Table.TextCell>
                         {rioMetrics && 
                             <Table.TextCell id={ `${predictorMetricsId}-rio` }>
-                                <b id={ `${predictorMetricsId}-rio-header` }>RIO</b>
+                                <div id={ `${predictorMetricsId}-rio-improvement-div` } style={{display: "flex"}}>
+                                    <b id={ `${predictorMetricsId}-rio-header` }>Uncertainty Model Mean</b>
+                                    <Tooltip        // eslint-disable-line enforce-ids-in-jsx/missing-ids 
+                                        content="Mean corrected prediction from the uncertainty model"
+                                        statelessProps={{className: "opacity-75"}}
+                                        position={Position.TOP_RIGHT}
+                                    >
+                                        <div id={ `${predictorMetricsId}-rio-tooltip-info-sign-div` } className="ps-1">
+                                            <InfoSignIcon id={ `${predictorMetricsId}-tooltip-info-sign-icon` }
+                                                          color="blue" size={10}/>
+                                        </div>
+                                    </Tooltip>
+                                </div>
                             </Table.TextCell>
                         }
                         {rioMetrics &&
                             <Table.TextCell id={ `${predictorMetricsId}-rio-improvement` }>
                                 <div id={ `${predictorMetricsId}-rio-improvement-div` } style={{display: "flex"}}>
-                                    <b id={ `${predictorMetricsId}-rio-improvement-header` }>RIO improvement</b>
+                                    <b id={ `${predictorMetricsId}-rio-pct-improvement-header` }>Uncertainty model difference %</b>
                                     { /* 2/6/23 DEF - Tooltip does not have an id property when compiling */ }
                                     <Tooltip        // eslint-disable-line enforce-ids-in-jsx/missing-ids 
                                         content="Improvement of uncertainty model enhanced predictor metric over original predictor metric, as a percentage"
                                         statelessProps={{className: "opacity-75"}}
                                         position={Position.TOP_RIGHT}
                                     >
-                                        <div id={ `${predictorMetricsId}-tooltip-info-sign-div` } className="ps-1">
+                                        <div id={ `${predictorMetricsId}-rio-percent-tooltip-info-sign-div` }
+                                             className="ps-1"
+                                        >
                                             <InfoSignIcon id={ `${predictorMetricsId}-tooltip-info-sign-icon` }
                                                           color="blue" size={10}/>
                                         </div>
