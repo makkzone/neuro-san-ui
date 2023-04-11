@@ -1,13 +1,17 @@
 // Stylesheets
+
+// Third party
+import "@blueprintjs/core/lib/css/blueprint.css"
+import "@blueprintjs/icons/lib/css/blueprint-icons.css"
+import "antd/dist/reset.css"
+import "bootstrap/dist/css/bootstrap.css"
+import "reactflow/dist/style.css"
+import "tailwindcss/tailwind.css"
+
+// Custom
 import "../styles/updatenode.css"
 import "../styles/globals.css"
-import "antd/dist/reset.css"
-import "tailwindcss/tailwind.css"
-import "bootstrap/dist/css/bootstrap.css"
-import "@blueprintjs/icons/lib/css/blueprint-icons.css"
-import "@blueprintjs/core/lib/css/blueprint.css"
-import "styles/styles.css"
-import "reactflow/dist/style.css"
+import "../styles/styles.css"
 
 // External Libraries
 
