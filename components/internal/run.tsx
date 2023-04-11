@@ -50,7 +50,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [predictorPlotData, setPredictorPlotData] = useState(null)
     const [prescriptorPlotData, setPrescriptorPlotData] = useState(null)
     const [paretoPlotData, setParetoPlotData] = useState({})
-    const [nodeToCIDMap, updateNodeToCIDMap] = useState({})
+    const [nodeToCIDMap, updateNodeToCIDMap] = useState<Record<string, string>>({})
     const [run, setRun] = useState(null)
     const [rules, setRules] = useState(null)
     const [artifactObj, setArtifactObj] = useState(null)
@@ -338,15 +338,12 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
         return <>
             <Link id="dms-link"
                 href={dmsLink}
+                style={{
+                    color: "white"
+                }}
+                target="_blank"
             >
-                <a id="dms-link-anchor" 
-                    style={{
-                        color: "white"
-                    }}
-                   target="_blank"
-                >
-                    Go to Decision Making System with Prescriptor: {prescriptorID}
-                </a>
+                Go to Decision Making System with Prescriptor: {prescriptorID}
             </Link>
         </>
     }

@@ -37,12 +37,10 @@ export default function NewBar(props: NavbarProps) {
         if (props.LinkComponentProps) {
             // If a callback has been provided
             newButton = <Link id={ `${idPrefix}-link` } {...props.LinkComponentProps} >
-                            <a id={ `${idPrefix}-link-anchor` } >
-                                <h3 id={ `${idPrefix}-link-heading` } className="h3">
-                                    <BsFillPlusSquareFill id={ `${idPrefix}-link-square-fill` } />
-                                </h3>
-                            </a>
-                        </Link>
+                <h3 id={ `${idPrefix}-link-heading` } className="h3">
+                    <BsFillPlusSquareFill id={ `${idPrefix}-link-square-fill` } />
+                </h3>
+            </Link>
         } else if (props.LinkCallback) {
             // If a link has been provided
             newButton = <h3 id={ `${idPrefix}-link` } className="h3" onClick={props.LinkCallback}>

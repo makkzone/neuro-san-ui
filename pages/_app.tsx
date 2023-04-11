@@ -1,14 +1,13 @@
 // Stylesheets
-import '../styles/updatenode.css'
-import '../styles/globals.css'
-import 'antd/dist/antd.css'
-import 'tailwindcss/tailwind.css'
-import 'bootstrap/dist/css/bootstrap.css'
-import '@blueprintjs/icons/lib/css/blueprint-icons.css'
-import '@blueprintjs/core/lib/css/blueprint.css'
-import "nextjs-breadcrumbs/dist/index.css"
-import 'reactflow/dist/style.css';
-
+import "../styles/updatenode.css"
+import "../styles/globals.css"
+import "antd/dist/reset.css"
+import "tailwindcss/tailwind.css"
+import "bootstrap/dist/css/bootstrap.css"
+import "@blueprintjs/icons/lib/css/blueprint-icons.css"
+import "@blueprintjs/core/lib/css/blueprint.css"
+import "styles/styles.css"
+import "reactflow/dist/style.css"
 
 // External Libraries
 
@@ -17,7 +16,6 @@ import {Container, SSRProvider} from "react-bootstrap"
 
 // React
 import React from 'react'
-import 'react-pro-sidebar/dist/css/styles.css'
 
 // NextJS Components
 import Head from 'next/head'
@@ -27,7 +25,7 @@ import {SessionProvider} from "next-auth/react"
 // Local Components
 import Navbar from "../components/navbar"
 
-// import Constants
+// Constants
 import {ENABLE_AUTHENTICATION, LOGO} from "../const"
 import {Auth} from "../components/auth";
 

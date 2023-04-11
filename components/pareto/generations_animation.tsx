@@ -92,8 +92,6 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
             return function cleanup() {
                 clearInterval(playingInterval)
             }
-        } else {
-            return null
         }
     }, [])
 
