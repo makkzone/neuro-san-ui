@@ -12,3 +12,4 @@ Link (use Google translate!) https://blog.csdn.net/RubyLinT/article/details/1091
     ```   
     See: https://github.com/palantir/blueprint/issues/5500  and https://github.com/palantir/blueprint/wiki/Popover2-migration
     blueprintjs is in transition to 5.0. Once they release it and we migrate to that, it should be fine.
+1) "sharp" -- required by NextJS. See: https://nextjs.org/docs/messages/sharp-missing-in-production

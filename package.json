@@ -51,6 +51,7 @@
     "react-uuid": "2.0.0",
     "reactflow": "11.6.1",
     "rehype-raw": "6.1.1",
+    "sharp": "0.32.0",
     "styled-components": "5.3.9"
   },
   "devDependencies": {
