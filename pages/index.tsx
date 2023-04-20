@@ -70,7 +70,7 @@ const HeaderLineTwo = styled.h1`
     font-size: 5rem;
 `
 
-const GetStartedButton = styled.a`
+const GetStartedButton = styled.div`
     display: block;
     margin-top: 4rem;
     color: white;
