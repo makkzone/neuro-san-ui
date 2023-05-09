@@ -1,14 +1,24 @@
+// Configuration file for ESLint.
+// Yes, even though this is a JSON file, comments are allowed since the only thing parsing it is ESLint.
+// See here: https://eslint.org/docs/latest/use/configure/configuration-files#comments-in-configuration-files
 {
     "plugins": [
         "@typescript-eslint",
         "enforce-ids-in-jsx"
     ],
     "extends": [
+        // This enables *all* base ESLint rules. We selectively disable those we are not yet ready for in the "rules"
+        // section below.
         "eslint:all",
-        "eslint:recommended",
+
+        // See: https://nextjs.org/docs/pages/building-your-application/configuring/eslint
         "next/core-web-vitals",
         "plugin:@typescript-eslint/recommended",
         "plugin:react/all",
+
+        // This next one has to be included or else the React rules will complain that "React is not in scope".
+        // But those rules are wrong -- as of React 17, "React" automatically gets included in the transpilation
+        // process and doesn't *need* to be in scope.
         "plugin:react/jsx-runtime"
     ],
     "parser": "@typescript-eslint/parser",
@@ -20,6 +30,7 @@
         "sourceType": "module"
     },
     "rules": {
+        // Set these to warning only
         "@typescript-eslint/no-explicit-any": "warn",
         "@typescript-eslint/no-unused-vars": "warn",
         "enforce-ids-in-jsx/missing-ids": ["warn", {
@@ -27,6 +38,7 @@
         }],
         "no-alert": "warn",
 
+        // Rules from the various plugins and base ESLint that we are not yet ready to enable
         "@typescript-eslint/no-inferrable-types": "off",
         "array-bracket-newline": "off",
         "array-element-newline": "off",
