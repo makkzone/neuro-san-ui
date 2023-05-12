@@ -27,6 +27,8 @@ export default function ESPRunPlot(props: EspRunPlotProps) {
             const options = {
                 xAxis: {
                     type: "value",
+                    name: "Generation",
+                    nameLocation: "middle"
                 },
                 yAxis: {
                     type: 'value'
