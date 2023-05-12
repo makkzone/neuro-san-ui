@@ -58,8 +58,6 @@ export default function ESPRunPlot(props: EspRunPlotProps) {
                     trigger: "item",
                     formatter: (params) => {
                         return [params.seriesName, `Generation: ${params.data.value[0]}`, `Value: ${params.data.value[1]}`].join("<br />")
-                            // .map((value, idx) => [params.seriesName, `Generation: ${params.data.value[0]}`, `Value: ${params.data.value[1]}`].join(","))
-
                     },
                     axisPointer: {
                         type: "cross",
