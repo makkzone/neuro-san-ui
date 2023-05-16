@@ -286,7 +286,9 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const plotDiv = []
     if (predictorPlotData) {
         const predictors = FlowQueries.getPredictorNodes(flow)
-        plotDiv.push(<MetricsTable id="metrics-table"
+        plotDiv.push(<MetricsTable  // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                    // MetricsTable doesn't have (or need) an id property. The items it generates
+                                    // each have their own referenceable id.
                         PredictorRunData={predictorPlotData}
                         Predictors={predictors} />)
     }

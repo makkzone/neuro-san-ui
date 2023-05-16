@@ -339,7 +339,8 @@ export default function NewProject(props: NewProps) {
                                     <span id="file_type_span"
                                           style={{color: selectedFile.type === EXPECTED_FILE_TYPE ? "black" : "red"}}
                                     >
-                                    {selectedFile.type}</span>,
+                                        {selectedFile.type}
+                                    </span>{' '}
                                     <b id="file-size" className="mx-2">
                                         size:
                                     </b>
@@ -666,9 +667,9 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Set focus on relevant field depending on if we're creating a new project or modifying existing
-    useEffect(() => {setTimeout(() => isNewProject
+    useEffect(() => {setTimeout(() => (isNewProject
             ? projectNameRef.current && projectNameRef.current.focus()
-            : fileInputRef.current && fileInputRef.current.focus(),
+            : fileInputRef.current && fileInputRef.current.focus()),
         500)
     }, [])
 

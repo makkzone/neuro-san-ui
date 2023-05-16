@@ -25,9 +25,6 @@ import {signOut, useSession} from "next-auth/react"
 // Custom components
 import {isSignedIn} from "./auth"
 
-
-
-
 // Define Constants
 const LOGO_COLOR: string = "white";
 const NAV_ITEMS_COLOR: string = "white";

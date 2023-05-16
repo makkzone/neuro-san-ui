@@ -111,7 +111,6 @@ export function ParetoPlot2D(props: ParetoPlotProps): JSX.Element {
     return  <div id="radar-plot-div" style={{height: "100%"}}>
                 <EchartParetoPlot   
                     id="radar-plot"
-                    style={{height: "100%"}}
                     optionsGenerator={optionsGenerator}
                     paretoProps={props}
                     objectivesCount={props.ObjectivesCount}

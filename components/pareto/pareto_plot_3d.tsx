@@ -162,7 +162,6 @@ export function ParetoPlot3D(props: ParetoPlotProps): JSX.Element {
     return <div id="surface-plot-div" style={{height: "100%"}}>
                 <EchartParetoPlot
                     id="surface-plot"
-                    style={{height: "100%"}}
                     optionsGenerator={optionsGenerator}
                     paretoProps={props}
                     objectivesCount={props.ObjectivesCount}

@@ -94,7 +94,6 @@ export function ParallelCoordsPlot(props: ParetoPlotProps): JSX.Element {
     return <div id="parcoords-plot-div" style={{height: "100%"}}>
         <EchartParetoPlot
             id="parcoords-plot"
-            style={{height: "100%"}}
             optionsGenerator={optionsGenerator}
             paretoProps={props}
             objectivesCount={props.ObjectivesCount}

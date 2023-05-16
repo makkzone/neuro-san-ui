@@ -115,7 +115,7 @@ export default function Index(): React.ReactElement {
   // Dynamically set the title to the current host
   useEffect(() => {
     document.title = getTitleBase()
-  },[]);
+  }, []);
   
   return (
     <OuterContainer id="outer-container">

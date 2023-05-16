@@ -44,7 +44,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
         let step = "1"  // For integers
         if (defaultParam.type === "float") {
             step = "0.01"
-        } else if (Object.prototype.hasOwnProperty.call(defaultParam, "step")) {
+        } else if (Object.hasOwn(defaultParam, "step")) {
             step = defaultParam.step.toString()
         }
 

@@ -139,7 +139,9 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
     // Fetch the Data Tag
     useEffect(() => {
         //TODO: If the data node has the data source and tag available we should not fetch it but use that.
-        //TODO: Reason: Data Tags can change and we don't version them explicitly - this will be an easy way of doing that. If they were to change and we had to re-run a run it might fail
+        //TODO: Reason: Data Tags can change, and we don't version them explicitly --
+        // this will be an easy way of doing that.
+        // If they were to change and we had to re-run a run it might fail
         (async () => setTaggedData(await loadDataTag(currentUser, data.SelectedDataSourceId)))()
     }, [data.SelectedDataSourceId])
 
@@ -194,7 +196,8 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
                     .filter(f => f.esp_type === "OUTCOME").length === 1
                 Object.keys(taggedData.fields).forEach(fieldName => {
                     const field = taggedData.fields[fieldName]
-                    switch (field.esp_type.toString()) {
+                    const espType = field.esp_type.toString();
+                    switch (espType) {
                         case "CONTEXT":
                             CAOState.context[fieldName] = CAOState.context[fieldName] ?? true
                             break
@@ -204,10 +207,12 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
                         case "OUTCOME":
                             CAOState.outcome[fieldName] = CAOState.outcome[fieldName] ?? hasOnlyOneOutcome
                             break
+                        default:
+                            console.warn(`Unknown ESP type encountered: ${espType}`)
+                            break
                     }
                 })
             }
-
 
             SetParentPredictorState({
                 ...ParentPredictorState,

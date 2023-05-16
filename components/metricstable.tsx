@@ -7,7 +7,6 @@ import {FaArrowDown, FaArrowUp} from "react-icons/fa";
 import { PredictorNode } from "./internal/flow/nodes/predictornode";
 
 interface MetricstableProps {
-    id: string,
     readonly PredictorRunData,
     readonly Predictors
 }

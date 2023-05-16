@@ -39,6 +39,13 @@ interface ErrorBoundaryProps {
  * handles the error boundary.
  */
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+    // This is the key override called by ReactJS when an unhandled error is thrown. And this is why you cannot
+    // create error boundaries in functional components -- no way to override this method.
+    static getDerivedStateFromError(error: unknown) {
+        // Update state so the next render will show the fallback UI
+        return { hasError: true, error: error }
+    }
+
     constructor(props) {
         super(props)
 
@@ -46,16 +53,13 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         this.state = { hasError: false, error: null }
     }
 
-    // This is the key override called by ReactJS when an unhandled error is thrown. And this is why you cannot
-    // create error boundaries in functional components -- no way to override this method.
-    static getDerivedStateFromError(error: unknown) {
-        // Update state so the next render will show the fallback UI
-        return { hasError: true, error: error }
-    }
+    // Bug in rule: https://github.com/airbnb/javascript/issues/1703
+    // eslint-disable-next-line class-methods-use-this
     componentDidCatch(error: unknown, errorInfo: React.ErrorInfo) {
         // TODO: Send this to central logging service once it's available
         console.error({ error, errorInfo })
     }
+
     render() {
         // Check if the error is thrown
         if (this.state.hasError) {

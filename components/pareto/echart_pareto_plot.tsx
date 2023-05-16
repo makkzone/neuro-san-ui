@@ -1,7 +1,6 @@
 import {useEffect, useRef } from "react"
 import {useMemo} from "react"
 import {useState} from "react"
-import {CSSProperties} from "react"
 
 import {ParetoPlotProps} from "./types"
 import {GenerationsAnimation} from "./generations_animation"
@@ -31,9 +30,6 @@ interface EchartPlotProps {
 
     // Delay in milliseconds between animation frames when animating generations
     frameDelayMs?: number,
-    
-    // CSS style
-    style: CSSProperties,
     
     // Options to pass to ECharts
     optionsGenerator: (genData, objectives, minMaxPerObjective, selectedGen) => EChartsOption,

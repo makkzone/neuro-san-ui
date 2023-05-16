@@ -14,7 +14,7 @@ interface NavbarProps {
     Title: string,
     LinkComponentProps?: LinkProps,
     DisplayNewLink?: boolean,
-    LinkCallback?,
+    handleLinkCallback?,
     ButtonComponent?,
     EditableCallback?,
     InstanceId?: string
@@ -41,9 +41,9 @@ export default function NewBar(props: NavbarProps) {
                     <BsFillPlusSquareFill id={ `${idPrefix}-link-square-fill` } />
                 </h3>
             </Link>
-        } else if (props.LinkCallback) {
+        } else if (props.handleLinkCallback) {
             // If a link has been provided
-            newButton = <h3 id={ `${idPrefix}-link` } className="h3" onClick={props.LinkCallback}>
+            newButton = <h3 id={ `${idPrefix}-link` } className="h3" onClick={props.handleLinkCallback}>
                             <BsFillPlusSquareFill id={ `${idPrefix}-link-square-fill` }  />
                         </h3>
         } else if (props.ButtonComponent) {
