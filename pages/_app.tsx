@@ -1,6 +1,6 @@
 // Stylesheets
 import 'antd/dist/antd.css'
-import "nextjs-breadcrumbs/dist/index.css"
+import "nextjs-breadcrumbs2/dist/index.css"
 import 'react-chat-widget/lib/styles.css';
 
 // Third party
