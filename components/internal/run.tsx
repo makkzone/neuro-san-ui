@@ -489,17 +489,18 @@ Readmitted\tNominal\tDays to inpatient readmission. Values: “<30” if the pat
                 const response = await fetch('/api/gpt/rules', {
                     method: "POST",
                     headers: {
-                    'Accept': 'application/json',
+                        'Accept': 'application/json',
                         'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    projectTitle: getProjectTitle(),
-                    projectDescription: getProjectDescription(),
-                    rawRules: rules,
-                    contextFields: contextFields,
-                    actionFields: actionFields,
-                    outcomeFields: outcomeFields
-                })})
+                    },
+                    body: JSON.stringify({
+                        projectTitle: getProjectTitle(),
+                        projectDescription: getProjectDescription(),
+                        rawRules: rules,
+                        contextFields: contextFields,
+                        actionFields: actionFields,
+                        outcomeFields: outcomeFields
+                })
+                })
                 if (!response.ok) {
                     console.debug("error json", await response.json())
                     throw new Error(response.statusText)
