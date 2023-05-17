@@ -37,8 +37,7 @@ export type PrescriptorEdge = Edge<PrescriptorEdgeData>;
 const PrescriptorEdgeComponent: React.FC<EdgeProps<PrescriptorEdgeData>>  = ({ id, sourceX, sourceY,
                                         targetX, targetY,
                                         sourcePosition, targetPosition,
-                                        style = {}, data, markerEnd
-                                        }) => {
+                                        style = {}, data, markerEnd}) => {
     const [edgePath, edgeCenterX, edgeCenterY] = getBezierPath({
         sourceX,
         sourceY,
@@ -48,8 +47,7 @@ const PrescriptorEdgeComponent: React.FC<EdgeProps<PrescriptorEdgeData>>  = ({ i
         targetPosition,
     })
 
-    // We want to have a tabbed predictor configuration
-    // and thus we build the following component
+    // We want to have a tabbed predictor configuration, and thus we build the following component
     // Declare state to keep track of the Tabs
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [tabs] = useState(['Override Predictor Output'])

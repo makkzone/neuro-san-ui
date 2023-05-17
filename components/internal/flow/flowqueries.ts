@@ -142,12 +142,13 @@ export class FlowQueries {
         // sort each list so that we have an initial index for each element
         // of each type.
         for (const key in elementTypeToUuidList) {
+            if (Object.hasOwn(elementTypeToUuidList, key)) {
+                // Get the list we have for the given key/type
+                const uuidList = elementTypeToUuidList.get(key);
 
-            // Get the list we have for the given key/type
-            const uuidList = elementTypeToUuidList.get(key);
-
-            // Sort it by uuid string
-            uuidList.sort();
+                // Sort it by uuid string
+                uuidList.sort();
+            }
         }
 
         debug({elementTypeToUuidList});

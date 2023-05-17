@@ -6,7 +6,7 @@
 import React from 'react'
 
 // Third party
-import Breadcrumbs from "nextjs-breadcrumbs"
+import Breadcrumbs from "nextjs-breadcrumbs2"
 import {Container, Dropdown, Nav, Navbar as BootstrapNavbar, NavItem, NavLink} from "react-bootstrap"
 import {Row} from "react-bootstrap"
 import {startCase} from "lodash"
@@ -24,9 +24,6 @@ import {signOut, useSession} from "next-auth/react"
 
 // Custom components
 import {isSignedIn} from "./auth"
-
-
-
 
 // Define Constants
 const LOGO_COLOR: string = "white";
@@ -75,8 +72,8 @@ function Navbar(props: NavbarProps): React.ReactElement {
                             Build: {UNILEAF_VERSION ?? "Unknown"}
                         </Nav.Item>
                         <Nav.Item id="projects" className="px-3">
-                            <Link id="project-links" href={`/projects`}>
-                                <a id="projects-anchor" style={{color: NAV_ITEMS_COLOR}}>Projects</a>
+                            <Link id="project-links" href={`/projects`} style={{color: NAV_ITEMS_COLOR}}>
+                                Projects
                             </Link>
                         </Nav.Item>
                         <Dropdown id="help-dropdown" as={NavItem}>

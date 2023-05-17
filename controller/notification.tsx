@@ -1,6 +1,6 @@
 import {AiOutlineClose} from "react-icons/ai"
 import {notification} from 'antd';
-import {NotificationPlacement} from "antd/lib/notification";
+import {NotificationPlacement} from "antd/es/notification/interface"
 import {renderToString} from "react-dom/server";
 
 export enum NotificationType {

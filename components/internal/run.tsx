@@ -63,7 +63,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [predictorPlotData, setPredictorPlotData] = useState(null)
     const [prescriptorPlotData, setPrescriptorPlotData] = useState(null)
     const [paretoPlotData, setParetoPlotData] = useState({})
-    const [nodeToCIDMap, updateNodeToCIDMap] = useState({})
+    const [nodeToCIDMap, updateNodeToCIDMap] = useState<Record<string, string>>({})
     const [run, setRun] = useState(null)
     const [rules, setRules] = useState(null)
     const [artifactObj, setArtifactObj] = useState(null)
@@ -522,7 +522,9 @@ Readmitted\tNominal\tDays to inpatient readmission. Values: “<30” if the pat
     const plotDiv = []
     if (predictorPlotData) {
         const predictors = FlowQueries.getPredictorNodes(flow)
-        plotDiv.push(<MetricsTable id="metrics-table"
+        plotDiv.push(<MetricsTable  // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                    // MetricsTable doesn't have (or need) an id property. The items it generates
+                                    // each have their own referenceable id.
                         PredictorRunData={predictorPlotData}
                         Predictors={predictors} />)
     }
@@ -574,15 +576,12 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
         return <>
             <Link id="dms-link"
                 href={dmsLink}
+                style={{
+                    color: "white"
+                }}
+                target="_blank"
             >
-                <a id="dms-link-anchor" 
-                    style={{
-                        color: "white"
-                    }}
-                   target="_blank"
-                >
-                    Go to Decision Making System with Prescriptor: {prescriptorID}
-                </a>
+                Go to Decision Making System with Prescriptor: {prescriptorID}
             </Link>
         </>
     }

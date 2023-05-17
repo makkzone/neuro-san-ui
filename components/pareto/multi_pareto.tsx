@@ -1,5 +1,4 @@
 import NewBar from "../newbar"
-import React from "react"
 import {useState} from "react"
 
 import {Container} from "react-bootstrap"
@@ -26,26 +25,26 @@ export function MultiPareto(props: ParetoPlotProps) {
     // Options for select dialog
     const options = [
         // Parallel coordinates plot can handle any number of dimensions
-        {label: "Parallel Coordinates Plot", value: "parallel", isDisabled: false},
+        {label: "Parallel Coordinates", value: "parallel", isDisabled: false},
 
         // 2D pareto plot can only handle 2 dimensions
-        {label: "2D Pareto Plot" + (objectivesCount > 2 ? " (not available due to > 2 objectives)": ""), 
+        {label: "2D Pareto" + (objectivesCount > 2 ? " (not available due to > 2 objectives)": ""), 
             value: "2d_pareto", isDisabled: objectivesCount > 2},
 
         // 3D plots can handle exactly 3 dimensions
-        {label: "3D Surface Plot (experimental)" + (objectivesCount === 3 ? "" : " (only available for 3 objectives)"), 
+        {label: "3D Surface (Beta)" + (objectivesCount === 3 ? "" : " (only available for 3 objectives)"), 
             value: "surface", isDisabled: objectivesCount !== 3},
 
         // 3D plots can handle exactly 3 dimensions
-        {label: "3D Scatter Plot" + (objectivesCount === 3 ? "" : " (only available for 3 objectives)"),
+        {label: "3D Scatter" + (objectivesCount === 3 ? "" : " (only available for 3 objectives)"),
             value: "scatter3D", isDisabled: objectivesCount !== 3},
 
         // 3D plots can handle exactly 3 dimensions
-        {label: "3D Line Plot" + (objectivesCount === 3 ? "" : " (only available for 3 objectives)"),
+        {label: "3D Line" + (objectivesCount === 3 ? "" : " (only available for 3 objectives)"),
             value: "line3D", isDisabled: objectivesCount !== 3},
 
         // Radar plot can handle 3+ dimensions
-        {label: "Radar Plot" + (objectivesCount < 3 ? " (only available for 3 or more objectives)": ""),  
+        {label: "Radar" + (objectivesCount < 3 ? " (only available for 3 or more objectives)": ""),  
             value: "radar", isDisabled: objectivesCount < 3}
     ]
     
@@ -84,7 +83,7 @@ export function MultiPareto(props: ParetoPlotProps) {
         const cells = []
 
         cells.push(
-            <Table.Row id={`paretor-plot-row=${idx}`} style={{height: "100%"}} key={`${nodeID}-pareto`}>
+            <Table.Row id={`pareto-plot-row=${idx}`} style={{height: "100%"}} key={`${nodeID}-pareto`}>
                 <Table.TextCell id={`pareto-plot-text-cell-${idx}`} style={{paddingLeft: 0}}>
                     <div id={`pareto-plot-div-${idx}`} className="pb-28" style={{height: "600px", width: "100%"}}>
                         

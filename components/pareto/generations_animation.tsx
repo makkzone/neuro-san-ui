@@ -1,4 +1,3 @@
-import React from "react"
 import {useEffect} from "react"
 import {useState} from "react"
 
@@ -35,6 +34,11 @@ interface GenerationsAnimationParams {
     // Delay between frames in ms
     FrameDelayMs?: number
     
+    // Function to update currently playing state
+    SetPlaying: (boolean) => void
+    
+    // Current playing state
+    Playing: boolean
 }
 
 /**
@@ -52,13 +56,13 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
     
     const setSelectedGen: (number) => void = props.SetSelectedGen
     
+    const setPlaying: (boolean) => void = props.SetPlaying
+    const playing = props.Playing
+    
     const showAllGenerations = props?.ShowAllGenerations ?? true
     
     const frameDelayMs = props?.FrameDelayMs ?? 100
         
-    // Maintain the state of the animation if its playing or not
-    const [playing, setPlaying] = useState(false)
-
     // Maintain the state of the setInterval Object (interval timer) that is used to play
     // We keep this so we can clear it when component is unmounted
     const [playingInterval, setPlayingInterval] = useState(null)
@@ -87,9 +91,9 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
             return function cleanup() {
                 clearInterval(playingInterval)
             }
-        } else {
-            return null
         }
+
+        return undefined
     }, [])
 
     // Allow user to show all generations at once, if permitted by plot type

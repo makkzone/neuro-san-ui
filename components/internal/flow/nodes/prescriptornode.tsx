@@ -172,7 +172,7 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
 
     // Create a min/max selector for each desired outcome
     const objectiveConfigurationPanel = ParentPrescriptorState.evolution.fitness.map(metric => {
-        const metricPrefix = `${flowPrefix}-metric-${metric.name}`
+        const metricPrefix = `${flowPrefix}-metric-${metric.metric_name}`
         return <div id={ `${metricPrefix}` }
             className="p-2 grid grid-cols-2 gap-4 mb-2"
             key={metric.metric_name} >

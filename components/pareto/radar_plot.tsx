@@ -1,9 +1,8 @@
-import React from "react"
-
 import {EChartsOption} from "echarts-for-react/src/types"
 
 import {ParetoPlotProps} from "./types"
 import {EchartParetoPlot} from "./echart_pareto_plot"
+import {getDataTable} from "./utils"
 
 /**
  * This component generates a radar plot. See {@link https://en.wikipedia.org/wiki/Radar_chart}
@@ -20,7 +19,27 @@ export function RadarPlot(props: ParetoPlotProps): JSX.Element {
     const scalePadding = 0.05
 
     const optionsGenerator: EChartsOption = function(genData, objectives, minMaxPerObjective, selectedGen) {
+        const plotData = genData.map(row => ({
+                name: row.cid,
+                value: Object.values(row)
+            })
+        )
+        
         return {
+            toolbox: {
+                // Add desired toolbox features
+                feature: {
+                    saveAsImage: {},
+                    dataView: {
+                        readOnly: true,
+                        // optionToContent allows us to create a nicely formatted data table when the user clicks 
+                        // that tool.
+                        optionToContent: function (opt) {
+                            return getDataTable(opt.series[0].data, objectives)
+                        }
+                    },
+                }
+            },
             animation: false,
             radar: {
                 shape: 'circle',
@@ -37,10 +56,7 @@ export function RadarPlot(props: ParetoPlotProps): JSX.Element {
                 {
                     name: `Generation ${selectedGen}`,
                     type: 'radar',
-                    data: genData.map(row => ({
-                        value: Object.values(row),
-                        name: row.cid
-                    }))
+                    data: plotData
                 }
             ],
             tooltip: {
@@ -57,7 +73,6 @@ export function RadarPlot(props: ParetoPlotProps): JSX.Element {
     return  <div id="radar-plot-div" style={{height: "100%"}}>
                 <EchartParetoPlot   
                     id="radar-plot"
-                    style={{height: "100%"}}
                     optionsGenerator={optionsGenerator}
                     paretoProps={props}
                     objectivesCount={props.ObjectivesCount}

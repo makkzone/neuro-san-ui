@@ -61,10 +61,12 @@ export default function ProfileTable(props: ProfiletableProps) {
 
     // Color codes for the various types of rows in the fields table
     const caoColorCoding = {
+        /* eslint-disable key-spacing */
         "CONTEXT":  "#8BBEE8FF",
         "ACTION":   "#D7A9E3FF",
         "OUTCOME":  "#A8D5BAFF",
         "REJECTED": "#D4B4B4FF"
+        /* eslint-enable key-spacing */
     }
 
     const tableCellClassName = "py-3 text-center text-xs font-medium text-gray-900 tracking-wider"
@@ -425,10 +427,10 @@ export default function ProfileTable(props: ProfiletableProps) {
                         </Input>
                         <Button id="add-category-value-button"
                             type="primary"
-                            onClick ={() => {
+                            onClick={() => {
                                 setCurrentCategoryValues([...currentCategoryValues, newItem])
                             }}
-                                disabled={!Boolean(newItem) || currentCategoryValues.includes(newItem)}
+                                disabled={!newItem || currentCategoryValues.includes(newItem)}
                         >
                             Add
                         </Button>

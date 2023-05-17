@@ -23,7 +23,9 @@ export function isSignedIn(session: Session, status: string): boolean {
     const loading = status === "loading"
 
     // When rendering client side don't display anything until loading is complete
-    if (typeof window !== 'undefined' && loading) return false
+    if (typeof window !== 'undefined' && loading) {
+        return false
+    }
 
     // If no session exists, display access denied message
     return Boolean(session)
@@ -48,7 +50,10 @@ export function Auth({ children }) {
     const loading = status === "loading"
 
     React.useEffect(() => {
-        if (loading) return // Do nothing while loading
+        if (loading) {
+            // Do nothing while loading
+            return
+        }
 
         // If not authenticated, force log in.
         // By explicitly specifying the provider here, it skips the annoying and unnecessary next-auth interstitial

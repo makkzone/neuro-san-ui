@@ -11,11 +11,16 @@ const config: Config.InitialOptions = {
 module.exports = {
     preset: 'ts-jest',
     testEnvironment: 'node',
-    globals: {
-        'ts-jest': {
-            isolatedModules: true
-        }
-    },
+    transform: {
+        '^.+\\.tsx?$': [
+            'ts-jest',
+            {
+                // Doc: https://kulshekhar.github.io/ts-jest/docs/getting-started/options/isolatedModules/
+                isolatedModules: true,
+            },
+        ],
+
+    }
 }
 
 // Required for Jest to function so tell ts-prune to ignore it

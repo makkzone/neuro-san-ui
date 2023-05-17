@@ -1,12 +1,12 @@
 // Import React
-import React from 'react';
-import {useEffect} from 'react';
-import styled from "styled-components";
+import React from "react"
+import {useEffect} from "react"
+import styled from "styled-components"
 
-import Image from 'next/image'
-import {Link} from "evergreen-ui";
-import {LOGO} from "../const";
-import {getTitleBase} from "../utils/title";
+import Image from "next/legacy/image"
+import {Link} from "evergreen-ui"
+import {LOGO} from "../const"
+import {getTitleBase} from "../utils/title"
 
 const OuterContainer = styled.div`
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("/landingpagebackground.png");
@@ -70,7 +70,7 @@ const HeaderLineTwo = styled.h1`
     font-size: 5rem;
 `
 
-const GetStartedButton = styled.a`
+const GetStartedButton = styled.div`
     display: block;
     margin-top: 4rem;
     color: white;
@@ -115,7 +115,7 @@ export default function Index(): React.ReactElement {
   // Dynamically set the title to the current host
   useEffect(() => {
     document.title = getTitleBase()
-  },[]);
+  }, []);
   
   return (
     <OuterContainer id="outer-container">

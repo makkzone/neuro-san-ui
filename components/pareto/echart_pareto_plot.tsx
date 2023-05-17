@@ -1,7 +1,6 @@
-import React from "react"
+import {useEffect, useRef } from "react"
 import {useMemo} from "react"
 import {useState} from "react"
-import {CSSProperties} from "react"
 
 import {ParetoPlotProps} from "./types"
 import {GenerationsAnimation} from "./generations_animation"
@@ -9,6 +8,7 @@ import ReactEcharts from "echarts-for-react";
 import {EChartsOption} from "echarts-for-react/src/types"
 import {sendNotification} from "../../controller/notification"
 import {NotificationType} from "../../controller/notification"
+import {useCallback} from "react"
 
 interface EchartPlotProps {
     // Component ID
@@ -31,12 +31,14 @@ interface EchartPlotProps {
     // Delay in milliseconds between animation frames when animating generations
     frameDelayMs?: number,
     
-    // CSS style
-    style: CSSProperties,
-    
     // Options to pass to ECharts
-    optionsGenerator: (genData, objectives, minMaxPerObjective, selectedGen) => EChartsOption
+    optionsGenerator: (genData, objectives, minMaxPerObjective, selectedGen) => EChartsOption,
+
+    // Whether chart can display all generations' candidates at the same time
+    showAllGenerations?: boolean
 }
+
+const ANT_DRAWER_CLASS_NAME = ".ant-drawer-body"
 
 /**
  * This component wraps a generic EChart plot.
@@ -49,7 +51,7 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
     // First (and only, for now) prescriptor node ID
     const firstPrescriptorNodeID = Object.keys(pareto)[0]
 
-    // Associated presctriptor node
+    // Associated prescriptor node
     const firstPrescriptorNode = pareto[firstPrescriptorNodeID]
     
     // Retrieve objectives
@@ -78,12 +80,27 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
 
     }, [data])
 
-    // Calculate min and max values for each objective across all generations. This allows us to scale the chart
-    // appropriately for the animation.
+    // Maintain the state of the animation if it's playing or not
+    const [playing, setPlaying] = useState(false)
+
+    // Generation for which we are displaying data. Default to last generation.
+    const [selectedGen, setSelectedGen] = useState(numberOfGenerations)
+
+    const allGensSelected = selectedGen === numberOfGenerations + 1
+
+    // Calculate min and max values for each objective across all generations (if playing animation) or for current
+    // generation (if user is viewing a single generation). 
+    // This allows us to scale the chart appropriately for the animation or for viewing a single generation
     const minMaxPerObjective = useMemo(function () {
+        const genData = cachedDataByGen[`Gen ${selectedGen}`]
         return Object.fromEntries(objectives.map((objective, idx) => {
-            const minObjectiveValue = Math.min(...data.flatMap(gen => gen.data.map(cid => cid[`objective${idx}`])))
-            const maxObjectiveValue = Math.max(...data.flatMap(gen => gen.data.map(cid => cid[`objective${idx}`])))
+            const minObjectiveValue = playing || allGensSelected
+                ? Math.min(...data.flatMap(gen => gen.data.map(cid => cid[`objective${idx}`]))) 
+                : Math.min(...genData.map(row => row[`objective${idx}`]))
+            const maxObjectiveValue = playing  || allGensSelected
+                ? Math.max(...data.flatMap(gen => gen.data.map(cid => cid[`objective${idx}`])))
+                : Math.max(...genData.map(row => row[`objective${idx}`]))
+            
             return [
                 `objective${idx}`,
                 {
@@ -92,11 +109,76 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
                 }
             ]
         }))
-    }, [data, objectives])
-    
-    // Generation for which we are displaying data. Default to last generation.
-    const [selectedGen, setSelectedGen] = useState(numberOfGenerations)
+    }, [data, objectives, playing, selectedGen])
 
+    // Keep a ref to the chart so we can handle events manually
+    const chartRef = useRef(null);
+
+    useEffect(() => {
+        const chart = chartRef.current?.getEchartsInstance();
+        const container = chart?.getDom();
+
+        // This allows us to scroll the outer container when the mouse is over the chart. Also works for trackpad
+        // scrolling.
+        // It's a bit hacky since it depends on the antd classname -- but it's the only way I could find to do this.
+        const handleWheel = (e) => {
+            const parents =  container?.closest(ANT_DRAWER_CLASS_NAME)
+            
+            // Bubble up the mousewheel event.
+            parents && (parents.scrollTop += e.deltaY)
+        };
+
+        container?.addEventListener("wheel", handleWheel);
+
+        return () => {
+            container?.removeEventListener("wheel", handleWheel);
+        };
+    }, []);
+
+
+    // Get data for selected gen from cache, or fall all generations if "All Gens" option selected
+    const plotData = allGensSelected ? data : cachedDataByGen[`Gen ${selectedGen}`]
+    
+    // Retrieve "options" (all data for EChart and associated options) for selected generation
+    const options = props.optionsGenerator(plotData, objectives, minMaxPerObjective, selectedGen)
+
+    // On Click handler - only rendered at the last generation as those are the
+    // candidates we persist.
+    // The default click handler shows the Notification if the selected Candidate is not of the last generation - we
+    // cannot yet perform inference on those as those don't exist.
+    const onChartClick = useCallback(selectedGen === numberOfGenerations ?
+        params => {
+            // Bit hacky -- assume that CID (prescriptor ID) is the last item in params. Which is should be unless
+            // the API changes, but there's no doubt a better way to do this.
+            const selectedCID = params.value[params.value.length - 1]
+            selectedCIDStateUpdator(selectedCID)
+        }
+        : () => {
+            sendNotification(NotificationType.error, "Model Selection Error",
+                "Only models from the last generation can be used with the decision interface")
+        }, [selectedGen])
+        
+    // Build EChart plot.
+    /*
+    We memoize the plot for two reasons -- a good reason and the real reason.
+    Good reason: performance. Don't re-render things you don't need to, like the plot when the source data hasn't 
+    changed for example.
+
+    Real reason: letting the plot re-render in onClick was causing crashes in the bowels of ECharts/zrender beyond 
+    what any of us knows how to debug. This steps around the issue.
+    ECharts ticket for this: https://github.com/apache/echarts/issues/18459
+     */
+    const plot = useMemo(() => {
+        return <div id="echart-pareto-plot-div" style={{height: "100%"}}>
+            <ReactEcharts   // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                // ReactEcharts lacks an id attribute
+                ref={chartRef}
+                style={{height: "100%"}}
+                option={options}
+                onEvents={{click: onChartClick}}
+            />
+        </div>}, [options, onChartClick])
+    
     // Make sure parent didn't use wrong kind of plot for number of objectives
     if (props.objectivesCount < minObjectives) {
         return <>{`This type of plot is only valid for ≥ ${minObjectives} objectives`}</>
@@ -106,8 +188,6 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
         return <>{`This type of plot is only valid for ≤ ${props.maxObjectives} objectives`}</>
     }
 
-    // Get data for selected gen from cache
-    const genData = cachedDataByGen[`Gen ${selectedGen}`]
     
     // Handle when user clicks on a prescriptor candidate
     function selectedCIDStateUpdator(cid: string) {
@@ -119,38 +199,10 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
         })
     }
 
-    // On Click handler - only rendered at the last generation as those are the
-    // candidates we persist.
-    // The default click handler shows the Notification if the selected Candidate is not of the last generation - we
-    // cannot yet perform inference on those as those don't exist.
-    const onChartClick: (params) => void = selectedGen === numberOfGenerations ?
-        params => {
-            // Bit hacky -- assume that CID (prescriptor ID) is the last item in params. Which is should be unless
-            // the API changes, but there's no doubt a better way to do this.
-            const selectedCID = params.value[params.value.length - 1]
-            selectedCIDStateUpdator(selectedCID)
-        }
-        : () => {
-            sendNotification(NotificationType.error, "Model Selection Error",
-                "Only models from the last generation can be used with the decision interface")
-        }
-
-    // Retrieve "options" (all data for EChart and associated options) for selectede generation
-    const options = props.optionsGenerator(genData, objectives, minMaxPerObjective, selectedGen)
-    
-    // Build EChart plot
-    const plot =
-        <div id="echart-pareto-plot-div" style={{height: "100%"}}>
-            <ReactEcharts   // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                            // ReactEcharts lacks an id attribute
-                style={{height: "100%"}}
-                option={options}
-                onEvents={{click: onChartClick}}
-            />
-        </div>
-
     // Wrap plot in animation component and return it
     const id = props.id
+    const showAllGenerations = props.showAllGenerations ?? false
+
     return <>
         <GenerationsAnimation
             id={id}
@@ -158,8 +210,10 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
             Plot={plot}
             SetSelectedGen={(gen: number) => setSelectedGen(gen)}
             SelectedGen={selectedGen}
-            ShowAllGenerations={false}
+            ShowAllGenerations={showAllGenerations}
             FrameDelayMs={frameDelayMs}
+            SetPlaying={setPlaying}
+            Playing={playing}
         />
     </>
 }

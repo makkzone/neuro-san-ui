@@ -7,7 +7,7 @@ import ClipLoader from "react-spinners/ClipLoader";
 import prettyBytes from 'pretty-bytes'
 import status from "http-status"
 import {Button, Collapse, Modal, Radio, RadioChangeEvent, Space, Tooltip} from 'antd'
-import {Collapse as BootstrapCollapse, Container, Form} from "react-bootstrap"
+import {Container, Form} from "react-bootstrap"
 import {checkValidity} from "./dataprofile/dataprofileutils";
 import {InfoSignIcon} from "evergreen-ui"
 
@@ -96,9 +96,6 @@ export default function NewProject(props: NewProps) {
     const [selectedFile, setSelectedFile] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
 
-    // For showing advanced data source settings
-    const [showAdvanced, setShowAdvanced] = useState<boolean>(false)
-
     function getCreateDataProfilePanel() {
         return <Panel id="create-project-or-data-profile-button-panel"
                       header={
@@ -163,34 +160,23 @@ export default function NewProject(props: NewProps) {
                                      setChosenDataSource(e.target.value)
                                  }}
                                  value={chosenDataSource}
-                        >
+                    >
                         <Space id="s3-file-space" direction="vertical" size="large">
                             <Radio id="local-file-radio" value={localFileOption}>
                                 {getFileUploadForm()}
                             </Radio>
-                            <Button id="toggle_advanced_btn"
-                                    type="link"
-                                    onClick={() => setShowAdvanced(!showAdvanced)}
-                                    size="small"
+                            <Collapse   // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                        // Collapse does not have an id property
                             >
-                                <div id="advanced-btn-text"
-                                     style={{color: "black", textDecoration: "underline #000 dotted"}}
+                                <Panel key="advanced_data_source"
+                                       id="advanced_data_source_panel"
+                                       header="Advanced"
                                 >
-                                    {showAdvanced
-                                        ? "Hide Advanced"
-                                        : "Advanced"
-                                    }
-                                </div>
-                            </Button>
-                            <BootstrapCollapse  // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                                // BootstrapCollapse does not have an id property
-                                in={showAdvanced}
-                                timeout={5}
-                            >
-                                <Radio id="s3-file-radio" value={s3Option}>
-                                    {getS3DataForm()}
-                                </Radio>
-                            </BootstrapCollapse>
+                                    <Radio id="s3-file-radio" value={s3Option}>
+                                        {getS3DataForm()}
+                                    </Radio>
+                                </Panel>
+                            </Collapse>
                         </Space>
                     </Radio.Group>
                 </Panel>
@@ -353,7 +339,8 @@ export default function NewProject(props: NewProps) {
                                     <span id="file_type_span"
                                           style={{color: selectedFile.type === EXPECTED_FILE_TYPE ? "black" : "red"}}
                                     >
-                                    {selectedFile.type}</span>,
+                                        {selectedFile.type}
+                                    </span>{' '}
                                     <b id="file-size" className="mx-2">
                                         size:
                                     </b>
@@ -680,9 +667,9 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Set focus on relevant field depending on if we're creating a new project or modifying existing
-    useEffect(() => {setTimeout(() => isNewProject
+    useEffect(() => {setTimeout(() => (isNewProject
             ? projectNameRef.current && projectNameRef.current.focus()
-            : fileInputRef.current && fileInputRef.current.focus(),
+            : fileInputRef.current && fileInputRef.current.focus()),
         500)
     }, [])
 
