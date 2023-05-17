@@ -719,7 +719,7 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
                                             {interpretedRules}
                                         </ReactMarkdown>
                                         <br id="markdown-br-1"/>
-                                        <br id="markdown-br-2/>
+                                        <br id="markdown-br-2"/>
                                         <br id="markdown-br-3"/>
                                         <h5 id="powered-by">Powered by OpenAI™ GPT-4™ technology</h5>
                                     </div>
