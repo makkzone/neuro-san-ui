@@ -626,8 +626,8 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
     const CustomComponent: React.FC<CustomComponentProps> = ({ message }) => {  // eslint-disable-line react/no-multi-comp
         return (
             <div id="custom-panel" style={{fontSize: "smaller"}}>
-                <InfoSignIcon  id="plot-info-bubble-icon" color="blue" size={10}/>
-                <Collapse id="custom-panel-collapse">
+                <InfoSignIcon id="plot-info-bubble-icon" color="blue" size={10}/>
+                <Collapse>
                     <Collapse.Panel id="custom-panel-collapse-panel"
                                     header="Show sources" key={1} >{message}</Collapse.Panel>
                 </Collapse>
@@ -716,7 +716,7 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
                                                 Accessing GPT...
                                             </>
                                     :<div id="markdown-div">
-                                        <ReactMarkdown id="react-markdown">
+                                        <ReactMarkdown>
                                             {interpretedRules}
                                         </ReactMarkdown>
                                         <br id="markdown-br-1"/>
