@@ -437,7 +437,7 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
                 <div id={ `${flowPrefix}-${param}-input-component` }
                     className="grid grid-cols-12 gap-4 mb-2" key={param} >
                     <div id={ `${flowPrefix}-${param}-input-component-div` } className="item1 col-span-3">
-                        <label id={ `${flowPrefix}-${param}-label` } className="capitalize">
+                        <label id={ `${flowPrefix}-${param}-label` } className="">
                             {param}:
                         </label>
                     </div>
@@ -544,7 +544,7 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
 
     const marks = {
         0: {label: "0%"},
-        100: {label: "100%", style: {color: "#666"}}  // To prevent end mark from being "grayed out"
+        100: {label: "100%", style: {color: "#53565A"}}  // To prevent end mark from being "grayed out"
     }
 
     // Create the data split card
@@ -677,7 +677,7 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
                                         <div id={ `${flowPrefix}-context-div` }
                                              key={element} className="grid grid-cols-2 gap-4 mb-2">
                                             <label id={ `${flowPrefix}-context-label-${element}` }
-                                                className="capitalize"> {element} </label>
+                                                className=""> {element} </label>
                                             <input name={element}
                                                 id={ `${flowPrefix}-context-input-${element}` }
                                                 type="checkbox"
@@ -709,7 +709,7 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
                                         <div id={ `${flowPrefix}-actions-div-${element}` }
                                             key={element} className="grid grid-cols-2 gap-4 mb-2">
                                             <label id={ `${flowPrefix}-actions-label-${element}` }
-                                                className="capitalize"> {element} </label>
+                                                className=""> {element} </label>
                                             <input id={ `${flowPrefix}-actions-input-${element}` }
                                                 name={element}
                                                 type="checkbox"
@@ -739,7 +739,7 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
                                         <div id={ `${flowPrefix}-outcomes-div-${element}` }
                                             key={element} className="grid grid-cols-2 gap-4 mb-2">
                                             <label id={ `${flowPrefix}-outcomes-label-${element}` }
-                                                className="capitalize"> {element} </label>
+                                                className=""> {element} </label>
                                             <input name={element}
                                                 id={ `${flowPrefix}-outcomes-input-${element}` }
                                                 type="checkbox"

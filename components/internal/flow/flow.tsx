@@ -1060,7 +1060,7 @@ export default function Flow(props: FlowProps) {
                         onFitView={() => tidyView()}
                     />
                         {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                        <Background color="#000" gap={5}/>
+                        <Background color="#000048" gap={5}/>
                 </ReactFlow>
             </ReactFlowProvider>
         </div>

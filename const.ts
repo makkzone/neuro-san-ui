@@ -1,8 +1,8 @@
 import getConfig from 'next/config'
 
 // Define the Base Colors
-export const MaximumBlue: string  = "#0033a0"
-export const Apple: string  = "#6BB445"
+export const MaximumBlue: string  = "#000048"
+export const Apple: string  = "#26EFE9"
 const { publicRuntimeConfig } = getConfig()
 
 export const InputDataNodeID: string = 'root'
@@ -14,7 +14,7 @@ export const MD_BASE_URL: string = publicRuntimeConfig.md_server_url
 export const ENABLE_AUTHENTICATION: boolean = Boolean(JSON.parse(publicRuntimeConfig.enableAuthentication))
 
 // Name to use for application
-export const LOGO: string = "UniLEAF"
+export const LOGO: string = ""
 
 // Build version (passed in from build system)
 export const UNILEAF_VERSION: string = publicRuntimeConfig.unileafVersion
