@@ -29,14 +29,6 @@ import {Space} from "antd"
 import {RadioChangeEvent} from "antd"
 import ReactMarkdown from "react-markdown";
 
-// import {addResponseMessage, Widget } from 'react-chat-widget';
-// import {dropMessages} from "react-chat-widget"
-// import {toggleMsgLoader} from "react-chat-widget"
-// import {renderCustomComponent} from "react-chat-widget"
-
-import {InfoSignIcon} from "evergreen-ui"
-import {Collapse} from "antd"
-
 interface RunProps {
     /* 
     id: string element handle for testing
@@ -620,67 +612,6 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
         )
     }
 
-    type CustomComponentProps = {
-        message: string;
-    };
-
-    
-    const CustomComponent: React.FC<CustomComponentProps> = ({ message }) => {  // eslint-disable-line react/no-multi-comp
-        return (
-            <div id="custom-panel" style={{fontSize: "smaller"}}>
-                <InfoSignIcon id="plot-info-bubble-icon" color="blue" size={10}/>
-                <Collapse       // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                // Collapse doesn't have (or need) an id property. The items it generates
-                                // each have their own referenceable id.
-                >
-                    <Collapse.Panel id="custom-panel-collapse-panel"
-                                    header="Show sources" key={1} >{message}</Collapse.Panel>
-                </Collapse>
-            </div>
-        );
-    };
-    
-    const handleNewUserMessage = async (newMessage) => {
-        // toggleMsgLoader()
-
-        try {
-            const response = await fetch('/api/gpt/userguide', {
-                method: "POST",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    query: newMessage
-                })
-            })
-            if (!response.ok) {
-                console.debug("error json", await response.json())
-                throw new Error(response.statusText)
-            }
-            const data = await response.json()
-            const min = 1000;
-            const max = 2500;
-            const delay = Math.floor(Math.random() * (max - min + 1)) + min;
-            if (data.answer) {
-                setTimeout(function () {
-                    try {
-                        // addResponseMessage(data.answer)
-                        const sources = data.sources
-                        if (sources) {
-                            const message = sources.map(source => `Source: ${source.source.replace(/\n/g, "")} from this snippet: "${source.snippet.replace(/\n/g, "")}" page: ${source.page ?? "n/a"}`).join("\n")
-                            // renderCustomComponent(CustomComponent, {message: message}, false)
-                        }
-                    } finally {
-                        // toggleMsgLoader()
-                    }
-                }, delay);
-            }
-        } catch (error) {
-            console.debug("error", error)
-        }
-    }
-    
     if (rules) {
         // Add rules. We use a syntax highlighter to pretty-print the rules and lie about the language
         // the rules are in to get a decent coloring scheme
