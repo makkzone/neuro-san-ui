@@ -2,7 +2,7 @@
 import {Dispatch, SetStateAction, useState} from 'react'
 
 // 3rd party components
-import {Card, Collapse} from "react-bootstrap"
+import {Card, Col, Collapse, Container, Row} from "react-bootstrap"
 import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
 import {InfoSignIcon, Popover, Text, Tooltip,} from "evergreen-ui"
 import {Handle, Position as HandlePosition, NodeProps, Node} from 'reactflow'
@@ -84,37 +84,36 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
 
     function getInputComponent(param, item) {
         const paramPrefix = `${flowPrefix}-${param}`
-        return <div id={ `${paramPrefix}-input-component` }
-                    className="grid grid-cols-10 gap-4 mb-2" key={param} >
-            <div id={ `${paramPrefix}-input-component-div` } className="item1 col-span-5">
-                <label id={ `${paramPrefix}-label` } className="capitalize">{param}: </label>
-            </div>
-            <div id={ `${paramPrefix}-data-type-div` }
-                className="item2 col-span-4">
-                {
-                    (item.type === ParamType.INT ||
-                     item.type === ParamType.FLOAT) &&
-                    <ConfigNumeric
-                        id={`${paramPrefix}-value`}
-                        paramName={param}
-                        defaultParam={defaultParams[param]}
-                        value={
-                            ParentUncertaintyNodeState[param] != null &&
-                            ParentUncertaintyNodeState[param].value != null &&
-                            ParentUncertaintyNodeState[param].value as number
-                        }
-                        onParamChange={event => onParamChange(event, param)}
-                        style={{width: "100%"}}
-                    />
-                }
-                {
-                    item.type === ParamType.BOOLEAN && 
+        return <Container id={`${paramPrefix}-container`}>
+            <Row id={`${paramPrefix}-row`} className="mx-2 my-8">
+                <Col id={`${paramPrefix}-param-col`} md={2}>
+                    <label id={`${paramPrefix}-label`} className="capitalize">{param}: </label>
+                </Col>
+                <Col id={`${paramPrefix}-param-val-col`}>
+                    {
+                        (item.type === ParamType.INT ||
+                            item.type === ParamType.FLOAT) &&
+                        <ConfigNumeric
+                            id={`${paramPrefix}-value`}
+                            paramName={param}
+                            defaultParam={defaultParams[param]}
+                            value={
+                                ParentUncertaintyNodeState[param] != null &&
+                                ParentUncertaintyNodeState[param].value != null &&
+                                ParentUncertaintyNodeState[param].value as number
+                            }
+                            onParamChange={event => onParamChange(event, param)}
+                            style={{width: "100%"}}
+                        />
+                    }
+                    {
+                        item.type === ParamType.BOOLEAN &&
                         <input
                             id={`${paramPrefix}-value`}
                             type="checkbox"
                             checked={
                                 (ParentUncertaintyNodeState[param] != null &&
-                                ParentUncertaintyNodeState[param].value != null)
+                                    ParentUncertaintyNodeState[param].value != null)
                                     ? Boolean(ParentUncertaintyNodeState[param].value)
                                     : defaultParams[param].default_value != null
                                         ? Boolean(defaultParams[param].default_value)
@@ -122,59 +121,59 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                             }
                             onChange={event => onCheckboxChange(event, param)}
                         />
-                }
-                {
-                    item.type === ParamType.ENUM &&
-                    <select
-                        id={`${paramPrefix}-value`}
-                        value={
-                            (ParentUncertaintyNodeState[param] != null &&
-                            ParentUncertaintyNodeState[param].value != null)
-                                ? ParentUncertaintyNodeState[param].value.toString()
-                                : defaultParams[param].default_value != null
-                                    ? defaultParams[param].default_value.toString()
-                                    : undefined
-                        }
-                        onChange={event => onParamChange(event, param)}
-                        style={{width: "100%"}}
-                    >
-                        {
-                            (item.allValues as Array<string>).map(
-                                value =>
-                                    <option
-                                        id={`${paramPrefix}-${value}`}
-                                        key={value} value={ value }>
-                                        { value }
-                                    </option>
-                            )
-                        }
-                    </select>
-                }
-                {
-                    item.type === ParamType.STRING &&
-                    <textarea
-                        style={{width: "100%", fontSize: "smaller"}}
-                        rows={10}
-                        id={`${paramPrefix}-value`}
-                        onChange={event => onParamChange(event, param)}
-                    >
+                    }
+                    {
+                        item.type === ParamType.ENUM &&
+                        <select
+                            id={`${paramPrefix}-value`}
+                            value={
+                                (ParentUncertaintyNodeState[param] != null &&
+                                    ParentUncertaintyNodeState[param].value != null)
+                                    ? ParentUncertaintyNodeState[param].value.toString()
+                                    : defaultParams[param].default_value != null
+                                        ? defaultParams[param].default_value.toString()
+                                        : undefined
+                            }
+                            onChange={event => onParamChange(event, param)}
+                            style={{width: "100%"}}
+                        >
+                            {
+                                (item.allValues as Array<string>).map(
+                                    value =>
+                                        <option
+                                            id={`${paramPrefix}-${value}`}
+                                            key={value} value={value}>
+                                            {value}
+                                        </option>
+                                )
+                            }
+                        </select>
+                    }
+                    {
+                        item.type === ParamType.STRING &&
+                        <textarea
+                            style={{width: "100%", fontFamily: "monospace"}}
+                            rows={10}
+                            id={`${paramPrefix}-value`}
+                            onChange={event => onParamChange(event, param)}
+                        >
                        {(ParentUncertaintyNodeState[param] != null &&
-                            ParentUncertaintyNodeState[param].value != null)
-                            ? ParentUncertaintyNodeState[param].value as string
-                                : defaultParams[param].default_value.toString()
+                           ParentUncertaintyNodeState[param].value != null)
+                           ? ParentUncertaintyNodeState[param].value as string
+                           : defaultParams[param].default_value.toString()
                        }
                     </textarea>
-                }
-            </div>
-            <div id={ `${paramPrefix}-tooltip-div` }
-                className="item3 col-span-1">
-                <Tooltip        // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                // 2/6/23 DEF - Tooltip does not have an id property when compiling
-                    content={item.description} >
-                    <InfoSignIcon id={ `${paramPrefix}-tooltip-info-sign-icon` }/>
-                </Tooltip>
-            </div>
-        </div>
+                    }
+                </Col>
+                <Col id={`${paramPrefix}-tooltip`} md={1}>
+                    <Tooltip        // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                        // 2/6/23 DEF - Tooltip does not have an id property when compiling
+                        content={item.description}>
+                        <InfoSignIcon id={`${paramPrefix}-tooltip-info-sign-icon`}/>
+                    </Tooltip>
+                </Col>
+            </Row>
+        </Container>
     }
 
     // Create the outer Card
@@ -199,14 +198,6 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                         <>
                             <Card.Body id={ `${flowPrefix}-llm-config` }
                                 className="h-40 text-xs">
-                                <div id={ `${flowPrefix}-more-info-div` }
-                                    className="mt-1 mb-2 mx-1">
-                                    <a id={ `${flowPrefix}-more-info-anchor` }
-                                        target="_blank"
-                                        href="https://gpflow.github.io/GPflow/" rel="noreferrer">
-                                        For more information on these settings, view the GPFlow documentation here.
-                                    </a>
-                                </div>
                                 <div id={ `${flowPrefix}-basic-settings-div` }
                                     className="mt-3">
                                     {
@@ -235,8 +226,8 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                         </>
                     }
                          statelessProps={{
-                             height: "325px",
-                             width: "650px",
+                             height: "500px",
+                             width: "1200px",
                              backgroundColor: "ghostwhite"
                          }}
                     >

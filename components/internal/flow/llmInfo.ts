@@ -15,13 +15,14 @@ export enum ParamType {
 enum LlmModel {
     "GPT 3.5" = "GPT_3_5",
     "GPT 4" = "GPT_4",
-    "Vecunda" = "VECUNDA",
-    "Custom" = "CUSTOM"
+    "Vecunda" = "Vecunda",
+    "BYOM" = "Bring your own model",
+    "Custom" = "Custom"
 }
 
 enum PromptTemplate {
-    "Repair data" = "REPAIR_DATA",
-    "Augment data" = "AUGMENT_DATA"
+    "Repair data" = "Repair Data",
+    "Augment data" = "Augment Data"
 }
 
 interface LlmParamField {
@@ -69,12 +70,12 @@ export const LLM_MODEL_PARAMS: LlmModelParams = {
     },
 
     "system_prompt": {
-        default_value: `
-        The data below is incomplete and includes NA values. 
-        Also, the <field2> field is unstructured. Fill in any NA field with an appropriate value and 
-        classify the <field2> field into a new column titled <field3>, with one of the following values: 
-        low, moderate, high: <field1>
-        `,
+        default_value:
+`The data below is incomplete and includes NA values.
+Also, the <field2> field is unstructured.
+
+Fill in any NA field with an appropriate value and classify the <field2> field into a new column titled <field3>,
+with one of the following values: low, moderate, high: <field1>`,
         description: "System prompt for the LLM",
         type: ParamType.STRING,
         isAdvanced: false
