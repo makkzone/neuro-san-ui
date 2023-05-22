@@ -99,7 +99,8 @@ export default function Index(): React.ReactElement {
     <OuterContainer id="outer-container">
       <Marginer id="marginer">
           <Navbar id="nav-bar">
-              <NavbarLogo id="logo">{LOGO} <Image id="logo-img" src="/cognizant-logo-white.svg" alt="" /></NavbarLogo>
+              <NavbarLogo id="logo">{LOGO} <Image id="logo-img" width={256} height={256}
+                                                  src="/cognizant-logo-white.svg" alt="" /></NavbarLogo>
               <NavbarMiddleSection id="nav-bar-middle">
                   {/* <NavbarItem id="publications">Publications</NavbarItem>
                   <NavbarItem id="contact">Contact</NavbarItem>
