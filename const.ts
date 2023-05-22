@@ -12,7 +12,7 @@ export const MD_BASE_URL: string = publicRuntimeConfig.md_server_url
 export const ENABLE_AUTHENTICATION: boolean = Boolean(JSON.parse(publicRuntimeConfig.enableAuthentication))
 
 // Name to use for application
-export const LOGO: string = ""
+export const LOGO: string = "Cognizant Neuro® AI"
 
 // Build version (passed in from build system)
 export const UNILEAF_VERSION: string = publicRuntimeConfig.unileafVersion

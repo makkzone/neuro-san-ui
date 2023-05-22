@@ -110,13 +110,13 @@ export default function Index(): React.ReactElement {
           </Navbar>
           <LeftRight id="main">
               <div id="main-div">
-                  <HeaderLineOne id="optimize-your">Accelerate Generative AI Solutions at Enterprise Scale</HeaderLineOne>
+                  <HeaderLineOne id="optimize-your">Accelerate generative AI solutions at enterprise scale</HeaderLineOne>
                   {/* <HeaderLineTwo id="business">BUSINESS</HeaderLineTwo> */}
                   <Link id="get-started-link" href={`/projects`} >
-                      <GetStartedButton id="get-started">Get Started</GetStartedButton>
+                      <GetStartedButton id="get-started">Get started</GetStartedButton>
                   </Link>
                   <Description id="description">
-                  With the Cognizant Neuro AI® platform, realize the business value
+                  With the Cognizant Neuro® AI platform, realize the business value
               of generative AI faster. Adopt and augment cutting-edge AI models,
               solve complex business problems more effectively, maximize utility
               of your data and with the Cognizant Neuro AI Control Plane, get

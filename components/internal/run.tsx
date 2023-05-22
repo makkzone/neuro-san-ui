@@ -509,7 +509,6 @@ Readmitted\tNominal\tDays to inpatient readmission. Values: “<30” if the pat
         }
 
         if (rules && flow) {
-            console.log("flow", flow)
             void fetchData()
         }
     }, [rules])

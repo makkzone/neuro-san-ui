@@ -904,8 +904,6 @@ export default function Flow(props: FlowProps) {
 
         _addElementUuid("llmnode", postDataNodeLlmId)
 
-        console.log("nodes", nodesCopy)
-        console.log("edges", edgesCopy)
         // Save the updated Flow
         setNodes(nodesCopy)
         setEdges(edgesCopy)

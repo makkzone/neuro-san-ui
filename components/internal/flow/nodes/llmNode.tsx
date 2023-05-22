@@ -42,7 +42,6 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
     // Unpack props
     const data = props.data
 
-    console.log("data", data)
     // Unpack the data
     const {
         NodeID,
@@ -51,8 +50,6 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
         DeleteNode,
         GetElementIndex
     } = data
-
-    console.log("params", ParentUncertaintyNodeState)
 
     // For showing advanced configuration settings
     const [showAdvanced] = useState(false)
