@@ -5,8 +5,6 @@ export const MaximumBlue: string  = "#000048"
 export const Apple: string  = "#26EFE9"
 const { publicRuntimeConfig } = getConfig()
 
-export const InputDataNodeID: string = 'root'
-
 // Set the env var MD_SERVER_URL
 export const MD_BASE_URL: string = publicRuntimeConfig.md_server_url
 

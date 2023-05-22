@@ -162,6 +162,10 @@ export class FlowQueries {
         return the index of a given element.  This index is used for ids in testing.
         */
 
+        if (!element) {
+            return -1
+        }
+
         debug({elementTypeToUuidList});
 
         // Default value if no element type in list
