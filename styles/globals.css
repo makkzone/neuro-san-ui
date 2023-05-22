@@ -378,5 +378,89 @@ See UN-1180
   padding: 0;
 }
 .border-black {
-  border-color: rgb(151 153 155/var(--tw-border-opacity));
+  border-color: var(--bs-gray-light) !important;
+}
+
+#flow-buttons button {
+border-radius: 1000px;
+background: var(--bs-secondary) !important;
+border: none;
+font-weight: bold;
+}
+
+tr {
+  border-color: var(--bs-gray-light) !important;
+}
+
+th {
+  font-weight: bold !important;
+}
+
+thead {
+  border: none;
+}
+
+thead tr {
+	background: var(--bs-gray-lighter);
+}
+
+#training-runs-bar button {
+  border-radius: 1000px !important;
+  background-color: var(--bs-button-bg) !important;
+  color: var(--bs-primary) !important;
+  border: none !important;
+  font-weight: bold !important;
+  padding: .5rem 2rem !important;
+}
+
+.tracking-wider {
+  letter-spacing: 0 !important;
+}
+
+.uppercase {
+  text-transform: none !important;
+}
+
+button[id*="run"] {
+  color: var(--bs-secondary) !important;
+  font-weight: bold !important;
+}
+
+h3 svg, button svg, span svg {
+    color: var(--bs-secondary);
+}
+
+.bp4-card p {
+	color: var(--bs-primary) !important;
+}
+
+.bp4-card p:last-of-type {
+margin: 0;
+}
+
+.bp4-card span svg {
+  color: var(--bs-secondary) !important;
+}
+.bp4-card button svg {
+  bottom: 1rem;
+  position: relative;
+}
+
+svg.react-flow__background #pattern-react-flow circle {
+	fill: var(--bs-gray-light);
+}
+.react-flow__panel {
+  background: white;
+}
+
+button[id*="context-button"], button[id*="actions-button"], button[id*="action-button"], button[id*="outcomes-button"] {
+	color: var(--bs-secondary);
+}
+
+button[id*="settings-button"] > svg > path {
+	stroke: var(--bs-secondary);
+}
+
+button[id*="prescriptoredge"] {
+	margin: 0 !important;
 }

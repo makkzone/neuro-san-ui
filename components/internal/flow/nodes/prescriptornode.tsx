@@ -831,7 +831,7 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                                     <div id={ `${flowPrefix}-context-div` } 
                                         key={element} className="grid grid-cols-2 gap-4 mb-2">
                                         <label id={ `${flowPrefix}-context-label-${element}` }
-                                            className=""> {element} </label>
+                                            className="capitalize"> {element} </label>
                                         <input id={ `${flowPrefix}-context-input-${element}` }
                                             name={element}
                                             type="checkbox" 
@@ -860,7 +860,7 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                                         <div id={ `${flowPrefix}-actions-div-${element}` }  
                                             key={element} className="grid grid-cols-2 gap-4 mb-2">
                                             <label id={ `${flowPrefix}-actions-label-${element}` }
-                                                className=""> {element} </label>
+                                                className="capitalize"> {element} </label>
                                             <input id={ `${flowPrefix}-actions-input-${element}` }
                                                 name={element}
                                                 type="checkbox" 

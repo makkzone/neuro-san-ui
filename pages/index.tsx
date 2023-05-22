@@ -31,6 +31,7 @@ const Navbar = styled.div`
 const NavbarLogo = styled.h1`
     color: white;
     font-size: 1.25rem;
+    width: 250px;
 `
 
 const NavbarMiddleSection = styled.div`
@@ -40,15 +41,6 @@ const NavbarMiddleSection = styled.div`
     width: 28.59%;
 `
 
-const NavbarItem = styled.a`
-    text-decoration: none;
-    color: white;
-    font-size: .938rem;
-    padding: 0;
-    margin: 0;
-    text-align: center;
-`
-
 const LeftRight = styled.div`
     display: grid;
     grid-template-columns: 4fr 1fr;
@@ -56,36 +48,34 @@ const LeftRight = styled.div`
 `
 
 const HeaderLineOne = styled.h1`
-    width: auto; height: auto;
-    margin: 0; padding: 0;
-    margin-top: 8.438rem;
+    //   width: auto;
+    //   height: auto;
+    margin: 0;
+    //   padding: 0;
+    margin-top: 6rem;
+    //   font-size: 5rem;
     color: white;
-    font-size: 5rem;
 `
-const HeaderLineTwo = styled.h1`
-    width: auto; height: auto;
-    margin: 0; padding: 0;
-    margin-top: -2.225%;
-    color: white;
-    font-size: 5rem;
-`
-
 const GetStartedButton = styled.div`
-    display: block;
+    display: inline-block;
     margin-top: 4rem;
-    color: white;
+    color: #000048;
+    font-weight: bold;
     font-size: 1.25rem;
-    padding-bottom: 0.313rem;
-    border-bottom: 2px solid #FDB716;
-    width: 7.063rem;
+    border-radius: 1000px;
+    //   padding-bottom: 0.313rem;
+    padding: 1rem 2rem;
+    //   border-bottom: 2px solid var(--bs-button-bg);
+    background: #26efe9;
+    //   width: 7.063rem;
     text-align: center;
 `
 
 const Description = styled.p`
     color: white;
-    font-size: 1.219rem;
+    font-size: 1rem;
     width: 39rem;
-    margin-top: 5.021rem;
+    margin-top: 4rem;
 `
 
 const Right = styled.div`
@@ -93,18 +83,6 @@ const Right = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-`
-
-const ImageDiv = styled.div`
-    width: 15.563rem; height: 29.375rem;
-`
-
-const D2DText = styled.p`
-    color: white;
-    font-size: 2.5rem;
-    width: 20.563rem;
-    margin-top: 5.021rem;
-    text-align: right;
 `
 
 // Main function.
@@ -121,27 +99,32 @@ export default function Index(): React.ReactElement {
     <OuterContainer id="outer-container">
       <Marginer id="marginer">
           <Navbar id="nav-bar">
-              <NavbarLogo id="logo">{LOGO}</NavbarLogo>
+              <NavbarLogo id="logo">{LOGO} <Image id="logo-img" src="/cognizant-logo-white.svg" alt="" /></NavbarLogo>
               <NavbarMiddleSection id="nav-bar-middle">
-                  <NavbarItem id="publications">Publications</NavbarItem>
+                  {/* <NavbarItem id="publications">Publications</NavbarItem>
                   <NavbarItem id="contact">Contact</NavbarItem>
-                  <NavbarItem id="about">About</NavbarItem>
+                  <NavbarItem id="about">About</NavbarItem> */}
               </NavbarMiddleSection>
-              <NavbarItem id="partner">Partner</NavbarItem>
+              {/* <NavbarItem id="partner">Partner</NavbarItem> */}
           </Navbar>
           <LeftRight id="main">
               <div id="main-div">
-                  <HeaderLineOne id="optimize-your">OPTIMIZE YOUR</HeaderLineOne>
-                  <HeaderLineTwo id="business">BUSINESS</HeaderLineTwo>
+                  <HeaderLineOne id="optimize-your">Accelerate Generative AI Solutions at Enterprise Scale</HeaderLineOne>
+                  {/* <HeaderLineTwo id="business">BUSINESS</HeaderLineTwo> */}
                   <Link id="get-started-link" href={`/projects`} >
                       <GetStartedButton id="get-started">Get Started</GetStartedButton>
                   </Link>
                   <Description id="description">
-                      Research and builds applications with modern AI techniques such as evolutionary computation and deep learning across disciplines using LEAF (Learning and Evolutionary AI Framework)
+                  With the Cognizant Neuro AI® platform, realize the business value
+              of generative AI faster. Adopt and augment cutting-edge AI models,
+              solve complex business problems more effectively, maximize utility
+              of your data and with the Cognizant Neuro AI Control Plane, get
+              unparalleled visibility and control. The generative AI future of
+              business begins here.
                   </Description>
               </div>
               <Right id="right">
-                  <ImageDiv id="image-div">
+                  {/* <ImageDiv id="image-div">
                       <Image id="image"
                           src="/nnleaf.svg"
                           width="249"
@@ -150,7 +133,7 @@ export default function Index(): React.ReactElement {
                           alt=""
                       />
                   </ImageDiv>
-                  <D2DText id="d2d-text">Data to Decisions</D2DText>
+                  <D2DText id="d2d-text">Data to Decisions</D2DText> */}
               </Right>
           </LeftRight>
 
