@@ -5,7 +5,7 @@ import styled from "styled-components"
 
 import Image from "next/legacy/image"
 import {Link} from "evergreen-ui"
-import {LOGO} from "../const"
+// import {LOGO} from "../const"
 import {getTitleBase} from "../utils/title"
 
 const OuterContainer = styled.div`
