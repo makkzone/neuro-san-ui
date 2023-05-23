@@ -56,6 +56,16 @@ const HeaderLineOne = styled.h1`
     //   font-size: 5rem;
     color: white;
 `
+const HeaderLineTwo = styled.h1`
+    //   width: auto;
+    //   height: auto;
+    margin: 0;
+    //   padding: 0;
+    //   margin-top: -2.225%;
+    //   font-size: 5rem;
+    color: white;
+`
+
 const GetStartedButton = styled.div`
     display: inline-block;
     margin-top: 4rem;
@@ -99,7 +109,7 @@ export default function Index(): React.ReactElement {
     <OuterContainer id="outer-container">
       <Marginer id="marginer">
           <Navbar id="nav-bar">
-              <NavbarLogo id="logo">{LOGO} <Image id="logo-img" width={256} height={256}
+              <NavbarLogo id="logo"><Image id="logo-img" width={256}
                                                   src="/cognizant-logo-white.svg" alt="" /></NavbarLogo>
               <NavbarMiddleSection id="nav-bar-middle">
                   {/* <NavbarItem id="publications">Publications</NavbarItem>
