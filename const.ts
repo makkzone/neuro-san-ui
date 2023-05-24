@@ -73,3 +73,15 @@ export const ESPResultverbs = [
     'mean',
     // 'elites_mean'
 ]
+
+export const chatbotTheme = {
+    background: '#f5f8fb',
+    fontFamily: 'Helvetica Neue',
+    headerBgColor: "var(--bs-primary)",
+    headerFontColor: '#fff',
+    headerFontSize: '15px',
+    botBubbleColor: "var(--bs-secondary)",
+    botFontColor: '#fff',
+    userBubbleColor: '#fff',
+    userFontColor: '#4a4a4a',
+}

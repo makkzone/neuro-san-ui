@@ -8,7 +8,7 @@ import ESPRunPlot from "../esprunplot";
 import NewBar from "../newbar";
 import {Col, Container, Row} from "react-bootstrap"
 import {Button} from "react-bootstrap";
-import {MaximumBlue} from "../../const";
+import {chatbotTheme, MaximumBlue} from "../../const";
 import ClipLoader from "react-spinners/ClipLoader";
 import Link from "next/link";
 import Flow from "./flow/flow";
@@ -31,6 +31,8 @@ import ReactMarkdown from "react-markdown";
 import {Project, Projects} from "../../controller/projects/types";
 import {BrowserFetchProjects} from "../../controller/projects/fetch";
 import BlankLines from "../blanklines";
+import {ThemeProvider} from "styled-components";
+import ChatBot from 'react-simple-chatbot'
 
 interface RunProps {
     /* 
@@ -71,7 +73,8 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [selectedRulesFormat, setSelectedRulesFormat] = useState("raw")
     const [interpretedRules, setInterpretedRules] = useState(null)
     const [insights, setInsights] = useState(null)
-    const [gptLoading, setGptLoading] = useState(false)
+    const [rulesInterpretationLoading, setRulesInterpretationLoading] = useState(false)
+    const [insightsLoading, setInsightsLoading] = useState(false)
     const [project, setProject] = useState<Project>(null)
 
     function getProjectTitle() {
@@ -339,7 +342,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             const outcomeFields = Object.assign({}, ...prescriptorNode.data.ParentPrescriptorState.evolution.fitness.map(item => ({[item.metric_name]: item.maximize ? "maximize" : "minimize"})))
             
             try {
-                setGptLoading(true)
+                setRulesInterpretationLoading(true)
                 const response = await fetch("/api/gpt/rules", {
                     method: "POST",
                     headers: {
@@ -364,7 +367,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             } catch (error) {
                 console.debug("error", error)
             } finally {
-                setGptLoading(false)
+                setRulesInterpretationLoading(false)
             }
         }
 
@@ -384,7 +387,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             const outcomeFields = Object.assign({}, ...prescriptorNode.data.ParentPrescriptorState.evolution.fitness.map(item => ({[item.metric_name]: item.maximize ? "maximize" : "minimize"})))
 
             try {
-                setGptLoading(true)
+                setInsightsLoading(true)
                 const response = await fetch("/api/gpt/insights", {
                     method: "POST",
                     headers: {
@@ -409,7 +412,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             } catch (error) {
                 console.debug("error", error)
             } finally {
-                setGptLoading(false)
+                setInsightsLoading(false)
             }
         }
 
@@ -549,7 +552,7 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
                                             </SyntaxHighlighter>
                                     </div>
                                     :
-                                    gptLoading 
+                                    rulesInterpretationLoading
                                         ?   <>
                                             <ClipLoader     // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                             color={MaximumBlue} loading={true} size={50} />
@@ -565,7 +568,7 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
                                         <br id="markdown-br-1"/>
                                         <br id="markdown-br-2"/>
                                         <br id="markdown-br-3"/>
-                                        <h5 id="powered-by">Powered by OpenAI™ GPT-4™ technology</h5>
+                                        <h5 id="powered-by">Powered by OpenAI™ GPT-3.5™ technology</h5>
                                     </div>
                                 }
                             </Col>
@@ -591,7 +594,7 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
                              backgroundColor: "whitesmoke",
                          }}
                     >
-                        {gptLoading
+                        {insightsLoading
                         ?   <>
                         <ClipLoader     // eslint-disable-line enforce-ids-in-jsx/missing-ids
                             color={MaximumBlue} loading={true} size={50} />
@@ -606,7 +609,7 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
                             <br id="markdown-br-1"/>
                             <br id="markdown-br-2"/>
                             <br id="markdown-br-3"/>
-                            <h5 id="powered-by">Powered by OpenAI™ GPT-4™ technology</h5>
+                            <h5 id="powered-by">Powered by OpenAI™ GPT-3.5™ technology</h5>
                         </div>
                         }
                     </div>
@@ -642,5 +645,22 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
         {flowDiv}       
 
         {plotDiv}
+
+        <ThemeProvider // eslint-disable-line enforce-ids-in-jsx/missing-ids
+            theme={chatbotTheme}>
+            <ChatBot id="chatbot"
+                     floating={true}
+                     placeholder="What is Cognizant Neuro™ AI?"
+                     userAvatar={session?.user?.image}
+                     botAvatar="/cognizantfavicon.ico"
+                     steps={[
+                         {
+                             id: 'welcome',
+                             message: 'Please type your question about Cognizant Neuro™ AI below.',
+                             end: true,
+                         },
+                     ]}
+            />
+        </ThemeProvider>
     </div>
 }

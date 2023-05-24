@@ -8,8 +8,8 @@ import "antd/dist/reset.css"
 import "bootstrap/dist/css/bootstrap.css"
 import "reactflow/dist/style.css"
 import "tailwindcss/tailwind.css"
-import ChatBot from 'react-simple-chatbot'
-import { ThemeProvider } from 'styled-components';
+import ChatBot from "react-simple-chatbot"
+import {ThemeProvider} from "styled-components"
 
 // Custom
 import "../styles/updatenode.css"
@@ -17,7 +17,6 @@ import "../styles/globals.css"
 import "../styles/styles.css"
 
 // External Libraries
-
 // Bootstrap
 import {Container, SSRProvider} from "react-bootstrap"
 
@@ -33,22 +32,10 @@ import {SessionProvider} from "next-auth/react"
 import Navbar from "../components/navbar"
 
 // Constants
-import {ENABLE_AUTHENTICATION, LOGO} from "../const"
+import {chatbotTheme, ENABLE_AUTHENTICATION, LOGO} from "../const"
 import {Auth} from "../components/auth";
 import ErrorBoundary from "../components/errorboundary";
 
-
-const chatbotTheme =  {
-  background: '#f5f8fb',
-  fontFamily: 'Helvetica Neue',
-  headerBgColor: "var(--bs-primary)",
-  headerFontColor: '#fff',
-  headerFontSize: '15px',
-  botBubbleColor: "var(--bs-secondary)",
-  botFontColor: '#fff',
-  userBubbleColor: '#fff',
-  userFontColor: '#4a4a4a',
-}
 
 // Main function.
 // Has to be export default for NextJS so tell ts-prune to ignore

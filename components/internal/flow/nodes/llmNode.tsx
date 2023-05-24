@@ -32,6 +32,8 @@ interface LlmNodeData {
     readonly GetElementIndex: (nodeID: string) => number
 
     readonly ParameterSet: LlmModelParams
+
+    readonly NodeTitle: string
 }
 
 export type LLmNode = Node<LlmNodeData>;
@@ -51,7 +53,8 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
         SetParentUncertaintyNodeState,
         DeleteNode,
         GetElementIndex,
-        ParameterSet
+        ParameterSet,
+        NodeTitle
     } = data
 
     // For showing advanced configuration settings
@@ -188,7 +191,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                 className="flex justify-center content-center">
                 <Text id={ `${flowPrefix}-llm-text` }
                     className="mr-2">
-                    LLM
+                    {NodeTitle}
                 </Text>
                 <div id={ `${flowPrefix}-popover-div` }
                     onMouseDown={(event) => {event.stopPropagation()}}>

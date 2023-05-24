@@ -773,7 +773,8 @@ export default function Flow(props: FlowProps) {
                 SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, "root"),
                 DeleteNode: nodeID => _deleteNodeById(nodeID),
                 GetElementIndex: nodeID => _getElementIndex(nodeID),
-                ParameterSet: LLM_MODEL_PARAMS
+                ParameterSet: LLM_MODEL_PARAMS,
+                NodeTitle: "Data LLM"
             },
             position: {
                 x: dataNode.position.x + 200,
@@ -817,7 +818,8 @@ export default function Flow(props: FlowProps) {
                 SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, postDataNodeLlmId),
                 DeleteNode: newNodeID => _deleteNodeById(newNodeID),
                 GetElementIndex: newNodeID => _getElementIndex(newNodeID),
-                ParameterSet: LLM_MODEL_PARAMS2
+                ParameterSet: LLM_MODEL_PARAMS2,
+                NodeTitle: "Analytics LLM"
             },
             position: {
                 x: dataNode.position.x + 200,
@@ -878,7 +880,8 @@ export default function Flow(props: FlowProps) {
                     SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, presscriptorLlmId),
                     DeleteNode: nodeID => _deleteNodeById(nodeID),
                     GetElementIndex: nodeID => _getElementIndex(nodeID),
-                    ParameterSet: LLM_MODEL_PARAMS3
+                    ParameterSet: LLM_MODEL_PARAMS3,
+                    NodeTitle: "Actuation LLM"
                 },
                 position: {
                     x: dataNode.position.x + 200,
