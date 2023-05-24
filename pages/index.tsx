@@ -111,7 +111,7 @@ export default function Index(): React.ReactElement {
           </Navbar>
           <LeftRight id="main">
               <div id="main-div">
-                  <HeaderLineOne id="optimize-your">Accelerate generative AI solutions at enterprise scale</HeaderLineOne>
+                  <HeaderLineOne id="optimize-your"><small>Cognizant Neuro® AI Model Orchestrator</small>Accelerate generative AI solutions at enterprise scale</HeaderLineOne>
                   {/* <HeaderLineTwo id="business">BUSINESS</HeaderLineTwo> */}
                   <Link id="get-started-link" href={`/projects`} >
                       <GetStartedButton id="get-started">Get started</GetStartedButton>
