@@ -1,9 +1,9 @@
 
 const RESPONSES = {
-    "Neuro AI": "Cognizant Neuro® AI is a preconfigured technology accelerator for faster AI applications adoption that" +
-        " infuses AI and human expertise to empower clients to gain better solutions, faster. " +
-        "The platform enables AI and software engineering teams to build and assemble flexible and secure AI solutions" +
-        "—responsibly and ethically—enabling businesses to enhance productivity and scalability to " +
+    "Neuro AI": "Cognizant Neuro® AI is a preconfigured technology accelerator for faster AI applications adoption" +
+        "that infuses AI and human expertise to empower clients to gain better solutions, faster. " +
+        "The platform enables AI and software engineering teams to build and assemble flexible and secure AI solutions " +
+        " —responsibly and ethically— enabling businesses to enhance productivity and scalability to " +
         "increase business revenue. ",
     "Generative": "Generative artificial intelligence or generative AI is a type of artificial intelligence (AI) " +
         "system capable of generating text, images, or other media in response to prompts. Generative AI models " +
@@ -28,7 +28,7 @@ const RESPONSES = {
         "Transformers have demonstrated remarkable performance in various language-related tasks, making them a " +
         "fundamental component of modern language models.",
     "predictor": "In the context of Cognizant Neuro™ AI, a predictor is a modelused to train a " +
-        "population of prescriptors. The predictor predicts, for a given Context and set of Actions, what the outcome" +
+        "population of prescriptors. The predictor predicts, for a given Context and set of Actions, what the outcome " +
         "would be in the system being modeled. As such, a predictor is a type of surrogate model.",
     "Cognizant": "Cognizant, Inc. is a multinational technology company that provides a range of IT services and " +
         "solutions to businesses around the world. The company offers consulting, digital transformation, " +
@@ -42,10 +42,10 @@ const RESPONSES = {
         "to perform a specific task or learn patterns and relationships within a dataset. " +
         "Training involves adjusting the network's parameters, also known as weights and biases, to minimize the " +
         "difference between the network's output and the desired output.",
-    "prescriptor": "In the context of Cognizant Neuro™ AI, a prescriptor is a model which prescribes which Actions" +
-        " to take in a given Context in order to optimize the expected Outcomes",
-    "cao": "Contexts, Actions and Outcomes. In the context of Cognizant Neuro™ AI, contexts are the properties of the" +
-        " problem that cannot be altered; actions are the values that _can_ be altered, and outcomes are the results of" +
+    "prescriptor": "In the context of Cognizant Neuro™ AI, a prescriptor is a model which prescribes which Actions " +
+        "to take in a given Context in order to optimize the expected Outcomes",
+    "cao": "Contexts, Actions and Outcomes. In the context of Cognizant Neuro™ AI, contexts are the properties of the " +
+        "problem that cannot be altered; actions are the values that _can_ be altered, and outcomes are the results of " +
         "executing those actions within the given context."
 }
 
