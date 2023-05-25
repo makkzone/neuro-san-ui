@@ -90,7 +90,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         /*
         Takes the fetched fields from this run page and updates
         the runs prop passed from the experiment page so they 
-        won"t have to be fetched again.
+        won't have to be fetched again.
         */
         const runIndex = getRunIndexByID(run.id)
         const tempRuns = [...props.runs]
@@ -214,11 +214,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             setProject(projects[0])
         }
     }
-    // useEffect(() => {
-    //     dropMessages()
-    //     addResponseMessage("Hi! I"m your UniLEAF assistant. Please type your question below.")
-    // }, [])
-    
+
     // Fetch the experiment and the runs
     useEffect(() => {
         // Attempt to get the run from the cache
