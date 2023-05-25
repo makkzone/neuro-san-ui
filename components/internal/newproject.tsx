@@ -739,7 +739,7 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
         >
             <Collapse       // eslint-disable-line enforce-ids-in-jsx/missing-ids
                             // 2/6/23 DEF - Collapse does not have an id property when compiling
-                accordion expandIconPosition="right"
+                accordion expandIconPosition="end"
                 defaultActiveKey={isNewProject ? projectDetailsPanelKey : dataSourcePanelKey}
             >
                 {isNewProject &&

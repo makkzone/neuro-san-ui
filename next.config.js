@@ -79,6 +79,13 @@ const nextConfig = {
     },
 
     transpilePackages: ['echarts', 'echarts-gl', 'zrender'],
+
+    compiler: {
+        // Prevent errors like "webpack Warning: Prop `className` did not match. Server: ..."
+        // See: https://nextjs.org/docs/architecture/nextjs-compiler#styled-components
+        // ssr and displayName are configured by default
+        styledComponents: true,
+    },
 };
 
 module.exports = nextConfig;

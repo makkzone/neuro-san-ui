@@ -30,11 +30,16 @@
         "sourceType": "module"
     },
     "rules": {
-        // Set these to warning only
-        "@typescript-eslint/no-explicit-any": "warn",
-        "@typescript-eslint/no-unused-vars": "warn",
+        // Want to enforce this on all compoments, which the default setting does not do.
         "enforce-ids-in-jsx/missing-ids": ["warn", {
             "target": ["all"]
+        }],
+        "react/jsx-key": [
+            // Turn on some optional, stricter settings for this rule
+            "error", {
+                "checkFragmentShorthand": true,
+                "checkKeyMustBeforeSpread": true,
+                "warnOnDuplicates": true
         }],
         "no-alert": "warn",
 

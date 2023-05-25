@@ -289,6 +289,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         plotDiv.push(<MetricsTable  // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                     // MetricsTable doesn't have (or need) an id property. The items it generates
                                     // each have their own referenceable id.
+                        key="metrics-table"
                         PredictorRunData={predictorPlotData}
                         Predictors={predictors} />)
     }
@@ -307,8 +308,9 @@ export default function RunPage(props: RunProps): React.ReactElement {
     
     if (objectivesCount && Object.keys(paretoPlotData).length > 0) {
         plotDiv.push(
-            <MultiPareto 
+            <MultiPareto
                 id="pareto-plot-table"
+                key="pareto-plot-table"
                 Pareto={paretoPlotData}
                 NodeToCIDMap={nodeToCIDMap}
                 PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap}
@@ -352,16 +354,17 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
 
     if (!predictorPlotData && !prescriptorPlotData) {
         plotDiv.push(
-            <div id="clip-loader-div" className="container">
+            <div id="clip-loader-div" className="container" key="plot-data-div">
                 { /* 2/6/23 DEF - ClipLoader does not have an id property when compiling */ }
                 <ClipLoader     // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    key="plot-data-clip-loader"
                     color={MaximumBlue} loading={true} size={50} />
             </div>
         )
     } else {
         // Link to decision UI, or disabled and explanatory text if rules-based which decision UI does not support.
         plotDiv.push(
-            <div id="dms-button-div"
+            <div id="dms-button-div" key="dms-button-div"
                 style={{
                     cursor: shouldEnableDMS() ? "pointer" : "not-allowed"
                 }}
@@ -388,7 +391,7 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
             <>
                 <NewBar id="rules-bar" InstanceId="rules"
                         Title="Rules" DisplayNewLink={ false } />
-                <div id="rules-div" className="my-2 py-2"
+                <div id="rules-div" className="my-2 py-2" key="rules-div"
                      style={{
                          whiteSpace: "pre",
                          backgroundColor: "whitesmoke"
@@ -407,7 +410,7 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
 
     if (run && flow) {
         flowDiv.push(
-            <div id="run-flow">
+            <div id="run-flow" key="run-flow-div">
                 { /* 2/6/23 DEF - ReactFlowProvider does not have an id property when compiling */ }
                 <ReactFlowProvider      // eslint-disable-line enforce-ids-in-jsx/missing-ids
                     >
