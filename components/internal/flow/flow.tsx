@@ -855,7 +855,7 @@ export default function Flow(props: FlowProps) {
         }
 
         // Update the uuid index map for testing ids
-        removableNodes.forEach( (element) => {
+        removableNodes.forEach((element) => {
             const uuidIndex = FlowQueries.getIndexForElement(elementTypeToUuidList, element);
             if (uuidIndex >= 0) {
 
@@ -916,7 +916,7 @@ export default function Flow(props: FlowProps) {
 
     function _onLoad(reactFlowInstance) {
         /*
-        Helper function to adjust the flow when its loaded.
+        Helper function to adjust the flow when it is loaded.
         */
         reactFlowInstance.fitView()
         setFlowInstance(reactFlowInstance)

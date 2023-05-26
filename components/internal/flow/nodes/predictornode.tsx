@@ -332,7 +332,7 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
         });
     };
 
-    const onUpdateCAOState = ( event, espType: string ) => {
+    const onUpdateCAOState = (event, espType: string) => {
         const { name, checked } = event.target
         const caoStateCopy = { ...ParentPredictorState.caoState }
 

@@ -169,7 +169,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                                     Click for values:
                                 </option>
                                 {
-                                    fields[field].discrete_categorical_values.map( (item) => (
+                                    fields[field].discrete_categorical_values.map((item) => (
                                         <option id={ `${field}-categorical-value-${item}` }
                                                 value={item} key={item} disabled>
                                             {item}
@@ -188,7 +188,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                                 }}
                             >
                                 <AiFillEdit id={ `${field}-set-current-category-values-fill` }
-                                    size='14' style={{cursor: "pointer"}}/>
+                                    size="14" style={{cursor: "pointer"}}/>
                             </button>
                         </span>
                     :   "N/A"

@@ -167,7 +167,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 cacheRun(run)
             } else {
                 sendNotification(NotificationType.error, "Internal error",
-                    `Unexpected number of runs returned: ${runs.length} for run ${runID}` )
+                    `Unexpected number of runs returned: ${runs.length} for run ${runID}`)
                 return null
             }
         } else {
@@ -196,7 +196,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         // If nodeToCIDMap has been populated, we can load the rules
         if (run && nodeToCIDMap) {
             // If it contains a rule-based prescriptor, load the rules
-            if (isRuleBased(flow)){
+            if (isRuleBased(flow)) {
                 void retrieveRulesPrescriptor()
             }
         }
@@ -256,7 +256,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             const nodeToCIDMap = {}
 
             // This is the 1D case - if the Pareto does not exist
-            if(Object.keys(paretoPlotData).length === 0) {
+            if (Object.keys(paretoPlotData).length === 0) {
                 // Get all the artifacts that start with the keyword prescriptor
                 const prescriptorArtifactNames = Object.keys(JSON.parse(run.output_artifacts)).filter(
                     name => name.startsWith("prescriptor")

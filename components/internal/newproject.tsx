@@ -677,7 +677,7 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
     function getUploadButtonTooltip() {
         if (!isUsingLocalFile) {
             return "Only available when using the file upload option"
-        } else if (!selectedFile){
+        } else if (!selectedFile) {
             return "Please select a file first"
         } else {
             // returning null means no tooltip shown, meaning the button should be enabled
