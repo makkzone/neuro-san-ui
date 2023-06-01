@@ -195,7 +195,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 cacheRun(run)
             } else {
                 sendNotification(NotificationType.error, "Internal error",
-                    `Unexpected number of runs returned: ${runs.length} for run ${runID}` )
+                    `Unexpected number of runs returned: ${runs.length} for run ${runID}`)
                 return null
             }
         } else {
@@ -234,7 +234,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         // If nodeToCIDMap has been populated, we can load the rules
         if (run && nodeToCIDMap) {
             // If it contains a rule-based prescriptor, load the rules
-            if (isRuleBased(flow)){
+            if (isRuleBased(flow)) {
                 void retrieveRulesPrescriptor()
             }
         }
@@ -301,7 +301,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             const nodeToCIDMap = {}
 
             // This is the 1D case - if the Pareto does not exist
-            if(Object.keys(paretoPlotData).length === 0) {
+            if (Object.keys(paretoPlotData).length === 0) {
                 // Get all the artifacts that start with the keyword prescriptor
                 const prescriptorArtifactNames = Object.keys(JSON.parse(run.output_artifacts)).filter(
                     name => name.startsWith("prescriptor")
@@ -328,16 +328,16 @@ export default function RunPage(props: RunProps): React.ReactElement {
         }
     }, [paretoPlotData])
 
-    useEffect(() => 
+    useEffect(() =>
     {
         async function fetchRulesInterpretations() {
             const prescriptorNode = FlowQueries.getPrescriptorNodes(flow)[0]
             const caoState = prescriptorNode.data.ParentPrescriptorState.caoState
             const contextFields = Object.entries(caoState.context).filter(item => item[1] === true).map(item => item[0])
             const actionFields  = Object.entries(caoState.action).filter(item => item[1] === true).map(item => item[0])
-            
+
             const outcomeFields = Object.assign({}, ...prescriptorNode.data.ParentPrescriptorState.evolution.fitness.map(item => ({[item.metric_name]: item.maximize ? "maximize" : "minimize"})))
-            
+
             try {
                 setRulesInterpretationLoading(true)
                 const response = await fetch("/api/gpt/rules", {
@@ -425,6 +425,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         plotDiv.push(<MetricsTable  // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                     // MetricsTable doesn"t have (or need) an id property. The items it generates
                                     // each have their own referenceable id.
+                        key="metrics-table"
                         PredictorRunData={predictorPlotData}
                         Predictors={predictors} />)
     }
@@ -443,8 +444,9 @@ export default function RunPage(props: RunProps): React.ReactElement {
     
     if (objectivesCount && Object.keys(paretoPlotData).length > 0) {
         plotDiv.push(
-            <MultiPareto 
+            <MultiPareto
                 id="pareto-plot-table"
+                key="pareto-plot-table"
                 Pareto={paretoPlotData}
                 NodeToCIDMap={nodeToCIDMap}
                 PrescriptorNodeToCIDMapUpdater={updateNodeToCIDMap}
@@ -488,16 +490,17 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
 
     if (!predictorPlotData && !prescriptorPlotData) {
         plotDiv.push(
-            <div id="clip-loader-div" className="container">
+            <div id="clip-loader-div" className="container" key="plot-data-div">
                 { /* 2/6/23 DEF - ClipLoader does not have an id property when compiling */ }
                 <ClipLoader     // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    key="plot-data-clip-loader"
                     color={MaximumBlue} loading={true} size={50} />
             </div>
         )
     } else {
         // Link to decision UI, or disabled and explanatory text if rules-based which decision UI does not support.
         plotDiv.push(
-            <div id="dms-button-div"
+            <div id="dms-button-div" key="dms-button-div"
                 style={{
                     cursor: shouldEnableDMS() ? "pointer" : "not-allowed"
                 }}
@@ -534,8 +537,8 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
                     <Container id="rules-decoded-container">
                         <Row id="rules-decoded-row" style={{marginTop: 10}}>
                             <Col id="rules-decoded-column" md={10} >
-                                {selectedRulesFormat === "raw" 
-                                    ? <div id="rules-div" className="my-2 py-2"
+                                {selectedRulesFormat === "raw"
+                                    ? <div id="rules-div" className="my-2 py-2" key="rules-div"
                                            style={{
                                                whiteSpace: "pre",
                                                backgroundColor: "whitesmoke",
@@ -606,7 +609,7 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
                     </div>
                 </Tab>
             </Tabs>
-            </div> 
+            </div>
         )
     }
     
@@ -614,7 +617,7 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
 
     if (run && flow) {
         flowDiv.push(
-            <div id="run-flow">
+            <div id="run-flow" key="run-flow-div">
                 { /* 2/6/23 DEF - ReactFlowProvider does not have an id property when compiling */ }
                 <ReactFlowProvider      // eslint-disable-line enforce-ids-in-jsx/missing-ids
                     >
