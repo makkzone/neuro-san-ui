@@ -48,6 +48,7 @@ import { NodeData, NodeType } from './types'
 import { EdgeType } from '../edges/types'
 
 import {DataTag} from "../../../../controller/datatag/types"
+import {NextRouter, useRouter} from "next/router";
 
 
 // Interface for Predictor CAO
@@ -98,6 +99,12 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
     This function is responsible to render the Predictor Node
     */
 
+    // Get the router hook
+    const router: NextRouter = useRouter()
+
+    // Check if demo user as requested by URL param
+    const isDemoUser = "demo" in router.query
+
     const data: PredictorNodeData = props.data
 
     // Get the current user
@@ -125,7 +132,9 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
         classifier: FetchMetrics("classifier")
     }
     const predictors = {
-        regressor: FetchPredictors("regressor"),
+        regressor: isDemoUser
+            ? FetchPredictors("regressor")
+            : FetchPredictors("regressor").filter(predictor => !["Transformer", "LLM"].includes(predictor)),
         classifier: FetchPredictors("classifier")
     }
 
