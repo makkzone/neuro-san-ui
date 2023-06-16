@@ -933,8 +933,6 @@ export default function Flow(props: FlowProps) {
         each node knows.
          */
 
-        console.debug("id to delete", nodeID)
-        console.debug("nodes", nodes)
         _deleteNode([FlowQueries.getNodeByID(nodes, nodeID)], nodes, edges)
     }
 
