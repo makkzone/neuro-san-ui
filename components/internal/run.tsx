@@ -6,9 +6,8 @@ import {empty} from "../../utils/objects";
 import MetricsTable from "../metricstable";
 import ESPRunPlot from "../esprunplot";
 import NewBar from "../newbar";
-import {Col, Container, Row} from "react-bootstrap"
-import {Button} from "react-bootstrap";
-import {chatbotTheme, MaximumBlue} from "../../const";
+import {Button, Col, Container, Row} from "react-bootstrap"
+import {MaximumBlue} from "../../const";
 import ClipLoader from "react-spinners/ClipLoader";
 import Link from "next/link";
 import Flow from "./flow/flow";
@@ -20,21 +19,23 @@ import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs';
 import {useLocalStorage} from "../../utils/use_local_storage";
 import decode from "../../utils/conversion";
 import {useSession} from "next-auth/react";
-import {MultiPareto} from "../pareto/multi_pareto";
-import {NodeType} from "./flow/nodes/types";
+import { MultiPareto } from "../pareto/multi_pareto";
+import { NodeType } from "./flow/nodes/types";
 import Tab from 'react-bootstrap/Tab'
 import Tabs from 'react-bootstrap/Tabs'
-import {Radio} from "antd"
-import {Space} from "antd"
-import {RadioChangeEvent} from "antd"
+import {Radio, RadioChangeEvent, Space} from "antd"
 import ReactMarkdown from "react-markdown";
 import {Project, Projects} from "../../controller/projects/types";
 import {BrowserFetchProjects} from "../../controller/projects/fetch";
 import BlankLines from "../blanklines";
+
+import {NextRouter, useRouter} from "next/router";
+
+// Chatbot
 import {ThemeProvider} from "styled-components";
 import ChatBot from 'react-simple-chatbot'
 import {chatbotSteps} from "./chatbot/steps";
-import {NextRouter, useRouter} from "next/router";
+import {chatbotTheme} from "../../const";
 
 interface RunProps {
     /* 
@@ -647,7 +648,6 @@ ${prescriptorID}/?data_source_id=${dataSourceId}`
                         ProjectID={props.ProjectId}
                         Flow={flow}
                         ElementsSelectable={false}
-                        IsDemoUser={isDemoUser}
                     />
                 </ReactFlowProvider>
             </div>

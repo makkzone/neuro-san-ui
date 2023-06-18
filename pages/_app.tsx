@@ -1,6 +1,3 @@
-// Stylesheets
-import "nextjs-breadcrumbs2/dist/index.cjs"
-
 // Third party
 import "@blueprintjs/core/lib/css/blueprint.css"
 import "@blueprintjs/icons/lib/css/blueprint-icons.css"
@@ -17,6 +14,7 @@ import "../styles/globals.css"
 import "../styles/styles.css"
 
 // External Libraries
+
 // Bootstrap
 import {Container, SSRProvider} from "react-bootstrap"
 

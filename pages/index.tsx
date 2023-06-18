@@ -3,9 +3,10 @@ import {useEffect} from "react"
 import styled from "styled-components"
 
 import Image from "next/legacy/image"
-import {Link} from "evergreen-ui"
-// import {LOGO} from "../const"
+import Link from "next/link"
 import {getTitleBase} from "../utils/title"
+
+import {useRouter} from "next/router";
 
 const OuterContainer = styled.div`
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("/landingpagebackground.png");
@@ -43,16 +44,11 @@ const NavbarMiddleSection = styled.div`
 const LeftRight = styled.div`
     display: grid;
     grid-template-columns: 4fr 1fr;
-    // grid-gap: 18.125rem;
 `
 
 const HeaderLineOne = styled.h1`
-    //   width: auto;
-    //   height: auto;
     margin: 0;
-    //   padding: 0;
     margin-top: 6rem;
-    //   font-size: 5rem;
     color: white;
 `
 
@@ -63,11 +59,8 @@ const GetStartedButton = styled.div`
     font-weight: bold;
     font-size: 1.25rem;
     border-radius: 1000px;
-    //   padding-bottom: 0.313rem;
     padding: 1rem 2rem;
-    //   border-bottom: 2px solid var(--bs-button-bg);
     background: #26efe9;
-    //   width: 7.063rem;
     text-align: center;
 `
 
@@ -89,12 +82,13 @@ const Right = styled.div`
 // Has to be export default for NextJS so tell ts-prune to ignore
 // ts-prune-ignore-next
 export default function Index(): React.ReactElement {
-  // no op change
+  const router = useRouter()
+
   // Dynamically set the title to the current host
   useEffect(() => {
     document.title = getTitleBase()
   }, []);
-  
+
   return (
     <OuterContainer id="outer-container">
       <Marginer id="marginer">
@@ -109,7 +103,14 @@ export default function Index(): React.ReactElement {
                   <HeaderLineOne id="optimize-your"><div id="headline-eyebrow" className="d-block text-white mb-8">
                       Cognizant Neuro® AI Model Orchestrator</div><div id="tagline-h2" className="h2">
                       Accelerate Generative AI Model Orchestration at Enterprise Scale</div></HeaderLineOne>
-                  <Link id="get-started-link" href={`/projects`} >
+                  <Link id="get-started-link"
+                        // Use the URL object form of `href` to pass along the query string, in case the user entered
+                        // with /?demo
+                        href={{
+                            pathname: "/projects",
+                            query: router.query
+                        }}
+                  >
                       <GetStartedButton id="get-started">Get started</GetStartedButton>
                   </Link>
                   <Description id="description">

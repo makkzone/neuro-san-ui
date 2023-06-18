@@ -163,6 +163,7 @@ export class FlowQueries {
         return the index of a given element.  This index is used for ids in testing.
         */
 
+        // Defensive check
         if (!element) {
             return -1
         }

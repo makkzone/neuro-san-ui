@@ -48,7 +48,7 @@ import { NodeData, NodeType } from './types'
 import { EdgeType } from '../edges/types'
 
 import {DataTag} from "../../../../controller/datatag/types"
-import {NextRouter, useRouter} from "next/router";
+import {NextRouter, useRouter} from "next/router"
 
 
 // Interface for Predictor CAO
@@ -132,7 +132,8 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
         classifier: FetchMetrics("classifier")
     }
 
-    // These predictors will ownly be shown in demo mode
+    // These predictors will ownly be shown in demo mode. As of writing (June 2023) they aren't implement and are
+    // only in the list for demo purposes.
     const demoOnlyPredictors = ["Transformer", "LLM"]
 
     const predictors = {

@@ -1,22 +1,23 @@
 // React Flow
 import ReactFlow, {
-    applyEdgeChanges,
-    applyNodeChanges,
     Background,
     Controls,
-    EdgeRemoveChange,
+    NodeRemoveChange,
+    Position,
+    applyEdgeChanges,
+    applyNodeChanges,
     getConnectedEdges,
     getIncomers,
     getOutgoers,
+    ReactFlowProvider,
     NodeChange,
-    NodeRemoveChange,
-    Position,
-    ReactFlowInstance,
-    ReactFlowProvider
+    EdgeRemoveChange,
+    ReactFlowInstance
 } from 'reactflow'
 
 // Framework
 import React, {useCallback, useEffect, useMemo, useState} from 'react'
+import {useRouter} from "next/router"
 
 // ID Gen
 import uuid from "react-uuid"
@@ -46,11 +47,11 @@ import {PredictorParams} from "./predictorinfo"
 
 // Debug
 import Debug from "debug"
-import {FlowElementsType} from './types'
-import {PrescriptorNode} from './nodes/prescriptornode'
-import {DataSourceNode} from './nodes/datasourcenode'
-import {PrescriptorEdge} from './edges/prescriptoredge'
-import {UncertaintyModelNode, UncertaintyModelNodeData} from './nodes/uncertaintyModelNode'
+import { FlowElementsType } from './types'
+import { PrescriptorNode } from './nodes/prescriptornode'
+import { DataSourceNode } from './nodes/datasourcenode'
+import { PrescriptorEdge } from './edges/prescriptoredge'
+import { UncertaintyModelNode, UncertaintyModelNodeData } from './nodes/uncertaintyModelNode'
 import {LLmNode} from "./nodes/llmNode";
 import {LLM_MODEL_PARAMS, LLM_MODEL_PARAMS2, LLM_MODEL_PARAMS3} from "./llmInfo";
 
@@ -76,8 +77,6 @@ interface FlowProps {
     // If this is set to true, it disables the buttons
     // and the flow from update
     ElementsSelectable: boolean,
-
-    IsDemoUser: boolean
 }
 
 /**
@@ -87,6 +86,10 @@ interface FlowProps {
  * @param props Input props for this component. See {@link FlowProps} interface for details.
  */
 export default function Flow(props: FlowProps) {
+    const router = useRouter()
+
+    // Check if demo user as requested by URL param
+    const isDemoUser = "demo" in router.query
 
     const projectId = props.ProjectID
 
@@ -932,7 +935,6 @@ export default function Flow(props: FlowProps) {
         Simple "shim" method to allow nodes to delete themselves using their own NodeID, which
         each node knows.
          */
-
         _deleteNode([FlowQueries.getNodeByID(nodes, nodeID)], nodes, edges)
     }
 
@@ -1178,7 +1180,7 @@ export default function Flow(props: FlowProps) {
     // plus an extra one if demo mode is enabled, for the "add LLMs" button.
     const numButtonsWithAddLLMs = 4;
     const numButtonsWithoutAddLLMs = 3;
-    const cols = props.IsDemoUser ? numButtonsWithAddLLMs : numButtonsWithoutAddLLMs
+    const cols = isDemoUser ? numButtonsWithAddLLMs : numButtonsWithoutAddLLMs
 
     return <Container id={ `${propsId}` }>
         {/* Only render if ElementsSelectable is true */}
@@ -1211,7 +1213,7 @@ export default function Flow(props: FlowProps) {
                 >
                     Add Prescriptor
                 </Button>
-                {props.IsDemoUser &&
+                {isDemoUser &&
                     // Only show "add LLMs" button if demo functionality requested
                     <Button
                         id="add_llm_btn"
@@ -1225,7 +1227,6 @@ export default function Flow(props: FlowProps) {
                 }
             </div>
         }
-
         <div id="react-flow-div" style={{width: '100%', height: "50vh"}}>
             {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
             <ReactFlowProvider>
