@@ -18,9 +18,6 @@ import {DataSource} from "../../../../controller/datasources/types";
 import {DataTag} from "../../../../controller/datatag/types";
 import {useSession} from "next-auth/react";
 
-import Debug from "debug"
-const debug = Debug("data_source_node")
-
 export interface DataSourceNodeData {
     // Project ID that this new experiment belongs to.
     readonly ProjectID: number,
@@ -71,43 +68,41 @@ const DataSourceNodeComponent: React.FC<NodeProps<DataSourceNodeData>> = (props)
             <Card id="data-source-card" border="warning" style={{height: "100%"}}>
                 <Card.Header id="data-source-header">Data Source</Card.Header>
                 <Card.Body id="data-source-body">
-                    <div id="data-source-div-1" className="flex-col flex content-center">
-                        <div id="data-source-div-2"
-                             className="flex justify-between mb-4 content-center">
-                            {
-                                taggedDataList.length > 0
-                                ?   <select name="dataset" className="w-24"
-                                        id="data-source-node-select-dataset"
-                                        onChange={
-                                             event => {
-                                                 debug("Selected: ", event.target.value)
-                                                 const filteredSelectedData = taggedDataList.filter(
-                                                     data => parseInt(event.target.value) === data.DataSource.id
-                                                 )[0]
-                                                 debug("FDS: ", filteredSelectedData)
-                                                 data.SelfStateUpdateHandler(
-                                                     filteredSelectedData.DataSource,
-                                                     filteredSelectedData.LatestDataTag
-                                                 )
-                                             }
-                                         }
-                                         defaultValue={taggedDataList.length > 0 && taggedDataList[0].DataSource.id}
-                                >
-                                    {taggedDataList.map(data => {
-                                        // Hack to get valid id into the option tag
-                                        // DEF: Right now there is only ever one data source, but someday
-                                        //      there will be more and Vince would like the id to correspond
-                                        //      to what is visible so he can verify more easily.
-                                        const id = `data-source-node-selected`;
-                                        return <option key={data.DataSource.id}
-                                                       id={id}
-                                                       value={data.DataSource.id}>{data.DataSource.name}</option>;
+                    {
+                        taggedDataList.length > 0
+                        ?   <select name="dataset"
+                                id="data-source-node-select-dataset"
+                                style={{fontSize: "10px", width: "100%", textOverflow: "ellipsis", paddingLeft: 4,
+                                paddingRight: 24}}
+                                onChange={
+                                     event => {
+                                         const filteredSelectedData = taggedDataList.filter(
+                                             data => parseInt(event.target.value) === data.DataSource.id
+                                         )[0]
+                                         data.SelfStateUpdateHandler(
+                                             filteredSelectedData.DataSource,
+                                             filteredSelectedData.LatestDataTag
+                                         )
+                                     }
+                                 }
+                                 defaultValue={taggedDataList.length > 0 && taggedDataList[0].DataSource.id}
+                            >
+                                {taggedDataList.map(data => {
+                                    // Hack to get valid id into the option tag
+                                    // DEF: Right now there is only ever one data source, but someday
+                                    //      there will be more and Vince would like the id to correspond
+                                    //      to what is visible so he can verify more easily.
+                                    const id = `data-source-node-selected`;
+                                    return  <option key={data.DataSource.id}
+                                                id={id}
+                                                value={data.DataSource.id}
+                                            >
+                                                {data.DataSource.name}
+                                            </option>
                                     })}
-                                </select>
-                                : "<none>"
-                            }
-                        </div>
-                    </div>
+                            </select>
+                        : "<none>"
+                    }
                 </Card.Body>
             </Card>
             <Handle id="data-source-handle" type="source" position={Position.Right} />
