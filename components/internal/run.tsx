@@ -42,7 +42,6 @@ interface RunProps {
     id: string element handle for testing
     ProjectId: Rendered in run page
     RunID: Used to fetch run using backend
-    RunName: Rendered in run page
     setRuns: Function used to send back fetched information to the
     experiment page.
     runs: Used to query and update runs after runs have been
@@ -51,11 +50,9 @@ interface RunProps {
     id: string,
     ProjectId: number,
     RunID: number,
-    RunName: string,
     setRuns: (arg: Runs) => void,
     runs: Runs
 }
-
 
 export default function RunPage(props: RunProps): React.ReactElement {
 
@@ -660,10 +657,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     
     const propsId = `${props.id}`
     return <div id={ `${propsId}` } className="mr-8 ml-8">
-        {/* Create the title bar */}
-        <h1 className="mt-4 mb-4" id="run-name">{props.RunName}</h1>
-
-        {flowDiv}       
+        {flowDiv}
 
         {plotDiv}
 

@@ -7,6 +7,7 @@ import Link from "next/link"
 import {getTitleBase} from "../utils/title"
 
 import {useRouter} from "next/router";
+import {LOGO} from "../const";
 
 const OuterContainer = styled.div`
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("/landingpagebackground.png");
@@ -100,8 +101,8 @@ export default function Index(): React.ReactElement {
           </Navbar>
           <LeftRight id="main">
               <div id="main-div">
-                  <HeaderLineOne id="optimize-your"><div id="headline-eyebrow" className="d-block text-white mb-8">
-                      Cognizant Neuro® AI Model Orchestrator</div><div id="tagline-h2" className="h2">
+                  <HeaderLineOne id="header-line"><div id="headline-eyebrow" className="d-block text-white mb-8">
+                      {LOGO}</div><div id="tagline-h2" className="h2">
                       Accelerate Generative AI Model Orchestration at Enterprise Scale</div></HeaderLineOne>
                   <Link id="get-started-link"
                         // Use the URL object form of `href` to pass along the query string, in case the user entered

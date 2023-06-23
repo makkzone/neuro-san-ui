@@ -72,8 +72,10 @@ const DataSourceNodeComponent: React.FC<NodeProps<DataSourceNodeData>> = (props)
                         taggedDataList.length > 0
                         ?   <select name="dataset"
                                 id="data-source-node-select-dataset"
-                                style={{fontSize: "10px", width: "100%", textOverflow: "ellipsis", paddingLeft: 4,
-                                paddingRight: 24}}
+                                style={{
+                                    fontSize: "10px", width: "100%", textOverflow: "ellipsis", paddingLeft: 4,
+                                    paddingRight: 24
+                                }}
                                 onChange={
                                      event => {
                                          const filteredSelectedData = taggedDataList.filter(
