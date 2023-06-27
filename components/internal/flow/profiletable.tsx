@@ -118,7 +118,6 @@ export default function ProfileTable(props: ProfiletableProps) {
                 <select id={ `${field}-data-type-select` }
                     name={`${field}-data_type`}
                     value={fields[field].data_type}
-                    className="w-16"
                     onChange={event => {
                         const profileCopy = {...profile}
                         profileCopy.data_tag.fields[field].data_type = DataType[event.target.value]
@@ -137,7 +136,6 @@ export default function ProfileTable(props: ProfiletableProps) {
                 <select id={ `${field}-data-continuity-select` }
                     name={`${field}-valued`}
                     value={fields[field].valued}
-                    className="w-24"
                     onChange={event => {
                         const profileCopy = {...profile}
                         profileCopy.data_tag.fields[field].valued = event.target.value
@@ -161,7 +159,6 @@ export default function ProfileTable(props: ProfiletableProps) {
                     ?   <span id={ `${field}-categorical-span` } style={{"display": "flex"}}>
                             <select id={ `${field}-categorical-select` }
                                 name={`${field}-values`}
-                                className="w-32"
                                 defaultValue=""
                             >
                                 <option id={ `${field}-categorical-click-for-values` }
