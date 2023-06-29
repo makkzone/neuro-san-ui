@@ -19,6 +19,7 @@ export function NeuroAIChatbot(props: { id: string, userAvatar: string }) {
                      userAvatar={props.userAvatar}
                      botAvatar="/cognizantfavicon.ico"
                      steps={chatbotSteps}
+                     width="400px"
             />
         </ThemeProvider>
     </>

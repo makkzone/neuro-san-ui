@@ -1,5 +1,6 @@
 import { Component } from "react"
 import { Loading } from "react-simple-chatbot"
+import {Collapse} from "antd";
 
 // Need to disable some ESlint rules for this module.
 // This is a legacy component and hopefully can be converted to Functional once the ticket mentioned in the class
@@ -16,7 +17,21 @@ type PropTypes = {
 type StepState = {
     loading: boolean,
     answer: string,
+    sources: {source: string, page: string, snippet: string}[],
     nextStepTriggered: boolean
+}
+
+const ExpandableSources: React.FC<{ message: string }> = ({ message }) => {
+    return (
+        <div id="show-sources-div" style={{fontSize: "smaller", overflowWrap: "anywhere"}}>
+            <Collapse // eslint-disable-line enforce-ids-in-jsx/missing-ids
+            >
+                <Collapse.Panel // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    header="Show sources" key={1} >{message ?? "No sources found"}
+                </Collapse.Panel>
+            </Collapse>
+        </div>
+    )
 }
 
 /**
@@ -30,6 +45,8 @@ type StepState = {
  * {@link https://github.com/LucasBassetti/react-simple-chatbot/issues/369|ticket}.
  *
  */
+// We want the ExpandableSources component in this same module
+// eslint-disable-next-line react/no-multi-comp
 export class CustomStep extends Component<PropTypes, StepState> {
 
     constructor(props: PropTypes) {
@@ -39,6 +56,7 @@ export class CustomStep extends Component<PropTypes, StepState> {
             loading: true,
             answer: "",
             nextStepTriggered: false,
+            sources: []
         }
 
         this.triggerNext = this.triggerNext.bind(this)
@@ -62,7 +80,7 @@ export class CustomStep extends Component<PropTypes, StepState> {
                 const data = JSON.parse(this.responseText)
                 const answer = data.answer
                 if (answer) {
-                    self.setState({ loading: false, answer: answer })
+                    self.setState({ loading: false, answer: answer, sources: data.sources })
                 } else {
                     self.setState({ loading: false, answer: "Sorry, I have no information about that." })
                 }
@@ -85,14 +103,29 @@ export class CustomStep extends Component<PropTypes, StepState> {
     }
 
     render() {
-        const { nextStepTriggered, loading, answer } = this.state
+        const { nextStepTriggered, loading, answer, sources } = this.state
         if (!nextStepTriggered && !loading) {
             this.triggerNext()
         }
 
+        // Format sources for display
+        const message = sources
+            ?.map(source =>
+                `Source: ${source.source.replace(/\n/g, "")} 
+from this snippet: "${source.snippet.replace(/\n/g, "")}" page: ${source.page ?? "n/a"}`)
+            .join("\n")
+
         return (
             <>
-                {loading ? <Loading id="chatbot-result-id" /> : answer}
+                {
+                    loading ? <Loading id="chatbot-result-id" />
+                            :   <>
+                                    {answer}
+                                    <ExpandableSources // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                        message={message}
+                                    />
+                                </>
+                }
             </>
         )
     }
