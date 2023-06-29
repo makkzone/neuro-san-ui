@@ -91,7 +91,8 @@ export class CustomStep extends Component<PropTypes, StepState> {
         xhr.open("POST", queryUrl)
         xhr.setRequestHeader('Accept', 'application/json')
         xhr.setRequestHeader('Content-Type', 'application/json')
-        xhr.send(`{"query":"${search}"}`)
+        const safeSearchString = JSON.stringify(search)
+        xhr.send(`{"query":${safeSearchString}}`)
     }
 
     // Trigger next state -- meaning, prompt the user for a new query
