@@ -86,7 +86,10 @@ export class CustomStep extends Component<PropTypes, StepState> {
 
     render() {
         const { nextStepTriggered, loading, answer } = this.state
-        !nextStepTriggered && this.triggerNext()
+        if (!nextStepTriggered && !loading) {
+            this.triggerNext()
+        }
+
         return (
             <>
                 {loading ? <Loading id="chatbot-result-id" /> : answer}
