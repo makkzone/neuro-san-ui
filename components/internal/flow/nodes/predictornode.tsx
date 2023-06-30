@@ -149,8 +149,8 @@ const PredictorNodeComponent: React.FC<NodeProps<PredictorNodeData>> = (props) =
     const [taggedData, setTaggedData] = useState<DataTag>(null)
 
     //Set the dropdown defaults here since the dropdown is created here
-    const DEFAULT_CLASSIFIER_METRIC = Array.from(metrics["classifier"].keys())[0]
-    const DEFAULT_REGRESSOR_METRIC = Array.from(metrics["regressor"].keys())[0]
+    const DEFAULT_CLASSIFIER_METRIC = Array.from(metrics.classifier.keys())[0]
+    const DEFAULT_REGRESSOR_METRIC = Array.from(metrics.regressor.keys())[0]
 
     // Fetch the Data Tag
     useEffect(() => {

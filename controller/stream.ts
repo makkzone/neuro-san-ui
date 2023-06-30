@@ -14,9 +14,9 @@ export default async function HackyStream<ObjectType extends MDServerObject>(
 ): Promise<ObjectType[]> {
 
     // Build request params
-    const requestParams = {method: method};
+    const requestParams = {method: method, body: null};
     if (data) {
-        requestParams["body"] = JSON.stringify(data)
+        requestParams.body = JSON.stringify(data)
     }
 
     // Fetch the URL

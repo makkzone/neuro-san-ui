@@ -60,6 +60,9 @@
         // Disallow this syntax -- confusing
         "logical-assignment-operators": ["error", "never"],
 
+        // We want to allow TODO: and FIXME: type comments in the code
+        "no-warning-comments": "off",
+
         // Would like to leave this at the default setting (max = 1) but that excludes functional incantations that we
         // would like to allow such as nodes.forEach(node => {node.doSomething})
         // See: https://github.com/eslint/eslint/issues/9210
@@ -118,7 +121,6 @@
         "consistent-return": "off",
         "default-case": "off",
         "dot-location": "off",
-        "dot-notation": "off",
         "enforce-ids-in-jsx/unique-ids": "off",
         "eol-last": "off",
         "eqeqeq": "off",
@@ -162,7 +164,6 @@
         "no-underscore-dangle": "off",
         "no-use-before-define": "off",
         "no-void": "off",
-        "no-warning-comments": "off",
         "object-curly-spacing": "off",
         "object-property-newline": "off",
         "object-shorthand": "off",
