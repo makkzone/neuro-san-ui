@@ -576,7 +576,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                                                 ? <>
                                                     <ClipLoader     // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                                         color={MaximumBlue} loading={true} size={50}/>
-                                                    Accessing GPT...
+                                                    Accessing LLM...
                                                 </>
                                                 : <div id="markdown-div">
                                                     <ReactMarkdown     // eslint-disable-line enforce-ids-in-jsx/missing-ids
@@ -613,7 +613,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                                     ? <>
                                         <ClipLoader     // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                             color={MaximumBlue} loading={true} size={50}/>
-                                        Accessing GPT...
+                                        Accessing LLM...
                                     </>
                                     : <div id="insights-inner-div">
                                         <h1 id="insights-h1">Insights</h1>
@@ -662,7 +662,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     </div>
 }
 
-RunPage.pageContext = "This is the page for a single training run of your experiment. The page shows the original flow" +
+RunPage.pageContext = "This is the page for a single training run of your experiment. The page shows the original flow " +
     "used in the training run (even if the flow has been subsequently modified), the metrics for each of the " +
     "predictors defined for your experiment, and the progress in metrics (fitness) for the prescriptors trained " +
     "during your run. On this page you can also view various plots of the pareto front of your experiment (for multi-" +

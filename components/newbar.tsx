@@ -12,6 +12,7 @@ import {AiFillEdit} from "react-icons/ai";
 interface NavbarProps {
     id: string,
     Title: string,
+    InfoTip?: React.ReactElement,
     LinkComponentProps?: LinkProps,
     DisplayNewLink?: boolean,
     handleLinkCallback?,
@@ -53,50 +54,55 @@ export default function NewBar(props: NavbarProps) {
 
     const [editing, setEditing] = useState(false)
     let title
-    if (props.EditableCallback && !editing) {
-        title = <h3 id={ `${idPrefix}-title` } className="h3">
-            {props.Title}
-            <button id={ `${idPrefix}-button` }
-                    onClick={() => {
-                        setEditing(true)
-                    }}
-            >
-                <AiFillEdit id={ `${idPrefix}-button-fill-edit` } size="14"/>
-            </button>
-        </h3>
-    } else if (props.EditableCallback && editing) {
-        title = <h3 id={ `${idPrefix}-title` } className="h3">
-            <input type="text"
-                   id={ `${idPrefix}-input` }
-                   autoFocus={true}
-                   disabled={false}
-                   defaultValue={props.Title}
-                   onBlur={
-                       event => {
-                            props.EditableCallback(event.target.value)
-                            setEditing(false)
-                       }
-                   }
-                   onKeyUp={
-                       event => {
-                           if (event.key === "Enter") {
-                               const target = event.target as HTMLInputElement
-                               props.EditableCallback(target.value)
-                               setEditing(false)
-                           } else if (event.key === "Escape") {
+    if (props.EditableCallback) {
+        if (editing) {
+            title = <h3 id={ `${idPrefix}-title` }>
+                <input type="text"
+                       id={ `${idPrefix}-input` }
+                       autoFocus={true}
+                       disabled={false}
+                       defaultValue={props.Title}
+                       onBlur={
+                           event => {
+                               props.EditableCallback(event.target.value)
                                setEditing(false)
                            }
                        }
-                   }
-                   />
-        </h3>
+                       onKeyUp={
+                           event => {
+                               if (event.key === "Enter") {
+                                   const target = event.target as HTMLInputElement
+                                   props.EditableCallback(target.value)
+                                   setEditing(false)
+                               } else if (event.key === "Escape") {
+                                   setEditing(false)
+                               }
+                           }
+                       }
+                />
+            </h3>
+        } else {
+            title = <h3 style={{display: "flex"}} id={`${idPrefix}-title`}>
+                {props.Title}
+                <button id={`${idPrefix}-button`}
+                        onClick={() => {
+                            setEditing(true)
+                        }}
+                >
+                    <AiFillEdit id={`${idPrefix}-button-fill-edit`} size="14"/>
+                </button>
+                <div id="info-tip" style={{marginTop: 20}}>{props.InfoTip}</div>
+            </h3>
+        }
     } else {
-        title = <h3 className="h3" id={ `${idPrefix}-title` }>{ props.Title }</h3>
+        title = <h3 style={{display: "flex"}} id={`${idPrefix}-title`}>
+            {props.Title}<div id="info-tip" style={{marginTop: 20}}>{props.InfoTip}</div>
+        </h3>
     }
 
     const propsId = `${props.id}`
     return <div id={ `${propsId}` } className="flex justify-between py-6 items-center border-b-2 border-black">
                 {title}
-                { newButton }
+                {newButton}
             </div>
 }
