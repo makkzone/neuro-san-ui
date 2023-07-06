@@ -658,7 +658,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
 
         {plotDiv}
 
-        {isDemoUser && <NeuroAIChatbot  id="chatbot" userAvatar={undefined} pageContext={RunPage.pageContext} />}
+        <NeuroAIChatbot  id="chatbot" userAvatar={undefined} pageContext={RunPage.pageContext} />
     </div>
 }
 

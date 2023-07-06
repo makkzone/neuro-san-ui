@@ -38,8 +38,6 @@ export default function LEAF({
   pageProps: { session, ...pageProps }
 }): React.ReactElement {
   const router = useRouter()
-  // Check if demo user as requested by URL param
-  const isDemoUser = "demo" in router.query
 
   let body
   if (router.pathname === "/") {
@@ -66,11 +64,9 @@ export default function LEAF({
                     </Auth>
                   : <Component id="body-non-auth-component" {...pageProps} />
               }
-              { isDemoUser &&
               <div id="fixed-pos-div" style={{position: "fixed", right: "20px", bottom: "0"}}>
                 <NeuroAIChatbot id="chatbot" userAvatar={undefined} pageContext={Component.pageContext || ""}/>
               </div>
-              }
             </Container>
           </ErrorBoundary>
         </SessionProvider>

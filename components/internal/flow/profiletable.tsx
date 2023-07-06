@@ -1,15 +1,14 @@
 import {Col, Container, Form, ListGroup, Row} from "react-bootstrap"
-import {AiFillDelete, AiFillEdit, AiFillWarning} from "react-icons/ai";
-import React, {useState} from "react";
-import {Button, Checkbox, Input, Modal, Space} from 'antd';
-import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
-import {DataType} from "../../../controller/datatag/types";
-import {empty} from "../../../utils/objects";
-import {reasonToHumanReadable} from "../../../controller/datasources/types";
+import {AiFillDelete, AiFillEdit, AiFillWarning} from "react-icons/ai"
+import React, {useState} from "react"
+import {Button, Checkbox, Input, Modal, Space} from 'antd'
+import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd'
+import {DataType} from "../../../controller/datatag/types"
+import {empty} from "../../../utils/objects"
+import {reasonToHumanReadable} from "../../../controller/datasources/types"
 import {Profile} from "../../../controller/dataprofile/types"
 import BlankLines from "../../blanklines"
-import {NextRouter, useRouter} from "next/router";
-import {NeuroAIChatbot} from "../chatbot/neuro_ai_chatbot";
+import {NeuroAIChatbot} from "../chatbot/neuro_ai_chatbot"
 
 interface ProfiletableProps {
     id: string
@@ -18,12 +17,6 @@ interface ProfiletableProps {
 }
 
 export default function ProfileTable(props: ProfiletableProps) {
-    // Get the router hook
-    const router: NextRouter = useRouter()
-
-    // Check if demo user as requested by URL param
-    const isDemoUser = "demo" in router.query
-
     const profile = props.Profile
     const setProfile = props.ProfileUpdateHandler
     const [fieldBeingEditedName, setFieldBeingEditedName] = useState(null)
@@ -485,7 +478,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                 </div>
             </div>
         </div>
-        {isDemoUser && <NeuroAIChatbot  id="chatbot" userAvatar={undefined} pageContext={ProfileTable.pageContext} />}
+        <NeuroAIChatbot  id="chatbot" userAvatar={undefined} pageContext={ProfileTable.pageContext} />
     </DragDropContext>
 }
 
