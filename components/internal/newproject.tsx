@@ -32,6 +32,7 @@ import {updateDataSource} from '../../controller/datasources/update'
 import {MaximumBlue} from "../../const"
 import {empty} from "../../utils/objects"
 import {GrpcError} from "../../controller/base_types"
+import {NextRouter, useRouter} from "next/router";
 
 const debug = Debug("new_project")
 
@@ -68,6 +69,12 @@ export default function NewProject(props: NewProps) {
     This function adds a component form to add a new project to the system. Despite the name, also used when editing
     an existing project, for example to add new data sources of experiments to the project.
     */
+
+    // Get the router hook
+    const router: NextRouter = useRouter()
+
+    // Check if demo user as requested by URL param
+    const isDemoUser = "demo" in router.query
 
     const [inputFields, setInputFields] = useState({
         projectName: "",
@@ -400,7 +407,11 @@ export default function NewProject(props: NewProps) {
     const createDataSource = async (s3Key: string) => {
         // Create the Data source Message
         const dataSource: DataSource = {
-            s3_key: s3Key
+            s3_key: s3Key,
+
+            // Currently only demo users are allowed to skip the NaN check. The idea is they will use an LLM
+            // to fill in the NaNs later.
+            allow_nans: isDemoUser
         }
 
         debug("Data source: ", dataSource)
@@ -566,7 +577,10 @@ export default function NewProject(props: NewProps) {
 
         // Redirect if new project creation
         if (!props.ProjectID) {
-            window.location.href = `/projects/${tmpProjectId}`
+            void router.push({
+                pathname: `/projects/${tmpProjectId}`,
+                query: router.query
+            })
         }
     }
 

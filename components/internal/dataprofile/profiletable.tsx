@@ -7,7 +7,6 @@ import {DataType} from "../../../controller/datatag/types"
 import {empty} from "../../../utils/objects"
 import {reasonToHumanReadable} from "../../../controller/datasources/types"
 import {Profile} from "../../../controller/dataprofile/types"
-import BlankLines from "../../blanklines"
 import {NeuroAIChatbot} from "../chatbot/neuro_ai_chatbot"
 
 interface ProfiletableProps {
@@ -36,7 +35,8 @@ export default function ProfileTable(props: ProfiletableProps) {
         "Max",
         "Mean",
         "Sum",
-        "Std Dev"
+        "Std Dev",
+        "Has NaN"
     ]
     
     // Create Table header elements
@@ -250,6 +250,11 @@ export default function ProfileTable(props: ProfiletableProps) {
             <td id={ `${field}-std-dev` } className={tableCellClassName}>
                 {isContinuous(field) ? fields[field].std_dev : "N/A"}
             </td>
+
+            {/*has nan*/}
+            <td id={ `${field}-has-nan` } className={tableCellClassName}>
+                {fields[field].has_nan.toString()}
+            </td>
         </tr>
     )
 
@@ -279,7 +284,6 @@ export default function ProfileTable(props: ProfiletableProps) {
                                 {`${rejectedColumns[name]}: ${reasonToHumanReadable(rejectedColumns[name])}`}
                             </span>
                         </td>
-                        <BlankLines id={`${name}-padding`} numLines={9} />
                     </tr>
                 )
             : []

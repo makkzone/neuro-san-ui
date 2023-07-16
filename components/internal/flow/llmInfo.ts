@@ -13,8 +13,10 @@ export enum ParamType {
 }
 
 enum LlmModel {
-    "GPT 3.5" = "GPT 3.5",
-    "GPT 4" = "GPT 4",
+    "GPT 3.5 turbo" = "gpt-3.5-turbo",
+    "GPT 4" = "gpt-4",
+    "Azure GPT 3.5 turbo" = "azure-gpt-3.5-turbo",
+    "Azure GPT 4" = "azure-gpt-4",
     "Vicuna" = "Vicuna",
     "BYOM" = "Bring your own model"
 }
@@ -56,7 +58,7 @@ export interface LlmModelParams {
 
 export const LLM_MODEL_PARAMS: LlmModelParams = {
     "model": {
-        default_value: LlmModel["GPT 3.5"].valueOf(),
+        default_value: LlmModel["GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
         type: ParamType.ENUM,
         allValues: Object.values(LlmModel).filter((v) => isNaN(Number(v))).map(v => String(v)),
@@ -116,7 +118,7 @@ with one of the following values: low, moderate, high: <field1>`,
  */
 export const LLM_MODEL_PARAMS2: LlmModelParams = {
     "model": {
-        default_value: LlmModel["GPT 3.5"].valueOf(),
+        default_value: LlmModel["GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
         type: ParamType.ENUM,
         allValues: Object.values(LlmModel).filter((v) => isNaN(Number(v))).map(v => String(v)),
@@ -157,7 +159,7 @@ or insights you observe, along with charts baking your observations.`,
 
 export const LLM_MODEL_PARAMS3: LlmModelParams = {
     "model": {
-        default_value: LlmModel["GPT 3.5"].valueOf(),
+        default_value: LlmModel["GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
         type: ParamType.ENUM,
         allValues: Object.values(LlmModel).filter((v) => isNaN(Number(v))).map(v => String(v)),
