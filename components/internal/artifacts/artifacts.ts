@@ -81,8 +81,8 @@ export async function downloadArtifact(run: Run, artifactToDownload: string, art
     // Pull out the download URL for the requested artifact.
     let downloadUrl
     switch (artifactToDownload) {
-        case "llm_chat_log":
-            downloadUrl = availableArtifacts.llm_chat_log
+        case "llm_log_file":
+            downloadUrl = availableArtifacts.llm_log_file
             break
         case "notebook":
             downloadUrl = availableArtifacts.experiment
