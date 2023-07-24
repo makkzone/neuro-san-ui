@@ -15,7 +15,7 @@ export const DEFAULT_DOWNLOAD_ARTIFACT = "notebook"
 /**
  * Defines the properties of a single downloadable artifact
  */
-export interface ArtifactInfo {
+interface ArtifactInfo {
     // Machine-readable name for the artifact type eg. for use in select lists
     readonly value: string
 
