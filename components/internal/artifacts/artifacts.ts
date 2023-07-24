@@ -111,7 +111,7 @@ export async function downloadArtifact(run: Run, artifactToDownload: string, art
     const artifacts: Artifact[] = await FetchSingleRunArtifact(downloadUrl)
     if (!artifacts || artifacts.length != 1) {
         sendNotification(NotificationType.error, "Internal error",
-            `Unexpected number of notebooks returned for Run id ${run.id}: ${artifacts != null ? artifacts.length : 0}`)
+            `Unexpected number of artifacts returned for Run id ${run.id}: ${artifacts != null ? artifacts.length : 0}`)
     }
 
     // Convert to text and save to file
