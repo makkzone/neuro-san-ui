@@ -9,6 +9,9 @@ import {fromBinary} from "../../../utils/conversion"
 import {NotificationType, sendNotification} from "../../../controller/notification"
 import {Experiment} from "../../../controller/experiments/types";
 
+// Default to downloading this unless the user selects something else
+export const DEFAULT_DOWNLOAD_ARTIFACT = "notebook"
+
 /**
  * Defines the properties of a single downloadable artifact
  */
@@ -125,5 +128,17 @@ export async function downloadArtifact(run: Run, artifactToDownload: string, art
 
     // Show notification at top center as in Firefox "downloads popup" hides it on the right
     sendNotification(NotificationType.success, `${artifactFriendlyName} downloaded as ${downloadFileName}`, "", "top")
+}
+
+/**
+ * Get friendly name for chosen artifact from the map.
+ *
+ * @param desiredArtifactName Short name for the requested artifact eg. "notebook"
+ *
+ * @return Human-readable friendly name
+ */
+export function getArtifactFriendlyName(desiredArtifactName: string): string {
+    return Object.values(DOWNLOADABLE_ARTIFACTS)
+        .find(v => v.value === (desiredArtifactName || DEFAULT_DOWNLOAD_ARTIFACT)).label
 }
 
