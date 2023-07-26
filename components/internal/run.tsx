@@ -28,11 +28,13 @@ import ReactMarkdown from "react-markdown"
 import {Project, Projects} from "../../controller/projects/types"
 import {BrowserFetchProjects} from "../../controller/projects/fetch"
 import BlankLines from "../blanklines"
+import {fetchLlmRules} from "../../controller/rules/rules"
 
 import {NextRouter, useRouter} from "next/router"
 
 // Chatbot
 import {NeuroAIChatbot} from "./chatbot/neuro_ai_chatbot"
+import {PrescriptorNode} from "./flow/nodes/prescriptornode";
 
 interface RunProps {
     /* 
@@ -330,44 +332,36 @@ export default function RunPage(props: RunProps): React.ReactElement {
         }
     }, [paretoPlotData])
 
+    function getCAOInfo(prescriptorNode: PrescriptorNode) {
+        const caoState = prescriptorNode.data.ParentPrescriptorState.caoState
+        const contextFields = Object.entries(caoState.context).filter(item => item[1] === true).map(item => item[0])
+        const actionFields = Object.entries(caoState.action).filter(item => item[1] === true).map(item => item[0])
+
+        const outcomeFields = Object.assign({}, ...prescriptorNode.data.ParentPrescriptorState.evolution.fitness.map(item => ({[item.metric_name]: item.maximize ? "maximize" : "minimize"})))
+        return {contextFields, actionFields, outcomeFields};
+    }
+
     useEffect(() =>
     {
-        // TODO: de-dupe this code with the "rules insights" code below
+        // Fetch rules interpretation in the background
         async function fetchRulesInterpretations() {
             const prescriptorNode = FlowQueries.getPrescriptorNodes(flow)[0]
             if (!prescriptorNode) {
                 return
             }
 
-            const caoState = prescriptorNode.data.ParentPrescriptorState.caoState
-            const contextFields = Object.entries(caoState.context).filter(item => item[1] === true).map(item => item[0])
-            const actionFields  = Object.entries(caoState.action).filter(item => item[1] === true).map(item => item[0])
-
-            const outcomeFields = Object.assign({}, ...prescriptorNode.data.ParentPrescriptorState.evolution.fitness.map(item => ({[item.metric_name]: item.maximize ? "maximize" : "minimize"})))
+            const {contextFields, actionFields, outcomeFields} = getCAOInfo(prescriptorNode)
 
             try {
                 setRulesInterpretationLoading(true)
-                const response = await fetch("/api/gpt/rules", {
-                    method: "POST",
-                    headers: {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        projectTitle: getProjectTitle(),
-                        projectDescription: getProjectDescription(),
-                        rawRules: rules,
-                        contextFields: contextFields,
-                        actionFields: actionFields,
-                        outcomeFields: outcomeFields
-                })
-                })
+                const response = await fetchLlmRules("rulesInterpretation", getProjectTitle(),
+                    getProjectDescription(), rules, contextFields, actionFields, outcomeFields)
                 if (!response.ok) {
                     console.debug("error json", await response.json())
-                    throw new Error(response.statusText)
+                    return
                 }
                 const data = await response.json()
-                setInterpretedRules(data.interpretedRules)
+                setInterpretedRules(data.response)
             } catch (error) {
                 console.debug("error", error)
             } finally {
@@ -382,41 +376,27 @@ export default function RunPage(props: RunProps): React.ReactElement {
 
     useEffect(() =>
     {
-        async function fetchInsights() {
+        // Fetch rules insights in the background
+        async function fetchRulesInsights() {
             const prescriptorNode = FlowQueries.getPrescriptorNodes(flow)[0]
             if (!prescriptorNode) {
                 return
             }
 
-            const caoState = prescriptorNode.data.ParentPrescriptorState.caoState
-            const contextFields = Object.entries(caoState.context).filter(item => item[1] === true).map(item => item[0])
-            const actionFields  = Object.entries(caoState.action).filter(item => item[1] === true).map(item => item[0])
-
-            const outcomeFields = Object.assign({}, ...prescriptorNode.data.ParentPrescriptorState.evolution.fitness.map(item => ({[item.metric_name]: item.maximize ? "maximize" : "minimize"})))
+            const {contextFields, actionFields, outcomeFields} = getCAOInfo(prescriptorNode)
 
             try {
                 setInsightsLoading(true)
-                const response = await fetch("/api/gpt/insights", {
-                    method: "POST",
-                    headers: {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        projectTitle: getProjectTitle(),
-                        projectDescription: getProjectDescription(),
-                        rawRules: rules,
-                        contextFields: contextFields,
-                        actionFields: actionFields,
-                        outcomeFields: outcomeFields
-                    })
-                })
+                const response = await fetchLlmRules("rulesInsights", getProjectTitle(),
+                    getProjectDescription(), rules, contextFields, actionFields, outcomeFields)
                 if (!response.ok) {
                     console.debug("error json", await response.json())
-                    throw new Error(response.statusText)
+                    return
                 }
                 const data = await response.json()
-                const insightsWithBreaks = data.insights.replace("\\n", "\n")
+
+                // Remove spurious newline characters
+                const insightsWithBreaks = data.response.replace("\\n", "\n")
                 setInsights(insightsWithBreaks)
             } catch (error) {
                 console.debug("error", error)
@@ -426,7 +406,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         }
 
         if (rules && flow && isDemoUser) {
-            void fetchInsights()
+            void fetchRulesInsights()
         }
     }, [rules])
 
