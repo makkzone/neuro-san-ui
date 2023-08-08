@@ -53,7 +53,7 @@ import { DataSourceNode } from './nodes/datasourcenode'
 import { PrescriptorEdge } from './edges/prescriptoredge'
 import { UncertaintyModelNode, UncertaintyModelNodeData } from './nodes/uncertaintyModelNode'
 import {LLmNode} from "./nodes/llmNode";
-import {LLM_MODEL_PARAMS, LLM_MODEL_PARAMS2, LLM_MODEL_PARAMS3} from "./llmInfo";
+import {LLM_MODEL_PARAMS2, LLM_MODEL_PARAMS3, LLM_MODEL_PARAMS_DATA_LLM} from "./llmInfo";
 
 const debug = Debug("flow")
 
@@ -774,11 +774,11 @@ export default function Flow(props: FlowProps) {
             type: "llmnode",
             data: {
                 NodeID: "root",
-                ParentUncertaintyNodeState: structuredClone(LLM_MODEL_PARAMS),
+                ParentUncertaintyNodeState: structuredClone(LLM_MODEL_PARAMS_DATA_LLM),
                 SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, "root"),
                 DeleteNode: nodeID => _deleteNodeById(nodeID),
                 GetElementIndex: nodeID => _getElementIndex(nodeID),
-                ParameterSet: LLM_MODEL_PARAMS,
+                ParameterSet: LLM_MODEL_PARAMS_DATA_LLM,
                 NodeTitle: "Data LLM"
             },
             position: {

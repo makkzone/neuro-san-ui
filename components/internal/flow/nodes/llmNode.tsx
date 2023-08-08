@@ -1,8 +1,8 @@
 // React components
-import {Dispatch, SetStateAction} from 'react'
+import {Dispatch, SetStateAction, useState} from 'react'
 
 // 3rd party components
-import {Card, Col, Container, Row} from "react-bootstrap"
+import {Card, Col, Collapse, Container, Row} from "react-bootstrap"
 import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
 import {InfoSignIcon, Popover, Text, Tooltip,} from "evergreen-ui"
 import {Handle, Position as HandlePosition, NodeProps, Node} from 'reactflow'
@@ -81,6 +81,9 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
     const flowIndex = GetElementIndex(NodeID) + 1
     const flowPrefix = `llmnode-${flowIndex}`
     const defaultParams = ParameterSet
+
+    // For showing advanced configuration settings
+    const [showAdvanced, setShowAdvanced] = useState(false)
 
     function getInputComponent(param, item) {
         const paramPrefix = `${flowPrefix}-${param}`
@@ -211,11 +214,41 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                                             })
                                     }
                                 </div>
+                                <div id={ `${flowPrefix}-advanced-settings-label-div` } className="mt-4 mb-2">
+                                    <Text id={ `${flowPrefix}-advanced-settings-text` }>
+                                        <b id={ `${flowPrefix}-advanced-settings-label` }>
+                                            Advanced settings
+                                        </b> (most users should not change these)
+                                    </Text>
+                                </div>
+                                <button id={ `${flowPrefix}-show-advanced-settings-uncert-model-button` }
+                                        onClick={() => setShowAdvanced(!showAdvanced)}
+                                >
+                                    {showAdvanced
+                                        ? <u id={ `${flowPrefix}-show-advanced-settings` }>Hide</u>
+                                        : <u id={ `${flowPrefix}-hide-advanced-settings` }>Show</u>
+                                    }
+                                </button>
+                                <Collapse   // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                            // 2/6/23 DEF - Collapse does not have an id property when compiling
+                                    in={showAdvanced} timeout={5}>
+                                    <div id={ `${flowPrefix}-basic-settings-div` }
+                                         className="mt-3">
+                                        {
+                                            Object.keys(ParameterSet)
+                                                .filter(key => ParameterSet[key].isAdvanced)
+                                                .map(key => {
+                                                    return getInputComponent(key, ParameterSet[key])
+                                                })
+                                        }
+                                    </div>
+                                </Collapse>
+
                             </Card.Body>
                         </>
                     }
                          statelessProps={{
-                             height: "600px",
+                             height: "800px",
                              width: "1200px",
                              backgroundColor: "ghostwhite"
                          }}

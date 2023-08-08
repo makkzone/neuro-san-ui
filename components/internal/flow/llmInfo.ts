@@ -33,6 +33,61 @@ enum LlmModel {
     "Vicuna" = "Vicuna"
 }
 
+enum TokenEncoding {
+    /* eslint-disable @typescript-eslint/no-duplicate-enum-values */
+
+    // There are dupe values in here since it's a many-to-one mapping. We may do something with the various keys
+    // (model names) later.
+
+    //  chat
+    "gpt-4" = "cl100k_base",
+    "gpt-3.5-turbo" = "cl100k_base",
+
+    //  text
+    "text-davinci-003" = "p50k_base",
+    "text-davinci-002" = "p50k_base",
+    "text-davinci-001" = "r50k_base",
+    "text-curie-001" = "r50k_base",
+    "text-babbage-001" = "r50k_base",
+    "text-ada-001" = "r50k_base",
+    "davinci" = "r50k_base",
+    "curie" = "r50k_base",
+    "babbage" = "r50k_base",
+    "ada" = "r50k_base",
+
+    //  code
+    "code-davinci-002" = "p50k_base",
+    "code-davinci-001" = "p50k_base",
+    "code-cushman-002" = "p50k_base",
+    "code-cushman-001" = "p50k_base",
+    "davinci-codex" = "p50k_base",
+    "cushman-codex" = "p50k_base",
+
+    //  edit
+    "text-davinci-edit-001" = "p50k_edit",
+    "code-davinci-edit-001" = "p50k_edit",
+
+    //  embeddings
+    "text-embedding-ada-002" = "cl100k_base",
+
+    //  old embeddings
+    "text-similarity-davinci-001" = "r50k_base",
+    "text-similarity-curie-001" = "r50k_base",
+    "text-similarity-babbage-001" = "r50k_base",
+    "text-similarity-ada-001" = "r50k_base",
+    "text-search-davinci-doc-001" = "r50k_base",
+    "text-search-curie-doc-001" = "r50k_base",
+    "text-search-babbage-doc-001" = "r50k_base",
+    "text-search-ada-doc-001" = "r50k_base",
+    "code-search-babbage-code-001" = "r50k_base",
+    "code-search-ada-code-001" = "r50k_base",
+
+    //  open source
+    "gpt2" = "gpt2",
+
+    /* eslint-enable @typescript-eslint/no-duplicate-enum-values */
+}
+
 enum PromptTemplate {
     "Repair data" = "Repair data",
     "Augment data" = "Augment data",
@@ -68,7 +123,10 @@ export interface LlmModelParams {
     [key: string]: LlmParamField
 }
 
-export const LLM_MODEL_PARAMS: LlmModelParams = {
+/**
+ * Configuration params for data confabulation LLM
+ */
+export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
     "model": {
         default_value: LlmModel["GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
@@ -77,57 +135,76 @@ export const LLM_MODEL_PARAMS: LlmModelParams = {
         isAdvanced: false
     },
     "temperature": {
-        default_value: 0.2,
+        default_value: 0.7,
         description:
-            `The temperature controls how much randomness is in the output. In general, the lower the temperature, the more ` +
-            `likely GPT-3 will choose words with a higher probability of occurrence`,
+            "The temperature controls how much randomness is in the output. In general, the lower the temperature, " +
+            "the more likely the LLM model will choose words with a higher probability of occurrence",
         type: ParamType.FLOAT,
+        allValues: Object.values(LlmModel).filter((v) => isNaN(Number(v))).map(v => String(v)),
+        min: 0.0,
+        max: 1.0,
+        step: 0.1,
         isAdvanced: false
     },
-    "prompt_template": {
-        default_value: PromptTemplate["Repair data"].valueOf(),
-        description: "Choose a pre-created template or write your own prompt",
+    "prompt_token_fraction": {
+        default_value: 0.5,
+        description: "The fraction of total tokens (not necessarily words or letters) to use for a prompt. " +
+            "Each model_name has a documented number of max_tokens it can handle which is a total count " +
+            "of message + response tokens which goes into the calculation",
+        type: ParamType.FLOAT,
+        min: 0.0,
+        max: 1.0,
+        step: 0.1,
+        isAdvanced: true
+    },
+    "max_tokens": {
+        default_value: 4096,
+        description: "The maximum number of input tokens accepted by the LLM as input. Note that this varies by LLM " +
+            "and by provider, and it is up to you to know the correct value for your model.",
+        type: ParamType.INT,
+        isAdvanced: true
+    },
+    "token_encoding": {
+        default_value: TokenEncoding["gpt-3.5-turbo"].valueOf(),
+        description: "tiktoken encoder name. Different for each model and it is up to you to know the correct " +
+            "encoding for the model you have chosen.",
         type: ParamType.ENUM,
-        allValues: Object.values(PromptTemplate).filter((v) => isNaN(Number(v))).map(v => String(v)),
-        isAdvanced: false
+        // Get all values from enum and remove dupes
+        allValues: [...new Set(Object.values(TokenEncoding).filter((v) => isNaN(Number(v))).map(v => String(v)))],
+        isAdvanced: true
     },
-
-    "system_prompt": {
-        default_value:
-`The data below is incomplete and includes NA values. Also, the <field2> field is unstructured.
-
-Fill in any NA field with an appropriate value and classify the <field2> field into a new column titled <field3>,
-with one of the following values: low, moderate, high: <field1>`,
-        description: "System prompt for the LLM",
-        type: ParamType.STRING,
-        isAdvanced: false
+    "table_ratio": {
+        default_value: 1.0,
+        description: "How much of the token space we expect the tables themselves to take up in the prompts " +
+            "expressed as a proportion to the existing prompt token counts.  This helps apportion " +
+            "rows into windows for large data sets. Default is 1.0, meaning that dataframe tokens should " +
+            "take the same amount of space as prompt tokens.",
+        type: ParamType.FLOAT,
+        min: 0.0,
+        max: 1.0,
+        step: 0.1,
+        isAdvanced: true
     },
-    "<Field1>": {
-        default_value: "Data Source",
-        description: "",
+    "confabulation_prompt": {
+        default_value: "Good. Now create a distinct reasonable value for any missing value in the '{column_name}' " +
+            "column that is marked as '{na_rep}' where the new value looks like existing data which is not missing. " +
+            "Only print the resulting table with the original column names and with the original delimiter I gave you.",
+        description: "Prompt sent to the LLM to instruct it to perform data confabulation",
         type: ParamType.STRING,
-        isAdvanced: false,
-        rows: 1
+        rows: 4,
+        isAdvanced: true
     },
-    "<Field2>": {
-        default_value: "Content",
-        description: "",
+    "reasoning_prompt": {
+        default_value: "Based on the existing values in the '{column_name}' column, how would you go about creating " +
+            "a distinct reasonable value for any missing value in the '{column_name}' column that is marked as " +
+            "'{na_rep}' where the new value looks like existing data which is not missing?",
+        description: "An optional string substitution for the default reasoning prompt",
         type: ParamType.STRING,
-        isAdvanced: false,
-        rows: 1
-    },
-    "<Field3>": {
-        default_value: "Reputational Risk",
-        description: "",
-        type: ParamType.STRING,
-        isAdvanced: false,
-        rows: 1
+        rows: 4,
+        isAdvanced: true
     }
 }
 
-/*
-
- */
 export const LLM_MODEL_PARAMS2: LlmModelParams = {
     "model": {
         default_value: LlmModel["GPT 3.5 turbo"].valueOf(),
@@ -139,8 +216,8 @@ export const LLM_MODEL_PARAMS2: LlmModelParams = {
     "temperature": {
         default_value: 0.2,
         description:
-            `The temperature controls how much randomness is in the output. In general, the lower the temperature, the more ` +
-            `likely GPT-3 will choose words with a higher probability of occurrence`,
+            "The temperature controls how much randomness is in the output. In general, the lower the temperature, " +
+            "the more likely GPT-3 will choose words with a higher probability of occurrence",
         type: ParamType.FLOAT,
         allValues: Object.values(LlmModel).filter((v) => isNaN(Number(v))).map(v => String(v)),
         isAdvanced: false
@@ -206,4 +283,3 @@ Responsible AI policies <field5>.`,
         isAdvanced: false
     }
 }
-
