@@ -18,7 +18,7 @@ enum LlmModel {
     "Bring your own model" = "byom",
     "Google Chirp" = "google_chirp",
     "Google Codey" = "google_codey",
-    "Google DeepMind Chincilla" = "google_chincilla",
+    "Google DeepMind Chinchilla" = "google_deepmind_chinchilla",
     "Google DeepMind Gemini (future)" = "google_deepmind_gemini",
     "Google Imagen" = "google_imagen",
     "Google MedPALM 2" = "google_medpalm_2",
