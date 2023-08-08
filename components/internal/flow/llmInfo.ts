@@ -13,13 +13,24 @@ export enum ParamType {
 }
 
 enum LlmModel {
-    "Google PaLM 2" = "google_palm_2",
-    "GPT 3.5 turbo" = "gpt-3.5-turbo",
-    "GPT 4" = "gpt-4",
-    "Azure GPT 3.5 turbo" = "azure-gpt-3.5-turbo",
     "Azure GPT 4" = "azure-gpt-4",
-    "Vicuna" = "Vicuna",
-    "Bring your own model" = "byom"
+    "Azure GPT 3.5 turbo" = "azure-gpt-3.5-turbo",
+    "Bring your own model" = "byom",
+    "Google MedPALM 2" = "google_medpalm_2",
+    "Google Chirp" = "google_chirp",
+    "Google Codey" = "google_codey",
+    "Google DeepMind Chincilla" = "google_chincilla",
+    "Google DeepMind Gemini (future)" = "google_deepmind_gemini",
+    "Google Imagen" = "google_imagen",
+    "Google PaLM 2 Bison" = "google_palm_2_bison",
+    "Google PaLM 2 Gecko" = "google_palm_2_gecko",
+    "Google PaLM 2 Otter" = "google_palm_2_otter",
+    "Google PaLM 2 Unicorn" = "google_palm_2_unicorn",
+    "Google PaLM-540B" = "google_palm_540b",
+    "Google Sec-PaLM" = "google_sec_palm",
+    "GPT 4" = "gpt-4",
+    "GPT 3.5 turbo" = "gpt-3.5-turbo",
+    "Vicuna" = "Vicuna"
 }
 
 enum PromptTemplate {
