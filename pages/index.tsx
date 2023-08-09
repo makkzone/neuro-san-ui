@@ -13,7 +13,8 @@ const OuterContainer = styled.div`
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("/landingpagebackground.png");
     background-size: cover;
     width: 100%;
-    height: 100vh;
+    min-height: 100%;
+    overflow: scroll;
     position: absolute;
 `
 
