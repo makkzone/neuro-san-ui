@@ -36,6 +36,8 @@ enum LlmModel {
 enum TokenEncoding {
     /* eslint-disable @typescript-eslint/no-duplicate-enum-values */
 
+    // Sourced from this Python package: <venv>/site-packages/tiktoken/model.py
+
     // There are dupe values in here since it's a many-to-one mapping. We may do something with the various keys
     // (model names) later.
 
