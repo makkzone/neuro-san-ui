@@ -1,8 +1,18 @@
+// Too many "unused" enum values to disable individually. The values are used, just not explicitly to the IDE
+// scanner gets confused.
+// noinspection JSUnusedGlobalSymbols
+
 /*
 Configuration settings and constants for LLM model node configuration popup
  */
 
-type LlmParameterType = boolean|number|string|[]
+
+/**
+ * Type that encapsulates string and numeric enums
+ */
+type Enum = Record<string, string | number>
+
+type LlmParameterType = boolean|number|string|Enum
 
 export enum ParamType {
     BOOLEAN,
@@ -13,9 +23,9 @@ export enum ParamType {
 }
 
 enum LlmModel {
-    "Azure GPT 4" = "azure-gpt-4",
     "Azure GPT 3.5 turbo" = "azure-gpt-3.5-turbo",
-    "Bring your own model" = "byom",
+    "Azure GPT 4" = "azure-gpt-4",
+    "Bring your own model (BYOM)" = "byom",
     "Google Chirp" = "google_chirp",
     "Google Codey" = "google_codey",
     "Google DeepMind Chinchilla" = "google_deepmind_chinchilla",
@@ -28,8 +38,8 @@ enum LlmModel {
     "Google PaLM 2 Unicorn" = "google_palm_2_unicorn",
     "Google PaLM-540B" = "google_palm_540b",
     "Google Sec-PaLM" = "google_sec_palm",
-    "GPT 4" = "gpt-4",
-    "GPT 3.5 turbo" = "gpt-3.5-turbo",
+    "OpenAI GPT 4" = "gpt-4",
+    "OpenAI GPT 3.5 turbo" = "gpt-3.5-turbo",
     "Vicuna" = "Vicuna"
 }
 
@@ -41,51 +51,38 @@ enum TokenEncoding {
     // There are dupe values in here since it's a many-to-one mapping. We may do something with the various keys
     // (model names) later.
 
-    //  chat
-    "gpt-4" = "cl100k_base",
-    "gpt-3.5-turbo" = "cl100k_base",
-
-    //  text
-    "text-davinci-003" = "p50k_base",
-    "text-davinci-002" = "p50k_base",
-    "text-davinci-001" = "r50k_base",
-    "text-curie-001" = "r50k_base",
-    "text-babbage-001" = "r50k_base",
-    "text-ada-001" = "r50k_base",
-    "davinci" = "r50k_base",
-    "curie" = "r50k_base",
-    "babbage" = "r50k_base",
     "ada" = "r50k_base",
-
-    //  code
-    "code-davinci-002" = "p50k_base",
-    "code-davinci-001" = "p50k_base",
-    "code-cushman-002" = "p50k_base",
+    "babbage" = "r50k_base",
     "code-cushman-001" = "p50k_base",
-    "davinci-codex" = "p50k_base",
-    "cushman-codex" = "p50k_base",
-
-    //  edit
-    "text-davinci-edit-001" = "p50k_edit",
+    "code-cushman-002" = "p50k_base",
+    "code-davinci-001" = "p50k_base",
+    "code-davinci-002" = "p50k_base",
     "code-davinci-edit-001" = "p50k_edit",
-
-    //  embeddings
-    "text-embedding-ada-002" = "cl100k_base",
-
-    //  old embeddings
-    "text-similarity-davinci-001" = "r50k_base",
-    "text-similarity-curie-001" = "r50k_base",
-    "text-similarity-babbage-001" = "r50k_base",
-    "text-similarity-ada-001" = "r50k_base",
-    "text-search-davinci-doc-001" = "r50k_base",
-    "text-search-curie-doc-001" = "r50k_base",
-    "text-search-babbage-doc-001" = "r50k_base",
-    "text-search-ada-doc-001" = "r50k_base",
-    "code-search-babbage-code-001" = "r50k_base",
     "code-search-ada-code-001" = "r50k_base",
-
-    //  open source
+    "code-search-babbage-code-001" = "r50k_base",
+    "curie" = "r50k_base",
+    "cushman-codex" = "p50k_base",
+    "davinci" = "r50k_base",
+    "davinci-codex" = "p50k_base",
+    "gpt-3.5-turbo" = "cl100k_base",
+    "gpt-4" = "cl100k_base",
     "gpt2" = "gpt2",
+    "text-ada-001" = "r50k_base",
+    "text-babbage-001" = "r50k_base",
+    "text-curie-001" = "r50k_base",
+    "text-davinci-001" = "r50k_base",
+    "text-davinci-002" = "p50k_base",
+    "text-davinci-003" = "p50k_base",
+    "text-davinci-edit-001" = "p50k_edit",
+    "text-embedding-ada-002" = "cl100k_base",
+    "text-search-ada-doc-001" = "r50k_base",
+    "text-search-babbage-doc-001" = "r50k_base",
+    "text-search-curie-doc-001" = "r50k_base",
+    "text-search-davinci-doc-001" = "r50k_base",
+    "text-similarity-ada-001" = "r50k_base",
+    "text-similarity-babbage-001" = "r50k_base",
+    "text-similarity-curie-001" = "r50k_base",
+    "text-similarity-davinci-001" = "r50k_base",
 
     /* eslint-enable @typescript-eslint/no-duplicate-enum-values */
 }
@@ -96,14 +93,14 @@ enum PromptTemplate {
     "Augment and repair data" = "Augment and repair data"
 }
 
-interface LlmParamField {
+export interface LlmParamField {
     description: string,
 
     // Data type of the parameter
     type: ParamType,
 
-    // List of all available values. Only used for Enum types.
-    allValues?: string[]
+    // Associated enum, if this is an enum type parameter
+    enum?: Enum
 
     // Default value for the field
     default_value: LlmParameterType
@@ -130,10 +127,10 @@ export interface LlmModelParams {
  */
 export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
     "model": {
-        default_value: LlmModel["GPT 3.5 turbo"].valueOf(),
+        default_value: LlmModel["OpenAI GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
         type: ParamType.ENUM,
-        allValues: Object.values(LlmModel).filter((v) => isNaN(Number(v))).map(v => String(v)),
+        enum: LlmModel,
         isAdvanced: false
     },
     "temperature": {
@@ -142,7 +139,6 @@ export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
             "The temperature controls how much randomness is in the output. In general, the lower the temperature, " +
             "the more likely the LLM model will choose words with a higher probability of occurrence",
         type: ParamType.FLOAT,
-        allValues: Object.values(LlmModel).filter((v) => isNaN(Number(v))).map(v => String(v)),
         min: 0.0,
         max: 1.0,
         step: 0.1,
@@ -171,8 +167,7 @@ export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
         description: "tiktoken encoder name. Different for each model and it is up to you to know the correct " +
             "encoding for the model you have chosen.",
         type: ParamType.ENUM,
-        // Get all values from enum and remove dupes
-        allValues: [...new Set(Object.values(TokenEncoding).filter((v) => isNaN(Number(v))).map(v => String(v)))],
+        enum: TokenEncoding,
         isAdvanced: true
     },
     "table_ratio": {
@@ -209,10 +204,10 @@ export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
 
 export const LLM_MODEL_PARAMS2: LlmModelParams = {
     "model": {
-        default_value: LlmModel["GPT 3.5 turbo"].valueOf(),
+        default_value: LlmModel["OpenAI GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
         type: ParamType.ENUM,
-        allValues: Object.values(LlmModel).filter((v) => isNaN(Number(v))).map(v => String(v)),
+        enum: LlmModel,
         isAdvanced: false
     },
     "temperature": {
@@ -221,17 +216,15 @@ export const LLM_MODEL_PARAMS2: LlmModelParams = {
             "The temperature controls how much randomness is in the output. In general, the lower the temperature, " +
             "the more likely GPT-3 will choose words with a higher probability of occurrence",
         type: ParamType.FLOAT,
-        allValues: Object.values(LlmModel).filter((v) => isNaN(Number(v))).map(v => String(v)),
         isAdvanced: false
     },
     "prompt_template": {
         default_value: PromptTemplate["Repair data"].valueOf(),
         description: "Choose a pre-created template or write your own prompt",
         type: ParamType.ENUM,
-        allValues: Object.values(PromptTemplate).filter((v) => isNaN(Number(v))).map(v => String(v)),
+        enum: PromptTemplate,
         isAdvanced: false
     },
-
     "system_prompt": {
         default_value:
 `In the table below, change the value of the ESP TYPE field to ‘Outcome’ if the attribute is a decision objective 
@@ -250,31 +243,27 @@ or insights you observe, along with charts baking your observations.`,
 
 export const LLM_MODEL_PARAMS3: LlmModelParams = {
     "model": {
-        default_value: LlmModel["GPT 3.5 turbo"].valueOf(),
+        default_value: LlmModel["OpenAI GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
         type: ParamType.ENUM,
-        allValues: Object.values(LlmModel).filter((v) => isNaN(Number(v))).map(v => String(v)),
+        enum: LlmModel,
         isAdvanced: false
     },
-
     "temperature": {
         default_value: 0.2,
         description:
 `The temperature controls how much randomness is in the output. In general, the lower the temperature, the more ` +
 `likely the LLM model will choose words with a higher probability of occurrence`,
         type: ParamType.FLOAT,
-        allValues: Object.values(LlmModel).filter((v) => isNaN(Number(v))).map(v => String(v)),
         isAdvanced: false
     },
-
     "prompt_template": {
         default_value: PromptTemplate["Repair data"].valueOf(),
         description: "Choose a pre-created template or write your own prompt",
         type: ParamType.ENUM,
-        allValues: Object.values(PromptTemplate).filter((v) => isNaN(Number(v))).map(v => String(v)),
+        enum: PromptTemplate,
         isAdvanced: false
     },
-
     "system_prompt": {
         default_value:
 `For data sample <field1>, given the actions <field2> generated by the Prescriptor, use the API call <field3>, ` +

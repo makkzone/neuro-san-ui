@@ -8,22 +8,20 @@ import {InfoSignIcon, Popover, Text, Tooltip,} from "evergreen-ui"
 import {Handle, Position as HandlePosition, NodeProps, Node} from 'reactflow'
 import {AiFillDelete} from "react-icons/ai";
 import {GrSettingsOption} from "react-icons/gr"
-import {NotificationType, sendNotification} from "../../../../controller/notification";
-import ConfigNumeric from "../confignumeric"
 
 // Custom components
-import {LlmModelParams, ParamType,} from "../llmInfo"
+import ConfigNumeric from "../confignumeric"
+import {LlmModelParams, ParamType} from "../llmInfo"
+import {NotificationType, sendNotification} from "../../../../controller/notification"
 
 // Define an interface for the structure
 // of the node
-interface LlmNodeData {
-    // The ID of the nodes. This will
-    // be important to issues name to
-    // form elements. The form elements thus
-    // will be named nodeID-formElementType
+export interface LlmNodeData {
+    // The ID of the nodes. This will be important for applying IDs to form elements.
+    // The form elements thus will have IDs like nodeID-formElementType
     readonly NodeID: string,
-    readonly ParentUncertaintyNodeState: LlmModelParams,
-    readonly SetParentUncertaintyNodeState: Dispatch<SetStateAction<LlmModelParams>>,
+    readonly ParentNodeState: LlmModelParams,
+    readonly SetParentNodeState: Dispatch<SetStateAction<LlmModelParams>>,
 
     // Mutator method to delete this node from the parent flow
     readonly DeleteNode: (nodeID: string) => void
@@ -36,7 +34,7 @@ interface LlmNodeData {
     readonly NodeTitle: string
 }
 
-export type LLmNode = Node<LlmNodeData>;
+export type LLmNode = Node<LlmNodeData>
 
 const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
     /*
@@ -49,8 +47,8 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
     // Unpack the data
     const {
         NodeID,
-        ParentUncertaintyNodeState,
-        SetParentUncertaintyNodeState,
+        ParentNodeState,
+        SetParentNodeState,
         DeleteNode,
         GetElementIndex,
         ParameterSet,
@@ -63,9 +61,9 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
         parameters.
         */
         const { value } = event.target
-        const paramsCopy = {...ParentUncertaintyNodeState}
+        const paramsCopy = {...ParentNodeState}
         paramsCopy[paramName].value = value
-        SetParentUncertaintyNodeState(paramsCopy)
+        SetParentNodeState(paramsCopy)
     }
 
     const onCheckboxChange = (event, paramName) => {
@@ -73,9 +71,9 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
         This function is used to update the state of any checkbox parameters
         */
         const { checked } = event.target
-        const paramsCopy = {...ParentUncertaintyNodeState}
+        const paramsCopy = {...ParentNodeState}
         paramsCopy[paramName].value = checked
-        SetParentUncertaintyNodeState(paramsCopy)
+        SetParentNodeState(paramsCopy)
     }
 
     const flowIndex = GetElementIndex(NodeID) + 1
@@ -85,8 +83,11 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
     // For showing advanced configuration settings
     const [showAdvanced, setShowAdvanced] = useState(false)
 
-    function getInputComponent(param, item) {
+    function getInputComponent(param) {
+        const item = ParameterSet[param]
         const paramPrefix = `${flowPrefix}-${param}`
+        const parentNodeStateElement = ParentNodeState?.param
+
         return <Container id={`${paramPrefix}-container`}>
             <Row id={`${paramPrefix}-row`} className="mx-2 my-4">
                 <Col id={`${paramPrefix}-param-col`} md={2}>
@@ -101,12 +102,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                             paramName={param}
                             defaultParam={defaultParams[param]}
                             value={
-                                (ParentUncertaintyNodeState[param] != null &&
-                                    ParentUncertaintyNodeState[param].value != null)
-                                    ? (ParentUncertaintyNodeState[param].value as number)
-                                    : defaultParams[param].default_value != null
-                                        ? (defaultParams[param].default_value as number)
-                                        : undefined
+                                (parentNodeStateElement?.value ?? defaultParams[param]?.default_value) as number
                             }
                             onParamChange={event => onParamChange(event, param)}
                             style={{width: "100%"}}
@@ -118,38 +114,28 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                             id={`${paramPrefix}-value`}
                             type="checkbox"
                             checked={
-                                (ParentUncertaintyNodeState[param] != null &&
-                                    ParentUncertaintyNodeState[param].value != null)
-                                    ? Boolean(ParentUncertaintyNodeState[param].value)
-                                    : defaultParams[param].default_value != null
-                                        ? Boolean(defaultParams[param].default_value)
-                                        : undefined
+                                Boolean(parentNodeStateElement?.value ?? defaultParams[param]?.default_value)
                             }
                             onChange={event => onCheckboxChange(event, param)}
                         />
                     }
                     {
-                        item.type === ParamType.ENUM &&
+                        item.type === ParamType.ENUM && item.enum &&
                         <select
                             id={`${paramPrefix}-value`}
                             value={
-                                (ParentUncertaintyNodeState[param] != null &&
-                                    ParentUncertaintyNodeState[param].value != null)
-                                    ? ParentUncertaintyNodeState[param].value.toString()
-                                    : defaultParams[param].default_value != null
-                                        ? defaultParams[param].default_value.toString()
-                                        : undefined
+                                (parentNodeStateElement?.value ?? defaultParams[param]?.default_value)?.toString()
                             }
                             onChange={event => onParamChange(event, param)}
                             style={{width: "100%"}}
                         >
                             {
-                                (item.allValues as Array<string>).map(
-                                    value =>
+                                Object.entries(item.enum).map(
+                                    encoder =>
                                         <option
-                                            id={`${paramPrefix}-${value}`}
-                                            key={value} value={value}>
-                                            {value}
+                                            id={`${paramPrefix}-${encoder[0]}`}
+                                            key={encoder[0]} value={encoder[1].toString()}>
+                                            {encoder[0]}
                                         </option>
                                 )
                             }
@@ -163,10 +149,8 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                             id={`${paramPrefix}-value`}
                             onChange={event => onParamChange(event, param)}
                         >
-                       {(ParentUncertaintyNodeState[param] != null &&
-                           ParentUncertaintyNodeState[param].value != null)
-                           ? ParentUncertaintyNodeState[param].value as string
-                           : defaultParams[param].default_value.toString()
+                       {
+                           (ParentNodeState[param]?.value ?? defaultParams[param]?.default_value)?.toString()
                        }
                     </textarea>
                     }
@@ -209,9 +193,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                                     {
                                         Object.keys(ParameterSet)
                                             .filter(key => !ParameterSet[key].isAdvanced)
-                                            .map(key => {
-                                                return getInputComponent(key, ParameterSet[key])
-                                            })
+                                            .map(param => getInputComponent(param))
                                     }
                                 </div>
                                 <div id={ `${flowPrefix}-advanced-settings-label-div` } className="mt-4 mb-2">
@@ -221,7 +203,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                                         </b> (most users should not change these)
                                     </Text>
                                 </div>
-                                <button id={ `${flowPrefix}-show-advanced-settings-uncert-model-button` }
+                                <button id={ `${flowPrefix}-show-advanced-settings-llm-button` }
                                         onClick={() => setShowAdvanced(!showAdvanced)}
                                 >
                                     {showAdvanced
@@ -237,9 +219,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                                         {
                                             Object.keys(ParameterSet)
                                                 .filter(key => ParameterSet[key].isAdvanced)
-                                                .map(key => {
-                                                    return getInputComponent(key, ParameterSet[key])
-                                                })
+                                                .map(param => getInputComponent(param))
                                         }
                                     </div>
                                 </Collapse>

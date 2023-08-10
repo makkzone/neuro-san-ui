@@ -138,7 +138,7 @@ export default function Flow(props: FlowProps) {
                 } else if (node.type === "llmnode") {
                     node.data = {
                         ...node.data,
-                        SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, node.id),
+                        SetParentNodeState: state => ParentNodeSetStateHandler(state, node.id),
                         DeleteNode: nodeId => _deleteNodeById(nodeId),
                         GetElementIndex: nodeId => _getElementIndex(nodeId)
                     }
@@ -208,6 +208,25 @@ export default function Flow(props: FlowProps) {
                         node.data = {
                             ...node.data,
                             ParentUncertaintyNodeState: newState
+                        }
+                    }
+                    return node;
+                }
+            )
+        )
+    }
+
+    function ParentNodeSetStateHandler(newState, NodeID) {
+        /*
+        Called by uncertainty model nodes to update their state in the flow
+         */
+        setNodes(
+            nodes.map(node => {
+                    // If this is the right uncertainty model node
+                    if (node.id === NodeID) {
+                        node.data = {
+                            ...node.data,
+                            ParentNodeState: newState
                         }
                     }
                     return node;
@@ -774,8 +793,8 @@ export default function Flow(props: FlowProps) {
             type: "llmnode",
             data: {
                 NodeID: "root",
-                ParentUncertaintyNodeState: structuredClone(LLM_MODEL_PARAMS_DATA_LLM),
-                SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, "root"),
+                ParentNodeState: structuredClone(LLM_MODEL_PARAMS_DATA_LLM),
+                SetParentNodeState: state => UncertaintyNodeSetStateHandler(state, "root"),
                 DeleteNode: nodeID => _deleteNodeById(nodeID),
                 GetElementIndex: nodeID => _getElementIndex(nodeID),
                 ParameterSet: LLM_MODEL_PARAMS_DATA_LLM,
@@ -819,8 +838,8 @@ export default function Flow(props: FlowProps) {
             type: "llmnode",
             data: {
                 NodeID: postDataNodeLlmId,
-                ParentUncertaintyNodeState: structuredClone(LLM_MODEL_PARAMS2),
-                SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, postDataNodeLlmId),
+                ParentNodeState: structuredClone(LLM_MODEL_PARAMS2),
+                SetParentNodeState: state => UncertaintyNodeSetStateHandler(state, postDataNodeLlmId),
                 DeleteNode: newNodeID => _deleteNodeById(newNodeID),
                 GetElementIndex: newNodeID => _getElementIndex(newNodeID),
                 ParameterSet: LLM_MODEL_PARAMS2,
@@ -881,8 +900,8 @@ export default function Flow(props: FlowProps) {
                 type: "llmnode",
                 data: {
                     NodeID: presscriptorLlmId,
-                    ParentUncertaintyNodeState: structuredClone(LLM_MODEL_PARAMS3),
-                    SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, presscriptorLlmId),
+                    ParentNodeState: structuredClone(LLM_MODEL_PARAMS3),
+                    SetParentNodeState: state => UncertaintyNodeSetStateHandler(state, presscriptorLlmId),
                     DeleteNode: nodeID => _deleteNodeById(nodeID),
                     GetElementIndex: nodeID => _getElementIndex(nodeID),
                     ParameterSet: LLM_MODEL_PARAMS3,
