@@ -6,6 +6,7 @@ import {ChatMessage} from "langchain/schema"
 import {CustomStep} from "./custom_step"
 import {ThemeProvider} from "styled-components"
 import {useRef} from "react"
+import {useRouter} from "next/router"
 
 /**
  * "Steps" for controlling the chatbot. This is a JSON description of an FSM (finite state machine).
@@ -14,16 +15,18 @@ import {useRef} from "react"
  * @param pageContext Human-readable description of current page
  * @param addChatToHistory Function to add a chat message to the chat history
  * @param chatHistory Array of chat messages (see {@link ChatMessage}) of both human an AI origin
+ * @param welcomeMessage Message to display when the chatbot is first opened
  *
  * @return An array of steps for the chatbot
  */
 function getChatbotSteps(pageContext: string,
                          addChatToHistory: (message: ChatMessage) => void,
-                         chatHistory: () => ChatMessage[]) {
+                         chatHistory: () => ChatMessage[],
+                         welcomeMessage: string) {
     return ([
         {
             id: '1',
-            message: "Hi! I'm your Cognizant Neuro™ AI assistant. Please type your question below.",
+            message: welcomeMessage,
             trigger: 'search'
         },
         {
@@ -57,6 +60,11 @@ function getChatbotSteps(pageContext: string,
  * @param props Basic settings for the chatbot. See declaration for details.
  */
 const NeuroAIChatbot = (props: { id: string, userAvatar: string, pageContext: string }): React.ReactElement => {
+    const router = useRouter()
+
+    // Get "generic branding" flag
+    const isGeneric = "generic" in router.query
+
     const id = props.id
     const pageContext = props.pageContext || "No page context available";
 
@@ -68,7 +76,11 @@ const NeuroAIChatbot = (props: { id: string, userAvatar: string, pageContext: st
         chatHistory.current = [...chatHistory.current, message]
     }
 
-    const chatbotSteps = getChatbotSteps(pageContext, addChatToHistory, () => chatHistory.current)
+    const welcomeMessage = isGeneric
+        ? "Hi, I'm your Autopilot AI assistant. How can I help you?"
+        : "Hi! I'm your Cognizant Neuro™ AI assistant. Please type your question below."
+
+    const chatbotSteps = getChatbotSteps(pageContext, addChatToHistory, () => chatHistory.current, welcomeMessage)
 
     return  <>
         <ThemeProvider // eslint-disable-line enforce-ids-in-jsx/missing-ids
@@ -78,10 +90,10 @@ const NeuroAIChatbot = (props: { id: string, userAvatar: string, pageContext: st
                 id={id}
                 cache={false}
                 floating={true}
-                headerTitle="Cognizant Neuro™ AI Assistant"
+                headerTitle={isGeneric ? "Autopilot AI assistant": "Cognizant Neuro™ AI Assistant"}
                 placeholder="What is a prescriptor?"
                 userAvatar={props.userAvatar}
-                botAvatar="/cognizantfavicon.ico"
+                botAvatar={isGeneric ? "/robot.png" : "/cognizantfavicon.ico"}
                 steps={chatbotSteps}
                 width="400px"
                 // Use a random key to force a new instance of the chatbot, so we don't get stale context from

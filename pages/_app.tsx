@@ -25,7 +25,7 @@ import {SessionProvider} from "next-auth/react"
 import Navbar from "../components/navbar"
 
 // Constants
-import {ENABLE_AUTHENTICATION, LOGO} from "../const"
+import {ENABLE_AUTHENTICATION, GENERIC_LOGO, LOGO} from "../const"
 import {Auth} from "../components/auth";
 import ErrorBoundary from "../components/errorboundary";
 import NeuroAIChatbot from "../components/internal/chatbot/neuro_ai_chatbot";
@@ -38,6 +38,9 @@ export default function LEAF({
   pageProps: { session, ...pageProps }
 }): React.ReactElement {
   const router = useRouter()
+
+  // Get "generic branding" flag
+  const isGeneric = "generic" in router.query
 
   let body
   if (router.pathname === "/") {
@@ -54,7 +57,8 @@ export default function LEAF({
         <SessionProvider        // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 session={session}>
           <ErrorBoundary id="error_boundary">
-            <Navbar id="nav-bar" Logo={LOGO} WithBreadcrumbs={Component.withBreadcrumbs ?? true}/>
+            <Navbar id="nav-bar" Logo={isGeneric ? GENERIC_LOGO : LOGO}
+                    WithBreadcrumbs={Component.withBreadcrumbs ?? true}/>
             <Container id="body-container">
               {Component.authRequired && ENABLE_AUTHENTICATION
                   ? <Auth         // eslint-disable-line enforce-ids-in-jsx/missing-ids

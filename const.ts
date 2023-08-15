@@ -13,6 +13,7 @@ export const ENABLE_AUTHENTICATION: boolean = Boolean(JSON.parse(publicRuntimeCo
 
 // Name to use for application
 export const LOGO: string = "Cognizant Neuro® AI Model Orchestrator"
+export const GENERIC_LOGO: string = "Autopilot"
 
 // Build version (passed in from build system)
 export const UNILEAF_VERSION: string = publicRuntimeConfig.unileafVersion

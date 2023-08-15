@@ -1,6 +1,7 @@
 import React from "react";
-import {LOGO} from "../const";
+import {GENERIC_LOGO, LOGO} from "../const";
 import Navbar from "./navbar";
+import {useRouter} from "next/router";
 
 /**
  * This is the page that will be shown to users when the outer error boundary is triggered
@@ -8,8 +9,13 @@ import Navbar from "./navbar";
  * @param errorText Error text to be displayed
  */
 export default function ErrorPage({id, errorText}): React.ReactElement {
+    const router = useRouter()
+
+    // Get "generic branding" flag
+    const isGeneric = "generic" in router.query
+
     return <div id={id} className="container">
-    <Navbar id="navbar-id" Logo={LOGO} WithBreadcrumbs={true}/>
+    <Navbar id="navbar-id" Logo={isGeneric ? GENERIC_LOGO : LOGO} WithBreadcrumbs={true}/>
         <div id="error-div" style={{fontSize: "xx-large", color: "red", marginBottom: 16}}>
             An internal error occurred. Please report the following error to the LEAF team:
         </div>

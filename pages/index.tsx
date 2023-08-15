@@ -7,7 +7,7 @@ import Link from "next/link"
 import {getTitleBase} from "../utils/title"
 
 import {useRouter} from "next/router";
-import {LOGO} from "../const";
+import {GENERIC_LOGO, LOGO} from "../const";
 
 const OuterContainer = styled.div`
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("/landingpagebackground.png");
@@ -86,6 +86,9 @@ const Right = styled.div`
 export default function Index(): React.ReactElement {
   const router = useRouter()
 
+  // Get "generic branding" flag
+  const isGeneric = "generic" in router.query
+
   // Dynamically set the title to the current host
   useEffect(() => {
     document.title = getTitleBase()
@@ -95,15 +98,19 @@ export default function Index(): React.ReactElement {
     <OuterContainer id="outer-container">
       <Marginer id="marginer">
           <Navbar id="nav-bar">
-              <NavbarLogo id="logo"><Image id="logo-img" width="250" height="45"
-                                                  src="/cognizant-logo-white.svg" alt="" /></NavbarLogo>
-              <NavbarMiddleSection id="nav-bar-middle">
-              </NavbarMiddleSection>
+              {!isGeneric &&
+                  <>
+                      <NavbarLogo id="logo">
+                        <Image id="logo-img" width="250" height="45" src="/cognizant-logo-white.svg" alt=""/>
+                      </NavbarLogo>
+                      <NavbarMiddleSection id="nav-bar-middle"/>
+                  </>
+              }
           </Navbar>
           <LeftRight id="main">
               <div id="main-div">
                   <HeaderLineOne id="header-line"><div id="headline-eyebrow" className="d-block text-white mb-8">
-                      {LOGO}</div><div id="tagline-h2" className="h2">
+                      {isGeneric ? GENERIC_LOGO : LOGO}</div><div id="tagline-h2" className="h2">
                       Accelerate Generative AI Model Orchestration at Enterprise Scale</div></HeaderLineOne>
                   <Link id="get-started-link"
                         // Use the URL object form of `href` to pass along the query string, in case the user entered
@@ -115,14 +122,16 @@ export default function Index(): React.ReactElement {
                   >
                       <GetStartedButton id="get-started">Get started</GetStartedButton>
                   </Link>
-                  <Description id="description">
-                  With the Cognizant Neuro® AI platform, realize the business value
-              of generative AI faster. Adopt and augment cutting-edge AI models,
-              solve complex business problems more effectively, maximize utility
-              of your data and with the Cognizant Neuro AI Control Plane, get
-              unparalleled visibility and control. The generative AI future of
-              business begins here.
-                  </Description>
+                  {!isGeneric &&
+                      <Description id="description">
+                          With the Cognizant Neuro® AI platform, realize the business value
+                          of generative AI faster. Adopt and augment cutting-edge AI models,
+                          solve complex business problems more effectively, maximize utility
+                          of your data and with the Cognizant Neuro AI Control Plane, get
+                          unparalleled visibility and control. The generative AI future of
+                          business begins here.
+                      </Description>
+                  }
               </div>
               <Right id="right">
               </Right>

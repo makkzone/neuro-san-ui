@@ -62,11 +62,17 @@ function Navbar(props: NavbarProps): React.ReactElement {
                              collapseOnSelect expand="lg"
                              style={{background: MaximumBlue, borderBottomColor: MaximumBlue}}
                              variant="dark" className="border-b-2">
-
-                <BootstrapNavbar.Brand id="nav-bar-brand"
-                                       href="/" style={{color: LOGO_COLOR}} className="font-bold ml-2">
-                    {props.Logo}
-                </BootstrapNavbar.Brand>
+                <Link id="navbar-brand-link" style={{color: NAV_ITEMS_COLOR}}
+                      href={{
+                          pathname: "/",
+                          query: router.query
+                      }}
+                >
+                    <BootstrapNavbar.Brand id="nav-bar-brand"
+                                           style={{color: LOGO_COLOR}} className="font-bold ml-2">
+                        {props.Logo}
+                    </BootstrapNavbar.Brand>
+                </Link>
                 <BootstrapNavbar.Collapse id="responsive-navbar-nav">
                     <Nav id="nav-bar-initial" className="me-auto"/>
                     <Nav id="nav-bar-grouping">
