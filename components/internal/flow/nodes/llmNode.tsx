@@ -150,7 +150,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                             onChange={event => onParamChange(event, param)}
                         >
                        {
-                           (ParentNodeState[param]?.value ?? defaultParams[param]?.default_value)?.toString()
+                           (parentNodeStateElement?.value ?? defaultParams[param]?.default_value)?.toString()
                        }
                     </textarea>
                     }
