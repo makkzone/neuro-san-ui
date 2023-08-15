@@ -20,7 +20,7 @@ function getChatbotSteps(pageContext: string,
                          addChatToHistory: (message: ChatMessage) => void,
                          chatHistory: () => ChatMessage[]) {
 
-    console.debug("in getChatbotSteps, chatHistory:", chatHistory)
+    console.debug("in getChatbotSteps, chatHistory:", chatHistory())
 
     return ([
         {
