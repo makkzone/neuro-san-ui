@@ -34,7 +34,7 @@ function getChatbotSteps(pageContext: string,
             id: '3',
             component: <CustomStep  // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                     // Doesn't need an ID as it doesn't produce anything visible.
-                            pageContext=""
+                            pageContext={pageContext}
                             chatHistory={chatHistory}
                             addChatToHistory={addChatToHistory}
                        />,
