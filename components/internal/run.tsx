@@ -193,6 +193,8 @@ export default function RunPage(props: RunProps): React.ReactElement {
             const runs: Runs = await BrowserFetchRuns(currentUser, null, runID, propertiesToRetrieve)
             if (runs.length === 1) {
                 const run = runs[0]
+
+                // Use temporary variable to avoid shadowing outer "flow" variable
                 const flowTmp: NodeType[] = JSON.parse(run.flow)
                 setFlow(flowTmp)
                 setRun(run)
@@ -226,6 +228,8 @@ export default function RunPage(props: RunProps): React.ReactElement {
         if (run) {
             // Cache hit -- use the cached run
             setRun(props.runs[getRunIndexByID(props.RunID)])
+
+            // Use temporary variable to avoid shadowing outer "flow" variable
             const flowTmp = JSON.parse(run.flow)
             setFlow(flowTmp)
         }
