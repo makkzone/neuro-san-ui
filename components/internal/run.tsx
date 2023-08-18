@@ -68,7 +68,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [run, setRun] = useState(null)
     const [rules, setRules] = useState(null)
     const [artifactObj, setArtifactObj] = useState(null)
-    const [flow, setFlow] = useState(null)
+    const [flow, setFlow] = useState<NodeType[]>(null)
 
     const [, setPrescriptors] = useLocalStorage("prescriptors", null);
 
@@ -143,13 +143,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
         }
     }
 
-    function isRuleBased(flow: JSON) {
+    function isRuleBased(flow: NodeType[]) {
         const prescriptorNode = FlowQueries.getPrescriptorNodes(FlowQueries.getAllNodes(flow) as NodeType[])[0]
         const representation = prescriptorNode.data.ParentPrescriptorState.LEAF.representation
         return representation === "RuleBased"
     }
 
-    function generateArtifactURL(flow: JSON) {
+    function generateArtifactURL(flow: NodeType[]) {
         const prescriptorNode = FlowQueries.getPrescriptorNodes(FlowQueries.getAllNodes(flow) as NodeType[])[0]
         let rulesURL = null
         if (prescriptorNode) {
@@ -193,8 +193,8 @@ export default function RunPage(props: RunProps): React.ReactElement {
             const runs: Runs = await BrowserFetchRuns(currentUser, null, runID, propertiesToRetrieve)
             if (runs.length === 1) {
                 const run = runs[0]
-                const flow = JSON.parse(run.flow)
-                setFlow(flow)
+                const flowTmp: NodeType[] = JSON.parse(run.flow)
+                setFlow(flowTmp)
                 setRun(run)
                 cacheRun(run)
             } else {
@@ -224,8 +224,10 @@ export default function RunPage(props: RunProps): React.ReactElement {
         // Attempt to get the run from the cache
         const run = getRunFromCache(props.RunID)
         if (run) {
+            // Cache hit -- use the cached run
             setRun(props.runs[getRunIndexByID(props.RunID)])
-            setFlow(run.flow)
+            const flowTmp = JSON.parse(run.flow)
+            setFlow(flowTmp)
         }
         else {
             // Cache miss -- have to load from backend
