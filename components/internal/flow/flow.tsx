@@ -159,7 +159,7 @@ export default function Flow(props: FlowProps) {
     // Tidy flow when nodes are added or removed
     useEffect(() => {
         tidyView()
-        flowInstance && flowInstance.fitView()
+        flowInstance && setTimeout(flowInstance.fitView, 50) // UN-1135 Make sure fitView is called after ReactFlow finishes rendering.
     }, [nodes.length, edges.length])
 
     // Initial population of the element type -> uuid list mapping used for simplified testing ids
