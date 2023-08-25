@@ -519,4 +519,3 @@ export const SUPPORTED_CLASSIFIER_METRICS = new Map([
     ["Accuracy score",                      true],
     ["Matthews correlation coefficient",    true]
 ])
-

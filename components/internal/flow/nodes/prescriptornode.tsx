@@ -79,7 +79,6 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
     /*
     This function is responsible for rendering the prescriptor node.
     */
-
     const data = props.data
 
     // Get the current user

@@ -1,16 +1,12 @@
+// Too many "unused" enum values to disable individually. The values are used, just not explicitly so the IDE
+// scanner (IntelliJ) gets confused.
+// noinspection JSUnusedGlobalSymbols
+
 /*
 Configuration settings and constants for uncertainty model node configuration popup
  */
 
-type UncertaintyModelParameterType = boolean|number|string|[]
-
-export enum ParamType {
-    BOOLEAN,
-    STRING,
-    INT,
-    FLOAT,
-    ENUM
-}
+import {BaseParameterType, NodeParams} from "./nodes/generic/types"
 
 enum KernelType {
     "RBF" = "RBF",
@@ -35,47 +31,19 @@ enum ConfidenceInterval {
     C99 = 99
 }
 
-export interface UncertaintyModelParamField {
-    description: string,
-
-    // Data type of the parameter
-    type: ParamType,
-
-    // List of all available values. Only used for Enum types.
-    allValues?: string[]
-
-    // Default value for the field
-    default_value: UncertaintyModelParameterType
-
-    // Value is an optional field that can be used within a form
-    // etc to denote user input
-    value?: UncertaintyModelParameterType
-
-    min?: number,
-    max?: number,
-    step?: number,
-
-    isAdvanced: boolean
-}
-
-export interface UncertaintyModelParams {
-    [key: string]: UncertaintyModelParamField
-}
-
-
-export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
+export const UNCERTAINTY_MODEL_PARAMS: NodeParams = {
     "confidence_interval": {
         default_value: ConfidenceInterval.C95.valueOf(),
         description: "Confidence level (in %) for the confidence intervals",
-        type: ParamType.ENUM,
-        allValues: Object.values(ConfidenceInterval).filter((v) => !isNaN(Number(v))).map(v => String(v)),
+        type: BaseParameterType.ENUM,
+        enum: ConfidenceInterval,
         isAdvanced: false
     },
 
     "use_ard": {
         default_value: true,
         description: "Enable Automatic Relevance Determination (ARD)",
-        type: ParamType.BOOLEAN,
+        type: BaseParameterType.BOOLEAN,
         isAdvanced: true
     },
 
@@ -84,7 +52,7 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
         description: "Maximum iterations for optimizer",
         max: 2000,
         min: 100,
-        type: ParamType.INT,
+        type: BaseParameterType.INT,
         isAdvanced: true
     },
 
@@ -93,15 +61,15 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
         description: "Number of inducing points for the SVGP model",
         max: 100,
         min: 1,
-        type: ParamType.INT,
+        type: BaseParameterType.INT,
         isAdvanced: true
     },
 
     "framework_variant": {
         default_value: FrameworkVariant["GP Corrected"].valueOf(),
         description: "Framework variant; the default is the standard method",
-        type: ParamType.ENUM,
-        allValues: Object.keys(FrameworkVariant).filter((v) => isNaN(Number(v))).map(v => String(v)),
+        type: BaseParameterType.ENUM,
+        enum: FrameworkVariant,
         isAdvanced: true
     },
 
@@ -109,8 +77,8 @@ export const UNCERTAINTY_MODEL_PARAMS: UncertaintyModelParams = {
         default_value: KernelType.RBF_PLUS_RBF.valueOf(),
         description: "Kernel type for the Gaussian Processes model. The default is the I/O kernel with " +
             "radial basis function",
-        type: ParamType.ENUM,
-        allValues: Object.keys(KernelType).filter((v) => isNaN(Number(v))).map(v => String(v)),
+        type: BaseParameterType.ENUM,
+        enum: KernelType,
         isAdvanced: true
     }
 

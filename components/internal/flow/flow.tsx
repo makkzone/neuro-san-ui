@@ -1,59 +1,49 @@
-// React Flow
+// 3rd party components
+import {useCallback, useEffect, useMemo, useState} from "react"
+import {useRouter} from "next/router"
+import uuid from "react-uuid"
+import {Button, Container} from "react-bootstrap"
+import dagre from "dagre"
+import Debug from "debug"
 import ReactFlow, {
-    Background,
-    Controls,
-    NodeRemoveChange,
-    Position,
     applyEdgeChanges,
     applyNodeChanges,
+    Background,
+    Controls,
+    EdgeRemoveChange,
     getConnectedEdges,
     getIncomers,
     getOutgoers,
-    ReactFlowProvider,
     NodeChange,
-    EdgeRemoveChange,
-    ReactFlowInstance
-} from 'reactflow'
-
-// Framework
-import {useCallback, useEffect, useMemo, useState} from 'react'
-import {useRouter} from "next/router"
-
-// ID Gen
-import uuid from "react-uuid"
-
-// Dagre (graph layout library)
-import dagre from 'dagre'
+    NodeRemoveChange,
+    Position,
+    ReactFlowInstance,
+    ReactFlowProvider
+} from "reactflow"
 
 // Custom components
+import {ConfigurableNode, ConfigurableNodeData} from "./nodes/generic/configurableNode"
+import {DataSourceNode} from "./nodes/datasourcenode"
+import {FlowElementsType} from "./types"
 import {FlowQueries} from "./flowqueries"
+import {LLM_MODEL_PARAMS2, LLM_MODEL_PARAMS3, LLM_MODEL_PARAMS_DATA_LLM} from "./llmInfo"
+import {NodeParams} from "./nodes/generic/types"
+import {PrescriptorEdge} from "./edges/prescriptoredge"
+import {PrescriptorNode} from "./nodes/prescriptornode"
 import {useStateWithCallback} from "../../../utils/react_utils"
 
-// 3rd party components
-import {Button, Container} from "react-bootstrap"
-
 //  Constants
-import {EvaluateCandidateCode, MaximumBlue, OutputOverrideCode} from '../../../const'
+import {EvaluateCandidateCode, MaximumBlue, OutputOverrideCode} from "../../../const"
 
 // Types
+import EdgeTypes, {EdgeType} from "./edges/types"
+import NodeTypes, {NodeData, NodeType} from "./nodes/types"
 import {CAOChecked, PredictorNode, PredictorNodeData, PredictorState} from "./nodes/predictornode"
-import EdgeTypes, {EdgeType} from './edges/types'
-import NodeTypes, {NodeData, NodeType} from './nodes/types'
-import {UNCERTAINTY_MODEL_PARAMS, UncertaintyModelParams} from "./uncertaintymodelinfo"
-import {DataSource} from "../../../controller/datasources/types";
-import {CAOType, DataTag} from "../../../controller/datatag/types";
-import {NotificationType, sendNotification} from "../../../controller/notification";
+import {CAOType, DataTag} from "../../../controller/datatag/types"
+import {DataSource} from "../../../controller/datasources/types"
+import {NotificationType, sendNotification} from "../../../controller/notification"
 import {PredictorParams} from "./predictorinfo"
-
-// Debug
-import Debug from "debug"
-import { FlowElementsType } from './types'
-import { PrescriptorNode } from './nodes/prescriptornode'
-import { DataSourceNode } from './nodes/datasourcenode'
-import { PrescriptorEdge } from './edges/prescriptoredge'
-import { UncertaintyModelNode, UncertaintyModelNodeData } from './nodes/uncertaintyModelNode'
-import {LLmNode} from "./nodes/llmNode";
-import {LLM_MODEL_PARAMS2, LLM_MODEL_PARAMS3, LLM_MODEL_PARAMS_DATA_LLM} from "./llmInfo";
+import {UNCERTAINTY_MODEL_PARAMS} from "./uncertaintymodelinfo"
 
 const debug = Debug("flow")
 
@@ -102,7 +92,8 @@ export default function Flow(props: FlowProps) {
     const [initialNodes, initialEdges] = useMemo(() => {
         let initialFlowValue
         if (props.Flow && props.Flow.length > 0) {
-            // If an existing flow is passed, we just assign the nodes the handlers
+            // If we are loading from a persisted flow, we need to add the handlers to the nodes since the handlers
+            // do not get persisted.
             initialFlowValue = props.Flow.map(node => {
                 if (node.type === 'datanode') {
                     node.data = {
@@ -124,11 +115,16 @@ export default function Flow(props: FlowProps) {
                         GetElementIndex: nodeId => _getElementIndex(nodeId)
                     }
                 } else if (node.type === 'uncertaintymodelnode') {
+                    // Backward compatibility -- "uncertaintymodelnode" are now "configurableNode"
                     node.data = {
                         ...node.data,
-                        SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, node.id),
+                        SetParentNodeState: state => ParentNodeSetStateHandler(state, node.id),
                         DeleteNode: nodeId => _deleteNodeById(nodeId),
-                        GetElementIndex: nodeId => _getElementIndex(nodeId)
+                        GetElementIndex: nodeId => _getElementIndex(nodeId),
+
+                        // These two have to be added in since nodes in legacy experiments don't have them
+                        ParameterSet: UNCERTAINTY_MODEL_PARAMS,
+                        NodeTitle: "Uncertainty Model"
                     }
                 } else if (node.type === "prescriptoredge") {
                     node.data = {
@@ -136,6 +132,7 @@ export default function Flow(props: FlowProps) {
                         UpdateOutputOverrideCode: value => UpdateOutputOverrideCode(node.id, value)
                     }
                 } else if (node.type === "llmnode") {
+                    // Backward compatibility -- "llmnode" are now "configurableNode"
                     node.data = {
                         ...node.data,
                         SetParentNodeState: state => ParentNodeSetStateHandler(state, node.id),
@@ -143,7 +140,7 @@ export default function Flow(props: FlowProps) {
                         GetElementIndex: nodeId => _getElementIndex(nodeId)
                     }
                 }
-    
+
                 return node
             })
         } else {
@@ -197,32 +194,13 @@ export default function Flow(props: FlowProps) {
         )
     }
 
-    function UncertaintyNodeSetStateHandler(newState, NodeID) {
-        /*
-        Called by uncertainty model nodes to update their state in the flow
-         */
-        setNodes(
-            nodes.map(node => {
-                    // If this is the right uncertainty model node
-                    if (node.id === NodeID) {
-                        node.data = {
-                            ...node.data,
-                            ParentUncertaintyNodeState: newState
-                        }
-                    }
-                    return node;
-                }
-            )
-        )
-    }
-
     function ParentNodeSetStateHandler(newState, NodeID) {
         /*
-        Called by uncertainty model nodes to update their state in the flow
+        Called by nodes to update their state in the flow
          */
         setNodes(
             nodes.map(node => {
-                    // If this is the right uncertainty model node
+                    // If this is the right node
                     if (node.id === NodeID) {
                         node.data = {
                             ...node.data,
@@ -434,7 +412,8 @@ export default function Flow(props: FlowProps) {
         const predictorsWithoutUncertaintyNodes =
             predictorNodes
                 .filter(node => node.data.ParentPredictorState.selectedPredictorType !== "classifier" &&
-                    getOutgoers<NodeData, PredictorNodeData>(node, nodes, edges).every(node => node.type !== "uncertaintymodelnode") &&
+                    getOutgoers<NodeData, PredictorNodeData>(node, nodes, edges)
+                        .every(node => node.type !== "uncertaintymodelnode") &&
                     !FlowQueries.hasMultipleOutcomes(node))
                 .map(node => node.id)
         if (predictorsWithoutUncertaintyNodes.length === 0) {
@@ -594,12 +573,14 @@ export default function Flow(props: FlowProps) {
         // If it already exists, return
         if (prescriptorExists) {
             sendNotification(NotificationType.warning, "Only one prescriptor per experiment is currently supported")
+            return
         }
 
         // Make sure predictor nodes exist, if not alert
         const predictorNodes = FlowQueries.getPredictorNodes(nodes)
         if (predictorNodes.length == 0) {
             sendNotification(NotificationType.warning, "Add at least one predictor before adding a prescriptor")
+            return
         }
 
         // If above conditions are satisfied edit the graph
@@ -676,7 +657,7 @@ export default function Flow(props: FlowProps) {
         _addElementUuid("prescriptornode", NodeID)
     }
 
-    function  _getInitialUncertaintyNodeState(): UncertaintyModelParams {
+    function  _getInitialUncertaintyNodeState(): NodeParams {
         /*
        This function returns the initial uncertainty node state for when a user first adds the node to the flow
        */
@@ -720,15 +701,17 @@ export default function Flow(props: FlowProps) {
             const newNodeID = uuid()
 
             // Add the uncertainty model node
-            const uncertaintyNode: UncertaintyModelNode = {
+            const uncertaintyNode: ConfigurableNode = {
                 id: newNodeID,
                 type: "uncertaintymodelnode",
                 data: {
                     NodeID: newNodeID,
-                    ParentUncertaintyNodeState: _getInitialUncertaintyNodeState(),
-                    SetParentUncertaintyNodeState: state => UncertaintyNodeSetStateHandler(state, newNodeID),
+                    ParentNodeState: _getInitialUncertaintyNodeState(),
+                    SetParentNodeState: state => ParentNodeSetStateHandler(state, newNodeID),
                     DeleteNode: newNodeID => _deleteNodeById(newNodeID),
-                    GetElementIndex: newNodeID => _getElementIndex(newNodeID)
+                    GetElementIndex: newNodeID => _getElementIndex(newNodeID),
+                    ParameterSet: UNCERTAINTY_MODEL_PARAMS,
+                    NodeTitle: "Uncertainty Model"
                 },
                 position: {
                     x: uncertaintyNodeXPos,
@@ -788,13 +771,13 @@ export default function Flow(props: FlowProps) {
         edgesCopy = edgesCopy.filter(edge => !connectedEdges.includes(edge.id))
 
         // LLM before dataNode (hence it will be the root node)
-        const preDataSourceLlm: LLmNode = {
+        const preDataSourceLlm: ConfigurableNode = {
             id: "root",
             type: "llmnode",
             data: {
                 NodeID: "root",
                 ParentNodeState: structuredClone(LLM_MODEL_PARAMS_DATA_LLM),
-                SetParentNodeState: state => UncertaintyNodeSetStateHandler(state, "root"),
+                SetParentNodeState: state => ParentNodeSetStateHandler(state, "root"),
                 DeleteNode: nodeID => _deleteNodeById(nodeID),
                 GetElementIndex: nodeID => _getElementIndex(nodeID),
                 ParameterSet: LLM_MODEL_PARAMS_DATA_LLM,
@@ -833,13 +816,13 @@ export default function Flow(props: FlowProps) {
         const postDataNodeLlmId = uuid()
 
         // LLM after data node
-        const llmNode: LLmNode = {
+        const llmNode: ConfigurableNode = {
             id: postDataNodeLlmId,
             type: "llmnode",
             data: {
                 NodeID: postDataNodeLlmId,
                 ParentNodeState: structuredClone(LLM_MODEL_PARAMS2),
-                SetParentNodeState: state => UncertaintyNodeSetStateHandler(state, postDataNodeLlmId),
+                SetParentNodeState: state => ParentNodeSetStateHandler(state, postDataNodeLlmId),
                 DeleteNode: newNodeID => _deleteNodeById(newNodeID),
                 GetElementIndex: newNodeID => _getElementIndex(newNodeID),
                 ParameterSet: LLM_MODEL_PARAMS2,
@@ -895,13 +878,13 @@ export default function Flow(props: FlowProps) {
             const presscriptorLlmId = uuid()
 
             // LLM after prescriptor
-            const prescriptorLlmNode: LLmNode = {
+            const prescriptorLlmNode: ConfigurableNode = {
                 id: presscriptorLlmId,
                 type: "llmnode",
                 data: {
                     NodeID: presscriptorLlmId,
                     ParentNodeState: structuredClone(LLM_MODEL_PARAMS3),
-                    SetParentNodeState: state => UncertaintyNodeSetStateHandler(state, presscriptorLlmId),
+                    SetParentNodeState: state => ParentNodeSetStateHandler(state, presscriptorLlmId),
                     DeleteNode: nodeID => _deleteNodeById(nodeID),
                     GetElementIndex: nodeID => _getElementIndex(nodeID),
                     ParameterSet: LLM_MODEL_PARAMS3,
@@ -990,10 +973,10 @@ export default function Flow(props: FlowProps) {
         // If we're deleting a predictor, delete associated Uncertainty nodes connected to this predictor
         if (predictorIdsBeingRemoved && predictorIdsBeingRemoved.length > 0) {
             const uncertaintyNodesToRemove = predictorNodesBeingRemoved
-                .flatMap<UncertaintyModelNode>(
+                .flatMap<ConfigurableNode>(
                     node => 
                     getOutgoers<NodeData, PredictorNodeData>(node, nodes, edges).
-                    filter(node => node.type === "uncertaintymodelnode") as UncertaintyModelNode[]
+                    filter(node => node.type === "uncertaintymodelnode") as ConfigurableNode[]
                 )
             removableNodes.push(...uncertaintyNodesToRemove)
             // Also get the edges associated with this uncertainty node
@@ -1013,7 +996,7 @@ export default function Flow(props: FlowProps) {
             // Connect any remaining predictors to the prescriptor
             if (uncertaintyNodesBeingRemoved && prescriptorNodes && prescriptorNodes.length > 0) {
                 const predictorNodesWithUncertaintyNodesBeingRemoved = uncertaintyNodesBeingRemoved
-                    .flatMap(node => getIncomers<NodeData, UncertaintyModelNodeData>(node, nodes, edges)
+                    .flatMap(node => getIncomers<NodeData, ConfigurableNodeData>(node, nodes, edges)
                         .filter(node => node.type === "predictornode"))
                 for (const node of predictorNodesWithUncertaintyNodesBeingRemoved) {
                     edges = _addEdgeToPrescriptorNode(edges, node.id, prescriptorNodes[0].id)
@@ -1084,7 +1067,7 @@ export default function Flow(props: FlowProps) {
         setElementTypeToUuidList(elementTypeToUuidList)
     }
 
-    function onNodeDragStop(event, node) {
+    function onNodeDragStop(_event, node) {
         /*
         This event handler is called when a user moves a node in the flow such as data node, predictor node or
         prescriptor node.

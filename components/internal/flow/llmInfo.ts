@@ -1,26 +1,12 @@
-// Too many "unused" enum values to disable individually. The values are used, just not explicitly to the IDE
-// scanner gets confused.
+// Too many "unused" enum values to disable individually. The values are used, just not explicitly so the IDE
+// scanner (IntelliJ) gets confused.
 // noinspection JSUnusedGlobalSymbols
 
 /*
 Configuration settings and constants for LLM model node configuration popup
  */
 
-
-/**
- * Type that encapsulates string and numeric enums
- */
-type Enum = Record<string, string | number>
-
-type LlmParameterType = boolean|number|string|Enum
-
-export enum ParamType {
-    BOOLEAN,
-    STRING,
-    INT,
-    FLOAT,
-    ENUM
-}
+import {BaseParameterType, NodeParams} from "./nodes/generic/types"
 
 enum LlmModel {
     "Azure GPT 3.5 turbo" = "azure-gpt-3.5-turbo",
@@ -93,43 +79,14 @@ enum PromptTemplate {
     "Augment and repair data" = "Augment and repair data"
 }
 
-export interface LlmParamField {
-    description: string,
-
-    // Data type of the parameter
-    type: ParamType,
-
-    // Associated enum, if this is an enum type parameter
-    enum?: Enum
-
-    // Default value for the field
-    default_value: LlmParameterType
-
-    // Value is an optional field that can be used within a form
-    // etc to denote user input
-    value?: LlmParameterType
-
-    min?: number,
-    max?: number,
-    step?: number,
-
-    isAdvanced: boolean,
-
-    rows?: number
-}
-
-export interface LlmModelParams {
-    [key: string]: LlmParamField
-}
-
 /**
  * Configuration params for data confabulation LLM
  */
-export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
+export const LLM_MODEL_PARAMS_DATA_LLM: NodeParams = {
     "model": {
         default_value: LlmModel["OpenAI GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
-        type: ParamType.ENUM,
+        type: BaseParameterType.ENUM,
         enum: LlmModel,
         isAdvanced: false
     },
@@ -138,7 +95,7 @@ export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
         description:
             "The temperature controls how much randomness is in the output. In general, the lower the temperature, " +
             "the more likely the LLM model will choose words with a higher probability of occurrence",
-        type: ParamType.FLOAT,
+        type: BaseParameterType.FLOAT,
         min: 0.0,
         max: 1.0,
         step: 0.1,
@@ -149,7 +106,7 @@ export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
         description: "The fraction of total tokens (not necessarily words or letters) to use for a prompt. " +
             "Each model_name has a documented number of max_tokens it can handle which is a total count " +
             "of message + response tokens which goes into the calculation",
-        type: ParamType.FLOAT,
+        type: BaseParameterType.FLOAT,
         min: 0.0,
         max: 1.0,
         step: 0.1,
@@ -159,14 +116,14 @@ export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
         default_value: 4096,
         description: "The maximum number of input tokens accepted by the LLM as input. Note that this varies by LLM " +
             "and by provider, and it is up to you to know the correct value for your model.",
-        type: ParamType.INT,
+        type: BaseParameterType.INT,
         isAdvanced: true
     },
     "token_encoding": {
         default_value: TokenEncoding["gpt-3.5-turbo"].valueOf(),
         description: "tiktoken encoder name. Different for each model and it is up to you to know the correct " +
             "encoding for the model you have chosen.",
-        type: ParamType.ENUM,
+        type: BaseParameterType.ENUM,
         enum: TokenEncoding,
         isAdvanced: true
     },
@@ -176,7 +133,7 @@ export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
             "expressed as a proportion to the existing prompt token counts.  This helps apportion " +
             "rows into windows for large data sets. Default is 1.0, meaning that dataframe tokens should " +
             "take the same amount of space as prompt tokens.",
-        type: ParamType.FLOAT,
+        type: BaseParameterType.FLOAT,
         min: 0.0,
         max: 1.0,
         step: 0.1,
@@ -187,7 +144,7 @@ export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
             "column that is marked as '{na_rep}' where the new value looks like existing data which is not missing. " +
             "Only print the resulting table with the original column names and with the original delimiter I gave you.",
         description: "Prompt sent to the LLM to instruct it to perform data confabulation",
-        type: ParamType.STRING,
+        type: BaseParameterType.STRING,
         rows: 4,
         isAdvanced: true
     },
@@ -196,17 +153,17 @@ export const LLM_MODEL_PARAMS_DATA_LLM: LlmModelParams = {
             "a distinct reasonable value for any missing value in the '{column_name}' column that is marked as " +
             "'{na_rep}' where the new value looks like existing data which is not missing?",
         description: "An optional string substitution for the default reasoning prompt",
-        type: ParamType.STRING,
+        type: BaseParameterType.STRING,
         rows: 4,
         isAdvanced: true
     }
 }
 
-export const LLM_MODEL_PARAMS2: LlmModelParams = {
+export const LLM_MODEL_PARAMS2: NodeParams = {
     "model": {
         default_value: LlmModel["OpenAI GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
-        type: ParamType.ENUM,
+        type: BaseParameterType.ENUM,
         enum: LlmModel,
         isAdvanced: false
     },
@@ -215,13 +172,13 @@ export const LLM_MODEL_PARAMS2: LlmModelParams = {
         description:
             "The temperature controls how much randomness is in the output. In general, the lower the temperature, " +
             "the more likely GPT-3 will choose words with a higher probability of occurrence",
-        type: ParamType.FLOAT,
+        type: BaseParameterType.FLOAT,
         isAdvanced: false
     },
     "prompt_template": {
         default_value: PromptTemplate["Repair data"].valueOf(),
         description: "Choose a pre-created template or write your own prompt",
-        type: ParamType.ENUM,
+        type: BaseParameterType.ENUM,
         enum: PromptTemplate,
         isAdvanced: false
     },
@@ -236,16 +193,16 @@ Also, using the DB API, analyze the data and provide a sensitivity analysis.
 Finally, given the data description is <field1>, devise some analysis on the data and provide any interesting patterns 
 or insights you observe, along with charts baking your observations.`,
         description: "System prompt for the LLM",
-        type: ParamType.STRING,
+        type: BaseParameterType.STRING,
         isAdvanced: false
     }
 }
 
-export const LLM_MODEL_PARAMS3: LlmModelParams = {
+export const LLM_MODEL_PARAMS3: NodeParams = {
     "model": {
         default_value: LlmModel["OpenAI GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
-        type: ParamType.ENUM,
+        type: BaseParameterType.ENUM,
         enum: LlmModel,
         isAdvanced: false
     },
@@ -254,13 +211,13 @@ export const LLM_MODEL_PARAMS3: LlmModelParams = {
         description:
 `The temperature controls how much randomness is in the output. In general, the lower the temperature, the more ` +
 `likely the LLM model will choose words with a higher probability of occurrence`,
-        type: ParamType.FLOAT,
+        type: BaseParameterType.FLOAT,
         isAdvanced: false
     },
     "prompt_template": {
         default_value: PromptTemplate["Repair data"].valueOf(),
         description: "Choose a pre-created template or write your own prompt",
-        type: ParamType.ENUM,
+        type: BaseParameterType.ENUM,
         enum: PromptTemplate,
         isAdvanced: false
     },
@@ -270,7 +227,7 @@ export const LLM_MODEL_PARAMS3: LlmModelParams = {
 `with description <field4> to implement the action. Classify the result of the API call above as to adherence to 
 Responsible AI policies <field5>.`,
         description: "System prompt for the LLM",
-        type: ParamType.STRING,
+        type: BaseParameterType.STRING,
         isAdvanced: false
     }
 }

@@ -1,15 +1,14 @@
-import { EdgeType } from './edges/types';
-import { DataSourceNode } from './nodes/datasourcenode';
-import { PredictorNode } from './nodes/predictornode';
-import {isEdge, isNode} from "reactflow";
 import {CAOType} from "../../../controller/datatag/types";
+import {ConfigurableNode} from "./nodes/generic/configurableNode"
+import {DataSourceNode} from './nodes/datasourcenode';
+import {EdgeType} from './edges/types';
+import {isEdge, isNode} from "reactflow";
+import {NodeType} from "./nodes/types"
+import {PredictorNode} from './nodes/predictornode';
+import {PrescriptorNode} from './nodes/prescriptornode'
 
 // Debug
 import Debug from "debug"
-import { NodeType } from "./nodes/types";
-import { PrescriptorNode } from './nodes/prescriptornode';
-import { UncertaintyModelNode } from './nodes/uncertaintyModelNode';
-import {LLmNode} from "./nodes/llmNode";
 
 const debug = Debug("flowqueries")
 
@@ -49,11 +48,11 @@ export class FlowQueries {
         return nodes.filter(node => node.type === 'datanode') as DataSourceNode[]
     }
 
-    static getUncertaintyModelNodes(nodes: NodeType[]): UncertaintyModelNode[] {
+    static getUncertaintyModelNodes(nodes: NodeType[]): ConfigurableNode[] {
         /*
         This function returns all nodes of type "uncertaintymodelnode" from the graph
         */
-        return nodes.filter(node => node.type === 'uncertaintymodelnode') as UncertaintyModelNode[]
+        return nodes.filter(node => node.type === 'uncertaintymodelnode') as ConfigurableNode[]
     }
 
     static extractCheckedFields(nodes, caoType: CAOType) {
@@ -207,10 +206,10 @@ export class FlowQueries {
         return FlowQueries.extractCheckedFieldsForNode(predictorNode, CAOType.OUTCOME).length > 1
     }
 
-    static getLLMNodes(nodes: NodeType[]): LLmNode[] {
+    static getLLMNodes(nodes: NodeType[]): ConfigurableNode[] {
         /*
         This function returns any LLM nodes found in the graph
         */
-        return nodes?.filter(node => node.type === 'llmnode') as LLmNode[]
+        return nodes?.filter(node => node.type === 'llmnode') as ConfigurableNode[]
     }
 }

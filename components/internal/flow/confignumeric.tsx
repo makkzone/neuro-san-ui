@@ -1,6 +1,7 @@
-import {LlmParamField} from "./llmInfo"
+import {CSSProperties} from "react"
+
 import {PredictorParamFields} from "./predictorinfo"
-import {UncertaintyModelParamField} from "./uncertaintymodelinfo"
+import {ConfigurableNodeParameter} from "./nodes/generic/types"
 
 /**
  * This interface is used to define the props that the numeric input expects
@@ -11,7 +12,7 @@ interface ConfigNumericProps {
     id: string,
 
     // Component style
-    style?
+    style?: CSSProperties,
 
     // Name of the parameter represented by the component
     paramName: string,
@@ -20,7 +21,7 @@ interface ConfigNumericProps {
     value: string | number | boolean,
 
     // Default config for param represented by input
-    defaultParam: PredictorParamFields | UncertaintyModelParamField | LlmParamField,
+    defaultParam: PredictorParamFields | ConfigurableNodeParameter
 
     // Function to be called when input changes
     onParamChange: (event, paramName: string) => void
@@ -39,7 +40,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the step in the structure, if that exists, or a default
      *      given the parameter's type.
      */
-    function getStep(defaultParam: PredictorParamFields | UncertaintyModelParamField | LlmParamField): string {
+    function getStep(defaultParam: PredictorParamFields | ConfigurableNodeParameter): string {
 
         // Default step if one is not defined in defaults for param
         let step = "1"  // For integers
@@ -58,7 +59,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the minimum in the structure, if that exists,
      *          undefined if none exists in the defaultParam.
      */
-    function getMin(defaultParam: PredictorParamFields | UncertaintyModelParamField | LlmParamField): string {
+    function getMin(defaultParam: PredictorParamFields | ConfigurableNodeParameter): string {
 
         // Default min if one is not defined in defaults for param
         return defaultParam.min != null ? defaultParam.min.toString() : null
@@ -70,7 +71,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the maximum in the structure, if that exists,
      *          undefined if none exists in the defaultParam.
      */
-    function getMax(defaultParam: PredictorParamFields | UncertaintyModelParamField | LlmParamField): string {
+    function getMax(defaultParam: PredictorParamFields | ConfigurableNodeParameter): string {
 
         // Default max if one is not defined in defaults for param
         return defaultParam.max != null ? defaultParam.max.toString() : null
@@ -82,7 +83,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
      *  @return the default_value in the structure, if that exists,
      *          undefined if none exists in the defaultParam.
      */
-    function getDefaultValue(defaultParam: PredictorParamFields | UncertaintyModelParamField | LlmParamField): string {
+    function getDefaultValue(defaultParam: PredictorParamFields | ConfigurableNodeParameter): string {
 
         return defaultParam.default_value != null ? defaultParam.default_value.toString() : null
     }

@@ -2,26 +2,31 @@
 import {Dispatch, SetStateAction, useState} from 'react'
 
 // 3rd party components
-import {Card, Col, Collapse, Container, Row} from "react-bootstrap"
-import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
-import {InfoSignIcon, Popover, Text, Tooltip,} from "evergreen-ui"
-import {Handle, Position as HandlePosition, NodeProps, Node} from 'reactflow'
 import {AiFillDelete} from "react-icons/ai";
+import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
+import {Card, Col, Collapse, Container, Row} from "react-bootstrap"
 import {GrSettingsOption} from "react-icons/gr"
+import {Handle, Position as HandlePosition, NodeProps, Node} from 'reactflow'
+import {InfoSignIcon, Popover, Text, Tooltip,} from "evergreen-ui"
+
+import Debug from "debug"
+const debug = Debug("ConfigurableNode")
 
 // Custom components
-import ConfigNumeric from "../confignumeric"
-import {LlmModelParams, ParamType} from "../llmInfo"
-import {NotificationType, sendNotification} from "../../../../controller/notification"
+import ConfigNumeric from "../../confignumeric"
+import {NotificationType, sendNotification} from "../../../../../controller/notification"
+import {BaseParameterType, NodeParams} from "./types"
 
-// Define an interface for the structure
-// of the node
-export interface LlmNodeData {
+// Define an interface for the structure of the node
+export interface ConfigurableNodeData {
     // The ID of the nodes. This will be important for applying IDs to form elements.
     // The form elements thus will have IDs like nodeID-formElementType
     readonly NodeID: string,
-    readonly ParentNodeState: LlmModelParams,
-    readonly SetParentNodeState: Dispatch<SetStateAction<LlmModelParams>>,
+
+    // For syncing up state with outer containing "flow" component. Once we implement
+    // centralized state management, this should no longer be necessary.
+    readonly ParentNodeState: NodeParams,
+    readonly SetParentNodeState: Dispatch<SetStateAction<NodeParams>>,
 
     // Mutator method to delete this node from the parent flow
     readonly DeleteNode: (nodeID: string) => void
@@ -29,20 +34,33 @@ export interface LlmNodeData {
     // Gets a simpler index for testing ids (at least)
     readonly GetElementIndex: (nodeID: string) => number
 
-    readonly ParameterSet: LlmModelParams
+    // Set of parameters that can be configured for this node
+    readonly ParameterSet: NodeParams
 
+    // Title to be displayed on the node
     readonly NodeTitle: string
 }
 
-export type LLmNode = Node<LlmNodeData>
+export type ConfigurableNode = Node<ConfigurableNodeData>
 
-const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
-    /*
-    This function renders the LLM node
-    */
-
+/**
+ * This component is used to render a generic flow node that can be configured
+ * by the user.
+ *
+ * The subtype of the node is stored in the `type` property, inherited from react-flow `Node`.
+ * For example: `type: 'uncertaintymodelnode'` or `type: 'llmnode'`
+ *
+ * Why not be all object-oriented about this, and have a base `OurNode` class with subclasses
+ * like `UncertaintyNode` etc.? Because react-flow doesn't work that way. It's a functional component.
+ * They prefer to use a type discriminator in the properties (aptly named `type`) and then use that to determine
+ * which component we are dealing with. So we have to do it their way.
+ *
+ */
+const ConfigurableNodeComponent: React.FC<NodeProps<ConfigurableNodeData>> = (props) => {
     // Unpack props
     const data = props.data
+
+    debug("ConfigurableNodeComponent props: ", props)
 
     // Unpack the data
     const {
@@ -55,11 +73,13 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
         NodeTitle
     } = data
 
+    /**
+     * This function is used to update the state of any parameter based on a user event (e.g. onChange)
+     *
+     * @param event UI event that triggered the change
+     * @param paramName Name of the parameter that changed
+     */
     const onParamChange = (event, paramName: string) => {
-        /*
-        This function is used to update the state of the predictor
-        parameters.
-        */
         const { value } = event.target
         const paramsCopy = {...ParentNodeState}
         paramsCopy[paramName].value = value
@@ -77,7 +97,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
     }
 
     const flowIndex = GetElementIndex(NodeID) + 1
-    const flowPrefix = `llmnode-${flowIndex}`
+    const flowPrefix = `ConfigurableNode-${flowIndex}`
     const defaultParams = ParameterSet
 
     // For showing advanced configuration settings
@@ -95,8 +115,8 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                 </Col>
                 <Col id={`${paramPrefix}-param-val-col`}>
                     {
-                        (item.type === ParamType.INT ||
-                            item.type === ParamType.FLOAT) &&
+                        (item.type === BaseParameterType.INT ||
+                            item.type === BaseParameterType.FLOAT) &&
                         <ConfigNumeric
                             id={`${paramPrefix}-value`}
                             paramName={param}
@@ -109,7 +129,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                         />
                     }
                     {
-                        item.type === ParamType.BOOLEAN &&
+                        item.type === BaseParameterType.BOOLEAN &&
                         <input
                             id={`${paramPrefix}-value`}
                             type="checkbox"
@@ -120,7 +140,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                         />
                     }
                     {
-                        item.type === ParamType.ENUM && item.enum &&
+                        item.type === BaseParameterType.ENUM && item.enum &&
                         <select
                             id={`${paramPrefix}-value`}
                             value={
@@ -142,7 +162,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                         </select>
                     }
                     {
-                        item.type === ParamType.STRING &&
+                        item.type === BaseParameterType.STRING &&
                         <textarea
                             style={{width: "100%", fontFamily: "monospace"}}
                             rows={item.rows || 10}
@@ -172,11 +192,11 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
         elevation={ Elevation.TWO } 
         style={ { padding: 0, width: "10rem", height: "4rem" } }
     >
-        <Card id={ `${flowPrefix}-llm-card-1` } 
+        <Card id={ `${flowPrefix}-card-1` }
             border="warning" style={{height: "100%"}}>
-            <Card.Body id={ `${flowPrefix}-llm-card-2` }
+            <Card.Body id={ `${flowPrefix}-card-2` }
                 className="flex justify-center content-center">
-                <Text id={ `${flowPrefix}-llm-text` }
+                <Text id={ `${flowPrefix}-text` }
                     className="mr-2">
                     {NodeTitle}
                 </Text>
@@ -186,7 +206,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                                 // 2/6/23 DEF - Popover does not have an id property when compiling
                         content={
                         <>
-                            <Card.Body id={ `${flowPrefix}-llm-config` }
+                            <Card.Body id={ `${flowPrefix}-config` }
                                 className="h-40 text-xs">
                                 <div id={ `${flowPrefix}-basic-settings-div` }
                                     className="mt-3">
@@ -203,7 +223,7 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                                         </b> (most users should not change these)
                                     </Text>
                                 </div>
-                                <button id={ `${flowPrefix}-show-advanced-settings-llm-button` }
+                                <button id={ `${flowPrefix}-show-advanced-settings-button` }
                                         onClick={() => setShowAdvanced(!showAdvanced)}
                                 >
                                     {showAdvanced
@@ -233,13 +253,13 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                              backgroundColor: "ghostwhite"
                          }}
                     >
-                    <div id={ `${flowPrefix}-show-llm-config` } className="flex">
-                        <button id={ `${flowPrefix}-show-llm-config-button` }
+                    <div id={ `${flowPrefix}-show-config` } className="flex">
+                        <button id={ `${flowPrefix}-show-config-button` }
                                 type="button"
                                 className="mt-1"
                                 style={{height: 0}}>
                             <GrSettingsOption
-                                id={ `${flowPrefix}-show-llm-config-button-settings-option` }/>
+                                id={ `${flowPrefix}-show-config-button-settings-option` }/>
                         </button>
                     </div>
                     </Popover>
@@ -250,10 +270,9 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
                 <button id={ `${flowPrefix}-delete-button` }
                         type="button"
                         className="hover:text-red-700 text-xs"
-                        disabled={true}
                         onClick={() => {
                             DeleteNode(NodeID)
-                            sendNotification(NotificationType.success, "LLM node deleted")
+                            sendNotification(NotificationType.success, "Node deleted")
                         }}
                 >
                     <AiFillDelete id={ `${flowPrefix}-delete-button-fill` } size="10"/>
@@ -265,4 +284,4 @@ const LlmNodeComponent: React.FC<NodeProps<LlmNodeData>> = (props) => {
     </BlueprintCard>
 }
 
-export default LlmNodeComponent;
+export default ConfigurableNodeComponent
