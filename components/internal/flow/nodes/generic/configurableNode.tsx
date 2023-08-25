@@ -97,7 +97,7 @@ const ConfigurableNodeComponent: React.FC<NodeProps<ConfigurableNodeData>> = (pr
     }
 
     const flowIndex = GetElementIndex(NodeID) + 1
-    const flowPrefix = `ConfigurableNode-${flowIndex}`
+    const flowPrefix = `${props.type}-${flowIndex}`
     const defaultParams = ParameterSet
 
     // For showing advanced configuration settings
