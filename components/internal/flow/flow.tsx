@@ -95,50 +95,58 @@ export default function Flow(props: FlowProps) {
             // If we are loading from a persisted flow, we need to add the handlers to the nodes since the handlers
             // do not get persisted.
             initialFlowValue = props.Flow.map(node => {
-                if (node.type === 'datanode') {
-                    node.data = {
-                        ...node.data,
-                        SelfStateUpdateHandler: DataNodeStateUpdateHandler
-                    }
-                } else if (node.type === 'predictornode') {
-                    node.data = {
-                        ...node.data,
-                        SetParentPredictorState: state => PredictorSetStateHandler(state, node.id),
-                        DeleteNode: nodeId => _deleteNodeById(nodeId),
-                        GetElementIndex: nodeId => _getElementIndex(nodeId)
-                    }
-                } else if (node.type === 'prescriptornode') {
-                    node.data = {
-                        ...node.data,
-                        SetParentPrescriptorState: state => PrescriptorSetStateHandler(state, node.id),
-                        DeleteNode: nodeId => _deleteNodeById(nodeId),
-                        GetElementIndex: nodeId => _getElementIndex(nodeId)
-                    }
-                } else if (node.type === 'uncertaintymodelnode') {
-                    // Backward compatibility -- "uncertaintymodelnode" are now "configurableNode"
-                    node.data = {
-                        ...node.data,
-                        SetParentNodeState: state => ParentNodeSetStateHandler(state, node.id),
-                        DeleteNode: nodeId => _deleteNodeById(nodeId),
-                        GetElementIndex: nodeId => _getElementIndex(nodeId),
+                switch (node.type) {
+                    case 'datanode':
+                        node.data = {
+                            ...node.data,
+                            SelfStateUpdateHandler: DataNodeStateUpdateHandler
+                        }
+                        break
+                    case 'predictornode':
+                        node.data = {
+                            ...node.data,
+                            SetParentPredictorState: state => PredictorSetStateHandler(state, node.id),
+                            DeleteNode: nodeId => _deleteNodeById(nodeId),
+                            GetElementIndex: nodeId => _getElementIndex(nodeId)
+                        }
+                        break
+                    case 'prescriptornode':
+                        node.data = {
+                            ...node.data,
+                            SetParentPrescriptorState: state => PrescriptorSetStateHandler(state, node.id),
+                            DeleteNode: nodeId => _deleteNodeById(nodeId),
+                            GetElementIndex: nodeId => _getElementIndex(nodeId)
+                        }
+                        break
+                    case 'uncertaintymodelnode': // Backward compatibility -- "uncertaintymodelnode" are now "configurableNode"
+                        node.data = {
+                            ...node.data,
+                            SetParentNodeState: state => ParentNodeSetStateHandler(state, node.id),
+                            DeleteNode: nodeId => _deleteNodeById(nodeId),
+                            GetElementIndex: nodeId => _getElementIndex(nodeId),
 
-                        // These two have to be added in since nodes in legacy experiments don't have them
-                        ParameterSet: UNCERTAINTY_MODEL_PARAMS,
-                        NodeTitle: "Uncertainty Model"
-                    }
-                } else if (node.type === "prescriptoredge") {
-                    node.data = {
-                        ...node.data,
-                        UpdateOutputOverrideCode: value => UpdateOutputOverrideCode(node.id, value)
-                    }
-                } else if (node.type === "llmnode") {
-                    // Backward compatibility -- "llmnode" are now "configurableNode"
-                    node.data = {
-                        ...node.data,
-                        SetParentNodeState: state => ParentNodeSetStateHandler(state, node.id),
-                        DeleteNode: nodeId => _deleteNodeById(nodeId),
-                        GetElementIndex: nodeId => _getElementIndex(nodeId)
-                    }
+                            // These two have to be added in since nodes in legacy experiments don't have them
+                            ParameterSet: UNCERTAINTY_MODEL_PARAMS,
+                            NodeTitle: "Uncertainty Model"
+                        }
+                        break
+                    case "prescriptoredge":
+                        node.data = {
+                            ...node.data,
+                            UpdateOutputOverrideCode: value => UpdateOutputOverrideCode(node.id, value)
+                        }
+                        break
+                    case "llmnode":
+                        node.data = {
+                            ...node.data,
+                            SetParentNodeState: state => ParentNodeSetStateHandler(state, node.id),
+                            DeleteNode: nodeId => _deleteNodeById(nodeId),
+                            GetElementIndex: nodeId => _getElementIndex(nodeId)
+                        }
+                        break
+                    default:
+                        // Not a node that we need to modify; let it pass through as-is
+                        break
                 }
 
                 return node
