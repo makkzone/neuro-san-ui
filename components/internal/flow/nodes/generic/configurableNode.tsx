@@ -147,12 +147,11 @@ const ConfigurableNodeComponent: React.FC<NodeProps<ConfigurableNodeData>> = (pr
                             {
                                 Object.entries(item.enum)
                                     .sort((first, second) => first[0].localeCompare(second[0]))
-                                    .map(
-                                    encoder =>
+                                    .map(enumItem =>
                                         <option
-                                            id={`${paramPrefix}-${encoder[0]}`}
-                                            key={encoder[0]} value={encoder[1].toString()}>
-                                            {encoder[0]}
+                                            id={`${paramPrefix}-${enumItem[0]}`}
+                                            key={enumItem[0]} value={enumItem[1].toString()}>
+                                            {enumItem[0]}
                                         </option>
                                 )
                             }
