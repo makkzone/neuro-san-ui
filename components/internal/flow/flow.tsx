@@ -26,7 +26,7 @@ import {ConfigurableNode, ConfigurableNodeData} from "./nodes/generic/configurab
 import {DataSourceNode} from "./nodes/datasourcenode"
 import {FlowElementsType} from "./types"
 import {FlowQueries} from "./flowqueries"
-import {LLM_MODEL_PARAMS2, LLM_MODEL_PARAMS3, LLM_MODEL_PARAMS_DATA_LLM} from "./llmInfo"
+import {LLM_MODEL_PARAMS2, LLM_MODEL_PARAMS3, LLM_MODEL_PARAMS_DATA_LLM, LLM_MODEL_PARAMS_CATEGORY_REDUCER} from "./llmInfo"
 import {NodeParams} from "./nodes/generic/types"
 import {PrescriptorEdge} from "./edges/prescriptoredge"
 import {PrescriptorNode} from "./nodes/prescriptornode"
@@ -137,6 +137,7 @@ export default function Flow(props: FlowProps) {
                         }
                         break
                     case "llmnode":
+                    case "category_reducer_node":
                         node.data = {
                             ...node.data,
                             SetParentNodeState: state => ParentNodeSetStateHandler(state, node.id),
@@ -775,19 +776,36 @@ export default function Flow(props: FlowProps) {
         const dataNode = dataNodes[0]
 
         // remove existing data source node
-
         const connectedEdges = getConnectedEdges([dataNode], edges).map(edge => edge.id)
         nodesCopy = nodesCopy.filter(node => node.id != dataNode.id)
         edgesCopy = edgesCopy.filter(edge => !connectedEdges.includes(edge.id))
 
-        // LLM before dataNode (hence it will be the root node)
-        const preDataSourceLlm: ConfigurableNode = {
-            id: "root",
+        // New data source
+        const newDataSourceNodeId = uuid()
+        const newDataSourceNode: DataSourceNode = {
+            id: newDataSourceNodeId,
+            type: 'datanode',
+            data: {
+                ProjectID: projectId,
+                SelfStateUpdateHandler: DataNodeStateUpdateHandler
+            },
+            position: {x: 100, y: 500}
+        }
+        nodesCopy.push(newDataSourceNode)
+
+        // Disconnect data source from predictors
+        const dataSourceOutgoingEdges = getConnectedEdges([dataNode], edges).map(e => e.id)
+        edgesCopy = edgesCopy.filter(e => !dataSourceOutgoingEdges.includes(e.id))
+
+        const dataLlmNodeID = uuid()
+        // LLM after data source node
+        const dataLlmNode: ConfigurableNode = {
+            id: dataLlmNodeID,
             type: "llmnode",
             data: {
-                NodeID: "root",
+                NodeID: dataLlmNodeID,
                 ParentNodeState: structuredClone(LLM_MODEL_PARAMS_DATA_LLM),
-                SetParentNodeState: state => ParentNodeSetStateHandler(state, "root"),
+                SetParentNodeState: state => ParentNodeSetStateHandler(state, dataLlmNodeID),
                 DeleteNode: nodeID => _deleteNodeById(nodeID),
                 GetElementIndex: nodeID => _getElementIndex(nodeID),
                 ParameterSet: LLM_MODEL_PARAMS_DATA_LLM,
@@ -798,41 +816,59 @@ export default function Flow(props: FlowProps) {
                 y: dataNode.position.y
             },
         }
-        nodesCopy.push(preDataSourceLlm)
 
-        // New data source
-        const newDataNodeId = uuid()
-        const newDataSourceNode: DataSourceNode = {
-            id: newDataNodeId,
-            type: 'datanode',
-            data: {
-                ProjectID: projectId,
-                SelfStateUpdateHandler: DataNodeStateUpdateHandler
-            },
-            position: {x: 100, y: 500}
-        }
-        nodesCopy.push(newDataSourceNode)
+        nodesCopy.push(dataLlmNode)
 
         // Connect LLM to data source
         edgesCopy.push({
             id: uuid(),
-            source: "root",
-            target: newDataNodeId,
+            source: newDataSourceNodeId,
+            target: dataLlmNodeID,
+            animated: false,
+            type: 'predictoredge'
+        })
+
+
+        // Category Reduction LLM Node
+        const categoryReducerLlmNodeID = uuid();
+        const categoryReducerLlmNode: ConfigurableNode = {
+            id: categoryReducerLlmNodeID,
+            type: "category_reducer_node",
+            data: {
+                NodeID: categoryReducerLlmNodeID,
+                ParentNodeState: structuredClone(LLM_MODEL_PARAMS_CATEGORY_REDUCER),
+                SetParentNodeState: state => ParentNodeSetStateHandler(state, categoryReducerLlmNodeID),
+                DeleteNode: nodeID => _deleteNodeById(nodeID),
+                GetElementIndex: nodeID => _getElementIndex(nodeID),
+                ParameterSet: LLM_MODEL_PARAMS_CATEGORY_REDUCER,
+                NodeTitle: "Category Reducer LLM"
+            },
+            position: {
+                x: dataNode.position.x + 200,
+                y: dataNode.position.y
+            },
+        }
+
+        nodesCopy.push(categoryReducerLlmNode)
+        edgesCopy.push({
+            id: uuid(),
+            source: dataLlmNodeID,
+            target: categoryReducerLlmNodeID,
             animated: false,
             type: 'predictoredge'
         })
 
         // Create a unique ID
-        const postDataNodeLlmId = uuid()
-
-        // LLM after data node
-        const llmNode: ConfigurableNode = {
-            id: postDataNodeLlmId,
+        
+        // Analytics LLM Node
+        const analyticsLlmNodeID = uuid()
+        const analyticsLlmNode: ConfigurableNode = {
+            id: analyticsLlmNodeID,
             type: "llmnode",
             data: {
-                NodeID: postDataNodeLlmId,
+                NodeID: analyticsLlmNodeID,
                 ParentNodeState: structuredClone(LLM_MODEL_PARAMS2),
-                SetParentNodeState: state => ParentNodeSetStateHandler(state, postDataNodeLlmId),
+                SetParentNodeState: state => ParentNodeSetStateHandler(state, analyticsLlmNodeID),
                 DeleteNode: newNodeID => _deleteNodeById(newNodeID),
                 GetElementIndex: newNodeID => _getElementIndex(newNodeID),
                 ParameterSet: LLM_MODEL_PARAMS2,
@@ -843,35 +879,22 @@ export default function Flow(props: FlowProps) {
                 y: dataNode.position.y
             },
         }
-        nodesCopy.push(llmNode)
+        nodesCopy.push(analyticsLlmNode)
 
         edgesCopy.push({
             id: uuid(),
-            source: newDataNodeId,
-            target: postDataNodeLlmId,
+            source: categoryReducerLlmNodeID,
+            target: analyticsLlmNodeID,
             animated: false,
             type: 'predictoredge'
         })
 
-        // Disconnect data source from predictors
-        const dataSourceOutgoingEdges = getConnectedEdges([dataNode], edges).map(e => e.id)
-        edgesCopy = edgesCopy.filter(e => !dataSourceOutgoingEdges.includes(e.id))
-
-        // Connect data source to LLM
-        edgesCopy.push({
-            id: uuid(),
-            source: dataNode.id,
-            target: llmNode.id,
-            animated: false,
-            type: 'predictoredge'
-        })
-
-        // Connect LLM to predictor(s)
+        // Connect Analytics LLM to predictor(s)
         const predictorNodes = FlowQueries.getPredictorNodes(nodes)
         if (predictorNodes && predictorNodes.length > 0) {
             const llmToPredictorsEdges = predictorNodes.map(node => ({
                 id: uuid(),
-                source: llmNode.id,
+                source: analyticsLlmNodeID,
                 target: node.id,
                 animated: false,
                 type: 'predictoredge'
@@ -879,22 +902,21 @@ export default function Flow(props: FlowProps) {
 
             edgesCopy.push(...llmToPredictorsEdges)
         }
-
         const prescriptorNodes = FlowQueries.getPrescriptorNodes(nodes)
         const prescriptorNode = prescriptorNodes && prescriptorNodes.length > 0 ? prescriptorNodes[0] : undefined
 
         if (prescriptorNode) { // Add LLM after prescriptor
             // Create a unique ID
-            const presscriptorLlmId = uuid()
+            const actuationLlmNodeID = uuid()
 
             // LLM after prescriptor
-            const prescriptorLlmNode: ConfigurableNode = {
-                id: presscriptorLlmId,
+            const actuationLlmNode: ConfigurableNode = {
+                id: actuationLlmNodeID,
                 type: "llmnode",
                 data: {
-                    NodeID: presscriptorLlmId,
+                    NodeID: actuationLlmNodeID,
                     ParentNodeState: structuredClone(LLM_MODEL_PARAMS3),
-                    SetParentNodeState: state => ParentNodeSetStateHandler(state, presscriptorLlmId),
+                    SetParentNodeState: state => ParentNodeSetStateHandler(state, actuationLlmNodeID),
                     DeleteNode: nodeID => _deleteNodeById(nodeID),
                     GetElementIndex: nodeID => _getElementIndex(nodeID),
                     ParameterSet: LLM_MODEL_PARAMS3,
@@ -905,20 +927,19 @@ export default function Flow(props: FlowProps) {
                     y: dataNode.position.y
                 },
             }
-            nodesCopy.push(prescriptorLlmNode)
+            nodesCopy.push(actuationLlmNode)
 
             edgesCopy.push({
                 id: uuid(),
                 source: prescriptorNode.id,
-                target: presscriptorLlmId,
+                target: actuationLlmNodeID,
                 animated: false,
                 type: 'predictoredge'
             })
         }
 
-
-        _addElementUuid("llmnode", postDataNodeLlmId)
-
+        _addElementUuid("llmnode", dataLlmNodeID)
+        
         // Save the updated Flow
         setNodes(nodesCopy)
         setEdges(edgesCopy)

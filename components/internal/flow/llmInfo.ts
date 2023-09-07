@@ -237,3 +237,44 @@ Responsible AI policies <field5>.`,
         isAdvanced: false
     }
 }
+
+export const LLM_MODEL_PARAMS_CATEGORY_REDUCER: NodeParams = {
+    "model": {
+        default_value: LlmModel["OpenAI GPT 3.5 turbo"].valueOf(),
+        description: "Large Language Model (LLM) to be used",
+        type: BaseParameterType.ENUM,
+        enum: LlmModel,
+        isAdvanced: false
+    },
+    "temperature": {
+        default_value: 0.2,
+        description:
+            "The temperature controls how much randomness is in the output. In general, the lower the temperature, " +
+            "the more likely GPT-3 will choose words with a higher probability of occurrence",
+        type: BaseParameterType.FLOAT,
+        isAdvanced: false
+    },
+    "reasoning_prompt": {
+        default_value: `Each example is its own categorical value. How would you go about reducing the number of categories so that there are at most {max_categories} categories?`,
+        description: "An optional string substitution for the default reasoning prompt",
+        isAdvanced: false,
+        type: BaseParameterType.STRING
+    },
+    "reduction_prompt": {
+        default_value: `Good. Now create a table mapping of each example category I gave you to the new category you proposed in the format described below:
+            * Put the original example category in a first column
+            * Put your new proposed category in a second column
+            * Separate the columns by the character '{separator}'.
+            * The first column should be labeled '{old_column}'.
+            * The last column should be labeled '{new_column}'.`,
+        description: "An optional string substitution for the default reduction prompt",
+        isAdvanced: false,
+        type: BaseParameterType.STRING,
+    },
+    "max_categories": {
+        default_value: 20,
+        description: "Integer describing the maximum number of categories allowed. Default is 20.",
+        type: BaseParameterType.INT,
+        isAdvanced: false
+    }
+}

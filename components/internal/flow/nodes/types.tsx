@@ -12,7 +12,8 @@ const NodeTypes: RFNodeTypes = {
     predictornode: PredictorNodeComponent,
     prescriptornode: PrescriptorNodeComponent,
     uncertaintymodelnode: ConfigurableNodeComponent,
-    llmnode: ConfigurableNodeComponent
+    llmnode: ConfigurableNodeComponent,
+    category_reducer_node: ConfigurableNodeComponent,
 }
 
 export type NodeData =
