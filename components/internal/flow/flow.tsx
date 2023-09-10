@@ -809,7 +809,7 @@ export default function Flow(props: FlowProps) {
                 DeleteNode: nodeID => _deleteNodeById(nodeID),
                 GetElementIndex: nodeID => _getElementIndex(nodeID),
                 ParameterSet: LLM_MODEL_PARAMS_DATA_LLM,
-                NodeTitle: "Data LLM"
+                NodeTitle: "Confabulation LLM"
             },
             position: {
                 x: dataNode.position.x + 200,
