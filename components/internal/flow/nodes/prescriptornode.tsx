@@ -501,13 +501,20 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
     const inputFieldWidth = {width: "32ch"}
 
     // Create the configuration Panel
-    const evolutionConfigurationPanel = <Card.Body id={ `${flowPrefix}-evolution-configuration-panel` }
-                                                   className="overflow-y-auto h-40 text-xs">
-        <div id={ `${flowPrefix}-evolution-configuration` } 
+    const evolutionConfigurationPanel = <Card.Body 
+        id={ `${flowPrefix}-evolution-configuration-panel` }
+        className="overflow-y-auto h-40"
+    >
+        <div id={ `${flowPrefix}-evolution-configuration` }
             className="flex flex-col mb-2">
-            <div id={ `${flowPrefix}-num-generations` }
-                className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
-                <label id={ `${flowPrefix}-num-generations-label` } >
+            <div 
+                id={ `${flowPrefix}-num-generations`}
+                className="grid grid-cols-2 gap-1 mb-2 justify-items-start d-flex pl-5 pr-5"
+            >
+                <label
+                    id={ `${flowPrefix}-num-generations-label`}
+                    className="w-50"
+                >
                     Num Generations
                 </label>
                 <input style={inputFieldWidth}
@@ -520,18 +527,23 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                     value={ ParentPrescriptorState.evolution.nb_generations }
                     onChange={
                         event => SetParentPrescriptorState({
-                                ...ParentPrescriptorState,
-                                evolution: {
-                                    ...ParentPrescriptorState.evolution,
-                                    nb_generations: parseInt(event.target.value)
-                                }
-                            })
+                            ...ParentPrescriptorState,
+                            evolution: {
+                                ...ParentPrescriptorState.evolution,
+                                nb_generations: parseInt(event.target.value)
+                            }
+                        })
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-population-size` } 
-                className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
-                <label id={ `${flowPrefix}-population-size-label` } >
+            <div
+                id={ `${flowPrefix}-population-size` } 
+                className="grid grid-cols-2 gap-1 mb-2 justify-items-start d-flex pl-5 pr-5"
+            >
+                <label
+                    id={ `${flowPrefix}-population-size-label`}
+                    className="w-50"
+                >
                     Population Size
                 </label>
                 <input style={inputFieldWidth}
@@ -553,9 +565,14 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-num-elites` } 
-                className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
-                <label id={ `${flowPrefix}-num-elites-label` } >
+            <div
+                id={ `${flowPrefix}-num-elites` }
+                className="grid grid-cols-2 gap-1 mb-2 justify-items-start d-flex pl-5 pr-5"
+            >
+                <label
+                    id={ `${flowPrefix}-num-elites-label`}
+                    className="w-50"
+                >
                     Num Elites
                 </label>
                 <input style={inputFieldWidth}
@@ -577,9 +594,14 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-parent-selection` } 
-                className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
-                <label id={ `${flowPrefix}-parent-selection-label` } >
+            <div 
+                id={ `${flowPrefix}-parent-selection` } 
+                className="grid grid-cols-2 gap-1 mb-2 justify-items-start d-flex pl-5 pr-5"
+            >
+                <label
+                    id={ `${flowPrefix}-parent-selection-label`}
+                    className="w-50"
+                >
                     Parent Selection
                 </label>
                 <select defaultValue="tournament" 
@@ -602,9 +624,14 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                     </option>
                 </select>
             </div>
-            <div id={ `${flowPrefix}-remove-population-percetange` } 
-                className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
-                <label id={ `${flowPrefix}-remove-population-percentage-label` } >
+            <div
+                id={ `${flowPrefix}-remove-population-percetange` }
+                className="grid grid-cols-2 gap-1 mb-2 justify-items-start d-flex pl-5 pr-5"
+            >
+                <label
+                    id={ `${flowPrefix}-remove-population-percentage-label`}
+                    className="w-50"
+                >
                     Remove Population %
                 </label>
                 <input style={inputFieldWidth}
@@ -626,9 +653,14 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-mutation` } 
-                className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
-                <label id={ `${flowPrefix}-mutation-label` } >
+            <div 
+                id={ `${flowPrefix}-mutation` } 
+                className="grid grid-cols-2 gap-1 mb-2 justify-items-start d-flex pl-5 pr-5"
+            >
+                <label
+                    id={ `${flowPrefix}-mutation-label`}
+                    className="w-50"
+                >
                     Mutation Type
                 </label>
                 <select defaultValue="gaussian_noise_percentage"
@@ -659,9 +691,14 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                     </option>
                 </select>
             </div>
-            <div id={ `${flowPrefix}-mutation-probability` } 
-                className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
-                <label id={ `${flowPrefix}-mutation-probability-label` } >
+            <div
+                id={ `${flowPrefix}-mutation-probability` }
+                className="grid grid-cols-2 gap-1 mb-2 justify-items-start d-flex pl-5 pr-5"
+            >
+                <label
+                    id={ `${flowPrefix}-mutation-probability-label`}
+                    className="w-50"
+                >
                     Mutation Probability
                 </label>
                 <input style={inputFieldWidth}
@@ -683,9 +720,14 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-mutation-factor` } 
-                className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
-                <label id={ `${flowPrefix}-mutation-factor-label` } >
+            <div
+                id={ `${flowPrefix}-mutation-factor` }
+                className="grid grid-cols-2 gap-1 mb-2 justify-items-start d-flex pl-5 pr-5"
+            >
+                <label
+                    id={ `${flowPrefix}-mutation-factor-label`}
+                    className="w-50"
+                >
                     Mutation Factor
                 </label>
                 <input style={inputFieldWidth}
@@ -705,9 +747,14 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                     }
                 /> 
             </div>
-            <div id={ `${flowPrefix}-initialization-distribution` } 
-                className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
-                <label id={ `${flowPrefix}-initialization-distribution-label` } >
+            <div
+                id={ `${flowPrefix}-initialization-distribution` } 
+                className="grid grid-cols-2 gap-1 mb-2 justify-items-start d-flex pl-5 pr-5"
+            >
+                <label
+                    id={ `${flowPrefix}-initialization-distribution-label` }
+                    className="w-50"
+                >
                     Initialization Distribution
                 </label>
                 <select defaultValue="orthogonal" style={inputFieldWidth}
@@ -741,9 +788,14 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                     </option>
                 </select>
             </div>
-            <div id={ `${flowPrefix}-initialization-range` } 
-                className="grid grid-cols-2 gap-1 mb-2 justify-items-start">
-                <label id={ `${flowPrefix}-initialization-range-label` } >
+            <div
+                id={ `${flowPrefix}-initialization-range` }
+                className="grid grid-cols-2 gap-1 mb-2 justify-items-start d-flex pl-5 pr-5"
+            >
+                <label
+                    id={ `${flowPrefix}-initialization-range-label` }
+                    className="w-50"
+                >
                     Initialization Range
                 </label>
                 <input style={inputFieldWidth}

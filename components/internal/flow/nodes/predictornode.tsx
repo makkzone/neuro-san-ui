@@ -461,20 +461,22 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
 
     // Create the configuration Panel
     const predictorConfigurationPanel = <Card.Body
-        className="overflow-y-auto h-40 text-xs" id={ `${flowPrefix}-config` }>
+        className="overflow-y-auto h-40 text-xs pl-4 pr-4" id={ `${flowPrefix}-config` }>
         {
             ParentPredictorState.predictorParams &&
             Object.keys(defaultParams).map(param =>
 
-                <div id={ `${flowPrefix}-${param}-input-component` }
-                    className="grid grid-cols-12 gap-4 mb-2" key={param} >
+                <div
+                    id={`${flowPrefix}-${param}-input-component`}
+                    className="grid grid-cols-8 gap-12 mb-3" key={param}
+                >
                     <div id={ `${flowPrefix}-${param}-input-component-div` } className="item1 col-span-3">
                         <label id={ `${flowPrefix}-${param}-label` } className="capitalize">
                             {param}:
                         </label>
                     </div>
                     <div id={ `${flowPrefix}-${param}-data-type-div` }
-                        className="item2 col-span-8">
+                        className="item2 col-span-4">
                         {
                             (defaultParams[param].type === "int" ||
                              defaultParams[param].type === "float") &&
@@ -517,7 +519,7 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
                                                 : defaultParams[param].default_value.toString()
                                     }
                                     onChange={event => onParamChange(event, param)}
-                                    className="w-32"
+                                    className="w-32 p-0"
                                 >
                                 {
                                     (defaultParams[param].type as Array<string>).map(
