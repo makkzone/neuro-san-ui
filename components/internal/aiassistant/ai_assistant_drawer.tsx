@@ -2,7 +2,7 @@
  * This is the module for the "AI decision assistant".
  */
 import {Drawer} from "antd"
-import {Button, Form} from "react-bootstrap"
+import {Button, Form, InputGroup} from "react-bootstrap"
 import ClipLoader from "react-spinners/ClipLoader"
 import {MaximumBlue} from "../../../const"
 import {useState} from "react";
@@ -140,12 +140,29 @@ More information may be available in the browser console.`)
                     }
                 </div>
                 <div id="user-input-div" style={{display: "flex"}}>
-                    <Form.Control id="user-input"
-                                  placeholder="What are the current prescribed actions?"
-                                  value={userLlmChatInput}
-                                  style={{marginLeft: "10px"}}
-                                  onChange={handleUserLlmChatInputChange}
-                    />
+                    <InputGroup id="user-input-group">
+                        <Form.Control id="user-input"
+                                      placeholder="What are the current prescribed actions?"
+                                      value={userLlmChatInput}
+                                      style={{marginLeft: "10px"}}
+                                      onChange={handleUserLlmChatInputChange}
+                        />
+                        <Button id="clear-input-button"
+                                onClick={() => setUserLlmChatInput("")}
+                                style={{
+                                    position: "absolute",
+                                    width: "10px",
+                                    fontWeight: 550,
+                                    border: "none",
+                                    backgroundColor: "transparent",
+                                    lineHeight: "35px",
+                                    left: "calc(100% - 30px)",
+                                    zIndex: 99999,
+                                }}
+                        >
+                            X
+                        </Button>
+                    </InputGroup>
                     <Button id="submit-query-button"
                             variant="primary"
                             type="submit"
