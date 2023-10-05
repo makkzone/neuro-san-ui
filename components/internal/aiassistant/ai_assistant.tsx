@@ -63,7 +63,6 @@ export function AIAssistant(props: {
                 props.predictorUrls)
 
             if (!response.ok) {
-                console.debug("response", response)
                 setUserLlmChatOutput(`Internal error: \n\n${response.status}: ${response.statusText}\n
 More information may be available in the browser console.`)
                 return
