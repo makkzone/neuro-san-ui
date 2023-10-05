@@ -107,11 +107,6 @@ More information may be available in the browser console.`)
         onClose={props.onClose}
         open={props.open}
         width={"35%"}
-
-
-        // This flag is required so that the component unmounts on close
-        // and the useEffect timer cleanup function is called when the RunPage
-        // goes out of scope.
         destroyOnClose={true}
     >
         <Form id="user-query-form" onSubmit={handleUserQuery}>
