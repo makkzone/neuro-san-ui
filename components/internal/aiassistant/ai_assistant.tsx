@@ -155,6 +155,7 @@ More information may be available in the browser console.`)
                             placeholder="What are the current prescribed actions?"
                             value={userLlmChatInput}
                             style={{
+                              marginLeft: "7px",
                               fontSize: "90%"
                             }}
                         />
