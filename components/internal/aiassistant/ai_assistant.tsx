@@ -1,15 +1,12 @@
 /**
  * This is the module for the "AI decision assistant".
  */
-import {Drawer} from "antd"
 import {Button, Form, InputGroup} from "react-bootstrap"
-import ClipLoader from "react-spinners/ClipLoader"
+import {Drawer} from "antd"
 import {MaximumBlue} from "../../../const"
-import {useState} from "react";
-import {sendDmsChatQuery} from "../../../controller/dmschat/dmschat";
-import {AgentStep} from "langchain/dist/schema";
-import {empty} from "../../../utils/objects";
-import {StringToStringOrNumber} from "../../../controller/base_types";
+import {sendDmsChatQuery} from "../../../controller/dmschat/dmschat"
+import {StringToStringOrNumber} from "../../../controller/base_types"
+import {useState} from "react"
 
 /**
  * AI asssistant, intitially for DMS page but in theory could be used elsewhere.
@@ -20,7 +17,6 @@ export function AIAssistant(props: {
     contextInputs: StringToStringOrNumber
     onClose: () => void
     open: boolean
-    spinnerSize: number
     resetUndeployModelsTimer: () => void,
 }) {
 
@@ -33,23 +29,16 @@ export function AIAssistant(props: {
     // Stores whether are currently awaiting LLM response (for knowing when to show spinners)
     const [isAwaitingLlm, setIsAwaitingLlm] = useState(false)
 
-    // Translates an LLM "step" in JSON format into a more human-readable form
-    function decodeStep(step: AgentStep) {
-        let output = ""
-
-        if (step.action) {
-            output += step.action.log + "\n"
-        }
-
-        if (step.observation) {
-            output += (empty(step.observation) ? "" : step.observation) + "\n"
-        }
-
-        return output
-    }
-
+    /**
+     * Handler for user query.
+     *
+     * @param event The event containing the user query
+     */
     async function handleUserQuery(event) {
+        // Prevent submitting form
         event.preventDefault()
+
+        // Extract user query from event
         const userQuery = event.target[1].value
 
         try {
@@ -57,26 +46,14 @@ export function AIAssistant(props: {
             props.resetUndeployModelsTimer()
 
             setIsAwaitingLlm(true)
-            setUserLlmChatOutput("")
 
-            const response = await sendDmsChatQuery(userQuery, props.contextInputs, props.prescriptorUrl,
-                props.predictorUrls)
+            // Always start output by echoing user query
+            setUserLlmChatOutput(`Query: ${userQuery}\n\n`)
 
-            if (!response.ok) {
-                setUserLlmChatOutput(`Internal error: \n\n${response.status}: ${response.statusText}\n
-More information may be available in the browser console.`)
-                return
-            }
-
-            const responseJson = await response.json()
-
-            const intermediateSteps = responseJson.response.intermediateSteps.map(
-                (step: AgentStep) => decodeStep(step) + "\n"
-            )
-            const finalOutput = responseJson.response.output
-            const fullResponse = (intermediateSteps + finalOutput)
-
-            setUserLlmChatOutput(fullResponse)
+            // Send the query to the server. Response will be streamed to our callback which updates the output
+            // display as tokens are received.
+            await sendDmsChatQuery(userQuery, props.contextInputs, props.prescriptorUrl,
+                props.predictorUrls, token => setUserLlmChatOutput((currentOutput) => currentOutput + token))
         } catch (e) {
             setUserLlmChatOutput(`Internal error: \n\n${e}\n 
 More information may be available in the browser console.`)
@@ -86,7 +63,6 @@ More information may be available in the browser console.`)
             setIsAwaitingLlm(false)
             setUserLlmChatInput("")
         }
-
     }
 
     const handleUserLlmChatInputChange = (event) => {
@@ -112,26 +88,21 @@ More information may be available in the browser console.`)
         <Form id="user-query-form" onSubmit={handleUserQuery}>
             <Form.Group id="llm-chat-group">
                 <div id="llm-response-div" style={{width: "97%", height: "80vh", margin: "10px"}}>
-                    {isAwaitingLlm
-                        ? <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                            // ClipLoader does not have an id property when compiling
-                            color={MaximumBlue} loading={true} size={4 * props.spinnerSize}/>
-                        : <Form.Control
-                            id="llm-responses"
-                            readOnly={true}
-                            as="textarea"
-                            style={{
-                                whiteSpace: "pre-wrap",
-                                height: "100%",
-                                background: "ghostwhite",
-                                borderColor: MaximumBlue,
-                                resize: "none",
-                                fontFamily: "monospace",
-                                fontSize: "smaller"
-                            }}
-                            value={userLlmChatOutput}
-                        />
-                    }
+                    <Form.Control
+                        id="llm-responses"
+                        readOnly={true}
+                        as="textarea"
+                        style={{
+                            whiteSpace: "pre-wrap",
+                            height: "100%",
+                            background: "ghostwhite",
+                            borderColor: MaximumBlue,
+                            resize: "none",
+                            fontFamily: "monospace",
+                            fontSize: "smaller"
+                        }}
+                        value={userLlmChatOutput}
+                    />
                 </div>
                 <div id="user-input-div" style={{display: "flex"}}>
                     <InputGroup id="user-input-group">
