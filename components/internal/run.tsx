@@ -610,14 +610,12 @@ export default function RunPage(props: RunProps): React.ReactElement {
                                         <h1 id="insights-h1">Insights</h1>
                                         <h2 id="project-name">{project.name}</h2>
                                         {project.description}
-                                        <div id="insights-markdown-div">
                                             <ReactMarkdown  // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                                             // ReactMarkdown doesn't have (or need) an id property.
                                                 remarkPlugins={[remarkGfm]}
                                             >
                                                 {insights}
                                             </ReactMarkdown>
-                                        </div>
                                         <h5 id="powered-by">Powered by OpenAI™ GPT-3.5™ technology</h5>
                                     </div>
                                 }
