@@ -616,6 +616,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                                             >
                                                 {insights}
                                             </ReactMarkdown>
+                                        <BlankLines id="bl2" count={3} />
                                         <h5 id="powered-by">Powered by OpenAI™ GPT-3.5™ technology</h5>
                                     </div>
                                 }
