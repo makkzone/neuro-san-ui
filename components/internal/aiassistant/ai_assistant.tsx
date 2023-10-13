@@ -44,6 +44,26 @@ export function AIAssistant(props: {
         setUserLlmChatOutput((currentOutput) => currentOutput + token);
     }
 
+    /**
+     * Highlights the final answer in the LLM output.
+     */
+    function highlightFinalAnswer() {
+        // Highlight final answer
+        const llmOutputTextArea = llmOutputTextAreaRef.current
+        if (llmOutputTextArea) {
+            const llmOutputText = llmOutputTextArea.value
+            const finalAnswerRegex = /Final Answer: .*/u
+            const finalAnswerMatch = llmOutputText.match(finalAnswerRegex)
+            if (finalAnswerMatch) {
+                const finalAnswer = finalAnswerMatch[0]
+                const finalAnswerIndex = llmOutputText.indexOf(finalAnswer)
+                const finalAnswerLength = finalAnswer.length
+                llmOutputTextArea.setSelectionRange(finalAnswerIndex, finalAnswerIndex + finalAnswerLength)
+                llmOutputTextArea.focus()
+            }
+        }
+    }
+
 // Sends user query to backend.
     async function sendQuery(userQuery: string) {
         try {
@@ -61,6 +81,9 @@ export function AIAssistant(props: {
             // display as tokens are received.
             await sendDmsChatQuery(userQuery, props.contextInputs, props.prescriptorUrl, props.predictorUrls,
                 tokenReceived)
+
+            // Kick off highlighting final answer
+            setTimeout(highlightFinalAnswer, 100)
         } catch (e) {
             setUserLlmChatOutput(`Internal error: \n\n${e}\n 
 More information may be available in the browser console.`)
