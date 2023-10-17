@@ -5,6 +5,7 @@ import ClipLoader from "react-spinners/ClipLoader"
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {ChangeEvent, FormEvent, useRef, useState} from "react"
 import {Drawer} from "antd"
+import {FiRefreshCcw} from "react-icons/fi"
 import {MaximumBlue} from "../../../const"
 import {sendDmsChatQuery} from "../../../controller/dmschat/dmschat"
 import {StringToStringOrNumber} from "../../../controller/base_types"
@@ -39,12 +40,19 @@ export function AIAssistant(props: {
     // Ref for user input text area, so we can handle shift-enter
     const inputAreaRef = useRef(null)
 
-    function tokenReceived(token: string) {
+    // Controller for cancelling fetch request
+    const controller = useRef<AbortController>(null)
+
+    /**
+     * Handles a token received from the LLM via callback on the fetch request.
+     * @param token The token received from the LLM
+     */
+    function tokenReceivedHandler(token: string) {
         // Auto scroll as response is generated
         if (llmOutputTextAreaRef.current) {
             llmOutputTextAreaRef.current.scrollTop = llmOutputTextAreaRef.current.scrollHeight
         }
-        setUserLlmChatOutput((currentOutput) => currentOutput + token);
+        setUserLlmChatOutput((currentOutput) => currentOutput + token)
     }
 
     /**
@@ -80,16 +88,25 @@ export function AIAssistant(props: {
             // Always start output by echoing user query
             setUserLlmChatOutput(`Query: ${userQuery}\n\n`)
 
+            const abortController = new AbortController();
+            controller.current = abortController
+
             // Send the query to the server. Response will be streamed to our callback which updates the output
             // display as tokens are received.
             await sendDmsChatQuery(userQuery, props.contextInputs, props.prescriptorUrl, props.predictorUrls,
-                tokenReceived)
+                tokenReceivedHandler, abortController.signal)
 
             // Kick off highlighting final answer
             setTimeout(highlightFinalAnswer, 100)
-        } catch (e) {
-            setUserLlmChatOutput(`Internal error: \n\n${e}\n More information may be available in the browser console.`)
-            console.error(e.stack)
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                setUserLlmChatOutput((currentOutput) => currentOutput + "\n\nRequest cancelled.");
+            } else {
+                setUserLlmChatOutput(
+                    `Internal error: \n\n${error}\n More information may be available in the browser console.`)
+            }
+
+            console.error(error.stack)
         } finally {
             // Reset state, whatever happened during request
             setIsAwaitingLlm(false)
@@ -145,6 +162,16 @@ export function AIAssistant(props: {
         }
     }
 
+    function handleStop() {
+        try {
+            controller?.current?.abort("User cancelled request")
+            controller.current = null
+        } finally {
+            setIsAwaitingLlm(false)
+            setUserLlmChatInput("")
+        }
+    }
+
     // Regex to check if user has typed anything besides whitespace
     const userInputEmpty = isEmptyExceptForWhitespace(userLlmChatInput)
 
@@ -184,6 +211,25 @@ export function AIAssistant(props: {
                         value={userLlmChatOutput}
                     >
                     </Form.Control>
+                    <Button id="stop-output-button"
+                            onClick={() => handleStop()}
+                            variant="secondary"
+                            style={{
+                                background: MaximumBlue,
+                                borderColor: MaximumBlue,
+                                bottom: 10,
+                                color: "white",
+                                display: isAwaitingLlm ? "inline" : "none",
+                                fontSize: "95%",
+                                position: "absolute",
+                                right: 150,
+                                zIndex: 99999,
+                            }}
+                    >
+                        <FiRefreshCcw id="generate-icon" size={15} className="mr-2"
+                                      style={{display: "inline"}}/>
+                        Stop
+                    </Button>
                     <Button id="regenerate-output-button"
                             onClick={() => sendQuery(previousUserQuery)}
                             disabled={shouldDisableRegenerateButton}
@@ -200,7 +246,9 @@ export function AIAssistant(props: {
                                 color: "white",
                             }}
                     >
-                        ⟳ Regenerate
+                        <FiRefreshCcw id="generate-icon" size={15} className="mr-2"
+                                      style={{display: "inline"}}/>
+                        Regenerate
                     </Button>
                 </div>
                 <div id="user-input-div" style={{display: "flex"}}>
