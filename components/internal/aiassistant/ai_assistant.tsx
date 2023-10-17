@@ -201,13 +201,13 @@ export function AIAssistant(props: {
                         ref={llmOutputTextAreaRef}
                         as="textarea"
                         style={{
-                            whiteSpace: "pre-wrap",
-                            height: "100%",
                             background: "ghostwhite",
                             borderColor: MaximumBlue,
-                            resize: "none",
                             fontFamily: "monospace",
-                            fontSize: "smaller"
+                            fontSize: "smaller",
+                            height: "100%",
+                            resize: "none",
+                            whiteSpace: "pre-wrap"
                         }}
                         value={userLlmChatOutput}
                     >
@@ -222,8 +222,9 @@ export function AIAssistant(props: {
                                 color: "white",
                                 display: isAwaitingLlm ? "inline" : "none",
                                 fontSize: "95%",
+                                opacity: "70%",
                                 position: "absolute",
-                                right: 150,
+                                right: 10,
                                 width: 126,
                                 zIndex: 99999,
                             }}
@@ -237,16 +238,17 @@ export function AIAssistant(props: {
                             disabled={shouldDisableRegenerateButton}
                             variant="secondary"
                             style={{
-                                bottom: 10,
-                                fontSize: "95%",
-                                position: "absolute",
-                                right: 10,
-                                zIndex: 99999,
                                 background: MaximumBlue,
                                 borderColor: MaximumBlue,
-                                opacity: shouldDisableRegenerateButton ? "50%" : "70%",
+                                bottom: 10,
                                 color: "white",
-                                width: 126
+                                display: isAwaitingLlm ? "none" : "inline",
+                                fontSize: "95%",
+                                opacity: shouldDisableRegenerateButton ? "50%" : "70%",
+                                position: "absolute",
+                                right: 10,
+                                width: 126,
+                                zIndex: 99999
                             }}
                     >
                         <FiRefreshCcw id="generate-icon" size={15} className="mr-2"
