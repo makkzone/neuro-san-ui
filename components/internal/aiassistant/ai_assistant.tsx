@@ -2,17 +2,18 @@
  * This is the module for the "AI decision assistant".
  */
 import ClipLoader from "react-spinners/ClipLoader"
+import {BsStopBtn} from "react-icons/bs"
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {ChangeEvent, FormEvent, useRef, useState} from "react"
+import {ChatMessage} from "langchain/schema"
 import {Drawer} from "antd"
 import {FiRefreshCcw} from "react-icons/fi"
 import {MaximumBlue} from "../../../const"
 import {sendDmsChatQuery} from "../../../controller/dmschat/dmschat"
-import {BsStopBtn} from "react-icons/bs"
 import {StringToStringOrNumber} from "../../../controller/base_types"
 
 /**
- * AI asssistant, intitially for DMS page but in theory could be used elsewhere.
+ * AI asssistant, initially for DMS page but in theory could be used elsewhere.
  */
 export function AIAssistant(props: {
     predictorUrls: string[]
@@ -44,6 +45,13 @@ export function AIAssistant(props: {
     // Controller for cancelling fetch request
     const controller = useRef<AbortController>(null)
 
+    // Use useRef here since we don't want changes in the chat history to trigger a re-render
+    const chatHistory = useRef<ChatMessage[]>([])
+
+    // To accumulate current response, which will be different than the contents of the output window if there is a
+    // chat session
+    const currentResponse = useRef<string>("")
+
     /**
      * Handles a token received from the LLM via callback on the fetch request.
      * @param token The token received from the LLM
@@ -53,19 +61,24 @@ export function AIAssistant(props: {
         if (llmOutputTextAreaRef.current) {
             llmOutputTextAreaRef.current.scrollTop = llmOutputTextAreaRef.current.scrollHeight
         }
+        currentResponse.current += token
         setUserLlmChatOutput((currentOutput) => currentOutput + token)
+    }
+
+    function extractFinalAnswer(response: string) {
+        const finalAnswerRegex = /Final Answer: .*/u
+        return response.match(finalAnswerRegex)
     }
 
     /**
      * Highlights the final answer in the LLM output.
      */
-    function highlightFinalAnswer() {
+    function highlightFinalAnswer(response: string) {
         // Highlight final answer
         const llmOutputTextArea = llmOutputTextAreaRef.current
-        if (llmOutputTextArea) {
+        if (llmOutputTextArea && response) {
             const llmOutputText = llmOutputTextArea.value
-            const finalAnswerRegex = /Final Answer: .*/u
-            const finalAnswerMatch = llmOutputText.match(finalAnswerRegex)
+            const finalAnswerMatch = extractFinalAnswer(response)
             if (finalAnswerMatch) {
                 const finalAnswer = finalAnswerMatch[0]
                 const finalAnswerIndex = llmOutputText.indexOf(finalAnswer)
@@ -79,6 +92,9 @@ export function AIAssistant(props: {
     // Sends user query to backend.
     async function sendQuery(userQuery: string) {
         try {
+            // Record user query in chat history
+            chatHistory.current = [...chatHistory.current, new ChatMessage(userQuery, "human")]
+
             setPreviousUserQuery(userQuery)
 
             // User interacted so reset timer
@@ -87,7 +103,7 @@ export function AIAssistant(props: {
             setIsAwaitingLlm(true)
 
             // Always start output by echoing user query
-            setUserLlmChatOutput(`Query: ${userQuery}\n\n`)
+            setUserLlmChatOutput((currentOutput) => currentOutput + `Query: ${userQuery}\n\nResponse:\n\n`)
 
             const abortController = new AbortController();
             controller.current = abortController
@@ -95,10 +111,20 @@ export function AIAssistant(props: {
             // Send the query to the server. Response will be streamed to our callback which updates the output
             // display as tokens are received.
             await sendDmsChatQuery(userQuery, props.contextInputs, props.prescriptorUrl, props.predictorUrls,
-                tokenReceivedHandler, abortController.signal)
+                tokenReceivedHandler, abortController.signal, chatHistory.current)
 
             // Kick off highlighting final answer
-            setTimeout(highlightFinalAnswer, 100)
+            setTimeout(highlightFinalAnswer, 100, currentResponse.current)
+
+            // Add a couple of blank lines after response
+            setUserLlmChatOutput((currentOutput) => currentOutput + "\n\n")
+
+            // Record bot answer in history. Only record the final answer or we will end up using a crazy amount of
+            // tokens.
+            const finalAnswer = extractFinalAnswer(currentResponse.current)
+            if (finalAnswer && finalAnswer.length > 0) {
+                chatHistory.current = [...chatHistory.current, new ChatMessage(finalAnswer[0], "ai")]
+            }
         } catch (error) {
             if (error.name === 'AbortError') {
                 setUserLlmChatOutput((currentOutput) => currentOutput + "\n\nRequest cancelled.");
@@ -112,6 +138,7 @@ export function AIAssistant(props: {
             // Reset state, whatever happened during request
             setIsAwaitingLlm(false)
             setUserLlmChatInput("")
+            currentResponse.current = ""
         }
     }
 
@@ -170,6 +197,7 @@ export function AIAssistant(props: {
         } finally {
             setIsAwaitingLlm(false)
             setUserLlmChatInput("")
+            currentResponse.current = ""
         }
     }
 
@@ -181,6 +209,9 @@ export function AIAssistant(props: {
 
     // Disable Send when request is in progress
     const shouldDisableRegenerateButton = !previousUserQuery || isAwaitingLlm
+
+    // Width for the various buttons -- "rengerate", "stop" etc.
+    const buttonWidth = 126
 
     return <Drawer // eslint-disable-line enforce-ids-in-jsx/missing-ids
         title="AI Decision Assistant"
@@ -212,6 +243,27 @@ export function AIAssistant(props: {
                         value={userLlmChatOutput}
                     >
                     </Form.Control>
+                    <Button id="clear-chat-button"
+                            onClick={() => {setUserLlmChatOutput(""); chatHistory.current = []}}
+                            variant="secondary"
+                            style={{
+                                background: MaximumBlue,
+                                borderColor: MaximumBlue,
+                                bottom: 10,
+                                color: "white",
+                                display: isAwaitingLlm ? "none" : "inline",
+                                fontSize: "95%",
+                                opacity: "70%",
+                                position: "absolute",
+                                right: 145,
+                                width: buttonWidth,
+                                zIndex: 99999,
+                            }}
+                    >
+                        <BsStopBtn id="stop-button-icon" size={15} className="mr-2"
+                                   style={{display: "inline"}}/>
+                        Clear chat
+                    </Button>
                     <Button id="stop-output-button"
                             onClick={() => handleStop()}
                             variant="secondary"
@@ -225,7 +277,7 @@ export function AIAssistant(props: {
                                 opacity: "70%",
                                 position: "absolute",
                                 right: 10,
-                                width: 126,
+                                width: buttonWidth,
                                 zIndex: 99999,
                             }}
                     >
@@ -247,7 +299,7 @@ export function AIAssistant(props: {
                                 opacity: shouldDisableRegenerateButton ? "50%" : "70%",
                                 position: "absolute",
                                 right: 10,
-                                width: 126,
+                                width: buttonWidth,
                                 zIndex: 99999
                             }}
                     >
