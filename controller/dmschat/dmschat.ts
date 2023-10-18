@@ -14,10 +14,12 @@ import {ChatMessage} from "langchain/schema";
  * @param callback The callback function to be called when a chunk of data is received from the server.
  * @param signal The AbortSignal object to be used for aborting the request.
  * @param chatHistory The chat history to be sent to the server. Contains user requests and server responses.
+ * @param projectName The name of the project the user is working on.
+ * @param projectDescription The description of the project the user is working on.
  */
 export async function sendDmsChatQuery(userQuery: string, context: object, prescriptorUrl: string,
                                        predictorUrls: string[], callback: (string) => void, signal: AbortSignal,
-                                       chatHistory?: ChatMessage[]) {
+                                       chatHistory?: ChatMessage[], projectName?: string, projectDescription?: string) {
     const res = await  fetch("/api/gpt/dmschat", {
         method: "POST",
         headers: {
@@ -29,7 +31,9 @@ export async function sendDmsChatQuery(userQuery: string, context: object, presc
             context: context,
             predictorUrls: predictorUrls,
             prescriptorUrl: prescriptorUrl,
-            userQuery: userQuery
+            userQuery: userQuery,
+            projectName: projectName,
+            projectDescription: projectDescription
         }),
         signal: signal
     })

@@ -13,7 +13,7 @@ import {sendDmsChatQuery} from "../../../controller/dmschat/dmschat"
 import {StringToStringOrNumber} from "../../../controller/base_types"
 
 /**
- * AI asssistant, initially for DMS page but in theory could be used elsewhere.
+ * AI assistant, initially for DMS page but in theory could be used elsewhere.
  */
 export function AIAssistant(props: {
     predictorUrls: string[]
@@ -22,6 +22,8 @@ export function AIAssistant(props: {
     onClose: () => void
     open: boolean
     resetUndeployModelsTimer: () => void,
+    projectName?: string,
+    projectDescription?: string
 }) {
 
     // User LLM chat input
@@ -66,7 +68,7 @@ export function AIAssistant(props: {
     }
 
     function extractFinalAnswer(response: string) {
-        const finalAnswerRegex = /Final Answer: .*/u
+        const finalAnswerRegex = /Final Answer: .*/su
         return response.match(finalAnswerRegex)
     }
 
@@ -111,7 +113,8 @@ export function AIAssistant(props: {
             // Send the query to the server. Response will be streamed to our callback which updates the output
             // display as tokens are received.
             await sendDmsChatQuery(userQuery, props.contextInputs, props.prescriptorUrl, props.predictorUrls,
-                tokenReceivedHandler, abortController.signal, chatHistory.current)
+                tokenReceivedHandler, abortController.signal, chatHistory.current, props.projectName,
+                props.projectDescription)
 
             // Kick off highlighting final answer
             setTimeout(highlightFinalAnswer, 100, currentResponse.current)
