@@ -134,7 +134,7 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
         classifier: FetchMetrics("classifier")
     }
 
-    // These predictors will ownly be shown in demo mode. As of writing (June 2023) they aren't implement and are
+    // These predictors will only be shown in demo mode. As of writing (June 2023) they aren't implement and are
     // only in the list for demo purposes.
     const demoOnlyPredictors = ["Transformer", "LLM"]
 

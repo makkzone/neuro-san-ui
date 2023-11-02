@@ -350,12 +350,12 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
             "type": "int"
         },
         "criterion": {
-            "default_value": "mse",
+            "default_value": "gini",
             "description": `The function to measure the quality of a split. 
                            Supported criteria are mse for the mean squared error, 
                            which is equal to variance reduction as feature selection 
                            criterion, and mae for the mean absolute error. Options: {'mse', 'mae'}`,
-            "type": ['mse', 'mae']
+            "type": ["gini", "entropy", "log_loss"]
         },
         "max_depth": {
             "default_value": 100,
@@ -367,7 +367,11 @@ export const SUPPORTED_CLASSIFICATION_MODELS: SupportedModels = {
         },
         "min_samples_split": {
             "default_value": 2,
-            "description": "The minimum number of samples required to split an internal node.",
+            "description": `
+            The minimum number of samples required to split an internal node:
+            If int, then consider min_samples_split as the minimum number.
+            If float, then min_samples_split is a fraction and ceil(min_samples_split * n_samples) are the minimum 
+            number of samples for each split.`,
             "type": "float"
         },
         "min_samples_leaf": {
