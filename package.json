@@ -12,9 +12,9 @@
     "about:start": "echo 'Starts the UI in production mode. Requires `build` to have been run beforehand.'",
     "start": "next start",
     "about:unit_test": "echo 'Runs the front-end unit __tests__ using `jest`'",
-    "unit_test": "jest '__tests__/jest' --verbose --config jest.config.ts",
+    "unit_test": "jest '__tests__/unit' --verbose --config jest.config.ts",
     "about:component_test": "echo 'Runs the front-end component-based tests using `jest` and `react-testing-library`'",
-    "component_test": "jest '__tests__/testing_library' --verbose --config jest.config.mjs"
+    "component_test": "jest '__tests__/component' --verbose --config jest.config.mjs"
   },
   "dependencies": {
     "@babel/core": "7.21.4",
