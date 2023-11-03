@@ -8,6 +8,7 @@ import prettyBytes from 'pretty-bytes'
 // eslint-disable-next-line no-shadow
 import status from "http-status"
 import {Button, Checkbox, Collapse, Modal, Radio, RadioChangeEvent, Space, Tooltip} from 'antd'
+import {CheckboxChangeEvent} from "antd/es/checkbox"
 import {Container, Form} from "react-bootstrap"
 import {checkValidity} from "./dataprofile/dataprofileutils";
 import {InfoSignIcon} from "evergreen-ui"
@@ -19,6 +20,7 @@ import Debug from "debug";
 import {Project} from "../../controller/projects/types"
 import {uploadFile} from "../../controller/files/upload"
 import {getFileName, splitFilename, toSafeFilename} from "../../utils/file"
+import BlankLines from "../blanklines"
 
 // Controllers
 import {CreateProfile} from "../../controller/dataprofile/generate"
@@ -33,9 +35,8 @@ import {updateDataSource} from '../../controller/datasources/update'
 import {MaximumBlue} from "../../const"
 import {empty} from "../../utils/objects"
 import {GrpcError} from "../../controller/base_types"
-import {NextRouter, useRouter} from "next/router";
-import BlankLines from "../blanklines";
-import {CheckboxChangeEvent} from "antd/es/checkbox";
+import {NextRouter, useRouter} from "next/router"
+
 
 const debug = Debug("new_project")
 
@@ -308,17 +309,12 @@ export default function NewProject(props: NewProps) {
         </>
     }
 
-    const onChange = (e: CheckboxChangeEvent) => {
-        console.log('checked = ', e.target.checked)
-        setFileUploadAcknowledged(e.target.checked)
-    };
-
     function getFileUploadForm() {
         const uploadButtonTooltip = getUploadButtonTooltip()
 
         return  <Space id="local-file-space"
-                                                                            direction="vertical"
-                                                                            size="middle"
+                direction="vertical"
+                size="middle"
                 >
                     <div id="local-file-upload-div" style={{display: "inline-flex"}}>
                         From a local file
@@ -384,7 +380,9 @@ export default function NewProject(props: NewProps) {
                             : <>
                                 <Checkbox id="agree_checkbox"
                                           checked={fileUploadAcknowledged}
-                                          onChange={onChange}
+                                          onChange={(e: CheckboxChangeEvent) => {
+                                              setFileUploadAcknowledged(e.target.checked)
+                                          }}
                                 >
                                     <strong id="warning">I confirm that the file I am about to upload does NOT contain
                                         sensitive customer data or personally identifiable information (PII).</strong>
