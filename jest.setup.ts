@@ -11,3 +11,9 @@ global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
 
 // End of hack
+
+jest.mock('next/config', () => () => ({
+    publicRuntimeConfig: {
+        enableAuthentication: false
+    }
+}))
