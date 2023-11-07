@@ -1,40 +1,39 @@
-import {useEffect, useState} from "react"
-import {Artifact, Run, Runs} from "../../controller/run/types"
-import {BrowserFetchRuns, FetchSingleRunArtifact} from "../../controller/run/fetch"
-import {constructRunMetricsForRunPlot} from "../../controller/run/results"
-import {empty} from "../../utils/objects"
-import MetricsTable from "../metricstable"
-import ESPRunPlot from "../esprunplot"
-import NewBar from "../newbar"
-import {Button, Col, Container, Row} from "react-bootstrap"
-import {MaximumBlue} from "../../const"
-import ClipLoader from "react-spinners/ClipLoader"
-import Link from "next/link"
-import Flow from "./flow/flow"
-import {ReactFlowProvider} from "reactflow"
-import {NotificationType, sendNotification} from "../../controller/notification"
-import {FlowQueries} from "./flow/flowqueries"
-import SyntaxHighlighter from 'react-syntax-highlighter'
-import {docco} from 'react-syntax-highlighter/dist/cjs/styles/hljs'
-import {useLocalStorage} from "../../utils/use_local_storage"
-import decode from "../../utils/conversion"
-import {useSession} from "next-auth/react"
-import {MultiPareto} from "../pareto/multi_pareto"
-import {NodeType} from "./flow/nodes/types"
-import Tab from 'react-bootstrap/Tab'
-import Tabs from 'react-bootstrap/Tabs'
-import {Radio, RadioChangeEvent, Space} from "antd"
-import ReactMarkdown from "react-markdown"
-import {Project, Projects} from "../../controller/projects/types"
-import {BrowserFetchProjects} from "../../controller/projects/fetch"
 import BlankLines from "../blanklines"
-import {fetchLlmRules} from "../../controller/rules/rules"
-
-import {NextRouter, useRouter} from "next/router"
-
-// Chatbot
+import ClipLoader from "react-spinners/ClipLoader"
+import decode from "../../utils/conversion"
+import ESPRunPlot from "../esprunplot"
+import Flow from "./flow/flow"
+import Link from "next/link"
+import MetricsTable from "../metricstable"
 import NeuroAIChatbot from "./chatbot/neuro_ai_chatbot"
-import {PrescriptorNode} from "./flow/nodes/prescriptornode";
+import NewBar from "../newbar"
+import ReactMarkdown from "react-markdown"
+// This plugin is required to allow react-markdown to render tables and other "exotic" elements
+import remarkGfm from "remark-gfm"
+import SyntaxHighlighter from "react-syntax-highlighter"
+import Tab from "react-bootstrap/Tab"
+import Tabs from "react-bootstrap/Tabs"
+import {Artifact, Run, Runs} from "../../controller/run/types"
+import {BrowserFetchProjects} from "../../controller/projects/fetch"
+import {BrowserFetchRuns, FetchSingleRunArtifact} from "../../controller/run/fetch"
+import {Button, Col, Container, Row} from "react-bootstrap"
+import {constructRunMetricsForRunPlot} from "../../controller/run/results"
+import {docco} from "react-syntax-highlighter/dist/cjs/styles/hljs"
+import {empty} from "../../utils/objects"
+import {fetchLlmRules} from "../../controller/rules/rules"
+import {FlowQueries} from "./flow/flowqueries"
+import {MaximumBlue} from "../../const"
+import {MultiPareto} from "../pareto/multi_pareto"
+import {NextRouter, useRouter} from "next/router"
+import {NodeType} from "./flow/nodes/types"
+import {NotificationType, sendNotification} from "../../controller/notification"
+import {PrescriptorNode} from "./flow/nodes/prescriptornode"
+import {Project, Projects} from "../../controller/projects/types"
+import {Radio, RadioChangeEvent, Space} from "antd"
+import {ReactFlowProvider} from "reactflow"
+import {useEffect, useState} from "react"
+import {useLocalStorage} from "../../utils/use_local_storage"
+import {useSession} from "next-auth/react"
 
 interface RunProps {
     /* 
@@ -406,7 +405,9 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 const insightsWithBreaks = data.response.replace("\\n", "\n")
                 setInsights(insightsWithBreaks)
             } catch (error) {
-                console.debug("error", error)
+                console.error("error", error)
+                // eslint-disable-next-line no-useless-concat
+                setInsights("&nbsp;\n&nbsp;\n" + `### **Unable to retrieve rules insights: '${error.message}**'`)
             } finally {
                 setInsightsLoading(false)
             }
@@ -579,9 +580,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                                                     >
                                                         {interpretedRules}
                                                     </ReactMarkdown>
-                                                    <br id="markdown-br-1"/>
-                                                    <br id="markdown-br-2"/>
-                                                    <br id="markdown-br-3"/>
+                                                    <BlankLines id="bl1" count={3} />
                                                     <h5 id="powered-by">Powered by OpenAI™ GPT-3.5™ technology</h5>
                                                 </div>
                                         }
@@ -613,9 +612,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
                                         <h1 id="insights-h1">Insights</h1>
                                         <h2 id="project-name">{project.name}</h2>
                                         {project.description}
-                                        <BlankLines id="blank-lines-1" numLines={3}/>
-                                        {insights}
-                                        <BlankLines id="blank-lines-1" numLines={3}/>
+                                            <ReactMarkdown  // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                                            // ReactMarkdown doesn't have (or need) an id property.
+                                                remarkPlugins={[remarkGfm]}
+                                            >
+                                                {insights}
+                                            </ReactMarkdown>
+                                        <BlankLines id="bl2" count={3} />
                                         <h5 id="powered-by">Powered by OpenAI™ GPT-3.5™ technology</h5>
                                     </div>
                                 }

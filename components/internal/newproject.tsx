@@ -7,7 +7,8 @@ import ClipLoader from "react-spinners/ClipLoader";
 import prettyBytes from 'pretty-bytes'
 // eslint-disable-next-line no-shadow
 import status from "http-status"
-import {Button, Collapse, Modal, Radio, RadioChangeEvent, Space, Tooltip} from 'antd'
+import {Button, Checkbox, Collapse, Modal, Radio, RadioChangeEvent, Space, Tooltip} from 'antd'
+import {CheckboxChangeEvent} from "antd/es/checkbox"
 import {Container, Form} from "react-bootstrap"
 import {checkValidity} from "./dataprofile/dataprofileutils";
 import {InfoSignIcon} from "evergreen-ui"
@@ -19,6 +20,7 @@ import Debug from "debug";
 import {Project} from "../../controller/projects/types"
 import {uploadFile} from "../../controller/files/upload"
 import {getFileName, splitFilename, toSafeFilename} from "../../utils/file"
+import BlankLines from "../blanklines"
 
 // Controllers
 import {CreateProfile} from "../../controller/dataprofile/generate"
@@ -33,7 +35,8 @@ import {updateDataSource} from '../../controller/datasources/update'
 import {MaximumBlue} from "../../const"
 import {empty} from "../../utils/objects"
 import {GrpcError} from "../../controller/base_types"
-import {NextRouter, useRouter} from "next/router";
+import {NextRouter, useRouter} from "next/router"
+
 
 const debug = Debug("new_project")
 
@@ -101,8 +104,9 @@ export default function NewProject(props: NewProps) {
     const currentUser: string = session.user.name
 
     // For file upload
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [isUploading, setIsUploading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null)
+    const [isUploading, setIsUploading] = useState(false)
+    const [fileUploadAcknowledged, setFileUploadAcknowledged] = useState<boolean>(false)
 
     function getCreateDataProfilePanel() {
         return <Panel id="create-project-or-data-profile-button-panel"
@@ -306,9 +310,11 @@ export default function NewProject(props: NewProps) {
     }
 
     function getFileUploadForm() {
+        const uploadButtonTooltip = getUploadButtonTooltip()
+
         return  <Space id="local-file-space"
-                       direction="vertical"
-                       size="middle"
+                direction="vertical"
+                size="middle"
                 >
                     <div id="local-file-upload-div" style={{display: "inline-flex"}}>
                         From a local file
@@ -371,21 +377,34 @@ export default function NewProject(props: NewProps) {
                                                                     color={MaximumBlue} loading={true} size={14}/>
                                                             </span>
                             </label>
-                            : <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                // 2/6/23 DEF - Tooltip does not have an id property when compiling
-                                title={getUploadButtonTooltip()}>
-                                <Button id="upload-file-button"
-                                        disabled={getUploadButtonTooltip() !== null}
-                                        style={{
-                                            background: MaximumBlue,
-                                            borderColor: MaximumBlue,
-                                            color: "white",
-                                            opacity: isUsingLocalFile && selectedFile ? OPAQUE : SEMI_OPAQUE
-                                        }}
-                                        onClick={handleFileUpload}>
-                                    Upload
-                                </Button>
-                            </Tooltip>
+                            : <>
+                                <Checkbox id="agree_checkbox"
+                                          checked={fileUploadAcknowledged}
+                                          onChange={(e: CheckboxChangeEvent) => {
+                                              setFileUploadAcknowledged(e.target.checked)
+                                          }}
+                                >
+                                    <strong id="warning">I confirm that the file I am about to upload does NOT contain
+                                        sensitive customer data or personally identifiable information (PII).</strong>
+                                </Checkbox>
+                                <BlankLines numLines={2} // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                />
+                                <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                    // 2/6/23 DEF - Tooltip does not have an id property when compiling
+                                    title={uploadButtonTooltip}>
+                                    <Button id="upload-file-button"
+                                            disabled={uploadButtonTooltip !== null}
+                                            style={{
+                                                background: MaximumBlue,
+                                                borderColor: MaximumBlue,
+                                                color: "white",
+                                                opacity: uploadButtonTooltip ? SEMI_OPAQUE : OPAQUE
+                                            }}
+                                            onClick={handleFileUpload}>
+                                        Upload
+                                    </Button>
+                                </Tooltip>
+                             </>
                         }
                     </div>
                 </Space>
@@ -698,6 +717,8 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`)
             return "Only available when using the file upload option"
         } else if (!selectedFile) {
             return "Please select a file first"
+        } else if (!fileUploadAcknowledged) {
+            return "Please check the box to acknowledge that your file does not contain sensitive data"
         } else {
             // returning null means no tooltip shown, meaning the button should be enabled
             return null

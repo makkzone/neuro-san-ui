@@ -2,15 +2,18 @@
  * This is the module for the "AI decision assistant".
  */
 import ClipLoader from "react-spinners/ClipLoader"
+import {BsStopBtn} from "react-icons/bs"
 import {Button, Form, InputGroup} from "react-bootstrap"
+import {ChangeEvent, FormEvent, useRef, useState} from "react"
+import {ChatMessage} from "langchain/schema"
 import {Drawer} from "antd"
+import {FiRefreshCcw} from "react-icons/fi"
 import {MaximumBlue} from "../../../const"
 import {sendDmsChatQuery} from "../../../controller/dmschat/dmschat"
 import {StringToStringOrNumber} from "../../../controller/base_types"
-import {FormEvent, useRef, useState} from "react"
 
 /**
- * AI asssistant, intitially for DMS page but in theory could be used elsewhere.
+ * AI assistant, initially for DMS page but in theory could be used elsewhere.
  */
 export function AIAssistant(props: {
     predictorUrls: string[]
@@ -19,6 +22,8 @@ export function AIAssistant(props: {
     onClose: () => void
     open: boolean
     resetUndeployModelsTimer: () => void,
+    projectName?: string,
+    projectDescription?: string
 }) {
 
     // User LLM chat input
@@ -35,18 +40,63 @@ export function AIAssistant(props: {
 
     // Ref for output text area, so we can auto scroll it
     const llmOutputTextAreaRef = useRef(null)
-    
-    function tokenReceived(token: string) {
+
+    // Ref for user input text area, so we can handle shift-enter
+    const inputAreaRef = useRef(null)
+
+    // Controller for cancelling fetch request
+    const controller = useRef<AbortController>(null)
+
+    // Use useRef here since we don't want changes in the chat history to trigger a re-render
+    const chatHistory = useRef<ChatMessage[]>([])
+
+    // To accumulate current response, which will be different than the contents of the output window if there is a
+    // chat session
+    const currentResponse = useRef<string>("")
+
+    /**
+     * Handles a token received from the LLM via callback on the fetch request.
+     * @param token The token received from the LLM
+     */
+    function tokenReceivedHandler(token: string) {
         // Auto scroll as response is generated
         if (llmOutputTextAreaRef.current) {
             llmOutputTextAreaRef.current.scrollTop = llmOutputTextAreaRef.current.scrollHeight
         }
-        setUserLlmChatOutput((currentOutput) => currentOutput + token);
+        currentResponse.current += token
+        setUserLlmChatOutput((currentOutput) => currentOutput + token)
     }
 
-// Sends user query to backend.
+    function extractFinalAnswer(response: string) {
+        const finalAnswerRegex = /Final Answer: .*/su
+        return response.match(finalAnswerRegex)
+    }
+
+    /**
+     * Highlights the final answer in the LLM output.
+     */
+    function highlightFinalAnswer(response: string) {
+        // Highlight final answer
+        const llmOutputTextArea = llmOutputTextAreaRef.current
+        if (llmOutputTextArea && response) {
+            const llmOutputText = llmOutputTextArea.value
+            const finalAnswerMatch = extractFinalAnswer(response)
+            if (finalAnswerMatch) {
+                const finalAnswer = finalAnswerMatch[0]
+                const finalAnswerIndex = llmOutputText.indexOf(finalAnswer)
+                const finalAnswerLength = finalAnswer.length
+                llmOutputTextArea.setSelectionRange(finalAnswerIndex, finalAnswerIndex + finalAnswerLength)
+                llmOutputTextArea.focus()
+            }
+        }
+    }
+
+    // Sends user query to backend.
     async function sendQuery(userQuery: string) {
         try {
+            // Record user query in chat history
+            chatHistory.current = [...chatHistory.current, new ChatMessage(userQuery, "human")]
+
             setPreviousUserQuery(userQuery)
 
             // User interacted so reset timer
@@ -55,21 +105,54 @@ export function AIAssistant(props: {
             setIsAwaitingLlm(true)
 
             // Always start output by echoing user query
-            setUserLlmChatOutput(`Query: ${userQuery}\n\n`)
+            setUserLlmChatOutput((currentOutput) => currentOutput + `Query: ${userQuery}\n\nResponse:\n\n`)
+
+            const abortController = new AbortController();
+            controller.current = abortController
 
             // Send the query to the server. Response will be streamed to our callback which updates the output
             // display as tokens are received.
             await sendDmsChatQuery(userQuery, props.contextInputs, props.prescriptorUrl, props.predictorUrls,
-                tokenReceived)
-        } catch (e) {
-            setUserLlmChatOutput(`Internal error: \n\n${e}\n 
-More information may be available in the browser console.`)
-            console.error(e.stack)
+                tokenReceivedHandler, abortController.signal, chatHistory.current, props.projectName,
+                props.projectDescription)
+
+            // Kick off highlighting final answer
+            setTimeout(highlightFinalAnswer, 100, currentResponse.current)
+
+            // Add a couple of blank lines after response
+            setUserLlmChatOutput((currentOutput) => currentOutput + "\n\n")
+
+            // Record bot answer in history. Only record the final answer or we will end up using a crazy amount of
+            // tokens.
+            const finalAnswer = extractFinalAnswer(currentResponse.current)
+            if (finalAnswer && finalAnswer.length > 0) {
+                chatHistory.current = [...chatHistory.current, new ChatMessage(finalAnswer[0], "ai")]
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                setUserLlmChatOutput((currentOutput) => currentOutput + "\n\nRequest cancelled.");
+            } else {
+                setUserLlmChatOutput(
+                    `Internal error: \n\n${error}\n More information may be available in the browser console.`)
+            }
+
+            console.error(error.stack)
         } finally {
             // Reset state, whatever happened during request
             setIsAwaitingLlm(false)
             setUserLlmChatInput("")
+            currentResponse.current = ""
         }
+    }
+
+    /**
+     * Tests if input contains only whitespace (meaning, not a valid query)
+     *
+     * @param input Input to be tested
+     * @returns True if input contains only whitespace, false otherwise
+     */
+    function isEmptyExceptForWhitespace(input: string) {
+        return !(/\S/u).test(input);
     }
 
     /**
@@ -84,19 +167,54 @@ More information may be available in the browser console.`)
         await sendQuery(userLlmChatInput)
     }
 
-    const handleUserLlmChatInputChange = (event) => {
-        const inputText = event.target.value
-        setUserLlmChatInput(inputText)
-    };
+    const handleInputAreaChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        // Check if enter key was pressed. Seems a bit of a cheesy way to do it but couldn't find a better way in
+        // this event handler, given what is passed as the Event.
+        const isEnter = "inputType" in event.nativeEvent && event.nativeEvent.inputType === "insertLineBreak"
+
+        // Enter key is handled by KeyUp handler, so ignore it here
+        if (!isEnter) {
+            const inputText = event.target.value
+            setUserLlmChatInput(inputText)
+        }
+    }
+
+    async function handleInputAreaKeyUp(event) {
+        // If shift enter pressed, just add a newline. Otherwise, if enter pressed, send query.
+        if (event.key === "Enter") {
+            if (!event.shiftKey) {
+                if (!isEmptyExceptForWhitespace(userLlmChatInput)) {
+                    event.preventDefault()
+                    await sendQuery(userLlmChatInput)
+                }
+            } else {
+                setUserLlmChatInput(userLlmChatInput + "\n")
+            }
+        }
+    }
+
+    function handleStop() {
+        try {
+            controller?.current?.abort("User cancelled request")
+            controller.current = null
+        } finally {
+            setIsAwaitingLlm(false)
+            setUserLlmChatInput("")
+            currentResponse.current = ""
+        }
+    }
 
     // Regex to check if user has typed anything besides whitespace
-    const userInputEmpty = !(/\S/u).test(userLlmChatInput)
+    const userInputEmpty = isEmptyExceptForWhitespace(userLlmChatInput)
 
     // Disable Send when request is in progress
     const shouldDisableSendButton = userInputEmpty || isAwaitingLlm
 
     // Disable Send when request is in progress
     const shouldDisableRegenerateButton = !previousUserQuery || isAwaitingLlm
+
+    // Width for the various buttons -- "regenerate", "stop" etc.
+    const buttonWidth = 126
 
     return <Drawer // eslint-disable-line enforce-ids-in-jsx/missing-ids
         title="AI Decision Assistant"
@@ -117,47 +235,97 @@ More information may be available in the browser console.`)
                         ref={llmOutputTextAreaRef}
                         as="textarea"
                         style={{
-                            whiteSpace: "pre-wrap",
-                            height: "100%",
                             background: "ghostwhite",
                             borderColor: MaximumBlue,
-                            resize: "none",
                             fontFamily: "monospace",
-                            fontSize: "smaller"
+                            fontSize: "smaller",
+                            height: "100%",
+                            resize: "none",
+                            whiteSpace: "pre-wrap"
                         }}
                         value={userLlmChatOutput}
                     >
                     </Form.Control>
+                    <Button id="clear-chat-button"
+                            onClick={() => {setUserLlmChatOutput(""); chatHistory.current = []}}
+                            variant="secondary"
+                            style={{
+                                background: MaximumBlue,
+                                borderColor: MaximumBlue,
+                                bottom: 10,
+                                color: "white",
+                                display: isAwaitingLlm ? "none" : "inline",
+                                fontSize: "95%",
+                                opacity: "70%",
+                                position: "absolute",
+                                right: 145,
+                                width: buttonWidth,
+                                zIndex: 99999,
+                            }}
+                    >
+                        <BsStopBtn id="stop-button-icon" size={15} className="mr-2"
+                                   style={{display: "inline"}}/>
+                        Clear chat
+                    </Button>
+                    <Button id="stop-output-button"
+                            onClick={() => handleStop()}
+                            variant="secondary"
+                            style={{
+                                background: MaximumBlue,
+                                borderColor: MaximumBlue,
+                                bottom: 10,
+                                color: "white",
+                                display: isAwaitingLlm ? "inline" : "none",
+                                fontSize: "95%",
+                                opacity: "70%",
+                                position: "absolute",
+                                right: 10,
+                                width: buttonWidth,
+                                zIndex: 99999,
+                            }}
+                    >
+                        <BsStopBtn id="stop-button-icon" size={15} className="mr-2"
+                                      style={{display: "inline"}}/>
+                        Stop
+                    </Button>
                     <Button id="regenerate-output-button"
                             onClick={() => sendQuery(previousUserQuery)}
                             disabled={shouldDisableRegenerateButton}
                             variant="secondary"
                             style={{
-                                bottom: 10,
-                                fontSize: "95%",
-                                position: "absolute",
-                                right: 10,
-                                zIndex: 99999,
                                 background: MaximumBlue,
                                 borderColor: MaximumBlue,
-                                opacity: shouldDisableRegenerateButton ? "50%" : "70%",
+                                bottom: 10,
                                 color: "white",
+                                display: isAwaitingLlm ? "none" : "inline",
+                                fontSize: "95%",
+                                opacity: shouldDisableRegenerateButton ? "50%" : "70%",
+                                position: "absolute",
+                                right: 10,
+                                width: buttonWidth,
+                                zIndex: 99999
                             }}
                     >
-                        ⟳ Regenerate
+                        <FiRefreshCcw id="generate-icon" size={15} className="mr-2"
+                                      style={{display: "inline"}}/>
+                        Regenerate
                     </Button>
                 </div>
                 <div id="user-input-div" style={{display: "flex"}}>
                     <InputGroup id="user-input-group">
                         <Form.Control
+                            as="textarea"
                             id="user-input"
-                            onChange={handleUserLlmChatInputChange}
+                            onChange={handleInputAreaChange}
+                            onKeyUp={handleInputAreaKeyUp}
                             placeholder="What are the current prescribed actions?"
-                            value={userLlmChatInput}
+                            ref={inputAreaRef}
                             style={{
-                              marginLeft: "7px",
-                              fontSize: "90%"
+                                fontSize: "90%",
+                                marginLeft: "7px"
                             }}
+                            rows={3}
+                            value={userLlmChatInput}
                         />
                         <Button id="clear-input-button"
                                 onClick={() => setUserLlmChatInput("")}
@@ -165,7 +333,8 @@ More information may be available in the browser console.`)
                                     backgroundColor: "transparent",
                                     border: "none",
                                     fontWeight: 550,
-                                    left: "calc(100% - 30px)",
+                                    left: "calc(100% - 45px)",
+                                    top: 10,
                                     lineHeight: "35px",
                                     position: "absolute",
                                     width: "10px",
