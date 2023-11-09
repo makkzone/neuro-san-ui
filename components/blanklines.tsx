@@ -9,6 +9,8 @@
  */
 export default function BlankLines(props) {
     return <>
+        {/*Safe to use index since list will never be modified*/}
+        {/* eslint-disable-next-line react/no-array-index-key */}
         {[...Array(props.numLines)].map((_, i) => <br id={`end-whitespace-${i}`} key={i}/>)}
     </>
 } 

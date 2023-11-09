@@ -34,10 +34,12 @@ type PrescriptorEdgeData = {
 
 export type PrescriptorEdge = Edge<PrescriptorEdgeData>;
 
+const EMPTY_OBJECT = {}
+
 const PrescriptorEdgeComponent: FC<EdgeProps<PrescriptorEdgeData>>  = ({ id, sourceX, sourceY,
                                         targetX, targetY,
                                         sourcePosition, targetPosition,
-                                        style = {}, data, markerEnd}) => {
+                                        style = EMPTY_OBJECT, data, markerEnd}) => {
     const [edgePath, edgeCenterX, edgeCenterY] = getBezierPath({
         sourceX,
         sourceY,

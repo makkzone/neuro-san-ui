@@ -994,6 +994,8 @@ export default function Flow(props: FlowProps) {
         }
 
         // If this delete will remove all predictors, also delete the prescriptor
+        let newEdges = currentEdges
+        let newNodes = currentNodes
         const numPredictorNodesLeft = FlowQueries.getPredictorNodes(currentNodes).length - predictorIdsBeingRemoved.length
         if (numPredictorNodesLeft == 0) {
             removableNodes.push(...prescriptorNodes)
@@ -1009,7 +1011,7 @@ export default function Flow(props: FlowProps) {
                     .flatMap(node => getIncomers<NodeData, ConfigurableNodeData>(node, currentNodes, currentEdges)
                         .filter(aNode => aNode.type === "predictornode"))
                 for (const node of predictorNodesWithUncertaintyNodesBeingRemoved) {
-                    currentEdges = _addEdgeToPrescriptorNode(currentEdges, node.id, prescriptorNodes[0].id)
+                    newEdges = _addEdgeToPrescriptorNode(currentEdges, node.id, prescriptorNodes[0].id)
                 }
             }
 
@@ -1022,21 +1024,21 @@ export default function Flow(props: FlowProps) {
             // Default to maximizing outcomes until user tells us otherwise
             const fitness = outcomes.map(outcome => ({metric_name: outcome, maximize: true}))
 
-            currentNodes = currentNodes.map(node => {
-                if (node.type === "prescriptornode") {
-                    node = node as PrescriptorNode
-                    node.data = {
-                        ...node.data,
+            newNodes = currentNodes.map(singleNode => {
+                const prescriptorNode = singleNode as PrescriptorNode
+                if (singleNode.type === "prescriptornode") {
+                    prescriptorNode.data = {
+                        ...prescriptorNode.data,
                         ParentPrescriptorState: {
-                            ...node.data.ParentPrescriptorState,
+                            ...prescriptorNode.data.ParentPrescriptorState,
                             evolution: {
-                                ...node.data.ParentPrescriptorState.evolution,
+                                ...prescriptorNode.data.ParentPrescriptorState.evolution,
                                 fitness
                             }
                         }
                     }
                 }
-                return node
+                return prescriptorNode
             })
         }
 
@@ -1060,15 +1062,15 @@ export default function Flow(props: FlowProps) {
             type: "remove",
             id: element.id
         }))
-        const remainingNodes = applyNodeChanges<NodeData>(nodeChanges, currentNodes) as NodeType[]
 
+        const remainingNodes = applyNodeChanges<NodeData>(nodeChanges, newNodes) as NodeType[]
 
         const edgeChanges = removableEdges.map<EdgeRemoveChange>(element => ({
             type: "remove",
             id: element.id
         }))
         
-        const remainingEdges = applyEdgeChanges(edgeChanges, currentEdges) as EdgeType[]
+        const remainingEdges = applyEdgeChanges(edgeChanges, newEdges) as EdgeType[]
         
         // Update the flow, removing the deleted nodes
         setNodes(remainingNodes)

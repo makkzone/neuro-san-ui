@@ -124,7 +124,7 @@ export default function ESPRunPlot(props: EspRunPlotProps) {
                                 className="ml-4 fs-4 my-auto">
                             No prescriptors found.
                         </span>
-                        <div id="prescriptor-metrics-break" className="break"></div>
+                        <div id="prescriptor-metrics-break" className="break" />
                     </span>
                     <br id="prescriptor-metrics-instructions"/>
                     Navigate to the Runs table and view the error logs for your Run to see what went wrong.

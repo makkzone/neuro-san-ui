@@ -9,10 +9,12 @@ type PredictorEdgeData = null;
 
 export type PredictorEdge = Edge<PredictorEdgeData>;
 
+const EMPTY_OBJECT = {}
+
 const PredictorEdgeComponent: React.FC<EdgeProps<PredictorEdgeData>> = ({ id, sourceX, sourceY,
                                         targetX, targetY,
                                         sourcePosition, targetPosition,
-                                        style = {}, markerEnd}) => {
+                                        style = EMPTY_OBJECT, markerEnd}) => {
     const [edgePath] = getBezierPath({
         sourceX,
         sourceY,

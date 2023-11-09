@@ -187,8 +187,7 @@ export function undeployRunUsingBeacon(project_id: number,
 export async function undeployRun(project_id: number,
                                   run: Run
 // Typescript lib uses "any" so we have to as well
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any> {
+) {
 
     // Get deployment ID that we want to undeploy
     const deployment_id: string = generateDeploymentID(
@@ -216,10 +215,7 @@ export async function undeployRun(project_id: number,
 
         if (response.status != 200) {
             console.error("Error:", response.statusText)
-            return new Promise<null>(null)
         }
-
-        return response.json()
     } catch (e) {
         console.error(e, e.stack)
     }
@@ -319,18 +315,19 @@ async function getModels(
         }
 
         const modelsObject = await response.json()
-        const modelsArray = modelsObject.models
+        const modelsArray: string[] = modelsObject.models
 
         // Pull out predictor, prescriptor and RIO models
         const predictors = modelsArray
-            .filter(model => model.startsWith("predictor"))
-            .map(model => [model, getModelInferenceUrl(baseUrl, model)])
+            .filter((model: string) => model.startsWith("predictor"))
+            .map((model: string) => [model, getModelInferenceUrl(baseUrl, model)])
         const prescriptors = modelsArray
-            .filter(model => model.startsWith("prescriptor") && !model.startsWith("prescriptor-text") && model.endsWith(`-${cid}`))
-            .map(model => [model, getModelInferenceUrl(baseUrl, model)])
+            .filter((model: string) => model.startsWith("prescriptor") && !model.startsWith("prescriptor-text")
+                && model.endsWith(`-${cid}`))
+            .map((model: string) => [model, getModelInferenceUrl(baseUrl, model)])
         const rioModels = modelsArray
-            .filter(model => model.startsWith("rio"))
-            .map(model => [model, getModelInferenceUrl(baseUrl, model)])
+            .filter((model: string) => model.startsWith("rio"))
+            .map((model: string) => [model, getModelInferenceUrl(baseUrl, model)])
 
         return {
             predictors: predictors,

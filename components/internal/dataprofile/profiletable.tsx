@@ -1,6 +1,6 @@
 import {Col, Container, Form, ListGroup, Row} from "react-bootstrap"
 import {AiFillDelete, AiFillEdit, AiFillWarning} from "react-icons/ai"
-import {useState} from "react"
+import {MouseEvent as ReactMouseEvent, useState} from "react"
 import {Button, Input, Modal, Space} from 'antd'
 import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd'
 import {DataType} from "../../../controller/datatag/types"
@@ -8,14 +8,15 @@ import {empty} from "../../../utils/objects"
 import {reasonToHumanReadable} from "../../../controller/datasources/types"
 import {Profile} from "../../../controller/dataprofile/types"
 import NeuroAIChatbot from "../chatbot/neuro_ai_chatbot"
+import {ReactElement} from "react";
 
-interface ProfiletableProps {
+interface ProfileTableProps {
     id: string
     Profile: Profile
     ProfileUpdateHandler: (value: Profile) => void
 }
 
-export default function ProfileTable(props: ProfiletableProps) {
+export default function ProfileTable(props: ProfileTableProps) {
     const profile = props.Profile
     const setProfile = props.ProfileUpdateHandler
     const [fieldBeingEditedName, setFieldBeingEditedName] = useState(null)
@@ -39,7 +40,7 @@ export default function ProfileTable(props: ProfiletableProps) {
     ]
     
     // Create Table header elements
-    const tableHeaderElements: React.ReactElement[] = [];
+    const tableHeaderElements: ReactElement[] = [];
 
     function isContinuous(field: string) {
         return fields[field].valued === "CONTINUOUS"
@@ -172,7 +173,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                                 }
                             </select>
                             <button id={ `${field}-set-current-category-values` }
-                                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
                                     // Don't want to submit form here!
                                     e.preventDefault()
 
@@ -305,7 +306,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                 open={showFieldEditor}
                 destroyOnClose={true}
                 closable={false}
-                onOk={(e: React.MouseEvent<HTMLElement>) => {
+                onOk={(e: ReactMouseEvent<HTMLElement>) => {
                     // Don't want to submit form here!
                     e.preventDefault()
 
@@ -415,8 +416,7 @@ export default function ProfileTable(props: ProfiletableProps) {
                                     setNewItem(event.target.value)
                                 }
                             }
-                        >
-                        </Input>
+                         />
                         <Button id="add-category-value-button"
                             type="primary"
                             onClick={() => {

@@ -130,8 +130,7 @@ export default function NewProject(props: NewProps) {
                               </Button>
                           </Tooltip>
                       }
-                      key="4">
-        </Panel>
+                      key="4" />
     }
 
     function getProfileTablePanel() {
@@ -526,7 +525,7 @@ export default function NewProject(props: NewProps) {
             tmpProjectId = accessionProjectResp.id
         }
 
-        let datasetName
+        let datasetName: string
         if (isUsingLocalFile) {
             // If it's a file upload, use the name of the file the user selected for the dataset name.
             datasetName = selectedFile.name

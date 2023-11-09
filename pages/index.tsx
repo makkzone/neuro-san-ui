@@ -134,8 +134,7 @@ export default function Index(): React.ReactElement {
                       </Description>
                   }
               </div>
-              <Right id="right">
-              </Right>
+              <Right id="right" />
           </LeftRight>
 
       </Marginer>

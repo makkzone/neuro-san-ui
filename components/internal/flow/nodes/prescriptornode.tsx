@@ -140,6 +140,9 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                         case "ACTION":
                             CAOState.action[fieldName] = CAOState.action[fieldName] ?? true
                             break
+                        default:
+                            // Not interested in other CAO types here
+                            break
                     }
                 })
             }

@@ -49,7 +49,7 @@ export function MultiPareto(props: ParetoPlotProps): ReactElement {
     ]
     
     // Figure out default plot to use based on number of objectives
-    let defaultPlot
+    let defaultPlot: number
     if (objectivesCount === 2) {
         defaultPlot = 1
     } else if (objectivesCount === 3) {
@@ -84,9 +84,9 @@ export function MultiPareto(props: ParetoPlotProps): ReactElement {
 
         cells.push(
             <Table.Row id={`pareto-plot-row=${idx}`} style={{height: "100%"}} key={`${nodeID}-pareto`}>
-                <Table.TextCell id={`pareto-plot-text-cell-${idx}`} key={`pareto-plot-text-cell-${idx}`}
+                <Table.TextCell id={`pareto-plot-text-cell-${idx}`} key={nodeID}
                                 style={{paddingLeft: 0}}>
-                    <div id={`pareto-plot-div-${idx}`} key={`pareto-plot-div-${idx}`} className="pb-28"
+                    <div id={`pareto-plot-div-${idx}`} key={`pareto-plot-div-${nodeID}`} className="pb-28"
                          style={{height: "600px", width: "100%"}}>
                         
                         {/* Choose type of plot component based on user selection */}

@@ -244,8 +244,7 @@ export function AIAssistant(props: {
                             whiteSpace: "pre-wrap"
                         }}
                         value={userLlmChatOutput}
-                    >
-                    </Form.Control>
+                     />
                     <Button id="clear-chat-button"
                             onClick={() => {setUserLlmChatOutput(""); chatHistory.current = []}}
                             variant="secondary"

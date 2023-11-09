@@ -201,11 +201,9 @@ export default function RunPage(props: RunProps): React.ReactElement {
             } else {
                 sendNotification(NotificationType.error, "Internal error",
                     `Unexpected number of runs returned: ${runs.length} for run ${runID}`)
-                return null
             }
         } else {
             sendNotification(NotificationType.error, "Internal error", "No run ID passed")
-            return null
         }
     }
 
