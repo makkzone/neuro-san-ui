@@ -1,3 +1,0 @@
-ignore-patterns: ["auth0/*"]
-ignores: ["@babel/core", "@jest/types", "@types/*", "autoprefixer", "jest", "jest-environment-jsdom", "sharp", "ts-node", "ts-jest"]
-specials: ["eslint", "jest", "tslint", "typescript"]
