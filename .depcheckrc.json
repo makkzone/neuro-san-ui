@@ -10,6 +10,7 @@
     "eslint-formatter-summary",
     "jest",
     "jest-environment-jsdom",
+    "prettier",
     "sharp",
     "ts-node",
     "ts-jest"
