@@ -20,7 +20,7 @@
         "about:component_test": "echo 'Runs the front-end component-based tests using `jest` and `react-testing-library`'",
         "component_test": "jest '__tests__/component' --verbose --config jest.config.mjs",
         "about:check-format": "Runs prettier to check if the code is formatted correctly",
-        "check-format": "prettier --check ./**/*.{js,jsx,ts,tsx,json,html,css,md}"
+        "check-format": "prettier --check ."
     },
     "dependencies": {
         "@babel/core": "7.21.4",

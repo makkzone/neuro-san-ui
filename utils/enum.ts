@@ -9,6 +9,6 @@
  * @return The key corresponding to <code>enuValue<code>> or <code>null</code> if not found.
  */
 export function getEnumKeyByEnumValue(myEnum, enumValue) {
-    const keys = Object.keys(myEnum).filter(x => myEnum[x] == enumValue);
-    return keys.length > 0 ? keys[0] : null;
+    const keys = Object.keys(myEnum).filter((x) => myEnum[x] == enumValue)
+    return keys.length > 0 ? keys[0] : null
 }
