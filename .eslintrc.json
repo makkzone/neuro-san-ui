@@ -144,21 +144,20 @@
                 "newlines-between": "always"
             }
         ],
-        "import/no-extraneous-dependencies": [
-            "error",
-            {
-                // Specify current dir and embed subdir as packageDirs. This is not optimal as it means (I think?!)
-                // an import will be considered okay if it's in *either* of the package.jsons. But without this, the
-                // rule flags errors in the embed dir modules.
-                "packageDir": [
-                    ".",
-                    "./embed"
-                ]
-            }
-        ],
+        "import/no-extraneous-dependencies": "error",
         "import/no-named-as-default-member": "error",
         "import/no-self-import": "error",
         "import/no-useless-path-segments": "error",
+        "import/no-unresolved": [
+            "error",
+            {
+                "ignore": [
+                    // Was causing false positives in CI. Needs to be investigated. Probably related to it being used
+                    // in a subdirectory with its own package.json.
+                    "dotenv"
+                ]
+            }
+        ],
         "sort-imports": [
             "error",
             {
