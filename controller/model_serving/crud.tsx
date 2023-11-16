@@ -1,3 +1,5 @@
+import httpStatus from "http-status"
+
 import {
     DeployedModel,
     Deployments,
@@ -13,7 +15,7 @@ import {MD_BASE_URL} from "../../const"
 import {toSafeFilename} from "../../utils/file"
 import {StringString} from "../base_types"
 import {NotificationType, sendNotification} from "../notification"
-import {Run} from "../run/types"
+import {PredictorParams, PrescriptorParams, RioParams, Run} from "../run/types"
 
 // For deploying models
 const DEPLOY_MODELS_ROUTE = `${MD_BASE_URL}/api/v1/serving/deploy`
@@ -366,4 +368,64 @@ export async function checkIfModelsDeployed(runID: number, prescriptorIDToDeploy
         }
     }
     return models
+}
+
+/**
+ *  "Vectorize" inputs as required by API. Meaning each input has to be a single-element array.
+ * @param inputs An object with keys each mapping to a string or number.
+ * @return An object with the same keys and values, where each value is now in a single-element array.
+ * See {@link PredictorParams} for specification.
+ */
+export function vectorize(inputs: {[key: string]: string | number}): PredictorParams {
+    return Object.fromEntries(Object.entries(inputs).map(([k, v]) => [k, [v]]))
+}
+
+/**
+ * Query a model for a given set of inputs. The model must have already been deployed by a preceding call to
+ * {@link deployRun} and is specified by its URL.
+ * The inputs are specified as a set of vectorized name-value inputs. See {@link vectorize} for more details.
+ * See {@link PredictorParams} for specification.
+ *
+ * @param modelUrl URL of the model to query
+ * @param inputs An object with keys each mapping to a single-element array of strings or numbers.
+ */
+export async function queryModel(
+    modelUrl: string,
+    inputs: PredictorParams | PrescriptorParams | RioParams
+    // Typescript lib uses "any" so we have to as well
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> {
+    try {
+        const body = JSON.stringify({
+            url: modelUrl,
+            method: "POST",
+            payload: inputs,
+        })
+
+        const response = await fetch(`${MD_BASE_URL}/api/v1/passthrough`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            body: body,
+        })
+
+        if (response.status !== httpStatus.OK) {
+            return {
+                error: `Failed to query model at ${modelUrl}`,
+                description: `Error code ${response.status}, response: ${(await response.json())?.error}`,
+            }
+        }
+
+        return await response.json()
+    } catch (e) {
+        console.error("Unable to access model", modelUrl)
+        console.error(e, e.stack)
+        return {
+            error: "Model access error",
+            description: `Failed to query model at ${modelUrl}. Error: ${e.message}`,
+        }
+    }
 }
