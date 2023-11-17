@@ -612,12 +612,12 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                         event.preventDefault()
                         Modal.confirm({
                             title: (
-                                <span id={`delete-confirm-${runName}-title`}>
+                                <span id={`terminate-confirm-${runName}-title`}>
                                     Terminate in-progress training run &quot;{runName}&quot;?
                                 </span>
                             ),
                             content: (
-                                <span id={`delete-confirm-${runName}-message`}>
+                                <span id={`terminate-confirm-${runName}-message`}>
                                     This cannot be undone. All existing training progress will be lost.
                                 </span>
                             ),

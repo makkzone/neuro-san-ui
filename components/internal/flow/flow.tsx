@@ -70,7 +70,7 @@ interface FlowProps {
     ElementsSelectable: boolean
 
     // Used to differentiate Id's in drawer vs outside
-    idOrigin?: string
+    idExtension?: string
 }
 
 /**
@@ -87,7 +87,7 @@ export default function Flow(props: FlowProps) {
 
     const projectId = props.ProjectID
 
-    const idOrigin = props.idOrigin
+    const idExtension = props.idExtension
 
     const setParentState = props.SetParentState
 
@@ -105,14 +105,14 @@ export default function Flow(props: FlowProps) {
                     case "datanode":
                         node.data = {
                             ...node.data,
-                            idOrigin,
+                            idExtension,
                             SelfStateUpdateHandler: DataNodeStateUpdateHandler,
                         }
                         break
                     case "predictornode":
                         node.data = {
                             ...node.data,
-                            idOrigin,
+                            idExtension,
                             SetParentPredictorState: state => PredictorSetStateHandler(state, node.id),
                             DeleteNode: nodeId => _deleteNodeById(nodeId),
                             GetElementIndex: nodeId => _getElementIndex(nodeId),
@@ -121,7 +121,7 @@ export default function Flow(props: FlowProps) {
                     case "prescriptornode":
                         node.data = {
                             ...node.data,
-                            idOrigin,
+                            idExtension,
                             SetParentPrescriptorState: state => PrescriptorSetStateHandler(state, node.id),
                             DeleteNode: nodeId => _deleteNodeById(nodeId),
                             GetElementIndex: nodeId => _getElementIndex(nodeId),
@@ -131,7 +131,7 @@ export default function Flow(props: FlowProps) {
                         // Backward compatibility -- "uncertaintymodelnode" are now "configurableNode"
                         node.data = {
                             ...node.data,
-                            idOrigin,
+                            idExtension,
                             SetParentNodeState: state => ParentNodeSetStateHandler(state, node.id),
                             DeleteNode: nodeId => _deleteNodeById(nodeId),
                             GetElementIndex: nodeId => _getElementIndex(nodeId),
@@ -144,7 +144,7 @@ export default function Flow(props: FlowProps) {
                     case "prescriptoredge":
                         node.data = {
                             ...node.data,
-                            idOrigin,
+                            idExtension,
                             UpdateOutputOverrideCode: value => UpdateOutputOverrideCode(node.id, value),
                         }
                         break
@@ -152,7 +152,7 @@ export default function Flow(props: FlowProps) {
                     case "category_reducer_node":
                         node.data = {
                             ...node.data,
-                            idOrigin,
+                            idExtension,
                             SetParentNodeState: state => ParentNodeSetStateHandler(state, node.id),
                             DeleteNode: nodeId => _deleteNodeById(nodeId),
                             GetElementIndex: nodeId => _getElementIndex(nodeId),
@@ -363,7 +363,7 @@ export default function Flow(props: FlowProps) {
             data: {
                 ProjectID: projectId,
                 SelfStateUpdateHandler: DataNodeStateUpdateHandler,
-                idOrigin,
+                idExtension,
             },
             position: {x: 500, y: 500},
         }
@@ -384,7 +384,7 @@ export default function Flow(props: FlowProps) {
             data: {
                 OutputOverrideCode: OutputOverrideCode,
                 UpdateOutputOverrideCode: value => UpdateOutputOverrideCode(edgeId, value),
-                idOrigin,
+                idExtension,
             },
         }
         edgesCopy.push(edge)
@@ -498,7 +498,7 @@ export default function Flow(props: FlowProps) {
                 SetParentPredictorState: state => PredictorSetStateHandler(state, NodeID),
                 DeleteNode: predictorNodeId => _deleteNodeById(predictorNodeId),
                 GetElementIndex: id => _getElementIndex(id),
-                idOrigin,
+                idExtension,
             },
             position: {
                 x: nodes[0].position.x + 250,
@@ -651,7 +651,7 @@ export default function Flow(props: FlowProps) {
                 UpdateEvaluateOverrideCode: value => UpdateOutputOverrideCode(NodeID, value),
                 DeleteNode: prescriptorNodeId => _deleteNodeById(prescriptorNodeId),
                 GetElementIndex: id => _getElementIndex(id),
-                idOrigin,
+                idExtension,
             },
             position: {
                 x: prescriptorNodeXPos,
@@ -744,7 +744,7 @@ export default function Flow(props: FlowProps) {
                     GetElementIndex: id => _getElementIndex(id),
                     ParameterSet: UNCERTAINTY_MODEL_PARAMS,
                     NodeTitle: "Uncertainty Model",
-                    idOrigin,
+                    idExtension,
                 },
                 position: {
                     x: uncertaintyNodeXPos,
@@ -813,7 +813,7 @@ export default function Flow(props: FlowProps) {
                 GetElementIndex: nodeID => _getElementIndex(nodeID),
                 ParameterSet: LLM_MODEL_PARAMS_DATA_LLM,
                 NodeTitle: "Confabulation LLM",
-                idOrigin,
+                idExtension,
             },
             position: {
                 x: dataNode.position.x + 200,
@@ -845,7 +845,7 @@ export default function Flow(props: FlowProps) {
                 GetElementIndex: nodeID => _getElementIndex(nodeID),
                 ParameterSet: LLM_MODEL_PARAMS_CATEGORY_REDUCER,
                 NodeTitle: "Category Reducer LLM",
-                idOrigin,
+                idExtension,
             },
             position: {
                 x: dataNode.position.x + 200,
@@ -877,7 +877,7 @@ export default function Flow(props: FlowProps) {
                 GetElementIndex: newNodeID => _getElementIndex(newNodeID),
                 ParameterSet: LLM_MODEL_PARAMS2,
                 NodeTitle: "Analytics LLM",
-                idOrigin,
+                idExtension,
             },
             position: {
                 x: dataNode.position.x + 200,
@@ -927,7 +927,7 @@ export default function Flow(props: FlowProps) {
                     GetElementIndex: nodeID => _getElementIndex(nodeID),
                     ParameterSet: LLM_MODEL_PARAMS3,
                     NodeTitle: "Actuation LLM",
-                    idOrigin,
+                    idExtension,
                 },
                 position: {
                     x: dataNode.position.x + 200,

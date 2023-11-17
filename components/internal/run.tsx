@@ -50,7 +50,7 @@ interface RunProps {
     RunID: number
     setRuns: (arg: Runs) => void
     runs: Runs
-    idOrigin?: string
+    idExtension?: string
 }
 
 export default function RunPage(props: RunProps): React.ReactElement {
@@ -691,7 +691,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                         ProjectID={props.ProjectId}
                         Flow={flow}
                         ElementsSelectable={false}
-                        idOrigin={props.idOrigin}
+                        idExtension={props.idExtension}
                     />
                 </ReactFlowProvider>
             </div>

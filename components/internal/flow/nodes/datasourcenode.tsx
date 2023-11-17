@@ -20,14 +20,14 @@ export interface DataSourceNodeData {
 
     // We get passed the Node Definitions and a hook to update the definition
     readonly SelfStateUpdateHandler
-    idOrigin?: string
+    idExtension?: string
 }
 
 export type DataSourceNode = RFNode<DataSourceNodeData>
 
 const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = props => {
     const data = props.data
-    const {idOrigin = ""} = data
+    const {idExtension = ""} = data
     const projectId: number = data.ProjectID
 
     const [taggedDataList, setTaggedDataList] = useState([])
@@ -69,18 +69,18 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = props => {
     // Create the Component structure
     return (
         <BlueprintCard
-            id="data-source-blueprint-card"
+            id={`data-source-blueprint-card${idExtension}`}
             interactive={true}
             elevation={Elevation.TWO}
             style={{padding: 0, width: "8rem", height: "6rem"}}
         >
-            <Card id="data-source-card" border="warning" style={{height: "100%"}}>
-                <Card.Header id="data-source-header">Data Source</Card.Header>
-                <Card.Body id="data-source-body">
+            <Card id={`data-source-card${idExtension}`} border="warning" style={{height: "100%"}}>
+                <Card.Header id={`data-source-header${idExtension}`}>Data Source</Card.Header>
+                <Card.Body id={`data-source-body${idExtension}`}>
                     {taggedDataList.length > 0 ? (
                         <select
                             name="dataset"
-                            id="data-source-node-select-dataset"
+                            id={`data-source-node-select-dataset${idExtension}`}
                             style={{
                                 fontSize: "10px",
                                 width: "100%",
@@ -104,9 +104,12 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = props => {
                                 // DEF: Right now there is only ever one data source, but someday
                                 //      there will be more and Vince would like the id to correspond
                                 //      to what is visible so he can verify more easily.
-                                const id = "data-source-node-selected"
                                 return (
-                                    <option key={dataTmp.DataSource.id} id={id} value={dataTmp.DataSource.id}>
+                                    <option
+                                        key={dataTmp.DataSource.id}
+                                        id={`data-source-node-selected${idExtension}`}
+                                        value={dataTmp.DataSource.id}
+                                    >
                                         {dataTmp.DataSource.name}
                                     </option>
                                 )
@@ -117,8 +120,8 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = props => {
                     )}
                 </Card.Body>
             </Card>
-            <Handle id="data-source-handle" type="source" position={Position.Right} />
-            <Handle id="data-source-target-handle" type="target" position={Position.Left} />
+            <Handle id={`data-source-handle${idExtension}`} type="source" position={Position.Right} />
+            <Handle id={`data-source-target-handle${idExtension}`} type="target" position={Position.Left} />
         </BlueprintCard>
     )
 }
