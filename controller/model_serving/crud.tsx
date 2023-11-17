@@ -101,8 +101,6 @@ async function deployModel(
         custom_predictor_args: customPredictorArgs,
     }
 
-    console.log(`Deploying model with request: ${JSON.stringify(deployRequest)}`)
-
     try {
         const response = await fetch(DEPLOY_MODELS_ROUTE, {
             method: "POST",
