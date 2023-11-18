@@ -7,7 +7,7 @@
         "React": "readonly",
         "JSX": "readonly"
     },
-    // Tell ESLint we're using jest to avoid false positives on jest test files
+    // Tell ESLint we're using jest to avoid false positives on jest test files.
     "env": {
         "jest": true
     },
