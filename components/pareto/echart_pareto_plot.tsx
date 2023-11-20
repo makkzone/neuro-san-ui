@@ -89,7 +89,7 @@ export function EchartParetoPlot(props: EchartPlotProps): JSX.Element {
     const minMaxPerObjective = useMemo(() => {
         const genData = cachedDataByGen[`Gen ${selectedGen}`]
         return Object.fromEntries(
-            objectives.map((objective, idx) => {
+            objectives.map((_objective, idx) => {
                 const minObjectiveValue =
                     playing || allGensSelected
                         ? Math.min(...data.flatMap((gen) => gen.data.map((cid) => cid[`objective${idx}`])))

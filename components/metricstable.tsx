@@ -17,7 +17,7 @@ export default function MetricsTable(props: MetricstableProps) {
     const predictors = props.Predictors
     const predictorRenders = []
 
-    function getRioImprovement(unCorrectedValue: number, rioMetrics, metrics, metricName: string, nodeID: string) {
+    function getRioImprovement(rioMetrics, metrics, metricName: string, nodeID: string) {
         const predictor = FlowQueries.getNodeByID(predictors, nodeID) as PredictorNode
         if (!predictor) {
             return null
@@ -90,7 +90,7 @@ export default function MetricsTable(props: MetricstableProps) {
                     )}
                     {rioMetrics && (
                         <Table.TextCell id={`${metricPrefix}-rio-improvement`}>
-                            {getRioImprovement(unCorrectedValue, rioMetrics, metrics, metricName, nodeID)}
+                            {getRioImprovement(rioMetrics, metrics, metricName, nodeID)}
                         </Table.TextCell>
                     )}
                 </Table.Row>
