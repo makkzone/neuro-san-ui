@@ -5,13 +5,15 @@
         "@jest/types",
         "@types/*",
         "autoprefixer",
+        "depcheck",
         "eslint-formatter-summary",
         "jest",
         "jest-environment-jsdom",
         "prettier",
         "sharp",
         "ts-node",
-        "ts-jest"
+        "ts-jest",
+        "ts-prune"
     ],
     "specials": ["babel", "eslint", "jest", "tslint", "typescript"]
 }
