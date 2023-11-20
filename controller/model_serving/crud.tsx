@@ -124,11 +124,16 @@ async function deployModel(
         }
 
         return await response.json()
-    } catch (e) {
-        console.error("Unable to deploy model", e, e.message, `deployment request: ${JSON.stringify(deployRequest)}`)
+    } catch (error) {
+        console.error(
+            "Unable to deploy model",
+            error,
+            error instanceof Error ? error.message : error,
+            `deployment request: ${JSON.stringify(deployRequest)}`
+        )
         return {
             error: `Failed to deploy models for run ${runName ?? runId}`,
-            description: e.message,
+            description: error instanceof Error ? error.message : error.toString(),
         }
     }
 }
@@ -176,8 +181,12 @@ export async function deployRun(
         } else {
             return [true, null]
         }
-    } catch (e) {
-        console.error(`Unable to deploy model for run ${JSON.stringify(run)}`, e, e.message)
+    } catch (error) {
+        console.error(
+            `Unable to deploy model for run ${JSON.stringify(run)}`,
+            error,
+            error instanceof Error ? error.message : error
+        )
         return [
             false,
             {
@@ -242,8 +251,8 @@ export async function undeployRun(
         if (!response.ok) {
             console.error(interpretFetchResponse(response))
         }
-    } catch (e) {
-        console.error(e, e.stack)
+    } catch (error) {
+        console.error(error, error instanceof Error && error.stack)
     }
 }
 
@@ -292,11 +301,15 @@ async function getDeployments(
         }
 
         return await response.json()
-    } catch (e) {
-        console.error(`Unable to get deployments for run ${JSON.stringify(runId)}`, e, e.message)
+    } catch (error) {
+        console.error(
+            `Unable to get deployments for run ${JSON.stringify(runId)}`,
+            error,
+            error instanceof Error && error.message
+        )
         return {
             error: `Failed to to retrieve deployed models for ${runId}`,
-            description: `Internal error occured: ${e.message}`,
+            description: `Internal error occured: ${error instanceof Error ? error.message : error.toString()}`,
         }
     }
 }
@@ -365,11 +378,11 @@ async function getModels(baseUrl: string, runId: number, cid: string) {
             prescriptors: prescriptors,
             rioModels: rioModels,
         }
-    } catch (e) {
-        console.error(e, e.stack)
+    } catch (error) {
+        console.error(error, error instanceof Error && error.stack)
         return {
             error: `Failed to obtain model names for run: ${runId}`,
-            description: e.message,
+            description: error instanceof Error ? error.message : error.toString(),
         }
     }
 }
@@ -452,12 +465,14 @@ export async function queryModel(
         }
 
         return await response.json()
-    } catch (e) {
+    } catch (error) {
         console.error("Unable to access model", modelUrl)
-        console.error(e, e.stack)
+        console.error(error, error instanceof Error && error.stack)
         return {
             error: "Model access error",
-            description: `Failed to query model at ${modelUrl}. Error: ${e.message}`,
+            description: `Failed to query model at ${modelUrl}. Error: ${
+                error instanceof Error ? error.message : error
+            }`,
         }
     }
 }

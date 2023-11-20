@@ -137,15 +137,17 @@ export function AIAssistant(props: {
                 chatHistory.current = [...chatHistory.current, new ChatMessage(finalAnswer[0], "ai")]
             }
         } catch (error) {
-            if (error.name === "AbortError") {
-                setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.`)
+            if (error instanceof Error) {
+                if (error.name === "AbortError") {
+                    setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.`)
+                } else {
+                    console.error(error.stack)
+                }
             } else {
                 setUserLlmChatOutput(
                     `Internal error: \n\n${error}\n More information may be available in the browser console.`
                 )
             }
-
-            console.error(error.stack)
         } finally {
             // Reset state, whatever happened during request
             setIsAwaitingLlm(false)

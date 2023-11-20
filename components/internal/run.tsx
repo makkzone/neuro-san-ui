@@ -425,9 +425,11 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 const insightsWithBreaks = data.response.replace("\\n", "\n")
                 setInsights(insightsWithBreaks)
             } catch (error) {
-                console.error("error", error)
-                // eslint-disable-next-line no-useless-concat
-                setInsights("&nbsp;\n&nbsp;\n" + `### **Unable to retrieve rules insights: '${error.message}**'`)
+                console.error("Error retrieving rules insights", error, error instanceof Error && error.stack)
+                setInsights(
+                    "&nbsp;\n&nbsp;\n" +
+                        `### **Unable to retrieve rules insights: '${error instanceof Error ? error.message : error}**'`
+                )
             } finally {
                 setInsightsLoading(false)
             }
