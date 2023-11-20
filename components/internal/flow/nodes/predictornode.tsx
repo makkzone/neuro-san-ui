@@ -139,7 +139,7 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
             ParentPredictorState.selectedPredictor || predictors[ParentPredictorState.selectedPredictorType][0]
 
         const selectedMetric =
-            ParentPredictorState.selectedPredictorType == "classifier"
+            ParentPredictorState.selectedPredictorType === "classifier"
                 ? ParentPredictorState.selectedMetric || DEFAULT_CLASSIFIER_METRIC
                 : ParentPredictorState.selectedMetric || DEFAULT_REGRESSOR_METRIC
 

@@ -60,7 +60,9 @@ export class FlowQueries {
         relevant sub-nodes. It knows which nodes to search for each CAOType.
          */
         const parentNode =
-            caoType == CAOType.CONTEXT || caoType == CAOType.ACTION ? "ParentPrescriptorState" : "ParentPredictorState"
+            caoType === CAOType.CONTEXT || caoType === CAOType.ACTION
+                ? "ParentPrescriptorState"
+                : "ParentPredictorState"
         const caoTypeAsString = CAOType[caoType].toLowerCase()
         const checkedFields = []
         nodes &&

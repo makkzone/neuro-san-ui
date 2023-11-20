@@ -110,6 +110,8 @@
                 "properties": "never"
             }
         ],
+        // Enforce === and !== everywhere, except for null checks
+        "eqeqeq": ["error", "always", {"null": "ignore"}],
         "prefer-template": "error",
         // Enforce double quotes (already handled by prettier) _and_ prevent backtick expressions with no interpolation
         "quotes": ["error", "double", {"avoidEscape": true, "allowTemplateLiterals": false}],
@@ -304,7 +306,6 @@
         "dot-location": "off",
         "enforce-ids-in-jsx/unique-ids": "off",
         "eol-last": "off",
-        "eqeqeq": "off",
         "func-names": "off",
         "func-style": "off",
         "function-call-argument-newline": "off",

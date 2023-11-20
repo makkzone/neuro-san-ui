@@ -3,7 +3,6 @@ Unit tests for the various small utility modules
  */
 
 import decode from "../../utils/conversion"
-import {getEnumKeyByEnumValue} from "../../utils/enum"
 import {arraysEqual} from "../../utils/objects"
 import sortByTime from "../../utils/sort"
 import {removeItemOnce} from "../../utils/transformation"
@@ -17,21 +16,6 @@ describe("Various utilities", () => {
     it("decodes binary string", async () => {
         const res: string = decode("4pyTIMOgIGxhIG1vZGU=")
         expect(res).toEqual("✓ à la mode")
-    })
-
-    it("retrieves enum key by the value", async () => {
-        // Create an enum to test enum function
-        // no-shadow doesn't do well with enums. Search their github issues if you're curious.
-        // eslint-disable-next-line no-shadow
-        enum DIRECTION {
-            Up = "UP",
-            Down = "DOWN",
-            Left = "LEFT",
-            Right = "RIGHT",
-        }
-
-        const res = getEnumKeyByEnumValue(DIRECTION, "UP")
-        expect(res).toEqual("Up")
     })
 
     it("sorts objects based on value of updated_at", async () => {

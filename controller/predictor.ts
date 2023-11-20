@@ -15,9 +15,9 @@ export function FetchPredictors(predictorType: string): string[] {
 
     let predictorResp: string[]
 
-    if (predictorType == "regressor") {
+    if (predictorType === "regressor") {
         predictorResp = Object.keys(SUPPORTED_REGRESSION_MODELS)
-    } else if (predictorType == "classifier") {
+    } else if (predictorType === "classifier") {
         predictorResp = Object.keys(SUPPORTED_CLASSIFICATION_MODELS)
     }
 
@@ -38,9 +38,9 @@ export function FetchParams(predictorType: string, predictorName: string): Predi
     */
     let params
 
-    if (predictorType == "regressor") {
+    if (predictorType === "regressor") {
         params = structuredClone(SUPPORTED_REGRESSION_MODELS[predictorName])
-    } else if (predictorType == "classifier") {
+    } else if (predictorType === "classifier") {
         params = structuredClone(SUPPORTED_CLASSIFICATION_MODELS[predictorName])
     }
 

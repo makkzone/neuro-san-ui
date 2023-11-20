@@ -505,7 +505,7 @@ export default function Flow(props: FlowProps) {
         const prescriptorNodes = FlowQueries.getPrescriptorNodes(nodes)
 
         // If there's already a prescriptor node, add edge to that prescriptor node
-        if (prescriptorNodes.length != 0) {
+        if (prescriptorNodes.length !== 0) {
             const prescriptorNode = prescriptorNodes[0]
             edgesCopy = _addEdgeToPrescriptorNode(edgesCopy, NodeID, prescriptorNode.id)
         }
@@ -584,7 +584,7 @@ export default function Flow(props: FlowProps) {
         */
 
         // Check if Prescriptor Node exists
-        const prescriptorExists = FlowQueries.getPrescriptorNodes(nodes).length != 0
+        const prescriptorExists = FlowQueries.getPrescriptorNodes(nodes).length !== 0
 
         // If it already exists, return
         if (prescriptorExists) {
@@ -594,7 +594,7 @@ export default function Flow(props: FlowProps) {
 
         // Make sure predictor nodes exist, if not alert
         const predictorNodes = FlowQueries.getPredictorNodes(nodes)
-        if (predictorNodes.length == 0) {
+        if (predictorNodes.length === 0) {
             sendNotification(NotificationType.warning, "Add at least one predictor before adding a prescriptor")
             return
         }
@@ -980,7 +980,7 @@ export default function Flow(props: FlowProps) {
             return
         }
 
-        const removableNodes = nodesToDelete.filter((element) => element.type != "datanode")
+        const removableNodes = nodesToDelete.filter((element) => element.type !== "datanode")
         // Also get the edges associated with this uncertainty node
         const removableEdges = getConnectedEdges(removableNodes, currentEdges)
 
@@ -1009,7 +1009,7 @@ export default function Flow(props: FlowProps) {
         let newNodes = currentNodes
         const numPredictorNodesLeft =
             FlowQueries.getPredictorNodes(currentNodes).length - predictorIdsBeingRemoved.length
-        if (numPredictorNodesLeft == 0) {
+        if (numPredictorNodesLeft === 0) {
             removableNodes.push(...prescriptorNodes)
         } else {
             // Also if the removable elements have predictor nodes we

@@ -115,7 +115,7 @@ export async function downloadArtifact(
 
     // Retrieve the artifact
     const artifacts: Artifact[] = await FetchSingleRunArtifact(downloadUrl)
-    if (!artifacts || artifacts.length != 1) {
+    if (!artifacts || artifacts.length !== 1) {
         sendNotification(
             NotificationType.error,
             "Internal error",
