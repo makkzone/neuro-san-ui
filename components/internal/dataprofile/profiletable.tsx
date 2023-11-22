@@ -365,46 +365,50 @@ export default function ProfileTable(props: ProfileTableProps) {
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                     >
-                                        {
-                                            profile && fieldBeingEditedName
-                                                ? currentCategoryValues.map((val, index) => {
-                                                      return (
-                                                          // eslint-disable-next-line max-len
-                                                          <Draggable // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                                              // 2/6/23 DEF - Draggable doesn't have an id
-                                                              // property when compiling
-                                                              key={val}
-                                                              draggableId={val}
-                                                              index={index}
-                                                          >
-                                                              {(providedInner, snapshot) => {
-                                                                  const opacity = snapshot.isDragging
-                                                                      ? "opacity-50"
-                                                                      : "opacity-100"
-                                                                  return (
-                                                                      <Row
-                                                                          id={`${val}-row`}
-                                                                          className={`my-1 ${opacity}`}
-                                                                          ref={providedInner.innerRef}
-                                                                          {...providedInner.draggableProps}
-                                                                          {...providedInner.dragHandleProps}
+                                        {profile && fieldBeingEditedName
+                                            ? currentCategoryValues.map((val, index) => {
+                                                  return (
+                                                      // eslint-disable-next-line max-len
+                                                      <Draggable // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                                          // 2/6/23 DEF - Draggable doesn't have an id
+                                                          // property when compiling
+                                                          key={val}
+                                                          draggableId={val}
+                                                          index={index}
+                                                      >
+                                                          {(providedInner, snapshot) => {
+                                                              const opacity = snapshot.isDragging
+                                                                  ? "opacity-50"
+                                                                  : "opacity-100"
+                                                              return (
+                                                                  <Row
+                                                                      id={`${val}-row`}
+                                                                      className={`my-1 ${opacity}`}
+                                                                      ref={providedInner.innerRef}
+                                                                      {...providedInner.draggableProps}
+                                                                      {...providedInner.dragHandleProps}
+                                                                  >
+                                                                      <Col
+                                                                          id={`${val}-value-column`}
+                                                                          className="mx-0 px-1"
                                                                       >
-                                                                          <Col
-                                                                              id={`${val}-value-column`}
-                                                                              className="mx-0 px-1"
+                                                                          <ListGroup.Item
+                                                                              id={`${val}-value`}
+                                                                              as="li"
+                                                                              className="values"
                                                                           >
-                                                                              <ListGroup.Item
-                                                                                  id={`${val}-value`}
-                                                                                  as="li"
-                                                                                  className="values"
-                                                                              >
-                                                                                  <div id={`${val}`}>{val}</div>
-                                                                              </ListGroup.Item>
-                                                                          </Col>
-                                                                          <Col
-                                                                              id={`${val}-delete-value-column`}
-                                                                              /* eslint-disable-next-line max-len */
-                                                                              className="d-flex vertical-align-middle mx-0 px-1"
+                                                                              <div id={`${val}`}>{val}</div>
+                                                                          </ListGroup.Item>
+                                                                      </Col>
+                                                                      <Col
+                                                                          id={`${val}-delete-value-column`}
+                                                                          /* eslint-disable-next-line max-len */
+                                                                          className="d-flex vertical-align-middle mx-0 px-1"
+                                                                      >
+                                                                          <ListGroup.Item
+                                                                              id={`${val}-value`}
+                                                                              as="li"
+                                                                              className="values"
                                                                           >
                                                                               <div id={`${val}`}>{val}</div>
                                                                           </ListGroup.Item>
