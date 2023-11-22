@@ -47,9 +47,14 @@ export default function ProfileTable(props: ProfileTableProps) {
         return fields[field].valued === "CONTINUOUS"
     }
 
-    tableHeaders.forEach(header => {
+    tableHeaders.forEach((header) => {
         tableHeaderElements.push(
-            <th id={header} key={header} scope="col" className="py-3 text-center text-xs font-medium text-gray-500">
+            <th
+                id={header}
+                key={header}
+                scope="col"
+                className="py-3 text-center text-xs font-medium text-gray-500"
+            >
                 {header}
             </th>
         )
@@ -73,99 +78,162 @@ export default function ProfileTable(props: ProfileTableProps) {
     const headers = profile ? profile.data_source.headers || Object.keys(fields) : []
 
     // Only display fields that weren't dropped by DataProfiler due to errors
-    const fieldsInCsvOrder = headers.filter(header => Object.keys(fields).includes(header))
+    const fieldsInCsvOrder = headers.filter((header) => Object.keys(fields).includes(header))
 
     // Accumulate rows, one per field
-    const fieldRows = fieldsInCsvOrder.map(field => (
-        <tr id={`${field}`} key={field} style={{backgroundColor: caoColorCoding[fields[field].esp_type]}}>
+    const fieldRows = fieldsInCsvOrder.map((field) => (
+        <tr
+            id={`${field}`}
+            key={field}
+            style={{backgroundColor: caoColorCoding[fields[field].esp_type]}}
+        >
             {/*Field name*/}
-            <td id={`${field}-name`} className={tableCellClassName}>
+            <td
+                id={`${field}-name`}
+                className={tableCellClassName}
+            >
                 <span id={`${field}-name-label`}>{field}</span>
             </td>
 
             {/*CAO type*/}
-            <td id={`${field}-esp-type`} className={tableCellClassName}>
+            <td
+                id={`${field}-esp-type`}
+                className={tableCellClassName}
+            >
                 <select
                     id={`${field}-esp-type-select`}
                     name={`${field}-esp_type`}
                     value={fields[field].esp_type}
                     className="w-18"
-                    onChange={event => {
+                    onChange={(event) => {
                         const profileCopy = {...profile}
                         profileCopy.data_tag.fields[field].esp_type = event.target.value
                         setProfile(profileCopy)
                     }}
                 >
-                    <option id={`${field}-esp-type-context`} value="CONTEXT">
+                    <option
+                        id={`${field}-esp-type-context`}
+                        value="CONTEXT"
+                    >
                         CONTEXT
                     </option>
-                    <option id={`${field}-esp-type-action`} value="ACTION">
+                    <option
+                        id={`${field}-esp-type-action`}
+                        value="ACTION"
+                    >
                         ACTION
                     </option>
-                    <option id={`${field}-esp-type-outcome`} value="OUTCOME">
+                    <option
+                        id={`${field}-esp-type-outcome`}
+                        value="OUTCOME"
+                    >
                         OUTCOME
                     </option>
                 </select>
             </td>
 
             {/*Data type -- float, int etc. */}
-            <td id={`${field}-data-type`} className={tableCellClassName}>
+            <td
+                id={`${field}-data-type`}
+                className={tableCellClassName}
+            >
                 <select
                     id={`${field}-data-type-select`}
                     name={`${field}-data_type`}
                     value={fields[field].data_type}
-                    onChange={event => {
+                    onChange={(event) => {
                         const profileCopy = {...profile}
                         profileCopy.data_tag.fields[field].data_type = DataType[event.target.value]
                         setProfile(profileCopy)
                     }}
                 >
-                    <option id={`${field}-data-type-int`} value="INT">
+                    <option
+                        id={`${field}-data-type-int`}
+                        value="INT"
+                    >
                         INT
                     </option>
-                    <option id={`${field}-data-type-string`} value="STRING">
+                    <option
+                        id={`${field}-data-type-string`}
+                        value="STRING"
+                    >
                         STRING
                     </option>
-                    <option id={`${field}-data-type-float`} value="FLOAT">
+                    <option
+                        id={`${field}-data-type-float`}
+                        value="FLOAT"
+                    >
                         FLOAT
                     </option>
-                    <option id={`${field}-data-type-bool`} value="BOOL">
+                    <option
+                        id={`${field}-data-type-bool`}
+                        value="BOOL"
+                    >
                         BOOL
                     </option>
                 </select>
             </td>
 
             {/*Valued type (categorical or continuous)*/}
-            <td id={`${field}-data-continuity`} className={tableCellClassName}>
+            <td
+                id={`${field}-data-continuity`}
+                className={tableCellClassName}
+            >
                 <select
                     id={`${field}-data-continuity-select`}
                     name={`${field}-valued`}
                     value={fields[field].valued}
-                    onChange={event => {
+                    onChange={(event) => {
                         const profileCopy = {...profile}
                         profileCopy.data_tag.fields[field].valued = event.target.value
                         setProfile(profileCopy)
                     }}
                 >
-                    <option id={`${field}-data-continuity-categorical`} value="CATEGORICAL">
+                    <option
+                        id={`${field}-data-continuity-categorical`}
+                        value="CATEGORICAL"
+                    >
                         CATEGORICAL
                     </option>
-                    <option id={`${field}-data-continuity-continuous`} value="CONTINUOUS">
+                    <option
+                        id={`${field}-data-continuity-continuous`}
+                        value="CONTINUOUS"
+                    >
                         CONTINUOUS
                     </option>
                 </select>
             </td>
 
             {/*Available values, if categorical*/}
-            <td id={`${field}-categorical`} className={tableCellClassName}>
+            <td
+                id={`${field}-categorical`}
+                className={tableCellClassName}
+            >
                 {fields[field].valued === "CATEGORICAL" ? (
-                    <span id={`${field}-categorical-span`} style={{display: "flex"}}>
-                        <select id={`${field}-categorical-select`} name={`${field}-values`} defaultValue="">
-                            <option id={`${field}-categorical-click-for-values`} value="" disabled hidden>
+                    <span
+                        id={`${field}-categorical-span`}
+                        style={{display: "flex"}}
+                    >
+                        <select
+                            id={`${field}-categorical-select`}
+                            name={`${field}-values`}
+                            defaultValue=""
+                        >
+                            <option
+                                id={`${field}-categorical-click-for-values`}
+                                value=""
+                                disabled
+                                hidden
+                            >
                                 Click for values:
                             </option>
-                            {fields[field].discrete_categorical_values.map(item => (
-                                <option id={`${field}-categorical-value-${item}`} value={item} key={item} disabled>
+                            {fields[field].discrete_categorical_values.map((item) => (
+                                <option
+                                    id={`${field}-categorical-value-${item}`}
+                                    value={item}
+                                    key={item}
+                                    disabled
+                                >
                                     {item}
                                 </option>
                             ))}
@@ -194,7 +262,10 @@ export default function ProfileTable(props: ProfileTableProps) {
             </td>
 
             {/*Min value*/}
-            <td id={`${field}-min-range`} className={tableCellClassName}>
+            <td
+                id={`${field}-min-range`}
+                className={tableCellClassName}
+            >
                 {isContinuous(field) ? (
                     <Form.Group id={`${field}-min-range-data`}>
                         <Form.Control
@@ -204,7 +275,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                             name={`${field}-min-range`}
                             type="number"
                             value={fields[field].range[0]}
-                            onChange={event => {
+                            onChange={(event) => {
                                 const profileCopy = {...profile}
                                 profileCopy.data_tag.fields[field].range[0] = parseFloat(event.target.value)
                                 setProfile(profileCopy)
@@ -217,7 +288,10 @@ export default function ProfileTable(props: ProfileTableProps) {
             </td>
 
             {/*Max value*/}
-            <td id={`${field}-max-range`} className={tableCellClassName}>
+            <td
+                id={`${field}-max-range`}
+                className={tableCellClassName}
+            >
                 {isContinuous(field) ? (
                     <Form.Group id={`${field}-max-range-group`}>
                         <Form.Control
@@ -227,7 +301,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                             name={`${field}-max-range`}
                             type="number"
                             value={fields[field].range[1]}
-                            onChange={event => {
+                            onChange={(event) => {
                                 const profileCopy = {...profile}
                                 profileCopy.data_tag.fields[field].range[1] = parseFloat(event.target.value)
                                 setProfile(profileCopy)
@@ -240,22 +314,34 @@ export default function ProfileTable(props: ProfileTableProps) {
             </td>
 
             {/*Mean*/}
-            <td id={`${field}-mean`} className={tableCellClassName}>
+            <td
+                id={`${field}-mean`}
+                className={tableCellClassName}
+            >
                 {isContinuous(field) ? fields[field].mean : "N/A"}
             </td>
 
             {/*Sum*/}
-            <td id={`${field}-sum`} className={tableCellClassName}>
+            <td
+                id={`${field}-sum`}
+                className={tableCellClassName}
+            >
                 {isContinuous(field) ? fields[field].sum : "N/A"}
             </td>
 
             {/*Stddev*/}
-            <td id={`${field}-std-dev`} className={tableCellClassName}>
+            <td
+                id={`${field}-std-dev`}
+                className={tableCellClassName}
+            >
                 {isContinuous(field) ? fields[field].std_dev : "N/A"}
             </td>
 
             {/*has nan*/}
-            <td id={`${field}-has-nan`} className={tableCellClassName}>
+            <td
+                id={`${field}-has-nan`}
+                className={tableCellClassName}
+            >
                 {fields[field].has_nan.toString()}
             </td>
         </tr>
@@ -268,23 +354,33 @@ export default function ProfileTable(props: ProfileTableProps) {
 
         const rejectedColumns = profile.data_source.rejectedColumns
         return rejectedColumns && !empty(rejectedColumns)
-            ? Object.keys(rejectedColumns).map(columnName => (
+            ? Object.keys(rejectedColumns).map((columnName) => (
                   <tr
                       id={`${columnName}-rejected-row`}
                       key={columnName}
                       style={{backgroundColor: caoColorCoding.REJECTED, whiteSpace: "nowrap"}}
                   >
-                      <td id={`${columnName}-rejected-data`} className={tableCellClassName}>
+                      <td
+                          id={`${columnName}-rejected-data`}
+                          className={tableCellClassName}
+                      >
                           <span
                               id={`${columnName}-rejected`}
                               className="px-2 text-xs leading-5 font-semibold rounded-full flex-nowrap opacity-50"
                               style={{display: "flex", flexWrap: "nowrap"}}
                           >
-                              <AiFillWarning id={`${columnName}-rejected-fill-warning`} size="20" className="mr-2" />
+                              <AiFillWarning
+                                  id={`${columnName}-rejected-fill-warning`}
+                                  size="20"
+                                  className="mr-2"
+                              />
                               {columnName}
                           </span>
                       </td>
-                      <td id={`${columnName}-rejection-reason-data`} className={tableCellClassName}>
+                      <td
+                          id={`${columnName}-rejection-reason-data`}
+                          className={tableCellClassName}
+                      >
                           <span
                               id={`${columnName}-rejection-reason`}
                               className="px-2 text-xs leading-5 font-semibold rounded-full flex-nowrap opacity-50"
@@ -305,7 +401,7 @@ export default function ProfileTable(props: ProfileTableProps) {
 
     function deleteValue(val: string) {
         let tmpValues = currentCategoryValues.slice()
-        tmpValues = tmpValues.filter(item => item !== val)
+        tmpValues = tmpValues.filter((item) => item !== val)
         setCurrentCategoryValues(tmpValues)
     }
 
@@ -346,7 +442,10 @@ export default function ProfileTable(props: ProfileTableProps) {
                 <Row id="field-being-edited-row">
                     <label id="field-being-edited">Field: {fieldBeingEditedName}</label>
                 </Row>
-                <Row id="field-editor-drag-msg-row" className="pt-3">
+                <Row
+                    id="field-editor-drag-msg-row"
+                    className="pt-3"
+                >
                     (drag to re-order)
                 </Row>
                 <p id="values-separator" />
@@ -357,7 +456,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                             // 2/6/23 DEF - Droppable doesn't have an id property when compiling
                             droppableId="values"
                         >
-                            {provided => (
+                            {(provided) => (
                                 <Container id="values-droppable-container">
                                     <ListGroup
                                         as="ol"
@@ -365,86 +464,91 @@ export default function ProfileTable(props: ProfileTableProps) {
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                     >
-                                        {profile && fieldBeingEditedName
-                                            ? currentCategoryValues.map((val, index) => {
-                                                  return (
-                                                      // eslint-disable-next-line max-len
-                                                      <Draggable // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                                          // 2/6/23 DEF - Draggable doesn't have an id
-                                                          // property when compiling
-                                                          key={val}
-                                                          draggableId={val}
-                                                          index={index}
-                                                      >
-                                                          {(providedInner, snapshot) => {
-                                                              const opacity = snapshot.isDragging
-                                                                  ? "opacity-50"
-                                                                  : "opacity-100"
-                                                              return (
-                                                                  <Row
-                                                                      id={`${val}-row`}
-                                                                      className={`my-1 ${opacity}`}
-                                                                      ref={providedInner.innerRef}
-                                                                      {...providedInner.draggableProps}
-                                                                      {...providedInner.dragHandleProps}
-                                                                  >
-                                                                      <Col
-                                                                          id={`${val}-value-column`}
-                                                                          className="mx-0 px-1"
+                                        {
+                                            profile && fieldBeingEditedName
+                                                ? currentCategoryValues.map((val, index) => {
+                                                      return (
+                                                          // eslint-disable-next-line max-len
+                                                          <Draggable // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                                              // 2/6/23 DEF - Draggable doesn't have an id
+                                                              // property when compiling
+                                                              key={val}
+                                                              draggableId={val}
+                                                              index={index}
+                                                          >
+                                                              {(providedInner, snapshot) => {
+                                                                  const opacity = snapshot.isDragging
+                                                                      ? "opacity-50"
+                                                                      : "opacity-100"
+                                                                  return (
+                                                                      <Row
+                                                                          id={`${val}-row`}
+                                                                          className={`my-1 ${opacity}`}
+                                                                          ref={providedInner.innerRef}
+                                                                          {...providedInner.draggableProps}
+                                                                          {...providedInner.dragHandleProps}
                                                                       >
-                                                                          <ListGroup.Item
-                                                                              id={`${val}-value`}
-                                                                              as="li"
-                                                                              className="values"
+                                                                          <Col
+                                                                              id={`${val}-value-column`}
+                                                                              className="mx-0 px-1"
                                                                           >
-                                                                              <div id={`${val}`}>{val}</div>
-                                                                          </ListGroup.Item>
-                                                                      </Col>
-                                                                      <Col
-                                                                          id={`${val}-delete-value-column`}
-                                                                          /* eslint-disable-next-line max-len */
-                                                                          className="d-flex vertical-align-middle mx-0 px-1"
-                                                                      >
-                                                                          <ListGroup.Item
-                                                                              id={`${val}-value`}
-                                                                              as="li"
-                                                                              className="values"
-                                                                          >
-                                                                              <div id={`${val}`}>{val}</div>
-                                                                          </ListGroup.Item>
-                                                                      </Col>
-                                                                      <Col
-                                                                          id={`${val}-delete-value-column`}
-                                                                          className="d-flex vertical-align-middle mx-0 px-1"
-                                                                      >
-                                                                          {dataSetCategories[fieldBeingEditedName] &&
-                                                                          dataSetCategories[fieldBeingEditedName].has(
-                                                                              val
-                                                                          ) ? null : (
-                                                                              <button
-                                                                                  id={`${val}-delete-value`}
-                                                                                  onClick={() => {
-                                                                                      deleteValue(val)
-                                                                                  }}
+                                                                              <ListGroup.Item
+                                                                                  id={`${val}-value`}
+                                                                                  as="li"
+                                                                                  className="values"
                                                                               >
-                                                                                  <AiFillDelete
-                                                                                      id={`${val}-delete-value-fill`}
-                                                                                      size="14"
-                                                                                      style={{
-                                                                                          cursor: "pointer",
+                                                                                  <div id={`${val}`}>{val}</div>
+                                                                              </ListGroup.Item>
+                                                                          </Col>
+                                                                          <Col
+                                                                              id={`${val}-delete-value-column`}
+                                                                              /* eslint-disable-next-line max-len */
+                                                                              className="d-flex vertical-align-middle mx-0 px-1"
+                                                                          >
+                                                                              <ListGroup.Item
+                                                                                  id={`${val}-value`}
+                                                                                  as="li"
+                                                                                  className="values"
+                                                                              >
+                                                                                  <div id={`${val}`}>{val}</div>
+                                                                              </ListGroup.Item>
+                                                                          </Col>
+                                                                          <Col
+                                                                              id={`${val}-delete-value-column`}
+                                                                              /* eslint-disable-next-line max-len */
+                                                                              className="d-flex vertical-align-middle mx-0 px-1"
+                                                                          >
+                                                                              {dataSetCategories[
+                                                                                  fieldBeingEditedName
+                                                                              ] &&
+                                                                              dataSetCategories[
+                                                                                  fieldBeingEditedName
+                                                                              ].has(val) ? null : (
+                                                                                  <button
+                                                                                      id={`${val}-delete-value`}
+                                                                                      onClick={() => {
+                                                                                          deleteValue(val)
                                                                                       }}
-                                                                                      className="hover:text-red-700"
-                                                                                  />
-                                                                              </button>
-                                                                          )}
-                                                                      </Col>
-                                                                  </Row>
-                                                              )
-                                                          }}
-                                                      </Draggable>
-                                                  )
-                                              })
-                                            : [] // empty list by default
+                                                                                  >
+                                                                                      <AiFillDelete
+                                                                                          /* eslint-disable-next-line max-len */
+                                                                                          id={`${val}-delete-value-fill`}
+                                                                                          size="14"
+                                                                                          style={{
+                                                                                              cursor: "pointer",
+                                                                                          }}
+                                                                                          className="hover:text-red-700"
+                                                                                      />
+                                                                                  </button>
+                                                                              )}
+                                                                          </Col>
+                                                                      </Row>
+                                                                  )
+                                                              }}
+                                                          </Draggable>
+                                                      )
+                                                  })
+                                                : [] // empty list by default
                                         }
                                     </ListGroup>
                                     {provided.placeholder}
@@ -453,16 +557,22 @@ export default function ProfileTable(props: ProfileTableProps) {
                         </Droppable>
                     }
                 </Row>
-                <Row id="add-category-value-label-row" className="pt-4">
+                <Row
+                    id="add-category-value-label-row"
+                    className="pt-4"
+                >
                     <label id="add-category-label">Add category value:</label>
                 </Row>
-                <Row id="add-category-value-row" className="pt-1">
+                <Row
+                    id="add-category-value-row"
+                    className="pt-1"
+                >
                     <Space.Compact id="category-values-group">
                         <Input
                             id="add-category-value-input"
                             style={{width: "calc(100% - 200px)"}}
                             placeholder="Enter value"
-                            onChange={event => {
+                            onChange={(event) => {
                                 setNewItem(event.target.value)
                             }}
                         />
@@ -484,12 +594,13 @@ export default function ProfileTable(props: ProfileTableProps) {
 
     useEffect(() => {
         const categoryMap = {}
-        fieldsInCsvOrder.forEach(field => {
+        fieldsInCsvOrder.forEach((field) => {
             if (fields[field].valued !== "CATEGORICAL") {
                 return
             }
 
             if (!categoryMap[field]) {
+                /* eslint-disable-next-line max-len */
                 categoryMap[field] = new Set(fields[field].original_discrete_categorical_values) // pending BE implementation
             }
         })
@@ -502,7 +613,7 @@ export default function ProfileTable(props: ProfileTableProps) {
     return (
         <DragDropContext // eslint-disable-line enforce-ids-in-jsx/missing-ids
             // 2/6/23 DEF - DragDropContext does not have an id property when compiling
-            onDragEnd={dragResult => {
+            onDragEnd={(dragResult) => {
                 // Prevent dragging out of bounds
                 if (!dragResult.destination) {
                     return
@@ -515,19 +626,37 @@ export default function ProfileTable(props: ProfileTableProps) {
                 setCurrentCategoryValues(items)
             }}
         >
-            <div id={`${propsId}`} className="flex flex-col mt-4">
+            <div
+                id={`${propsId}`}
+                className="flex flex-col mt-4"
+            >
                 {editCategoryValuesModal}
-                <div id="profile-table-div" className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div id="profile-table-div-3" className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                <div
+                    id="profile-table-div"
+                    className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8"
+                >
+                    <div
+                        id="profile-table-div-3"
+                        className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8"
+                    >
                         <div
                             id="profile-table-div-4"
                             className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg"
                         >
-                            <table id="profile-table" className="min-w-full divide-y divide-gray-200">
-                                <thead id="profile-table-header" className="bg-gray-50">
+                            <table
+                                id="profile-table"
+                                className="min-w-full divide-y divide-gray-200"
+                            >
+                                <thead
+                                    id="profile-table-header"
+                                    className="bg-gray-50"
+                                >
                                     <tr id="profile-table-header-elements">{tableHeaderElements}</tr>
                                 </thead>
-                                <tbody id="profile-table-all-rows" className="bg-white divide-y divide-gray-200">
+                                <tbody
+                                    id="profile-table-all-rows"
+                                    className="bg-white divide-y divide-gray-200"
+                                >
                                     {allRows}
                                 </tbody>
                             </table>
@@ -535,7 +664,11 @@ export default function ProfileTable(props: ProfileTableProps) {
                     </div>
                 </div>
             </div>
-            <NeuroAIChatbot id="chatbot" userAvatar={undefined} pageContext={ProfileTable.pageContext} />
+            <NeuroAIChatbot
+                id="chatbot"
+                userAvatar={undefined}
+                pageContext={ProfileTable.pageContext}
+            />
         </DragDropContext>
     )
 }
