@@ -21,7 +21,9 @@ export default function ProfileTable(props: ProfileTableProps) {
     const setProfile = props.ProfileUpdateHandler
     const [fieldBeingEditedName, setFieldBeingEditedName] = useState(null)
     const [showFieldEditor, setShowFieldEditor] = useState(false)
+    const [confirmationModalStatus, setConfirmationModalStatus] = useState(false)
     const [currentCategoryValues, setCurrentCategoryValues] = useState([])
+    const [categoryOrder, setCategoryOrder] = useState([])
     const [newItem, setNewItem] = useState(null)
     const [dataSetCategories, setDataSetCategories] = useState({})
 
@@ -246,6 +248,7 @@ export default function ProfileTable(props: ProfileTableProps) {
 
                                 setFieldBeingEditedName(field)
                                 setCurrentCategoryValues(fields[field].discrete_categorical_values)
+                                setCategoryOrder(fields[field].discrete_categorical_values)
                                 setShowFieldEditor(true)
                             }}
                         >
@@ -405,6 +408,7 @@ export default function ProfileTable(props: ProfileTableProps) {
         setCurrentCategoryValues(tmpValues)
     }
 
+<<<<<<< HEAD
     const renderCategoryDragList = (val, index) => {
         return (
             <Draggable // eslint-disable-line enforce-ids-in-jsx/missing-ids
@@ -466,6 +470,65 @@ export default function ProfileTable(props: ProfileTableProps) {
         )
     }
 
+=======
+    const saveHandler = (e: ReactMouseEvent<HTMLElement>) => {
+        e.preventDefault()
+
+        const profileCopy = {...profile}
+
+        if (profileCopy.data_tag.fields) {
+            profileCopy.data_tag.fields[fieldBeingEditedName].discrete_categorical_values = currentCategoryValues
+        }
+        setProfile(profileCopy)
+
+        setCategoryOrder(currentCategoryValues)
+        setCurrentCategoryValues([])
+        setFieldBeingEditedName(undefined)
+        setShowFieldEditor(false)
+        setConfirmationModalStatus(false)
+    }
+
+    const confirmationModal = (
+        <Modal // eslint-disable-line enforce-ids-in-jsx/missing-ids
+            title="Unsaved Changes"
+            open={confirmationModalStatus}
+            destroyOnClose={true}
+            closable={false}
+            onOk={saveHandler}
+            okButtonProps={{
+                id: "confirm-categorical-values-ok-button",
+            }}
+            okType="default"
+            onCancel={() => {
+                setConfirmationModalStatus(false)
+            }}
+            footer={[
+                <Button
+                    key="cancel"
+                    onClick={() => setConfirmationModalStatus(false)}
+                >
+                    Leave without saving
+                </Button>,
+                <Button
+                    type="primary"
+                    onClick={saveHandler}
+                >
+                    Save changes
+                </Button>,
+            ]}
+            maskClosable={false}
+            cancelButtonProps={{
+                id: "confirm-categorical-values-cancel-button",
+            }}
+        >
+            <p>
+                You are about to exit without saving. Changes will be lost. Do you want to save your changes before
+                leaving?
+            </p>
+        </Modal>
+    )
+
+>>>>>>> 1cb629d17 (show confirmation modal if changes are moade)
     const editCategoryValuesModal = (
         <Modal // eslint-disable-line enforce-ids-in-jsx/missing-ids
             // 2/6/23 DEF - Modal doesn't have an id property when compiling
@@ -473,24 +536,17 @@ export default function ProfileTable(props: ProfileTableProps) {
             open={showFieldEditor}
             destroyOnClose={true}
             closable={false}
-            onOk={(e: ReactMouseEvent<HTMLElement>) => {
-                // Don't want to submit form here!
-                e.preventDefault()
-
-                const profileCopy = {...profile}
-
-                profileCopy.data_tag.fields[fieldBeingEditedName].discrete_categorical_values = currentCategoryValues
-                setProfile(profileCopy)
-
-                setCurrentCategoryValues([])
-                setFieldBeingEditedName(undefined)
-                setShowFieldEditor(false)
-            }}
+            onOk={saveHandler}
             okButtonProps={{
                 id: "edit-categorical-values-ok-button",
             }}
             okType="default"
             onCancel={() => {
+                if (JSON.stringify(categoryOrder) !== JSON.stringify(currentCategoryValues)) {
+                    setConfirmationModalStatus(true)
+                    setShowFieldEditor(false)
+                    return
+                }
                 setShowFieldEditor(false)
                 setFieldBeingEditedName(undefined)
             }}
@@ -613,6 +669,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                 className="flex flex-col mt-4"
             >
                 {editCategoryValuesModal}
+                {confirmationModal}
                 <div
                     id="profile-table-div"
                     className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8"
