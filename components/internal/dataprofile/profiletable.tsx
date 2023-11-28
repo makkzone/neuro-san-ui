@@ -505,19 +505,6 @@ export default function ProfileTable(props: ProfileTableProps) {
                                                                               /* eslint-disable-next-line max-len */
                                                                               className="d-flex vertical-align-middle mx-0 px-1"
                                                                           >
-                                                                              <ListGroup.Item
-                                                                                  id={`${val}-value`}
-                                                                                  as="li"
-                                                                                  className="values"
-                                                                              >
-                                                                                  <div id={`${val}`}>{val}</div>
-                                                                              </ListGroup.Item>
-                                                                          </Col>
-                                                                          <Col
-                                                                              id={`${val}-delete-value-column`}
-                                                                              /* eslint-disable-next-line max-len */
-                                                                              className="d-flex vertical-align-middle mx-0 px-1"
-                                                                          >
                                                                               {dataSetCategories[
                                                                                   fieldBeingEditedName
                                                                               ] &&
