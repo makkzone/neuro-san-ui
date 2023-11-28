@@ -405,65 +405,66 @@ export default function ProfileTable(props: ProfileTableProps) {
         setCurrentCategoryValues(tmpValues)
     }
 
-    const CategoryDragList = ({val, index}) => (
-        <Draggable // eslint-disable-line enforce-ids-in-jsx/missing-ids
-            // 2/6/23 DEF - Draggable doesn't have an id
-            // property when compiling
-            key={val}
-            draggableId={val}
-            index={index}
-        >
-            {(providedInner, snapshot) => {
-                const opacity = snapshot.isDragging ? "opacity-50" : "opacity-100"
-                return (
-                    <Row
-                        id={`${val}-row`}
-                        className={`my-1 ${opacity}`}
-                        ref={providedInner.innerRef}
-                        {...providedInner.draggableProps}
-                        {...providedInner.dragHandleProps}
-                    >
-                        <Col
-                            id={`${val}-value-column`}
-                            className="mx-0 px-1"
+    const renderCategoryDragList = (val, index) => {
+        return (
+            <Draggable // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                // 2/6/23 DEF - Draggable doesn't have an id
+                // property when compiling
+                key={val}
+                draggableId={val}
+                index={index}
+            >
+                {(providedInner, snapshot) => {
+                    const opacity = snapshot.isDragging ? "opacity-50" : "opacity-100"
+                    return (
+                        <Row
+                            id={`${val}-row`}
+                            className={`my-1 ${opacity}`}
+                            ref={providedInner.innerRef}
+                            {...providedInner.draggableProps}
+                            {...providedInner.dragHandleProps}
                         >
-                            <ListGroup.Item
-                                id={`${val}-value`}
-                                as="li"
-                                className="values"
+                            <Col
+                                id={`${val}-value-column`}
+                                className="mx-0 px-1"
                             >
-                                <div id={`${val}`}>{val}</div>
-                            </ListGroup.Item>
-                        </Col>
-                        <Col
-                            id={`${val}-delete-value-column`}
-                            /* eslint-disable-next-line max-len */
-                            className="d-flex vertical-align-middle mx-0 px-1"
-                        >
-                            {dataSetCategories[fieldBeingEditedName] &&
-                            dataSetCategories[fieldBeingEditedName].has(val) ? null : (
-                                <button
-                                    id={`${val}-delete-value`}
-                                    onClick={() => {
-                                        deleteValue(val)
-                                    }}
+                                <ListGroup.Item
+                                    id={`${val}-value`}
+                                    as="li"
+                                    className="values"
                                 >
-                                    <AiFillDelete
-                                        id={`${val}-delete-value-fill`}
-                                        size="14"
-                                        style={{
-                                            cursor: "pointer",
+                                    <div id={`${val}`}>{val}</div>
+                                </ListGroup.Item>
+                            </Col>
+                            <Col
+                                id={`${val}-delete-value-column`}
+                                className="d-flex vertical-align-middle mx-0 px-1"
+                            >
+                                {dataSetCategories[fieldBeingEditedName] &&
+                                dataSetCategories[fieldBeingEditedName].has(val) ? null : (
+                                    <button
+                                        id={`${val}-delete-value`}
+                                        onClick={() => {
+                                            deleteValue(val)
                                         }}
-                                        className="hover:text-red-700"
-                                    />
-                                </button>
-                            )}
-                        </Col>
-                    </Row>
-                )
-            }}
-        </Draggable>
-    )
+                                    >
+                                        <AiFillDelete
+                                            id={`${val}-delete-value-fill`}
+                                            size="14"
+                                            style={{
+                                                cursor: "pointer",
+                                            }}
+                                            className="hover:text-red-700"
+                                        />
+                                    </button>
+                                )}
+                            </Col>
+                        </Row>
+                    )
+                }}
+            </Draggable>
+        )
+    }
 
     const editCategoryValuesModal = (
         <Modal // eslint-disable-line enforce-ids-in-jsx/missing-ids
@@ -527,12 +528,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                                         {
                                             profile && fieldBeingEditedName
                                                 ? currentCategoryValues.map((val, index) => {
-                                                      return (
-                                                          <CategoryDragList
-                                                              val={val}
-                                                              index={index}
-                                                          />
-                                                      )
+                                                      return renderCategoryDragList(val, index)
                                                   })
                                                 : [] // empty list by default
                                         }
