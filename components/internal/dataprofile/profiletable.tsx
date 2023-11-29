@@ -7,7 +7,7 @@ import {AiFillDelete, AiFillEdit, AiFillWarning} from "react-icons/ai"
 import {Profile} from "../../../controller/dataprofile/types"
 import {reasonToHumanReadable} from "../../../controller/datasources/types"
 import {DataType} from "../../../controller/datatag/types"
-import {empty} from "../../../utils/objects"
+import {empty, jsonStringifyInOrder} from "../../../utils/objects"
 import NeuroAIChatbot from "../chatbot/neuro_ai_chatbot"
 
 interface ProfileTableProps {
@@ -502,12 +502,15 @@ export default function ProfileTable(props: ProfileTableProps) {
             }}
             footer={[
                 <Button
-                    key="cancel"
+                    id="confirm-cancel-btn"
+                    key="confirm-cancel"
                     onClick={() => setConfirmationModalStatus(false)}
                 >
                     Leave without saving
                 </Button>,
                 <Button
+                    id="confirm-save-btn"
+                    key="confirm-save"
                     type="primary"
                     onClick={saveHandler}
                 >
@@ -519,7 +522,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                 id: "confirm-categorical-values-cancel-button",
             }}
         >
-            <p>
+            <p id="confirm-changes-text">
                 You are about to exit without saving. Changes will be lost. Do you want to save your changes before
                 leaving?
             </p>
@@ -539,7 +542,7 @@ export default function ProfileTable(props: ProfileTableProps) {
             }}
             okType="default"
             onCancel={() => {
-                if (JSON.stringify(categoryOrder) !== JSON.stringify(currentCategoryValues)) {
+                if (jsonStringifyInOrder(categoryOrder) !== jsonStringifyInOrder(currentCategoryValues)) {
                     setConfirmationModalStatus(true)
                     setShowFieldEditor(false)
                     return
