@@ -22,7 +22,7 @@ export class FlowQueries {
         This function filters the predictor nodes
         from the graph and returns them
         */
-        return nodes.filter((node) => node.type === "predictornode") as PredictorNode[]
+        return FlowQueries.getNodesByType(nodes, "predictornode") as PredictorNode[]
     }
 
     static getPredictorNode(nodes: NodeType[], nodeID: string): PredictorNode {
@@ -30,7 +30,7 @@ export class FlowQueries {
         This function filters the predictor nodes
         from the graph and returns the one with the supplied ID, or undefined if not found
         */
-        return nodes.find((node) => node.type === "predictornode" && node.id === nodeID) as PredictorNode
+        return FlowQueries.getNodesByType(nodes, "predictornode").find((node) => node.id === nodeID) as PredictorNode
     }
 
     static getPrescriptorNodes(nodes: NodeType[]): PrescriptorNode[] {
@@ -38,21 +38,21 @@ export class FlowQueries {
         This function filters the prescriptor nodes
         from the graph and returns them
         */
-        return nodes.filter((node) => node.type === "prescriptornode") as PrescriptorNode[]
+        return FlowQueries.getNodesByType(nodes, "prescriptornode") as PrescriptorNode[]
     }
 
     static getDataNodes(nodes: NodeType[]): DataSourceNode[] {
         /*
         This function returns all nodes of type "data" from the graph
         */
-        return nodes.filter((node) => node.type === "datanode") as DataSourceNode[]
+        return FlowQueries.getNodesByType(nodes, "datasourcenode") as DataSourceNode[]
     }
 
     static getUncertaintyModelNodes(nodes: NodeType[]): ConfigurableNode[] {
         /*
         This function returns all nodes of type "uncertaintymodelnode" from the graph
         */
-        return nodes.filter((node) => node.type === "uncertaintymodelnode") as ConfigurableNode[]
+        return FlowQueries.getNodesByType(nodes, "uncertaintymodelnode") as ConfigurableNode[]
     }
 
     static extractCheckedFields(nodes, caoType: CAOType) {
@@ -78,7 +78,7 @@ export class FlowQueries {
         return checkedFields
     }
 
-    static extractCheckedFieldsForNode(node, caoType: CAOType): string[] {
+    static extractCheckedFieldsForNode(node: NodeType, caoType: CAOType): string[] {
         /*
        The function extracts all user-selected (checked) fields of the given CAOType from the
        given node. For example, "get all checked Actions for this Predictor".
@@ -211,9 +211,10 @@ export class FlowQueries {
      * Finds nodes of the given type in the supplied graph
      * @param nodes The graph to search
      * @param type The type of node to find
+     * @return An array of nodes of the given type or empty array if none found
      */
-    static getNodesByType(nodes: NodeType[], type: string): ConfigurableNode[] {
-        return nodes?.filter((node) => node.type === type) as ConfigurableNode[]
+    static getNodesByType(nodes: NodeType[], type: string): NodeType[] {
+        return nodes?.filter((node) => node.type === type) as NodeType[]
     }
 
     /**
