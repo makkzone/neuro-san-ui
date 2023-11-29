@@ -45,7 +45,7 @@ export class FlowQueries {
         /*
         This function returns all nodes of type "data" from the graph
         */
-        return FlowQueries.getNodesByType(nodes, "datasourcenode") as DataSourceNode[]
+        return FlowQueries.getNodesByType(nodes, "datanode") as DataSourceNode[]
     }
 
     static getUncertaintyModelNodes(nodes: NodeType[]): ConfigurableNode[] {

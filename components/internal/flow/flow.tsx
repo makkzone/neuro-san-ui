@@ -1617,22 +1617,6 @@ export default function Flow(props: FlowProps) {
                             "Confabulation"
                         )}
                     </Dropdown.Item>
-                    <Dropdown.Item
-                        id="reset"
-                        as="div"
-                        onClick={() => {
-                            // Make a copy of the graph
-                            let nodesCopy = nodes.slice()
-
-                            nodesCopy = nodesCopy.filter((node) => node.type === "datanode")
-
-                            setNodes(nodesCopy)
-                            setEdges([])
-                            setParentState([...nodesCopy])
-                        }}
-                    >
-                        {getLlmMenuItem("reset", "Clears the graph and resets it to its initial state", "Clear graph")}
-                    </Dropdown.Item>
                 </Dropdown.Menu>
             </Dropdown>
         )
