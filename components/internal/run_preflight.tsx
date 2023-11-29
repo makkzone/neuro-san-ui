@@ -146,13 +146,12 @@ export function checkValidity(flow: NodeType[]): boolean {
         const columnsWithNaNs = Object.keys(dataTag.fields).filter((key) => dataTag.fields[key].has_nan)
         if (columnsWithNaNs.length > 0) {
             // We have columns containing NaNs. Is there an LLM in the flow to rescue us?
-            const llms = FlowQueries.getLLMNodes(flow)
-            const hasLlmDataNode = llms.some((node) => node.type === "llmnode" && node.data.NodeTitle === "Data LLM")
-            if (!hasLlmDataNode) {
+            const hasConfabulationNodes = FlowQueries.getNodesByType(flow, "confabulation_node")?.length > 0
+            if (!hasConfabulationNodes) {
                 sendNotification(
                     NotificationType.warning,
-                    "Some columns have NaN values which must be filled in prior to training. Please add the " +
-                        "appropriate LLM data node to continue",
+                    "Some columns have NaN values which must be filled in prior to training. Please add a " +
+                        "confabulation LLM node to continue",
                     `Fields with NaNs: ${commaListFromArray(columnsWithNaNs)}`
                 )
                 return false

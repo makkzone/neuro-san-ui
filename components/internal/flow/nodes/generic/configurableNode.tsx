@@ -7,7 +7,6 @@ import {GrSettingsOption} from "react-icons/gr"
 import {Handle, Position as HandlePosition, NodeProps, Node as RFNode} from "reactflow"
 
 import {BaseParameterType, NodeParams} from "./types"
-import {NotificationType, sendNotification} from "../../../../../controller/notification"
 import ConfigNumeric from "../../confignumeric"
 
 // Define an interface for the structure of the node
@@ -326,7 +325,6 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
                         className="hover:text-red-700 text-xs"
                         onClick={() => {
                             DeleteNode(NodeID)
-                            sendNotification(NotificationType.success, "Node deleted")
                         }}
                     >
                         <AiFillDelete

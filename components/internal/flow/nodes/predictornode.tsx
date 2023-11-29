@@ -948,7 +948,6 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
                         className="hover:text-red-700 text-xs"
                         onClick={() => {
                             DeleteNode(NodeID)
-                            sendNotification(NotificationType.success, "Predictor node deleted")
                         }}
                     >
                         <AiFillDelete

@@ -171,7 +171,7 @@ export const CONFABULATION_NODE_PARAMS: NodeParams = {
     },
 }
 
-export const LLM_MODEL_PARAMS2: NodeParams = {
+export const ANALYTICS_NODE_PARAMS: NodeParams = {
     model: {
         default_value: LlmModel["OpenAI GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
@@ -192,7 +192,7 @@ export const LLM_MODEL_PARAMS2: NodeParams = {
         description: "Choose a pre-created template or write your own prompt",
         type: BaseParameterType.ENUM,
         enum: PromptTemplate,
-        isAdvanced: false,
+        isAdvanced: true,
     },
     system_prompt: {
         default_value: `In the table below, change the value of the ESP TYPE field to ‘Outcome’ if the attribute is a 
@@ -205,11 +205,11 @@ Finally, given the data description is <field1>, devise some analysis on the dat
 or insights you observe, along with charts baking your observations.`,
         description: "System prompt for the LLM",
         type: BaseParameterType.STRING,
-        isAdvanced: false,
+        isAdvanced: true,
     },
 }
 
-export const LLM_MODEL_PARAMS3: NodeParams = {
+export const ACTIVATION_NODE_PARAMS: NodeParams = {
     model: {
         default_value: LlmModel["OpenAI GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",
@@ -230,7 +230,7 @@ export const LLM_MODEL_PARAMS3: NodeParams = {
         description: "Choose a pre-created template or write your own prompt",
         type: BaseParameterType.ENUM,
         enum: PromptTemplate,
-        isAdvanced: false,
+        isAdvanced: true,
     },
     system_prompt: {
         default_value:
@@ -239,11 +239,11 @@ export const LLM_MODEL_PARAMS3: NodeParams = {
             "above as to adherence to \nResponsible AI policies <field5>.",
         description: "System prompt for the LLM",
         type: BaseParameterType.STRING,
-        isAdvanced: false,
+        isAdvanced: true,
     },
 }
 
-export const LLM_MODEL_PARAMS_CATEGORY_REDUCER: NodeParams = {
+export const CATEGORY_REDUCER_NODE_PARAMS: NodeParams = {
     model: {
         default_value: LlmModel["OpenAI GPT 3.5 turbo"].valueOf(),
         description: "Large Language Model (LLM) to be used",

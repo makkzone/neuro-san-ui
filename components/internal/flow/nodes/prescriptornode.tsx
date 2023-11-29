@@ -1104,7 +1104,6 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
                         className="hover:text-red-700 text-xs"
                         onClick={() => {
                             DeleteNode(NodeID)
-                            sendNotification(NotificationType.success, "Prescriptor node deleted")
                         }}
                     >
                         <AiFillDelete

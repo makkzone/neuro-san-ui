@@ -1,7 +1,5 @@
-// eslint-disable-next-line import/no-named-as-default
-import Debug from "debug"
+import debugModule from "debug"
 import {isEdge, isNode} from "reactflow"
-import {CAOType} from "../../../controller/datatag/types"
 
 import {EdgeType} from "./edges/types"
 import {DataSourceNode} from "./nodes/datasourcenode"
@@ -9,8 +7,11 @@ import {ConfigurableNode} from "./nodes/generic/configurableNode"
 import {PredictorNode} from "./nodes/predictornode"
 import {PrescriptorNode} from "./nodes/prescriptornode"
 import {NodeType} from "./nodes/types"
+import {CAOType} from "../../../controller/datatag/types"
+const debug = debugModule("flowqueries")
 
-const debug = Debug("flowqueries")
+// These nodes are considered "demo only" and have restrictions on usage (eg. only demo users)
+const DEMO_NODES = ["activation_node", "analytics_node", "category_reducer_node", "confabulation_node"]
 
 /**
  * Contains various methods for query items from the experiment flow
@@ -206,20 +207,21 @@ export class FlowQueries {
         return FlowQueries.extractCheckedFieldsForNode(predictorNode, CAOType.OUTCOME).length > 1
     }
 
-    static getLLMNodes(nodes: NodeType[]): ConfigurableNode[] {
-        /*
-        This function returns any LLM nodes found in the graph
-        */
-        return nodes?.filter((node) => node.type === "llmnode") as ConfigurableNode[]
+    /**
+     * Finds nodes of the given type in the supplied graph
+     * @param nodes The graph to search
+     * @param type The type of node to find
+     */
+    static getNodesByType(nodes: NodeType[], type: string): ConfigurableNode[] {
+        return nodes?.filter((node) => node.type === type) as ConfigurableNode[]
     }
 
     /**
-     * Returns any confabulation nodes found in the graph
+     * Returns true if the supplied graph contains any of the demo nodes
      * @param nodes The graph to search
-     * @return The list of confabulation nodes found or empty array if none found
+     * @return <code>true</code> if the graph contains any of the demo nodes, <code>false</code> otherwise
      */
-    static getConfabulationNodes(nodes: NodeType[]): ConfigurableNode[] {
-        // Look for nodes of type "confabulation_node"
-        return nodes.filter((node) => node.type === "confabulation_node") as ConfigurableNode[]
+    static hasDemoNodes(nodes: NodeType[]) {
+        return nodes?.some((node) => DEMO_NODES.includes(node.type))
     }
 }

@@ -12,22 +12,30 @@ import ReactFlow, {
     applyNodeChanges,
     Background,
     Controls,
+    EdgeRemoveChange,
     getConnectedEdges,
+    getIncomers,
     getOutgoers,
     NodeChange,
+    NodeRemoveChange,
     Position,
     ReactFlowInstance,
     ReactFlowProvider,
 } from "reactflow"
 
+import {PredictorEdge} from "./edges/predictoredge"
 import {PrescriptorEdge} from "./edges/prescriptoredge"
 import EdgeTypes, {EdgeType} from "./edges/types"
 import {FlowQueries} from "./flowqueries"
-import {CONFABULATION_NODE_PARAMS, LLM_MODEL_PARAMS3} from "./llmInfo"
+import {
+    ACTIVATION_NODE_PARAMS,
+    ANALYTICS_NODE_PARAMS,
+    CATEGORY_REDUCER_NODE_PARAMS,
+    CONFABULATION_NODE_PARAMS,
+} from "./llmInfo"
 import {DataSourceNode} from "./nodes/datasourcenode"
-import {ConfigurableNode} from "./nodes/generic/configurableNode"
-import {NodeParams} from "./nodes/generic/types"
-import {CAOChecked, PredictorNodeData, PredictorState} from "./nodes/predictornode"
+import {ConfigurableNode, ConfigurableNodeData} from "./nodes/generic/configurableNode"
+import {CAOChecked, PredictorNode, PredictorNodeData, PredictorState} from "./nodes/predictornode"
 import {PrescriptorNode} from "./nodes/prescriptornode"
 import NodeTypes, {NodeData, NodeType} from "./nodes/types"
 import {PredictorParams} from "./predictorinfo"
@@ -171,37 +179,323 @@ export default function Flow(props: FlowProps) {
     const [nodes, setNodes] = useState<NodeType[]>(FlowQueries.getAllNodes(initialNodes))
     const [edges, setEdges] = useState<EdgeType[]>(initialEdges)
 
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    // @ts-expect-error "unused params until we implement"
+    /**
+     * Updates the <code>elementTypeToUuidList</code> state variable, setting any deleted nodes to "deleted" in the
+     * list.
+     * @param deletedNodes List of nodes that have been deleted
+     * @return Nothing, but updates the state of the <code>elementTypeToUuidList</code> variable
+     */
+    function updateUuidList(deletedNodes: NodeType[]) {
+        // Make a copy
+        const uuidListCopy = new Map(elementTypeToUuidList)
+
+        // For all deleted, flag them as "deleted" in the UUID list. This way we don't have to shuffle when items
+        // are deleted.
+        deletedNodes.forEach((element) => {
+            const elementType = String(element.type)
+            const itemsForType = uuidListCopy.get(elementType)
+            if (itemsForType) {
+                const itemIndex = itemsForType.indexOf(element.id)
+                if (itemIndex !== -1) {
+                    itemsForType[itemIndex] = "deleted"
+                    uuidListCopy.set(elementType, itemsForType)
+                }
+            }
+        })
+
+        setElementTypeToUuidList(uuidListCopy)
+    }
+
+    /**
+     * Adds any node after the specified node, and rewires the graph accordingly.
+     *
+     * Example:
+     * <pre>
+     *     Before:  A -> B -> C
+     *                   |
+     *                   +--> D
+     *
+     *     smartAddNode(X, B, edges)
+     *
+     *     After: A -> B -> X -> C
+     *                      |
+     *                      +--> D
+     *  </pre>
+     *
+     * @param nodeToAdd New node to be added
+     * @param addAfter Node after which the new node should be added
+     * @param currentNodes Current nodes in the graph
+     * @param currentEdges Current edges in the graph
+     * @param connectToNode If specified, the new node will be connected to this node
+     * @return Nothing, but updates the state of the graph in place
+     */
+    function smartAddNode(
+        nodeToAdd: NodeType,
+        addAfter: NodeType,
+        currentNodes: NodeType[],
+        currentEdges: EdgeType[],
+        connectToNode?: NodeType
+    ) {
+        // Make a copy of the graph
+        const nodesCopy: NodeType[] = currentNodes.slice()
+        let edgesCopy = currentEdges.slice()
+
+        // First, record what addAfter node is connected to
+        const addAfterOutgoing = getOutgoers<NodeData, NodeData>(addAfter, currentNodes, currentEdges)
+
+        // Remove existing outgoing edges of addAfter node
+        edgesCopy = edgesCopy.filter((edge) => edge.source !== addAfter.id)
+
+        // Add edge from addAfter node to new node
+        const edge =
+            nodeToAdd.type === "prescriptornode"
+                ? getPrescriptorEdge(addAfter.id, nodeToAdd.id)
+                : getGeneralEdge(addAfter.id, nodeToAdd.id)
+        edgesCopy.push(edge)
+
+        // Connect new node to whatever addAfter node used to be connected to (if anything)
+        addAfterOutgoing.forEach((targetNode) => {
+            const newEdge =
+                targetNode.type === "prescriptornode"
+                    ? getPrescriptorEdge(nodeToAdd.id, targetNode.id)
+                    : getGeneralEdge(nodeToAdd.id, targetNode.id)
+            edgesCopy.push(newEdge)
+        })
+
+        // If specified, connect new node to the specified node
+        if (connectToNode) {
+            const newEdge =
+                connectToNode.type === "prescriptornode"
+                    ? getPrescriptorEdge(nodeToAdd.id, connectToNode.id)
+                    : getGeneralEdge(nodeToAdd.id, connectToNode.id)
+            edgesCopy.push(newEdge)
+        }
+
+        // Add the new node
+        nodesCopy.push(nodeToAdd)
+
+        // Update graph
+        setNodes(nodesCopy)
+        setEdges(edgesCopy)
+        setParentState([...nodesCopy, ...edgesCopy])
+
+        // Record ID for testing
+        addElementUuid(nodeToAdd.type, nodeToAdd.id)
+    }
+
+    /**
+     * Removes a given node, and "repairs" the graph by reconnecting the graph to patch the hole
+     *
+     * @param nodeToDelete The node to delete
+     * @param currentNodes The current list of nodes
+     * @param currentEdges The current list of edges
+     * @param additionalNodesToDelete Any additional nodes that should be deleted along with the specified node
+     * @return Nothing, but updates the state of the graph in place
+     */
+    function smartDeleteNode(
+        nodeToDelete: NodeType,
+        currentNodes: NodeType[],
+        currentEdges: EdgeType[],
+        additionalNodesToDelete: NodeType[] = []
+    ) {
+        // Make a copy of the graph
+        let nodesCopy: NodeType[] = currentNodes.slice()
+        let edgesCopy = currentEdges.slice()
+
+        // Record incoming
+        const incomingNodes = getIncomers<NodeData, NodeData>(nodeToDelete, nodesCopy, edgesCopy)
+        edgesCopy.filter((edge) => edge.target === nodeToDelete.id)
+
+        // Record outgoing
+        const outgoingNodes = getOutgoers<NodeData, NodeData>(nodeToDelete, nodesCopy, edgesCopy)
+        edgesCopy.filter((edge) => edge.source === nodeToDelete.id)
+
+        // Remove the node and associated edges
+        nodesCopy = nodesCopy.filter((node) => node.id !== nodeToDelete.id)
+        edgesCopy = edgesCopy.filter((edge) => edge.source !== nodeToDelete.id && edge.target !== nodeToDelete.id)
+
+        // Reconnect the graph
+        incomingNodes.forEach((incomingNode) => {
+            outgoingNodes.forEach((outgoingNode) => {
+                const edge =
+                    outgoingNode.type === "prescriptornode"
+                        ? getPrescriptorEdge(incomingNode.id, outgoingNode.id)
+                        : getGeneralEdge(incomingNode.id, outgoingNode.id)
+
+                edgesCopy.push(edge)
+            })
+        })
+
+        if (additionalNodesToDelete?.length > 0) {
+            additionalNodesToDelete.forEach((node) => {
+                nodesCopy = nodesCopy.filter((aNode) => aNode.id !== node.id)
+                edgesCopy = edgesCopy.filter((edge) => edge.source !== node.id && edge.target !== node.id)
+            })
+        }
+
+        // Housekeeping -- update UUID tracking list for deleted nodes
+        updateUuidList([nodeToDelete, ...additionalNodesToDelete])
+
+        setNodes(nodesCopy)
+        setEdges(edgesCopy)
+        setParentState([...nodesCopy, ...edgesCopy])
+    }
+
     function deleteConfabulationNode(nodeToDelete: NodeType, currentNodes: NodeType[], currentEdges: EdgeType[]) {
-        console.debug(`Deleting confabulation node ${nodeToDelete.id}`)
+        smartDeleteNode(nodeToDelete, currentNodes, currentEdges)
     }
 
-    // @ts-expect-error "unused params until we implement"
+    function deleteActivationNode(nodeToDelete: NodeType, currentNodes: NodeType[], currentEdges: EdgeType[]) {
+        smartDeleteNode(nodeToDelete, currentNodes, currentEdges)
+    }
+
     function deleteAnalyticsNode(nodeToDelete: NodeType, currentNodes: NodeType[], currentEdges: EdgeType[]) {
-        console.debug(`Deleting analytics node ${nodeToDelete.id}`)
+        smartDeleteNode(nodeToDelete, currentNodes, currentEdges)
     }
 
-    // @ts-expect-error "unused params until we implement"
     function deleteCategoryReducerNode(nodeToDelete: NodeType, currentNodes: NodeType[], currentEdges: EdgeType[]) {
-        console.debug(`Deleting category reducer node ${nodeToDelete.id}`)
+        smartDeleteNode(nodeToDelete, currentNodes, currentEdges)
     }
 
-    // @ts-expect-error "unused params until we implement"
     function deleteUncertaintyModelNode(nodeToDelete: NodeType, currentNodes: NodeType[], currentEdges: EdgeType[]) {
-        console.debug(`Deleting uncertainty model node ${nodeToDelete.id}`)
+        smartDeleteNode(nodeToDelete, currentNodes, currentEdges)
     }
 
-    // @ts-expect-error "unused params until we implement"
     function deletePrescriptorNode(nodeToDelete: NodeType, currentNodes: NodeType[], currentEdges: EdgeType[]) {
-        console.debug(`Deleting prescriptor node ${nodeToDelete.id}`)
+        // Delete Prescriptor node and any associated Activation node
+        const activationNodes = FlowQueries.getNodesByType(currentNodes, "activation_node")
+        smartDeleteNode(nodeToDelete, currentNodes, currentEdges, activationNodes)
     }
 
-    // @ts-expect-error "unused params until we implement"
     function deletePredictorNode(nodeToDelete: NodeType, currentNodes: NodeType[], currentEdges: EdgeType[]) {
-        console.debug(`Deleting predictor node ${nodeToDelete.id}`)
+        /*
+       Since we supply constraints on how nodes interact, i.e. in an ESP
+       fashion we cannot allow deletion of any nodes.
+       1. Data Nodes cannot be deleted
+       2. If only one predictor exists, deleting that will also delete
+       the prescriptor node if it exists.
+
+       Note: This edits the graph inPlace
+       */
+
+        const nodesToDelete = [nodeToDelete]
+
+        // Do not allow deletion of data nodes
+        const dataNodeDeleted = nodesToDelete.some((element) => element.type === "datanode")
+        if (dataNodeDeleted) {
+            sendNotification(
+                NotificationType.warning,
+                "Data nodes cannot be deleted.",
+                "In order to use a different data node, create a new experiment with the required data source."
+            )
+            return
+        }
+
+        const removableNodes = nodesToDelete.filter((element) => element.type !== "datanode")
+        // Also get the edges associated with this uncertainty node
+        const removableEdges = getConnectedEdges(removableNodes, currentEdges)
+
+        const predictorNodesBeingRemoved = FlowQueries.getPredictorNodes(nodesToDelete)
+        const predictorIdsBeingRemoved = predictorNodesBeingRemoved.map((node) => node.id)
+
+        const uncertaintyNodesBeingRemoved = FlowQueries.getUncertaintyModelNodes(nodesToDelete)
+
+        const prescriptorNodes = FlowQueries.getPrescriptorNodes(currentNodes)
+
+        // If we're deleting a predictor, delete associated Uncertainty nodes connected to this predictor
+        if (predictorIdsBeingRemoved && predictorIdsBeingRemoved.length > 0) {
+            const uncertaintyNodesToRemove = predictorNodesBeingRemoved.flatMap<ConfigurableNode>(
+                (node) =>
+                    getOutgoers<NodeData, PredictorNodeData>(node, currentNodes, currentEdges).filter(
+                        (aNode) => aNode.type === "uncertaintymodelnode"
+                    ) as ConfigurableNode[]
+            )
+            removableNodes.push(...uncertaintyNodesToRemove)
+            // Also get the edges associated with this uncertainty node
+            removableEdges.push(...getConnectedEdges(uncertaintyNodesToRemove, currentEdges))
+        }
+
+        // If this delete will remove all predictors, also delete the prescriptor and any associated activation LLM node
+        const newEdges = currentEdges
+        let newNodes = currentNodes
+        const numPredictorNodesLeft =
+            FlowQueries.getPredictorNodes(currentNodes).length - predictorIdsBeingRemoved.length
+        if (numPredictorNodesLeft === 0) {
+            removableNodes.push(...prescriptorNodes)
+
+            const activationNodes = FlowQueries.getNodesByType(currentNodes, "activation_node")
+            if (activationNodes?.length === 1) {
+                removableNodes.push(activationNodes[0])
+            }
+        } else {
+            // Also if the removable elements have predictor nodes we
+            // need to clean up their outcomes from showing in the prescriptor
+            const predictorsLeft = currentNodes.filter(
+                (node) => node.type === "predictornode" && !predictorIdsBeingRemoved.includes(node.id)
+            ) as PredictorNode[]
+
+            // Connect any remaining predictors to the prescriptor
+            if (uncertaintyNodesBeingRemoved && prescriptorNodes && prescriptorNodes.length > 0) {
+                const predictorNodesWithUncertaintyNodesBeingRemoved = uncertaintyNodesBeingRemoved.flatMap((node) =>
+                    getIncomers<NodeData, ConfigurableNodeData>(node, currentNodes, currentEdges).filter(
+                        (aNode) => aNode.type === "predictornode"
+                    )
+                )
+                for (const node of predictorNodesWithUncertaintyNodesBeingRemoved) {
+                    newEdges.push(getPrescriptorEdge(node.id, prescriptorNodes[0].id))
+                }
+            }
+
+            // Get outcomes from all current predictors to use for prescriptor fitness
+            let outcomes = FlowQueries.extractCheckedFields(predictorsLeft, CAOType.OUTCOME)
+
+            // Make this a set
+            outcomes = outcomes.filter((value, index, sourceArray) => sourceArray.indexOf(value) === index)
+
+            // Default to maximizing outcomes until user tells us otherwise
+            const fitness = outcomes.map((outcome) => ({metric_name: outcome, maximize: true}))
+
+            newNodes = currentNodes.map((singleNode) => {
+                const prescriptorNode = singleNode as PrescriptorNode
+                if (singleNode.type === "prescriptornode") {
+                    prescriptorNode.data = {
+                        ...prescriptorNode.data,
+                        ParentPrescriptorState: {
+                            ...prescriptorNode.data.ParentPrescriptorState,
+                            evolution: {
+                                ...prescriptorNode.data.ParentPrescriptorState.evolution,
+                                fitness,
+                            },
+                        },
+                    }
+                }
+                return prescriptorNode
+            })
+        }
+
+        // Update the uuid index map for testing ids
+        updateUuidList(removableNodes)
+
+        // Construct a list of changes
+        const nodeChanges = removableNodes.map<NodeRemoveChange>((element) => ({
+            type: "remove",
+            id: element.id,
+        }))
+
+        const remainingNodes = applyNodeChanges<NodeData>(nodeChanges, newNodes) as NodeType[]
+
+        const edgeChanges = removableEdges.map<EdgeRemoveChange>((element) => ({
+            type: "remove",
+            id: element.id,
+        }))
+
+        const remainingEdges = applyEdgeChanges(edgeChanges, newEdges) as EdgeType[]
+
+        // Update the flow, removing the deleted nodes
+        setNodes(remainingNodes)
+        setEdges(remainingEdges)
+        setParentState([...remainingNodes, ...remainingEdges])
     }
-    /* eslint-enable @typescript-eslint/no-unused-vars */
 
     // Tidy flow when nodes are added or removed
     useEffect(() => {
@@ -400,13 +694,36 @@ export default function Flow(props: FlowProps) {
         return nodesTmp
     }
 
-    function addEdgeToPrescriptorNode(inputEdges: EdgeType[], predictorNodeID: string, prescriptorNodeID: string) {
-        const edgesCopy = [...inputEdges]
+    /**
+     * Generates an edge for connecting any two non-prescriptor nodes in the graph. Despite the name, "predictor edges"
+     * are used to connect any two nodes that are not prescriptor nodes. The naming is for legacy reasons.
+     * @param sourceNodeID ID of the source node
+     * @param targetNodeID ID of the target node
+     * @return The new edge with a random UUID
+     */
+    function getGeneralEdge(sourceNodeID: string, targetNodeID: string): PredictorEdge {
+        return {
+            id: uuid(),
+            source: sourceNodeID,
+            target: targetNodeID,
+            animated: false,
+            type: "predictoredge",
+        }
+    }
+
+    /**
+     * Constructs a new edge between any node and a prescriptor node. Prescriptor edges are special because
+     * they have an output override code block that can be used to override the output of the predictor.
+     * @param sourceNodeID ID of the source node
+     * @param targetPrescriptorNodeID ID of the target prescriptor node
+     * @return The new edge with a random UUID
+     */
+    function getPrescriptorEdge(sourceNodeID: string, targetPrescriptorNodeID: string): PrescriptorEdge {
         const edgeId = uuid()
-        const edge: PrescriptorEdge = {
+        return {
             id: edgeId,
-            source: predictorNodeID,
-            target: prescriptorNodeID,
+            source: sourceNodeID,
+            target: targetPrescriptorNodeID,
             animated: false,
             type: "prescriptoredge",
             data: {
@@ -415,8 +732,6 @@ export default function Flow(props: FlowProps) {
                 idExtension,
             },
         }
-        edgesCopy.push(edge)
-        return edgesCopy
     }
 
     function getInitialPredictorState() {
@@ -493,55 +808,85 @@ export default function Flow(props: FlowProps) {
         return FlowQueries.getIndexForElement(elementTypeToUuidList, element)
     }
 
-    function addPredictorNode() {
+    function addPredictorNode(currentNodes: NodeType[], currentEdges: EdgeType[]) {
         /*
         This function adds a predictor node to the Graph while supplying
         several constraints.
         1. The predictor nodes are always added as attached to the data source
-        node.
+        node, or after any LLM data nodes attached to the data source
         2. If a prescriptor node exists, the predictor is attached to that node.
         */
 
+        let addAfter = null
+
+        // By default, add after the data source node
+        const dataSourceNodes = FlowQueries.getDataNodes(currentNodes)
+        if (dataSourceNodes?.length !== 1) {
+            sendNotification(NotificationType.error, "Cannot add Predictor node", "Unable to locate a data source node")
+        }
+
         // Make a copy of the nodes
-        const nodesCopy = nodes.slice()
-        let edgesCopy = edges.slice()
+        const nodesCopy = currentNodes.slice()
+        const edgesCopy = currentEdges.slice()
+
+        // If there's an analytics node, add after that
+        const analyticsNodes = FlowQueries.getNodesByType(nodes, "analytics_node")
+        if (analyticsNodes?.length === 1) {
+            addAfter = analyticsNodes[0]
+        }
+
+        // If there's a category reducer node, add after that
+        if (!addAfter) {
+            const categoryReducerNodes = FlowQueries.getNodesByType(nodes, "category_reducer_node")
+            if (categoryReducerNodes?.length === 1) {
+                addAfter = categoryReducerNodes[0]
+            }
+        }
+
+        // If there's a confabulation node, add after that
+        if (!addAfter) {
+            const confabulationNodes = FlowQueries.getNodesByType(nodes, "confabulation_node")
+            if (confabulationNodes?.length === 1) {
+                addAfter = confabulationNodes[0]
+            }
+        }
+
+        // If not, add after the data source node
+        if (!addAfter) {
+            addAfter = dataSourceNodes[0]
+        }
 
         // Create a unique ID
-        const NodeID = uuid()
+        const predictorNodeID = uuid()
 
         // Add the Predictor Node
-        const MaxPredictorNodeY = Math.max(
+        const maxPredictorNodeY = Math.max(
             ...FlowQueries.getPredictorNodes(nodes).map((node) => node.position.y),
             nodes[0].position.y - 100
         )
 
         const dataSourceNode = FlowQueries.getDataNodes(nodes)[0]
         nodesCopy.push({
-            id: NodeID,
+            id: predictorNodeID,
             type: "predictornode",
             data: {
-                NodeID: NodeID,
+                NodeID: predictorNodeID,
                 SelectedDataSourceId: dataSourceNode.data.DataSource.id,
                 ParentPredictorState: getInitialPredictorState(),
-                SetParentPredictorState: (state) => PredictorSetStateHandler(state, NodeID),
+                SetParentPredictorState: (state) => PredictorSetStateHandler(state, predictorNodeID),
                 DeleteNode: (predictorNodeId) => deleteNodeById(predictorNodeId),
                 GetElementIndex: (id) => getElementIndex(id),
                 idExtension,
             },
             position: {
                 x: nodes[0].position.x + 250,
-                y: MaxPredictorNodeY + 100,
+                y: maxPredictorNodeY + 100,
             },
         })
 
-        // Add an Edge to the data node
-        edgesCopy.push({
-            id: uuid(),
-            source: "root",
-            target: NodeID,
-            animated: false,
-            type: "predictoredge",
-        })
+        // Add an Edge to the source node
+        const edge = getGeneralEdge(addAfter.id, predictorNodeID)
+        edgesCopy.push(edge)
 
         // Check if Prescriptor Node exists
         const prescriptorNodes = FlowQueries.getPrescriptorNodes(nodes)
@@ -549,13 +894,14 @@ export default function Flow(props: FlowProps) {
         // If there's already a prescriptor node, add edge to that prescriptor node
         if (prescriptorNodes.length !== 0) {
             const prescriptorNode = prescriptorNodes[0]
-            edgesCopy = addEdgeToPrescriptorNode(edgesCopy, NodeID, prescriptorNode.id)
+            const prescriptorEdge = getPrescriptorEdge(predictorNodeID, prescriptorNode.id)
+            edgesCopy.push(prescriptorEdge)
         }
 
         setNodes(nodesCopy)
         setEdges(edgesCopy)
         setParentState([...nodesCopy, ...edgesCopy])
-        addElementUuid("predictornode", NodeID)
+        addElementUuid("predictornode", predictorNodeID)
     }
 
     function getInitialPrescriptorState(fitness) {
@@ -643,10 +989,10 @@ export default function Flow(props: FlowProps) {
 
         // If above conditions are satisfied edit the graph
         const nodesCopy = nodes.slice()
-        let edgesCopy = edges.slice()
+        const edgesCopy = edges.slice()
 
         // Create a unique ID
-        const NodeID = uuid()
+        const prescriptorNodeID = uuid()
 
         // Get outcomes from all current predictors to use for prescriptor fitness
         let outcomes = FlowQueries.extractCheckedFields(predictorNodes, CAOType.OUTCOME)
@@ -668,15 +1014,15 @@ export default function Flow(props: FlowProps) {
         const prescriptorNodeYPos =
             uncertaintyModelNodes.length > 0 ? uncertaintyModelNodes[0].position.y : predictorNodes[0].position.y
         nodesCopy.push({
-            id: NodeID,
+            id: prescriptorNodeID,
             type: "prescriptornode",
             data: {
-                NodeID: NodeID,
+                NodeID: prescriptorNodeID,
                 SelectedDataSourceId: FlowQueries.getDataNodes(nodes)[0].data.DataSource.id,
                 ParentPrescriptorState: getInitialPrescriptorState(fitness),
-                SetParentPrescriptorState: (state) => PrescriptorSetStateHandler(state, NodeID),
+                SetParentPrescriptorState: (state) => PrescriptorSetStateHandler(state, prescriptorNodeID),
                 EvaluatorOverrideCode: EvaluateCandidateCode,
-                UpdateEvaluateOverrideCode: (value) => UpdateOutputOverrideCode(NodeID, value),
+                UpdateEvaluateOverrideCode: (value) => UpdateOutputOverrideCode(prescriptorNodeID, value),
                 DeleteNode: (prescriptorNodeId) => deleteNodeById(prescriptorNodeId),
                 GetElementIndex: (id) => getElementIndex(id),
                 idExtension,
@@ -697,27 +1043,21 @@ export default function Flow(props: FlowProps) {
                 if (downStreamUncertaintyModelNodes && downStreamUncertaintyModelNodes.length === 1) {
                     // should only be one uncertainty model node per predictor!
                     const uncertaintyModelNode = downStreamUncertaintyModelNodes[0]
-                    edgesCopy = addEdgeToPrescriptorNode(edgesCopy, uncertaintyModelNode.id, NodeID)
+                    const prescriptorEdge = getPrescriptorEdge(uncertaintyModelNode.id, prescriptorNodeID)
+                    edgesCopy.push(prescriptorEdge)
                 }
             } else {
                 // This predictor has no uncertainty model, so just connect the new prescriptor directly to the
                 // predictor.
-                edgesCopy = addEdgeToPrescriptorNode(edgesCopy, predictorNode.id, NodeID)
+                const prescriptorEdge = getPrescriptorEdge(predictorNode.id, prescriptorNodeID)
+                edgesCopy.push(prescriptorEdge)
             }
         })
 
         setNodes(nodesCopy)
         setEdges(edgesCopy)
         setParentState([...nodesCopy, ...edgesCopy])
-        addElementUuid("prescriptornode", NodeID)
-    }
-
-    function getInitialUncertaintyNodeState(): NodeParams {
-        /*
-       This function returns the initial uncertainty node state for when a user first adds the node to the flow
-       */
-
-        return structuredClone(UNCERTAINTY_MODEL_PARAMS)
+        addElementUuid("prescriptornode", prescriptorNodeID)
     }
 
     // Adds uncertainty model nodes to the specified Predictor(s)
@@ -758,16 +1098,16 @@ export default function Flow(props: FlowProps) {
                 : predictorNode.position.x + 200
 
             // Create a unique ID
-            const newNodeID = uuid()
+            const uncertaintyNodeID = uuid()
 
             // Add the uncertainty model node
             const uncertaintyNode: ConfigurableNode = {
-                id: newNodeID,
+                id: uncertaintyNodeID,
                 type: "uncertaintymodelnode",
                 data: {
-                    NodeID: newNodeID,
-                    ParentNodeState: getInitialUncertaintyNodeState(),
-                    SetParentNodeState: (state) => ParentNodeSetStateHandler(state, newNodeID),
+                    NodeID: uncertaintyNodeID,
+                    ParentNodeState: structuredClone(UNCERTAINTY_MODEL_PARAMS),
+                    SetParentNodeState: (state) => ParentNodeSetStateHandler(state, uncertaintyNodeID),
                     DeleteNode: (id) => deleteNodeById(id),
                     GetElementIndex: (id) => getElementIndex(id),
                     ParameterSet: UNCERTAINTY_MODEL_PARAMS,
@@ -783,13 +1123,8 @@ export default function Flow(props: FlowProps) {
 
             // Now wire up the uncertainty model node in the graph
             // Connect the Predictor to the uncertainty model node
-            edgesCopy.push({
-                id: uuid(),
-                source: predictorNode.id,
-                target: newNodeID,
-                animated: false,
-                type: "predictoredge",
-            })
+            const newEdge = getGeneralEdge(predictorNode.id, uncertaintyNodeID)
+            edgesCopy.push(newEdge)
 
             // If there's a Prescriptor, connect the new uncertainty model node to that.
             if (prescriptorNode) {
@@ -802,10 +1137,10 @@ export default function Flow(props: FlowProps) {
                 }
 
                 // Connect the uncertainty model node to the prescriptor
-                edgesCopy = addEdgeToPrescriptorNode(edgesCopy, newNodeID, prescriptorNode.id)
+                edgesCopy.push(getPrescriptorEdge(uncertaintyNodeID, prescriptorNode.id))
             }
 
-            addElementUuid("uncertaintymodelnode", newNodeID)
+            addElementUuid("uncertaintymodelnode", uncertaintyNodeID)
         })
 
         // Save the updated Flow
@@ -814,12 +1149,18 @@ export default function Flow(props: FlowProps) {
         setParentState([...nodesCopy, ...edgesCopy])
     }
 
-    function addActivationLlm() {
-        console.debug("Adding activation LLM")
-
-        // Make a copy of the graph
-        const nodesCopy = nodes.slice()
-        const edgesCopy = edges.slice()
+    function addActivationLlm(currentNodes: NodeType[], currentEdges: EdgeType[]) {
+        // Only one LLM of this type allowed per experiment
+        const hasActivationNodes = FlowQueries.getNodesByType(nodes, "activation_node").length > 0
+        if (hasActivationNodes) {
+            sendNotification(
+                NotificationType.warning,
+                "Unable to add activation LLM node",
+                "Only one activation LLM node is allowed per experiment and this experiment already has an " +
+                    "activation LLM node."
+            )
+            return
+        }
 
         const prescriptorNodes = FlowQueries.getPrescriptorNodes(nodes)
         if (!prescriptorNodes || prescriptorNodes.length === 0) {
@@ -844,12 +1185,12 @@ export default function Flow(props: FlowProps) {
             type: "activation_node",
             data: {
                 NodeID: actuationLlmNodeID,
-                ParentNodeState: structuredClone(LLM_MODEL_PARAMS3),
+                ParentNodeState: structuredClone(ACTIVATION_NODE_PARAMS),
                 SetParentNodeState: (state) => ParentNodeSetStateHandler(state, actuationLlmNodeID),
                 DeleteNode: (nodeID) => deleteNodeById(nodeID),
                 GetElementIndex: (nodeID) => getElementIndex(nodeID),
-                ParameterSet: LLM_MODEL_PARAMS3,
-                NodeTitle: "Actuation LLM",
+                ParameterSet: ACTIVATION_NODE_PARAMS,
+                NodeTitle: "Activation LLM",
                 idExtension,
             },
             position: {
@@ -857,47 +1198,151 @@ export default function Flow(props: FlowProps) {
                 y: prescriptorNode.position.y,
             },
         }
-        nodesCopy.push(actuationLlmNode)
 
-        edgesCopy.push({
-            id: uuid(),
-            source: prescriptorNode.id,
-            target: actuationLlmNodeID,
-            animated: false,
-            type: "predictoredge",
-        })
-
-        setEdges(edgesCopy)
-        setNodes(nodesCopy)
-        setParentState([...nodesCopy, ...edgesCopy])
+        smartAddNode(actuationLlmNode, prescriptorNode, currentNodes, currentEdges)
     }
 
-    function addAnalyticsLlm() {
-        console.debug("Adding analytics LLM")
-    }
-
-    function addCategoryReductionLlm() {
-        console.debug("Adding category reduction LLM")
-    }
-
-    function addConfabulationLlm() {
+    function addAnalyticsLlm(currentNodes: NodeType[], currentEdges: EdgeType[]) {
         // Only one LLM of this type allowed per experiment
-        const confabulationNodes = FlowQueries.getConfabulationNodes(nodes)
-        if (confabulationNodes && confabulationNodes.length > 0) {
+        const hasAnalyticsNodes = FlowQueries.getNodesByType(nodes, "analytics_node")?.length > 0
+        if (hasAnalyticsNodes) {
             sendNotification(
                 NotificationType.warning,
-                "Only one confabulation LLM node is allowed per experiment",
-                "This experiment already has a confabulation LLM node."
+                "Unable to add Analytics LLM node",
+                "Only one Analytics LLM node is allowed per experiment and this experiment already has an " +
+                    "Analytics LLM node."
             )
             return
         }
 
-        // Make a copy of the graph
-        const nodesCopy = nodes.slice()
-        let edgesCopy = edges.slice()
+        let addAfter = null
+
+        // By default, add after the data source node
+        const dataSourceNodes = FlowQueries.getDataNodes(nodes)
+        if (dataSourceNodes && dataSourceNodes.length === 1) {
+            addAfter = dataSourceNodes[0]
+        }
+
+        // If there's a category reducer node, add after that
+        const categoryReducerNodes = FlowQueries.getNodesByType(nodes, "category_reducer_node")
+        if (categoryReducerNodes && categoryReducerNodes.length === 1) {
+            addAfter = categoryReducerNodes[0]
+        } else {
+            // If there's a confabulation node, add after that
+            const confabulationNodes = FlowQueries.getNodesByType(nodes, "confabulation_node")
+            if (confabulationNodes && confabulationNodes.length === 1) {
+                addAfter = confabulationNodes[0]
+            }
+        }
+
+        if (!addAfter) {
+            sendNotification(
+                NotificationType.warning,
+                "Cannot add analytics LLM node",
+                "A data node, category reducer node, or confabulation node must be added before adding an " +
+                    "analytics LLM node"
+            )
+            return
+        }
+
+        // Create new node
+        const analyticsNodeID = uuid()
+        const analyticsNode: NodeType = {
+            id: analyticsNodeID,
+            type: "analytics_node",
+            data: {
+                NodeID: analyticsNodeID,
+                ParentNodeState: structuredClone(ANALYTICS_NODE_PARAMS),
+                SetParentNodeState: (state) => ParentNodeSetStateHandler(state, analyticsNodeID),
+                DeleteNode: (id) => deleteNodeById(id),
+                GetElementIndex: (id) => getElementIndex(id),
+                ParameterSet: ANALYTICS_NODE_PARAMS,
+                NodeTitle: "Analytics LLM",
+                idExtension,
+            },
+            position: {x: addAfter.position.x + 250, y: addAfter.position.y},
+        }
+
+        smartAddNode(analyticsNode, addAfter, currentNodes, currentEdges)
+    }
+
+    function addCategoryReducerLLM(currentNodes: NodeType[], currentEdges: EdgeType[]) {
+        // Only one LLM of this type allowed per experiment
+        const hasCategoryReducerNodes = FlowQueries.getNodesByType(nodes, "category_reducer_node")?.length > 0
+        if (hasCategoryReducerNodes) {
+            sendNotification(
+                NotificationType.warning,
+                "Unable to add Category Reducer LLM node",
+                "Only one Category Reducer LLM node is allowed per experiment and this experiment already has a " +
+                    "Category Reducer LLM node."
+            )
+            return
+        }
+
+        let addAfter = null
+
+        // Get data source node
+        const dataSourceNodes = FlowQueries.getDataNodes(currentNodes)
+        if (dataSourceNodes?.length !== 1) {
+            sendNotification(NotificationType.error, "Cannot add Predictor node", "Unable to locate a data source node")
+        }
+
+        // If there's a confabulation node, add after that
+        const confabulationNodes = FlowQueries.getNodesByType(nodes, "confabulation_node")
+        if (confabulationNodes?.length === 1) {
+            addAfter = confabulationNodes[0]
+        }
+
+        // If not, add after the data source node
+        if (!addAfter) {
+            addAfter = dataSourceNodes[0]
+        }
+
+        if (!addAfter) {
+            sendNotification(
+                NotificationType.warning,
+                "Cannot add Category Reducer node",
+                "Unable to locate a suitable node to connect the Category Reducer node to"
+            )
+            return
+        }
+
+        // Create new node
+        const categoryReducerNodeID = uuid()
+        const categoryReducerNode: NodeType = {
+            id: categoryReducerNodeID,
+            type: "category_reducer_node",
+            data: {
+                NodeID: categoryReducerNodeID,
+                ParentNodeState: structuredClone(CATEGORY_REDUCER_NODE_PARAMS),
+                SetParentNodeState: (state) => ParentNodeSetStateHandler(state, categoryReducerNodeID),
+                DeleteNode: (id) => deleteNodeById(id),
+                GetElementIndex: (id) => getElementIndex(id),
+                ParameterSet: CATEGORY_REDUCER_NODE_PARAMS,
+                NodeTitle: "Category Reducer LLM",
+                idExtension,
+            },
+            position: {x: addAfter.position.x + 250, y: addAfter.position.y},
+        }
+
+        smartAddNode(categoryReducerNode, addAfter, currentNodes, currentEdges)
+    }
+
+    function addConfabulationLlm(currentNodes: NodeType[], currentEdges: EdgeType[]) {
+        // Only one LLM of this type allowed per experiment
+        const hasConfabulationNodes = FlowQueries.getNodesByType(nodes, "confabulation_node")?.length > 0
+        if (hasConfabulationNodes) {
+            sendNotification(
+                NotificationType.warning,
+                "Unable to add confabulation LLM node",
+                "Only one confabulation LLM node is allowed per experiment and this experiment already has a " +
+                    "confabulation LLM node."
+            )
+            return
+        }
 
         // Locate data node
-        const dataNodes = FlowQueries.getDataNodes(nodesCopy)
+        const dataNodes = FlowQueries.getDataNodes(currentNodes)
         if (!dataNodes || dataNodes.length !== 1) {
             // No data node or more than one data node -- can't add LLM
             sendNotification(
@@ -908,36 +1353,21 @@ export default function Flow(props: FlowProps) {
             return
         }
 
+        // Confabulation node goes after data node
         const dataNode = dataNodes[0]
-
-        const outgoingEdges = getConnectedEdges([dataNode], edges)
-
-        if (outgoingEdges.length > 1) {
-            // Data node has more than one outgoing edge -- we don't know how to handle that
-            sendNotification(
-                NotificationType.warning,
-                "Cannot add confabulation LLM node",
-                "The data node has more than one outgoing edge"
-            )
-            return
-        }
-
-        const edge = outgoingEdges?.[0]
-
-        // Disconnect data source from whatever it is connected to (if anything)
-        edgesCopy = edgesCopy.filter((e) => e.id !== edge?.id)
 
         // Create a unique ID
         const confabulationNodeID = uuid()
-        // Add a new Confabulation node to graph
-        nodesCopy.push({
+
+        // Create new node
+        const confabulationNode = {
             id: confabulationNodeID,
             type: "confabulation_node",
             data: {
                 NodeID: confabulationNodeID,
                 ParentNodeState: structuredClone(CONFABULATION_NODE_PARAMS),
                 SetParentNodeState: (state) => ParentNodeSetStateHandler(state, confabulationNodeID),
-                DeleteNode: (predictorNodeId) => deleteNodeById(predictorNodeId),
+                DeleteNode: (id) => deleteNodeById(id),
                 GetElementIndex: (id) => getElementIndex(id),
                 ParameterSet: CONFABULATION_NODE_PARAMS,
                 NodeTitle: "Confabulation LLM",
@@ -947,34 +1377,11 @@ export default function Flow(props: FlowProps) {
                 x: dataNode.position.x + 250,
                 y: dataNode.position.y,
             },
-        })
-
-        // Connect data source to new confabulation node
-        edgesCopy.push({
-            id: uuid(),
-            source: dataNode.id,
-            target: confabulationNodeID,
-            animated: false,
-            type: "predictoredge",
-        })
-
-        // Connect confabulation node to whatever data source used to be connected to (if anything)
-        if (edge) {
-            edgesCopy.push({
-                id: uuid(),
-                source: confabulationNodeID,
-                target: edge.target,
-                animated: false,
-                type: "predictoredge",
-            })
         }
 
-        // Save the updated Flow
-        setNodes(nodesCopy)
-        setEdges(edgesCopy)
-        setParentState([...nodesCopy, ...edgesCopy])
-        addElementUuid("confabulation_node", confabulationNodeID)
+        smartAddNode(confabulationNode, dataNode, currentNodes, currentEdges)
     }
+
     function addElementUuid(elementType: string, elementId: string) {
         /*
         Adds a uuid for a particular element type to our indexing map used
@@ -1045,9 +1452,9 @@ export default function Flow(props: FlowProps) {
                 deleteAnalyticsNode(nodeToDelete, currentNodes, currentEdges)
                 break
             case "activation_node":
-                deleteAnalyticsNode(nodeToDelete, currentNodes, currentEdges)
+                deleteActivationNode(nodeToDelete, currentNodes, currentEdges)
                 break
-            case "confabulation":
+            case "confabulation_node":
                 deleteConfabulationNode(nodeToDelete, currentNodes, currentEdges)
                 break
             default:
@@ -1196,7 +1603,7 @@ export default function Flow(props: FlowProps) {
                 <Button
                     id="add_predictor_btn"
                     size="sm"
-                    onClick={() => addPredictorNode()}
+                    onClick={() => addPredictorNode(nodes, edges)}
                     type="button"
                 >
                     Add Predictor
@@ -1236,40 +1643,69 @@ export default function Flow(props: FlowProps) {
                             <Dropdown.Item
                                 id="add-activation-llm-btn"
                                 as="div"
-                                onClick={() => addActivationLlm()}
+                                onClick={() => addActivationLlm(nodes, edges)}
                             >
-                                {getLlmMenuItem("activation", "For future use", "Activation")}
+                                {getLlmMenuItem(
+                                    "activation",
+                                    "Maps the intent of the prescriptor to front-end interactions and back-end and " +
+                                        "model API calls",
+                                    "Activation"
+                                )}
                             </Dropdown.Item>
                             <Dropdown.Item
                                 id="add-analytics-llm-btn"
                                 as="div"
-                                onClick={() => addAnalyticsLlm()}
+                                onClick={() => addAnalyticsLlm(nodes, edges)}
                             >
-                                {getLlmMenuItem("analytics", "For future use", "Analytics")}
+                                {getLlmMenuItem(
+                                    "analytics",
+                                    "Helps data scientists analyze the data with smart, LLM-enabled queries",
+                                    "Analytics"
+                                )}
                             </Dropdown.Item>
                             <Dropdown.Item
                                 id="add-category-reduction-llm-btn"
                                 as="div"
-                                onClick={() => addCategoryReductionLlm()}
+                                onClick={() => addCategoryReducerLLM(nodes, edges)}
                             >
                                 {getLlmMenuItem(
                                     "category-reduction",
                                     "Attempts to reduce the number of categories in categorical fields " +
                                         "intelligently by using an LLM. For example, a field that contains " +
                                         "categories 'carrot', 'onion', and 'pea' might be reduced to 'vegetable'",
-                                    "Category reduction"
+                                    "Category reducer"
                                 )}
                             </Dropdown.Item>
                             <Dropdown.Item
                                 id="add-confabulation-llm-btn"
                                 as="div"
-                                onClick={() => addConfabulationLlm()}
+                                onClick={() => addConfabulationLlm(nodes, edges)}
                             >
                                 {getLlmMenuItem(
                                     "confabulation",
                                     "Confabulates (synthesizes) missing data using an LLM to provide " +
                                         "reasonable values, based on the values in the rest of your data set",
                                     "Confabulation"
+                                )}
+                            </Dropdown.Item>
+                            <Dropdown.Item
+                                id="reset"
+                                as="div"
+                                onClick={() => {
+                                    // Make a copy of the graph
+                                    let nodesCopy = nodes.slice()
+
+                                    nodesCopy = nodesCopy.filter((node) => node.type === "datanode")
+
+                                    setNodes(nodesCopy)
+                                    setEdges([])
+                                    setParentState([...nodesCopy])
+                                }}
+                            >
+                                {getLlmMenuItem(
+                                    "reset",
+                                    "Clears the graph and resets it to its initial state",
+                                    "Clear graph"
                                 )}
                             </Dropdown.Item>
                         </Dropdown.Menu>
@@ -1331,7 +1767,7 @@ export default function Flow(props: FlowProps) {
             id={`${propsId}`}
             className="mt-5"
         >
-            {/* Only render if ElementsSelectable is true */}
+            {/* Only render buttons if ElementsSelectable is true, meaning Flow is editable */}
             {elementsSelectable && getFlowButtons()}
 
             {/*Get the flow diagram itself*/}
