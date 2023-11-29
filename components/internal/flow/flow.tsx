@@ -1611,12 +1611,12 @@ export default function Flow(props: FlowProps) {
                         )}
                     </Dropdown.Item>
                     <Dropdown.Item
-                        id="add-category-reduction-llm-btn"
+                        id="add-category-reducer-llm-btn"
                         as="div"
                         onClick={() => addCategoryReducerLLM(nodes, edges)}
                     >
                         {getLlmMenuItem(
-                            "category-reduction",
+                            "category-reducer",
                             "Attempts to reduce the number of categories in categorical fields " +
                                 "intelligently by using an LLM. For example, a field that contains " +
                                 "categories 'carrot', 'onion', and 'pea' might be reduced to 'vegetable'",
