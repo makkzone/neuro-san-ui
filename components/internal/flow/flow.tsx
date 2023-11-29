@@ -286,6 +286,24 @@ export default function Flow(props: FlowProps) {
     /**
      * Removes a given node, and "repairs" the graph by reconnecting the graph to patch the hole
      *
+     * Example 1:
+     * <pre>
+     *     Before:  A -> B -> C -> D
+     *
+     *     smartDeleteNode(C, nodes, edges, [D])
+     *
+     *     After: A -> B
+     * </pre>
+     *
+     * Example 2:
+     * <pre>
+     *     Before: A-> B -> C -> D
+     *
+     *     smartDeleteNode(B, nodes, edges)
+     *
+     *     After: A -> C -> D
+     *
+     *  </pre>
      * @param nodeToDelete The node to delete
      * @param currentNodes The current list of nodes
      * @param currentEdges The current list of edges
