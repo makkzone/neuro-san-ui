@@ -1200,7 +1200,7 @@ export default function Flow(props: FlowProps) {
 
     function addConfabulatorNode(currentNodes: NodeType[], currentEdges: EdgeType[]) {
         // Only one LLM of this type allowed per experiment
-        const hasConfabulatorNodes = FlowQueries.getNodesByType(nodes, "confabulation_node")?.length > 0
+        const hasConfabulatorNodes = FlowQueries.getNodesByType(nodes, "confabulator_node")?.length > 0
         if (hasConfabulatorNodes) {
             sendNotification(
                 NotificationType.warning,
