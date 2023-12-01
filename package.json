@@ -42,7 +42,7 @@
         "langchain": "0.0.178",
         "lodash": "4.17.21",
         "next": "13.5.4",
-        "next-auth": "4.21.1",
+        "next-auth": "4.24.5",
         "nextjs-breadcrumbs2": "2.0.4",
         "pretty-bytes": "6.1.0",
         "rc-slider": "10.1.1",
@@ -61,7 +61,7 @@
         "reactflow": "11.6.1",
         "rehype-raw": "7.0.0",
         "remark-gfm": "4.0.0",
-        "sharp": "0.32.0",
+        "sharp": "0.32.6",
         "styled-components": "5.3.9"
     },
     "devDependencies": {
@@ -109,6 +109,8 @@
     },
     "resolutions": {
         "@types/react": "18.0.33",
-        "@types/react-dom": "18.0.11"
+        "@types/react-dom": "18.0.11",
+        "got": "11.8.5",
+        "glob-parent": "5.1.2"
     }
 }
