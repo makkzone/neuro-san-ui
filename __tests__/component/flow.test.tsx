@@ -93,7 +93,7 @@ describe("Flow Test", () => {
         // Look for buttons
         const buttons = container.getElementsByClassName("btn")
 
-        // Should be a data node only
+        // Should be no buttons since we're in read-only mode
         expect(buttons.length).toBe(0)
     })
 
