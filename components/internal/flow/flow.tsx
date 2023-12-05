@@ -2,7 +2,6 @@ import {Tooltip} from "antd"
 import dagre from "dagre"
 import debugModule from "debug"
 import {InfoSignIcon} from "evergreen-ui"
-import {useRouter} from "next/router"
 import {Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState} from "react"
 import {Button, Container, Dropdown} from "react-bootstrap"
 import uuid from "react-uuid"
@@ -72,6 +71,9 @@ interface FlowProps {
 
     // Used to differentiate Id's in drawer vs outside
     idExtension?: string
+
+    // Used to determine if the user is a demo user and therefore has access to unreleased features
+    isDemoUser?: boolean
 }
 
 /**
@@ -81,10 +83,7 @@ interface FlowProps {
  * @param props Input props for this component. See {@link FlowProps} interface for details.
  */
 export default function Flow(props: FlowProps) {
-    const router = useRouter()
-
-    // Check if demo user as requested by URL param
-    const isDemoUser = "demo" in router.query
+    const isDemoUser = props.isDemoUser ?? false
 
     const projectId = props.ProjectID
 
@@ -737,6 +736,7 @@ export default function Flow(props: FlowProps) {
         )
 
         const dataSourceNode = FlowQueries.getDataNodes(nodes)[0]
+        console.debug("dataSourceNode: ", JSON.stringify(dataSourceNode, null, 2))
         nodesCopy.push({
             id: predictorNodeID,
             type: "predictornode",

@@ -759,6 +759,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                         Flow={flow}
                         ElementsSelectable={false}
                         idExtension={props.idExtension}
+                        isDemoUser={isDemoUser}
                     />
                 </ReactFlowProvider>
             </div>
