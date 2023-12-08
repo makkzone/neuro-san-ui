@@ -113,7 +113,8 @@
     "resolutions": {
         "@types/react": "18.0.33",
         "@types/react-dom": "18.0.11",
-        "got": "11.8.5",
-        "glob-parent": "5.1.2"
+        "got": "^11.8.5",
+        "glob-parent": "^5.1.2",
+        "postcss": "^8.1.0"
     }
 }
