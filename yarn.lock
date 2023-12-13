@@ -1113,6 +1113,21 @@
     "@reactflow/core" "11.6.1"
     classcat "^5.0.3"
 
+"@reactflow/core@11.10.1":
+  version "11.10.1"
+  resolved "https://registry.yarnpkg.com/@reactflow/core/-/core-11.10.1.tgz#c2b46cb166a883562d2f751e1d3e9f867a7b0424"
+  integrity sha512-GIh3usY1W3eVobx//OO9+Cwm+5evQBBdPGxDaeXwm25UqPMWRI240nXQA5F/5gL5Mwpf0DUC7DR2EmrKNQy+Rw==
+  dependencies:
+    "@types/d3" "^7.4.0"
+    "@types/d3-drag" "^3.0.1"
+    "@types/d3-selection" "^3.0.3"
+    "@types/d3-zoom" "^3.0.1"
+    classcat "^5.0.3"
+    d3-drag "^3.0.0"
+    d3-selection "^3.0.0"
+    d3-zoom "^3.0.0"
+    zustand "^4.4.1"
+
 "@reactflow/core@11.6.1":
   version "11.6.1"
   resolved "https://registry.yarnpkg.com/@reactflow/core/-/core-11.6.1.tgz#4c845298f4687ca4c2ce825ac06a6983a5813117"
@@ -11604,7 +11619,7 @@ zrender@^5.1.1:
   dependencies:
     tslib "2.3.0"
 
-zustand@^4.3.1:
+zustand@^4.3.1, zustand@^4.4.1:
   version "4.4.7"
   resolved "https://registry.yarnpkg.com/zustand/-/zustand-4.4.7.tgz#355406be6b11ab335f59a66d2cf9815e8f24038c"
   integrity sha512-QFJWJMdlETcI69paJwhSMJz7PPWjVP8Sjhclxmxmxv/RYI7ZOvR5BHX+ktH0we9gTWQMxcne8q1OY8xxz604gw==
