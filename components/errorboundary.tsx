@@ -54,6 +54,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         this.state = {hasError: false, error: null}
     }
 
+    // No need for "this" here
+    // eslint-disable-next-line @typescript-eslint/class-methods-use-this
     override componentDidCatch(error: unknown, errorInfo: ErrorInfo) {
         // TODO: Send this to central logging service once it's available
         console.error({error, errorInfo})

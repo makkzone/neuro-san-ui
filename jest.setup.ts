@@ -30,10 +30,14 @@ class ResizeObserver {
         this.callback([{target} as globalThis.ResizeObserverEntry], this)
     }
 
-    // eslint-disable-next-line no-empty-function,@typescript-eslint/no-empty-function
+    // Just a stub for testing so disable warnings
+    /* eslint-disable-next-line
+        no-empty-function,@typescript-eslint/no-empty-function,@typescript-eslint/class-methods-use-this */
     unobserve() {}
 
-    // eslint-disable-next-line no-empty-function,@typescript-eslint/no-empty-function
+    // Just a stub for testing so disable warnings
+    /* eslint-disable-next-line
+        no-empty-function,@typescript-eslint/no-empty-function,@typescript-eslint/class-methods-use-this */
     disconnect() {}
 }
 

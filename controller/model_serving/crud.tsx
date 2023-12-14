@@ -14,7 +14,7 @@ import {
 import {MD_BASE_URL} from "../../const"
 import {toSafeFilename} from "../../utils/file"
 import {StringString} from "../base_types"
-import {PredictorParams, PrescriptorParams, RioParams, Run} from "../run/types"
+import {PredictorParams, RioParams, Run} from "../run/types"
 
 // For deploying models
 const DEPLOY_MODELS_ROUTE = `${MD_BASE_URL}/api/v1/serving/deploy`
@@ -436,7 +436,7 @@ export function vectorize(inputs: {[key: string]: string | number}): PredictorPa
  */
 export async function queryModel(
     modelUrl: string,
-    inputs: PredictorParams | PrescriptorParams | RioParams
+    inputs: PredictorParams | RioParams
     // Typescript lib uses "any" so we have to as well
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {

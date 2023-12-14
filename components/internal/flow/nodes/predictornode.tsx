@@ -528,8 +528,8 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
                                         ParentPredictorState.predictorParams[param].value != null
                                             ? Boolean(ParentPredictorState.predictorParams[param].value)
                                             : defaultParams[param].default_value == null
-                                            ? undefined
-                                            : Boolean(defaultParams[param].default_value)
+                                              ? undefined
+                                              : Boolean(defaultParams[param].default_value)
                                     }
                                     onChange={(event) => onPredictorParamCheckBoxChange(event, param)}
                                 />
@@ -542,8 +542,8 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
                                         ParentPredictorState.predictorParams[param].value != null
                                             ? ParentPredictorState.predictorParams[param].value.toString()
                                             : defaultParams[param].default_value == null
-                                            ? undefined
-                                            : defaultParams[param].default_value.toString()
+                                              ? undefined
+                                              : defaultParams[param].default_value.toString()
                                     }
                                     onChange={(event) => onParamChange(event, param)}
                                     className="w-32 p-0"

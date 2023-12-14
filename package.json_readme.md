@@ -14,5 +14,8 @@ Comments aren't allowed in JSON files, so this file is for documenting package.j
     ```
     See: https://github.com/palantir/blueprint/issues/5500 and https://github.com/palantir/blueprint/wiki/Popover2-migration
     blueprintjs is in transition to 5.0. Once they release it and we migrate to that, it should be fine.
-    react-simple-chatbot hasn't been updated in 5 years. It still has dependency to react 16 and styled-components @4, while nextfront is already on react 18 and styled-compnents 5. These warnings can be ignored for now.
+    react-simple-chatbot hasn't been updated in 5 years. It still has dependency to react 16 and styled-components @4,
+    while nextfront is already on react 18 and styled-compnents 5. These warnings can be ignored for now.
 1. "sharp" -- required by NextJS. See: https://nextjs.org/docs/messages/sharp-missing-in-production
+1. "csstype": "<3.1.3" -- see https://github.com/emotion-js/emotion/issues/3136 and
+   https://github.com/frenic/csstype/issues/189 for the issues with version 3.1.3 of this library

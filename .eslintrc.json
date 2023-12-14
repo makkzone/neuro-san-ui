@@ -2,6 +2,9 @@
 // Yes, even though this is a JSON file, comments are allowed since the only thing parsing it is ESLint.
 // See here: https://eslint.org/docs/latest/use/configure/configuration-files#comments-in-configuration-files
 {
+    // Designate this as a "root config" file, which means it's the top of the config hierarchy.
+    "root": true,
+
     // Define these globals to avoid false positives from the no-undef rule, which we want to enable as it's useful
     "globals": {
         "React": "readonly",
@@ -14,7 +17,6 @@
     "plugins": ["@typescript-eslint", "enforce-ids-in-jsx", "jest"],
     "extends": [
         "next",
-        "prettier",
 
         // This enables *all* base ESLint rules. We selectively disable those we are not yet ready for in the "rules"
         // section below.
@@ -31,14 +33,15 @@
         // This next one has to be included or else the React rules will complain that "React is not in scope".
         // But those rules are wrong -- as of React 17, "React" automatically gets included in the transpilation
         // process and doesn't *need* to be in scope.
-        "plugin:react/jsx-runtime"
+        "plugin:react/jsx-runtime",
+
+        "prettier"
     ],
-    "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaFeatures": {
             "jsx": true
         },
-        "ecmaVersion": "latest",
+        "ecmaVersion": 2022,
         "sourceType": "module"
     },
     "rules": {
@@ -128,7 +131,6 @@
         "no-dupe-class-members": "error",
         "no-dupe-keys": "error",
         "no-empty-function": "error",
-        "no-extra-semi": "error",
         "no-func-assign": "error",
         "no-import-assign": "error",
         "no-loss-of-precision": "error",
@@ -218,11 +220,9 @@
 
         // Rules from the various plugins and base ESLint that we are not yet ready to enable
         "@typescript-eslint/await-thenable": "off",
-        "@typescript-eslint/block-spacing": "off",
-        "@typescript-eslint/brace-style": "off",
-        "@typescript-eslint/class-methods-use-this": "off",
-        "@typescript-eslint/comma-dangle": "off",
+        "@typescript-eslint/class-methods-use-this": "error",
         "@typescript-eslint/consistent-indexed-object-style": "off",
+        "@typescript-eslint/consistent-type-assertions": "off",
         "@typescript-eslint/consistent-type-definitions": "off",
         "@typescript-eslint/consistent-type-exports": "off",
         "@typescript-eslint/consistent-type-imports": "off",
@@ -230,18 +230,14 @@
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/explicit-member-accessibility": "off",
         "@typescript-eslint/explicit-module-boundary-types": "off",
-        "@typescript-eslint/indent": "off",
         "@typescript-eslint/init-declarations": "off",
-        "@typescript-eslint/key-spacing": "off",
         "@typescript-eslint/lines-around-comment": "off",
         "@typescript-eslint/max-params": "off",
-        "@typescript-eslint/member-delimiter-style": "off",
         "@typescript-eslint/member-ordering": "off",
         "@typescript-eslint/naming-convention": "off",
         "@typescript-eslint/no-base-to-string": "off",
         "@typescript-eslint/no-confusing-void-expression": "off",
         "@typescript-eslint/no-duplicate-type-constituents": "off",
-        "@typescript-eslint/no-extra-parens": "off",
         "@typescript-eslint/no-extraneous-class": "off",
         "@typescript-eslint/no-floating-promises": "off",
         "@typescript-eslint/no-implied-eval": "off",
@@ -263,6 +259,7 @@
         "@typescript-eslint/no-unnecessary-type-arguments": "off",
         "@typescript-eslint/no-unnecessary-type-assertion": "off",
         "@typescript-eslint/no-unsafe-enum-comparison": "off",
+        "@typescript-eslint/no-unsafe-unary-minus": "off",
         "@typescript-eslint/non-nullable-type-assertion-style": "off",
         "@typescript-eslint/prefer-includes": "off",
         "@typescript-eslint/no-use-before-define": "off",
@@ -288,11 +285,7 @@
         "@typescript-eslint/restrict-plus-operands": "off",
         "@typescript-eslint/restrict-template-expressions": "off",
         "@typescript-eslint/return-await": "off",
-        "@typescript-eslint/semi": "off",
         "@typescript-eslint/sort-type-constituents": "off",
-        "@typescript-eslint/space-before-blocks": "off",
-        "@typescript-eslint/space-before-function-paren": "off",
-        "@typescript-eslint/space-infix-ops": "off",
         "@typescript-eslint/strict-boolean-expressions": "off",
         "arrow-body-style": "off",
         "capitalized-comments": "off",
