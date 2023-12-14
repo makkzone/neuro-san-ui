@@ -1,14 +1,102 @@
+import {Position} from "@reactflow/core"
 import "@testing-library/jest-dom"
 // eslint-disable-next-line no-shadow
-import {render, screen} from "@testing-library/react"
+import {act, render, screen, waitFor} from "@testing-library/react"
+import user from "@testing-library/user-event"
+import uuid from "react-uuid"
 
+import {EdgeType} from "../../components/internal/flow/edges/types"
 import Flow from "../../components/internal/flow/flow"
 import {NodeType} from "../../components/internal/flow/nodes/types"
+import {DataType} from "../../controller/datatag/types"
 import loadDataTags from "../../controller/fetchdatataglist"
+import {NotificationType, sendNotification} from "../../controller/notification"
 
-// Values to use in tests
-const testUser = "test-user"
-const testProjectId = Math.floor(Math.random() * 100000)
+// Generate some random values to use in tests
+const testUser = uuid()
+const testProjectId = Math.floor(Math.random() * 100_000)
+const testDataSourceName = uuid()
+
+// Flow with a data node and a predictor node
+const FLOW_WITH_PREDICTOR = [
+    {
+        id: "root",
+        type: "datanode",
+        data: {
+            ProjectID: 42548,
+            DataSource: {
+                id: 1234,
+                name: testDataSourceName,
+                options: {},
+            },
+            DataTag: {
+                id: 1,
+                data_source_id: 1234,
+                description: "Test Data Tag",
+                fields: {
+                    field1: {
+                        data_type: DataType.INT,
+                        esp_type: "context",
+                        sum: 100,
+                        std_dev: 10,
+                        range: [1, 10],
+                        discrete_categorical_values: ["value1", "value2"],
+                        has_nan: false,
+                        valued: "categorical",
+                        mean: 5,
+                        is_ordered: false,
+                    },
+                },
+                fields_blob: "",
+            },
+            SelfStateUpdateHandler: jest.fn(),
+        },
+        position: {
+            x: 0,
+            y: 0,
+        },
+        targetPosition: Position.Left,
+        sourcePosition: Position.Right,
+    },
+    {
+        id: "81e04790-f085-6645-c06a-1013b0259dfb",
+        type: "predictornode",
+        data: {
+            NodeID: "81e04790-f085-6645-c06a-1013b0259dfb",
+            SelectedDataSourceId: 1234,
+            ParentPredictorState: {
+                selectedPredictorType: "regressor",
+                selectedPredictor: "",
+                selectedMetric: "",
+                predictorParams: {},
+                caoState: {
+                    context: {},
+                    action: {},
+                    outcome: {},
+                },
+                trainSliderValue: 80,
+                testSliderValue: 20,
+                rngSeedValue: null,
+            },
+            SetParentPredictorState: jest.fn(),
+            DeleteNode: jest.fn(),
+            GetElementIndex: jest.fn(),
+        },
+        position: {
+            x: 300,
+            y: 0,
+        },
+        targetPosition: Position.Left,
+        sourcePosition: Position.Right,
+    },
+    {
+        id: "d7e202a9-b177-2660-e3e1-8e74f5a6c991",
+        source: "root",
+        target: "81e04790-f085-6645-c06a-1013b0259dfb",
+        animated: false,
+        type: "predictoredge",
+    },
+]
 
 jest.mock("next/router", () => ({
     useRouter() {
@@ -36,27 +124,29 @@ jest.mock("next-auth/react", () => {
 })
 
 // Don't want to send user notifications during tests so mock this
-jest.mock("../../controller/notification", () => ({
-    sendNotification: jest.fn(),
-    NotificationType: {
-        success: jest.fn(),
-        info: jest.fn(),
-        warning: jest.fn(),
-        error: jest.fn(),
-    },
-}))
+jest.mock("../../controller/notification")
 
-// Mock this so as not to reach out to DB to get data tags
-jest.mock("../../controller/fetchdatataglist.ts", () => ({
-    __esModule: true, // needed to avoid "...is not a function" errors
-    default: jest.fn(),
-}))
+// Mock this so we don't have to deal with the actual API during tests
+jest.mock("../../controller/fetchdatataglist", () => {
+    return {
+        __esModule: true,
+        default: jest.fn(() => {
+            return [
+                {
+                    DataSource: {id: "test-data-source-id", name: testDataSourceName},
+                    LatestDataTag: "test tag",
+                },
+            ]
+        }),
+        loadDataTag: jest.fn(),
+    }
+})
 
-function getFlow(
+function createFlow(
     demoUser: boolean = false,
     elementsSelectable: boolean = true,
     setParentState: jest.Mock = jest.fn(),
-    initialFlow: NodeType[] = []
+    initialFlow: (NodeType | EdgeType)[] = []
 ) {
     return (
         <Flow
@@ -71,30 +161,49 @@ function getFlow(
 }
 
 describe("Flow Test", () => {
-    // Mock loadDataTags to avoid hitting server
-    const mockLoadDataTags = loadDataTags as jest.Mock
+    let setParentState: jest.Mock
 
-    it("Renders without errors", () => {
-        const {container} = render(getFlow())
-        expect(container).toBeTruthy()
+    beforeEach(() => {
+        setParentState = jest.fn()
+        ;(sendNotification as jest.Mock).mockReset()
+    })
+    afterEach(() => {
+        jest.resetModules()
     })
 
-    it("Generates a single data node for empty flow", () => {
-        const setParentState = jest.fn()
-        render(getFlow(false, true, setParentState, []))
+    it("Renders without errors", async () => {
+        const {container} = render(createFlow())
+        await waitFor(() => {
+            expect(container).toBeTruthy()
+        })
+    })
 
-        // Get all the nodes
-        const nodes = screen.getAllByText("Data Source")
+    it("Generates a single data node for empty flow", async () => {
+        render(createFlow(false, true, setParentState))
 
-        // Should be a data node only
-        expect(nodes.length).toBe(1)
+        // Should be no popup warnings or errors
+        expect(sendNotification).not.toHaveBeenCalled()
 
-        expect(mockLoadDataTags).toHaveBeenCalledWith(testUser, testProjectId)
+        await waitFor(() => {
+            // Get all the nodes
+            const nodes = screen.getAllByText("Data Source")
+
+            // Should be a data node only
+            expect(nodes.length).toBe(1)
+        })
+
         expect(setParentState).toHaveBeenLastCalledWith([expect.objectContaining({type: "datanode"})])
     })
 
-    it("Doesn't show 'add' buttons when ElementsSelectable is false", () => {
-        const {container} = render(getFlow(false, false, jest.fn(), []))
+    it("Doesn't show 'add' buttons when ElementsSelectable is false", async () => {
+        const {container} = render(createFlow(false, false))
+
+        // Should be no popup warnings or errors
+        expect(sendNotification).not.toHaveBeenCalled()
+
+        await waitFor(() => {
+            expect(screen.queryByText("Add Predictor")).not.toBeInTheDocument()
+        })
 
         // Look for buttons
         const buttons = container.getElementsByClassName("btn")
@@ -103,8 +212,12 @@ describe("Flow Test", () => {
         expect(buttons.length).toBe(0)
     })
 
-    it("Shows all expected buttons when ElementsSelectable is true", () => {
-        const {container} = render(getFlow())
+    it("Shows all expected buttons when ElementsSelectable is true", async () => {
+        const {container} = render(createFlow())
+
+        await waitFor(() => {
+            expect(screen.getByText("Add Predictor")).toBeInTheDocument()
+        })
 
         // Look for buttons
         const buttons = container.getElementsByClassName("btn")
@@ -119,8 +232,12 @@ describe("Flow Test", () => {
         expect(container.querySelector("#add-llm-dropdown")).toBeNull()
     })
 
-    it("Shows extra button for demo user", () => {
-        const {container} = render(getFlow(true, true, jest.fn(), []))
+    it("Shows extra button for demo user", async () => {
+        const {container} = render(createFlow(true, true))
+
+        await waitFor(() => {
+            expect(screen.getByText("Add Predictor")).toBeInTheDocument()
+        })
 
         // Look for buttons
         const buttons = container.getElementsByClassName("btn")
@@ -133,5 +250,190 @@ describe("Flow Test", () => {
 
         // Make sure LLM options shown to demo users
         expect(container.querySelector("#add-llm-dropdown")).not.toBeNull()
+    })
+
+    it("Refuses to add a prescriptor node if there is no predictor node", async () => {
+        render(createFlow(false, true, setParentState))
+
+        await waitFor(() => {
+            expect(screen.getByText("Data Source")).toBeInTheDocument()
+        })
+
+        // Get the add prescriptor button
+        const addPrescriptorButton = screen.getByText("Add Prescriptor")
+
+        // Click the button
+        addPrescriptorButton.click()
+
+        // Should have refused to add the prescriptor node
+        expect(setParentState).toHaveBeenLastCalledWith([expect.objectContaining({type: "datanode"})])
+
+        // Should have got a notification
+        expect(sendNotification).toHaveBeenCalledWith(NotificationType.warning, expect.any(String))
+    })
+
+    it("Refuses to add an uncertainty node if there is no predictor node", async () => {
+        render(createFlow(false, true, setParentState))
+
+        await waitFor(() => {
+            expect(screen.getByText("Data Source")).toBeInTheDocument()
+        })
+
+        // Get the add prescriptor button
+        const addUncertaintyNodeButton = screen.getByText("Add Uncertainty Model")
+
+        // Click the button
+        addUncertaintyNodeButton.click()
+
+        // Should have refused to add the prescriptor node
+        expect(setParentState).toHaveBeenLastCalledWith([expect.objectContaining({type: "datanode"})])
+
+        // Should have got a notification
+        expect(sendNotification).toHaveBeenCalledWith(
+            NotificationType.warning,
+            "Please add at least one predictor before adding uncertainty model nodes."
+        )
+    })
+
+    it("Refuses to add an activation node if there's no prescriptor node", async () => {
+        render(createFlow(true, true, setParentState, []))
+
+        let addLLmButton: Element
+        await waitFor(() => {
+            addLLmButton = screen.getByText("Add LLM")
+            expect(addLLmButton).toBeInTheDocument()
+        })
+
+        // Click the button
+        await user.click(addLLmButton)
+
+        const addActivationButton = await screen.findByText("Activation")
+        expect(addActivationButton).toBeInTheDocument()
+        await user.click(addActivationButton)
+
+        // Should have refused to add the Activation node
+        expect(setParentState).toHaveBeenLastCalledWith([expect.objectContaining({type: "datanode"})])
+
+        // Should have got a notification
+        expect(sendNotification).toHaveBeenCalledWith(
+            NotificationType.warning,
+            "Cannot add activation LLM node",
+            expect.any(String)
+        )
+    })
+
+    it("Adds a predictor node when the add predictor button is clicked", async () => {
+        const flow = createFlow(false, true, setParentState)
+
+        render(flow)
+
+        expect(sendNotification).not.toHaveBeenCalled()
+
+        await waitFor(() => {
+            expect(screen.getByText(testDataSourceName)).toBeInTheDocument()
+        })
+
+        const addPredictorButton = screen.getByText("Add Predictor")
+        expect(addPredictorButton).toBeInTheDocument()
+
+        // Without this act() an ugly warning is issued by React. React testing library is supposed to auto
+        // wrap things in act() but it doesn't seem to be working here.
+        act(() => {
+            addPredictorButton.click()
+        })
+        expect(sendNotification).not.toHaveBeenCalled()
+
+        await waitFor(() => {
+            expect(loadDataTags).toHaveBeenCalled()
+        })
+
+        await waitFor(() => {
+            expect(setParentState).toHaveBeenCalled()
+        })
+
+        // Should have added the predictor node. The setter would have been called multiple times for re-renders,
+        // so we look for one that has the three elements we expect -- the data node, the predictor node, and the edge
+        const calls = setParentState.mock.calls
+        expect(calls.length).toBeGreaterThan(0)
+
+        // Find a call with three elements
+        const callWithThreeElements = calls.find((call) => call[0].length === 3)?.[0]
+        expect(callWithThreeElements).toBeTruthy()
+        expect(new Set(callWithThreeElements)).toEqual(
+            new Set([
+                expect.objectContaining({type: "datanode"}),
+                expect.objectContaining({type: "predictornode"}),
+                expect.objectContaining({type: "predictoredge"}),
+            ])
+        )
+
+        // Fake re-rendering the flow with the new predictor node. Here we are acting as the container for the Flow,
+        // so it's on us to "remember" the state of the flow and pass it back in when we re-render.
+        render(createFlow(false, true, setParentState, callWithThreeElements))
+
+        await waitFor(() => {
+            expect(screen.getByText("Random Forest")).toBeInTheDocument()
+        })
+    })
+
+    it("Adds a prescriptor node when the add prescriptor button is clicked", async () => {
+        const mockLoadDataTags = loadDataTags as jest.Mock
+        const dataTags = [
+            {
+                DataSource: {id: "test-data-source-id", name: testDataSourceName},
+                LatestDataTag: "test tag",
+            },
+        ]
+        mockLoadDataTags.mockImplementation(() => {
+            return dataTags
+        })
+
+        const flow = createFlow(false, true, setParentState, FLOW_WITH_PREDICTOR)
+
+        const {container} = render(flow)
+
+        await waitFor(() => {
+            expect(screen.getByText(testDataSourceName)).toBeInTheDocument()
+        })
+
+        // Get the add prescriptor button
+        const addPrescriptorButton = screen.getByText("Add Prescriptor")
+        expect(addPrescriptorButton).toBeInTheDocument()
+
+        // Without this act() an ugly warning is issued by React. React testing library is supposed to auto wrap things
+        // in act() but it doesn't seem to be working here.
+        act(() => {
+            addPrescriptorButton.click()
+        })
+
+        expect(sendNotification).not.toHaveBeenCalled()
+
+        await waitFor(() => {
+            expect(loadDataTags).toHaveBeenCalled()
+        })
+        const calls = setParentState.mock.calls
+        expect(calls.length).toBeGreaterThan(0)
+
+        // Find call that added prescriptor
+        const callWithPrescriptor = calls.find((call) => call[0].length === 5)?.[0]
+        expect(callWithPrescriptor).toBeTruthy()
+
+        // Make sure call to setParentState() has the correct elements
+        const elementTypes = callWithPrescriptor.map((call) => call.type)
+        expect(elementTypes).toHaveLength(5)
+        expect(new Set(elementTypes)).toStrictEqual(
+            new Set(["datanode", "predictornode", "predictoredge", "prescriptornode", "prescriptoredge"])
+        )
+
+        // Fake re-rendering the flow with the new prescriptor node. Here we are acting as the container for the Flow,
+        // so it's on us to "remember" the state of the flow and pass it back in when we re-render.
+        const flowWithPrescriptor = createFlow(false, true, setParentState, callWithPrescriptor)
+        render(flowWithPrescriptor)
+
+        // Make sure prescriptor node was rendered
+        await waitFor(() => {
+            const presc = container.getElementsByClassName("react-flow__node-prescriptornode")
+            expect(presc.length).toBe(1)
+        })
     })
 })

@@ -80,3 +80,7 @@ jest.mock("next/config", () => () => ({
         enableAuthentication: false,
     },
 }))
+
+// Cheesy mock implementation of structuredClone since it's not available in jsdom
+// See: https://github.com/jsdom/jsdom/issues/3363
+global.structuredClone = (val) => JSON.parse(JSON.stringify(val))
