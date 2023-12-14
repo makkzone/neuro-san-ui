@@ -1,9 +1,9 @@
-import {Position} from "@reactflow/core"
 import "@testing-library/jest-dom"
 // eslint-disable-next-line no-shadow
 import {act, render, screen, waitFor} from "@testing-library/react"
 import user from "@testing-library/user-event"
 import uuid from "react-uuid"
+import {Position} from "reactflow"
 
 import {EdgeType} from "../../components/internal/flow/edges/types"
 import Flow from "../../components/internal/flow/flow"
