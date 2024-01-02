@@ -12,7 +12,7 @@ import {ReactElement} from "react"
 import {Navbar as BootstrapNavbar, Container, Dropdown, Nav, NavItem, NavLink, Row} from "react-bootstrap"
 
 import {isSignedIn} from "./auth"
-import {ENABLE_AUTHENTICATION, MaximumBlue, UNILEAF_VERSION} from "../const"
+import {MaximumBlue, UNILEAF_VERSION} from "../const"
 
 // Define Constants
 const LOGO_COLOR: string = "white"
@@ -122,7 +122,7 @@ function Navbar(props: NavbarProps): ReactElement {
                                     </Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown>
-                            {signedIn && ENABLE_AUTHENTICATION && session?.user && (
+                            {signedIn && session?.user && (
                                 <Dropdown
                                     id="user-dropdown"
                                     as={NavItem}

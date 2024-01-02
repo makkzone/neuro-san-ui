@@ -8,9 +8,6 @@ const {publicRuntimeConfig} = getConfig()
 // Set the env var MD_SERVER_URL
 export const MD_BASE_URL: string = publicRuntimeConfig.md_server_url
 
-// Global system flag -- whether authentication (sign-in) is required
-export const ENABLE_AUTHENTICATION: boolean = Boolean(JSON.parse(publicRuntimeConfig.enableAuthentication))
-
 // Name to use for application
 export const LOGO: string = "Cognizant Neuro® AI Model Orchestrator"
 export const GENERIC_LOGO: string = "Autopilot"

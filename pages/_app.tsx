@@ -22,7 +22,7 @@ import {Auth} from "../components/auth"
 import ErrorBoundary from "../components/errorboundary"
 import NeuroAIChatbot from "../components/internal/chatbot/neuro_ai_chatbot"
 import Navbar from "../components/navbar"
-import {ENABLE_AUTHENTICATION, GENERIC_LOGO, LOGO} from "../const"
+import {GENERIC_LOGO, LOGO} from "../const"
 
 // Main function.
 // Has to be export default for NextJS so tell ts-prune to ignore
@@ -60,7 +60,7 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
                                 WithBreadcrumbs={Component.withBreadcrumbs ?? true}
                             />
                             <Container id="body-container">
-                                {Component.authRequired && ENABLE_AUTHENTICATION ? (
+                                {Component.authRequired ? (
                                     <Auth // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                     // 2/6/23 DEF - SessionProvider does not have an id property when compiling
                                     >
