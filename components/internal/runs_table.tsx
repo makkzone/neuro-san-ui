@@ -637,7 +637,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                         id={`delete-training-run-${idx}-fill`}
                         className="hover:text-red-700"
                         size={25}
-                        color={trashHover[runId] ? "red" : null}
+                        color={trashHover[runId] ? "var(--bs-red)" : null}
                         onMouseEnter={() => setTrashHover({...trashHover, [runId]: true})}
                         onMouseLeave={() => setTrashHover({...trashHover, [runId]: false})}
                     />
