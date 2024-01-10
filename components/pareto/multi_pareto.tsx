@@ -176,7 +176,7 @@ export function MultiPareto(props: ParetoPlotProps): ReactElement {
 
     const propsId = `${props.id}`
 
-    if (props.ObjectivesCount < 2 && nodePlots.length) {
+    if (props.ObjectivesCount < 2) {
         return null
     }
 
