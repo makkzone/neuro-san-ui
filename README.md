@@ -1,22 +1,25 @@
 # UI Developer Start Guide
 
-This README is intended to help a new UI developer get up to speed toward making changes to the Unileaf UI.
+This README is intended to help a new UI developer get up to speed toward making changes to the NeuroAI®️ UI.
+
+Note: Previously the project was known as UniLEAF and that name is still used in some places.
 
 ## Set Up Prerequisites
 
--   Install `yarn` on your development host.
+-   Install `nodejs` on your development host.
+    -   Example using current version on mac: `brew install node@18`
+-   For Ubuntu, see this link: https://joshtronic.com/2022/04/24/how-to-install-nodejs-18-on-ubuntu-2004-lts/
+-   Install `yarn` on your development host. Instructions for all platforms are [here](https://classic.yarnpkg.com/lang/en/docs)
     -   Example using current version on mac: `brew install yarn@1.22.19`
     -   For Ubuntu, see this link: https://classic.yarnpkg.com/lang/en/docs/cli/self-update/
--   Install `node` on your development host.
-    -   Example using current version on mac: `brew install node@16`
-    -   For Ubuntu, see this link: https://joshtronic.com/2021/05/09/how-to-install-nodejs-16-on-ubuntu-2004-lts/
 -   Install app dependencies.
     -   Assuming you've cloned the unileaf repo: `cd unileaf/nextfront && yarn install`
 -   Set env variable to specify the gateway.
-    -   Most likely you'll want the dev namespace: `export MD_SERVER_URL=https://unileaf-dev.evolution.ml`
--   In your nextfront directory, create a file named `.env` which contains the following keys. Ask a current UI developer for the redacted values or get them self-serve from the leaf-team-vault server (see below).
+    -   Most likely you'll want the dev namespace: `export MD_SERVER_URL=https://neuro-ai-dev.evolution.ml`
+-   In your `nextfront` directory, create a file named `.env` which contains the following keys.  
+    Ask a current UI developer for the redacted values or get them self-serve from the leaf-team-vault server (see below).
 
-```
+```bash
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=<redacted>
 GITHUB_ID=<redacted>
@@ -27,10 +30,10 @@ AUTH0_ISSUER=https://cognizant-ai.auth0.com/authorize
 AUTH0_DOMAIN=cognizant-ai.auth0.com
 ```
 
--   Values for the redacted can be obtained from the leaf-team vault server with these commands:
-    -- vault kv get /secret/auth0/unileaf-dev
-    -- vault kv get /secret/github-app/authorize-unileaf-dev
-    -- vault kv get /secret/nextauth/unileaf-dev
+-   Values for the redacted can be obtained from the leaf-team vault server with these commands:  
+    -- `vault kv get /secret/auth0/unileaf-dev`
+    -- `vault kv get /secret/github-app/authorize-unileaf-dev`  
+    -- `vault kv get /secret/nextauth/unileaf-dev`
 -   Be sure to chmod 600 this .env file to keep secret values secret
 
 ## Run the development server:
@@ -53,19 +56,14 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Try making a simple change to the UI
 
-If you've made this far, you may try a simple change within the UI.
-Here's an example:
+If you've made this far, try a simple change within the UI. Here's an example:
 
--   Modify `nextfront/pages/projects/[projectID]/index.tsx`
-    -   add a logging message at the appropriate place in the tsx file
-        -   ``console.log(`Loaded project: ${projectId}`)``
--   You should notice that the code is compiled automatically and your change appears in the console output of the ui when loading a project.
+1.  Open `nextfront/pages/projects/[projectID]/index.tsx`
+1.  Add a message at the appropriate place in the tsx file (somewhere within the `return` statement, inside the `<>`
+    fragment).
 
-## Learn More About Next.js
+            {`Hello world! The current project ID is ${projectId}`}
 
-To learn more about Next.js, take a look at the following resources:
+1.  You should notice that the code is compiled automatically and your change appears in the UI when loading a project.
 
--   [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
--   [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Congratulations, you are now a UI developer!
