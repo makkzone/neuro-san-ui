@@ -1,4 +1,3 @@
-
 # UI Developer Start Guide
 
 This README is intended to help a new UI developer get up to speed toward making changes to the NeuroAI®️ UI code.
@@ -7,67 +6,67 @@ Note: Previously the project was known as UniLEAF and that name is still used in
 
 ## Set Up Prerequisites
 
-- Install `nodejs` on your development machine. At time of writing Node 18 is the current LTS version.
-    - Example on mac: `brew install node@18`
-    - For Ubuntu, see this link: https://joshtronic.com/2022/04/24/how-to-install-nodejs-18-on-ubuntu-2004-lts/
-- Install `yarn` on your development host. Instructions for all platforms are [here](https://classic.yarnpkg.com/lang/en/docs)
-    - Example using current version on mac: `brew install yarn`
-    - For Ubuntu, see this link: https://classic.yarnpkg.com/lang/en/docs/cli/self-update/
-- Install app dependencies.
-    - Assuming you've cloned the UniLEAF repo: `cd unileaf/nextfront && yarn install`
-- Set environment variable to specify the gateway.
-    - Most likely you'll want the Dev environment: `export MD_SERVER_URL=https://neuro-ai-dev.evolution.ml`
-- In your `nextfront` directory, create a file named `.env` which contains the following keys.    
-  Ask a current UI developer for the redacted values or get them self-serve from the leaf-team-vault server (see below).
+-   Install `nodejs` on your development machine. At time of writing Node 18 is the current LTS version.
+    -   Example on mac: `brew install node@18`
+    -   For Ubuntu, see this link: https://joshtronic.com/2022/04/24/how-to-install-nodejs-18-on-ubuntu-2004-lts/
+-   Install `yarn` on your development host. Instructions for all platforms are [here](https://classic.yarnpkg.com/lang/en/docs)
+    -   Example using current version on mac: `brew install yarn`
+    -   For Ubuntu, see this link: https://classic.yarnpkg.com/lang/en/docs/cli/self-update/
+-   Install app dependencies.
+    -   Assuming you've cloned the UniLEAF repo: `cd unileaf/nextfront && yarn install`
+-   Set environment variable to specify the gateway.
+    -   Most likely you'll want the Dev environment: `export MD_SERVER_URL=https://neuro-ai-dev.evolution.ml`
+-   In your `nextfront` directory, create a file named `.env` which contains the following keys.  
+    Ask a current UI developer for the redacted values or get them self-serve from the leaf-team-vault server (see below).
 
-```bash  
-NEXTAUTH_URL=http://localhost:3000  
-NEXTAUTH_SECRET=<redacted>  
-  
-GITHUB_ID=<redacted>  
-GITHUB_SECRET=<redacted>  
-  
-AUTH0_CLIENT_ID=<redacted>  
-AUTH0_CLIENT_SECRET=<redacted>  
-AUTH0_ISSUER=https://cognizant-ai.auth0.com/authorize  
-AUTH0_DOMAIN=cognizant-ai.auth0.com  
-  
-# Next items are only needed if you're working on the LLM features of the UI such as the ChatBot or DMS assistant.  
-OPENAI_API_KEY=<redacted>  
-  
-PINECONE_API_KEY=<redacted>  
-PINECONE_INDEX=prod  
-PINECONE_ENVIRONMENT=us-east-1-aws  
-```  
+```bash
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=<redacted>
 
-- Instructions for generating NEXTAUTH_SECRET are [here](https://next-auth.js.org/configuration/options#secret).
-- Values for most of the redacted items can be obtained from the leaf-team vault server with these commands:    
-  -- `vault kv get /secret/auth0/unileaf-dev`  
-  -- `vault kv get /secret/github-app/authorize-unileaf-dev`    
-  -- `vault kv get /secret/nextauth/unileaf-dev`
-- Instructions on generating OPENAI_API_KEY are [here](https://platform.openai.com/account/api-keys).  
-  You will need an active account with OpenAI to generate this key. This is only needed if you are using the  
-  LLM features of the UI.
-- Instructions on generating PINECONE_API_KEY are [here](https://docs.pinecone.io/docs/authentication).  
-  You will need an active account with Pinecone to generate this key. This is only needed if you are using the  
-  LLM features of the UI.
-- Be sure to chmod 600 this .env file to keep secret values secret
+GITHUB_ID=<redacted>
+GITHUB_SECRET=<redacted>
+
+AUTH0_CLIENT_ID=<redacted>
+AUTH0_CLIENT_SECRET=<redacted>
+AUTH0_ISSUER=https://cognizant-ai.auth0.com/authorize
+AUTH0_DOMAIN=cognizant-ai.auth0.com
+
+# Next items are only needed if you're working on the LLM features of the UI such as the ChatBot or DMS assistant.
+OPENAI_API_KEY=<redacted>
+
+PINECONE_API_KEY=<redacted>
+PINECONE_INDEX=prod
+PINECONE_ENVIRONMENT=us-east-1-aws
+```
+
+-   Instructions for generating NEXTAUTH_SECRET are [here](https://next-auth.js.org/configuration/options#secret).
+-   Values for most of the redacted items can be obtained from the leaf-team vault server with these commands:  
+    -- `vault kv get /secret/auth0/unileaf-dev`  
+    -- `vault kv get /secret/github-app/authorize-unileaf-dev`  
+    -- `vault kv get /secret/nextauth/unileaf-dev`
+-   Instructions on generating OPENAI_API_KEY are [here](https://platform.openai.com/account/api-keys).  
+    You will need an active account with OpenAI to generate this key. This is only needed if you are using the  
+    LLM features of the UI.
+-   Instructions on generating PINECONE_API_KEY are [here](https://docs.pinecone.io/docs/authentication).  
+    You will need an active account with Pinecone to generate this key. This is only needed if you are using the  
+    LLM features of the UI.
+-   Be sure to chmod 600 this .env file to keep secret values secret
 
 ## Run the development server:
 
-```bash  
-npm run dev  
-# or  
-yarn dev  
-# or, by setting the UNILEAF_VERSION value, the ui will display your current branch  
-export UNILEAF_VERSION=$(git branch --show-current) && yarn run dev  
-```  
+```bash
+npm run dev
+# or
+yarn dev
+# or, by setting the UNILEAF_VERSION value, the ui will display your current branch
+export UNILEAF_VERSION=$(git branch --show-current) && yarn run dev
+```
 
 To run with verbose debugging:
 
-```bash  
-DEBUG='*,-send,-compression,-babel' npm run dev  
-```  
+```bash
+DEBUG='*,-send,-compression,-babel' npm run dev
+```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
@@ -75,12 +74,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 If you've made this far, try a simple change within the UI. Here's an example:
 
-1. Open `nextfront/pages/projects/[projectID]/index.tsx`
-1. Add a message at the appropriate place in the tsx file (somewhere within the `return` statement, inside the `<>`  
-   fragment).
+1.  Open `nextfront/pages/projects/[projectID]/index.tsx`
+1.  Add a message at the appropriate place in the tsx file (somewhere within the `return` statement, inside the `<>`  
+    fragment).
 
-            {`Hello world! The current project ID is ${projectId}`}  
+             {`Hello world! The current project ID is ${projectId}`}
 
-1. You should notice that the code is compiled automatically and your change appears in the UI when loading a project.
+1.  You should notice that the code is compiled automatically and your change appears in the UI when loading a project.
 
 ### Congratulations, you are now a UI developer!
