@@ -1,8 +1,8 @@
 import NextImage from "next/legacy/image"
 import Link from "next/link"
 import {useRouter} from "next/router"
-import {useEffect} from "react"
-import styled from "styled-components"
+import {ReactElement, useEffect} from "react"
+import {styled} from "styled-components"
 
 import {GENERIC_LOGO, LOGO} from "../const"
 import useFeaturesStore from "../state/features"
@@ -82,7 +82,7 @@ const Right = styled.div`
 // Main function.
 // Has to be export default for NextJS so tell ts-prune to ignore
 // ts-prune-ignore-next
-export default function Index(): React.ReactElement {
+export default function Index(): ReactElement {
     // Get "generic branding" flag from store
     const {isGeneric} = useFeaturesStore()
 

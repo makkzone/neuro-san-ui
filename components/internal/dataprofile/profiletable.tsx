@@ -85,7 +85,7 @@ export default function ProfileTable(props: ProfileTableProps) {
     // Accumulate rows, one per field
     const fieldRows = fieldsInCsvOrder.map((field) => (
         <tr
-            id={`${field}`}
+            id={field}
             key={field}
             style={{backgroundColor: caoColorCoding[fields[field].esp_type]}}
         >
@@ -645,7 +645,7 @@ export default function ProfileTable(props: ProfileTableProps) {
         setDataSetCategories(categoryMap)
     }, [profile])
 
-    const propsId = `${props.id}`
+    const propsId = props.id
     // Wrap everything in a DragDropContext as recommended by react-beautiful-dnd doc
     return (
         <DragDropContext // eslint-disable-line enforce-ids-in-jsx/missing-ids
@@ -664,7 +664,7 @@ export default function ProfileTable(props: ProfileTableProps) {
             }}
         >
             <div
-                id={`${propsId}`}
+                id={propsId}
                 className="flex flex-col mt-4"
             >
                 {editCategoryValuesModal}

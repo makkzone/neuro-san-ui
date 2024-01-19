@@ -893,7 +893,7 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`
         }
     }
 
-    const propsId = `${props.id}`
+    const propsId = props.id
 
     return (
         <Container id={`${propsId}`}>

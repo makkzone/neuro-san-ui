@@ -108,10 +108,10 @@ export default function ESPRunPlot(props: EspRunPlotProps) {
         )
     })
 
-    const propsId = `${props.id}`
+    const propsId = props.id
 
     return (
-        <div id={`${propsId}`}>
+        <div id={propsId}>
             <NewBar
                 id="prescriptor-metrics-bar"
                 InstanceId="prescriptor-metrics"

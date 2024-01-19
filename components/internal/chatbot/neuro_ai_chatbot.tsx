@@ -1,7 +1,6 @@
 import {ChatMessage} from "langchain/schema"
-import {memo, useRef} from "react"
+import {memo, ReactElement, useRef} from "react"
 import ChatBot from "react-simple-chatbot"
-import uuid from "react-uuid"
 import {ThemeProvider} from "styled-components"
 
 import {CustomStep} from "./custom_step"
@@ -63,7 +62,7 @@ function getChatbotSteps(
  * Encapsulates a Chatbot from the <code>react-simple-chatbot</code> library, with some defaults for our use case.
  * @param props Basic settings for the chatbot. See declaration for details.
  */
-const NeuroAIChatbot = (props: {id: string; userAvatar: string; pageContext: string}): React.ReactElement => {
+const NeuroAIChatbot = (props: {id: string; userAvatar: string; pageContext: string}): ReactElement => {
     // Get "generic branding" flag
     const {isGeneric} = useFeaturesStore()
 
@@ -100,7 +99,7 @@ const NeuroAIChatbot = (props: {id: string; userAvatar: string; pageContext: str
                 width="400px"
                 // Use a random key to force a new instance of the chatbot, so we don't get stale context from
                 // previous page
-                key={uuid()}
+                key={crypto.randomUUID()}
             />
         </ThemeProvider>
     )

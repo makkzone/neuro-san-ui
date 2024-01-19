@@ -174,7 +174,7 @@ export function MultiPareto(props: ParetoPlotProps): ReactElement {
         )
     })
 
-    const propsId = `${props.id}`
+    const propsId = props.id
 
     if (props.ObjectivesCount < 2) {
         return null
@@ -182,8 +182,8 @@ export function MultiPareto(props: ParetoPlotProps): ReactElement {
 
     return (
         <div
-            id={`${propsId}`}
-            key={`${propsId}`}
+            id={propsId}
+            key={propsId}
         >
             <NewBar
                 id="pareto-prescriptors-bar"
@@ -192,28 +192,7 @@ export function MultiPareto(props: ParetoPlotProps): ReactElement {
                 DisplayNewLink={false}
             />
             <br id="pareto-plot-br" />
-            {!nodePlots.length ? (
-                <>
-                    <span
-                        id="prescriptor-metrics-span"
-                        style={{display: "flex"}}
-                    >
-                        <FiAlertCircle
-                            id="prescriptor-metrics-dot"
-                            color="var(--bs-red)"
-                            size={50}
-                        />
-                        <span
-                            id="pareto-metrics-none-found"
-                            className="ml-4 fs-4 my-auto"
-                        >
-                            No pareto data found because prescriptor training has failed.
-                        </span>
-                    </span>
-                    <br id="pareto-metrics-instructions" />
-                    Navigate to the Runs table and view the error logs for your Run to see what went wrong.
-                </>
-            ) : (
+            {nodePlots.length ? (
                 <Container
                     fluid
                     id="pareto-plot-container"
@@ -259,6 +238,27 @@ export function MultiPareto(props: ParetoPlotProps): ReactElement {
                         <Col id="pareto-plots-col">{nodePlots}</Col>
                     </Row>
                 </Container>
+            ) : (
+                <>
+                    <span
+                        id="prescriptor-metrics-span"
+                        style={{display: "flex"}}
+                    >
+                        <FiAlertCircle
+                            id="prescriptor-metrics-dot"
+                            color="var(--bs-red)"
+                            size={50}
+                        />
+                        <span
+                            id="pareto-metrics-none-found"
+                            className="ml-4 fs-4 my-auto"
+                        >
+                            No pareto data found because prescriptor training has failed.
+                        </span>
+                    </span>
+                    <br id="pareto-metrics-instructions" />
+                    Navigate to the Runs table and view the error logs for your Run to see what went wrong.
+                </>
             )}
         </div>
     )

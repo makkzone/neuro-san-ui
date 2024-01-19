@@ -1,11 +1,16 @@
 // eslint-disable-next-line max-classes-per-file
 import "@testing-library/jest-dom"
 
+// Work around for crypto not being available in jsdom environment. See: https://github.com/jsdom/jsdom/issues/1612
+import {webcrypto} from "node:crypto"
+// eslint-disable-next-line no-undef
+Object.defineProperty(globalThis, "crypto", {
+    value: webcrypto,
+})
 /*
 This next part is a hack to get around "ReferenceError: TextEncoder is not defined" errors when running Jest.
 See: https://stackoverflow.com/questions/68468203/why-am-i-getting-textencoder-is-not-defined-in-jest
  */
-
 // eslint-disable-next-line no-shadow
 import {TextDecoder, TextEncoder} from "util"
 global.TextEncoder = TextEncoder

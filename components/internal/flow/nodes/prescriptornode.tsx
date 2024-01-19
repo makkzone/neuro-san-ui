@@ -3,7 +3,7 @@ import {Tooltip as AntdTooltip, Modal} from "antd"
 import {Text as EvergreenText, Popover, Position, Tab, Tablist} from "evergreen-ui"
 import {useSession} from "next-auth/react"
 import Slider from "rc-slider"
-import {useEffect, useState} from "react"
+import {FC, useEffect, useState} from "react"
 import {Card, Col, Container, Row} from "react-bootstrap"
 import {AiFillDelete} from "react-icons/ai"
 import {BiPlusMedical} from "react-icons/bi"
@@ -50,7 +50,7 @@ const defaultRepresentationConfig = {
 
 export type PrescriptorNode = RFNode<PrescriptorNodeData>
 
-const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (props) => {
+const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => {
     /*
     This function is responsible for rendering the prescriptor node.
     */
@@ -159,7 +159,7 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
         const metricPrefix = `${flowPrefix}-metric-${metric.metric_name}`
         return (
             <div
-                id={`${metricPrefix}`}
+                id={metricPrefix}
                 className="p-2 grid grid-cols-2 gap-4 mb-2"
                 key={metric.metric_name}
             >
@@ -919,7 +919,7 @@ const PrescriptorNodeComponent: React.FC<NodeProps<PrescriptorNodeData>> = (prop
     // Create the Component structure
     return (
         <BlueprintCard
-            id={`${flowPrefix}`}
+            id={flowPrefix}
             interactive={true}
             elevation={Elevation.TWO}
             style={{padding: 0, width: "10rem", height: "4rem"}}

@@ -165,6 +165,7 @@
         // See here for explanation: https://github.com/lydell/eslint-plugin-simple-import-sort?tab=readme-ov-file#why-sort-on-from
         // Note: there are other rules this plugin can enforce but not included in the default set. We may want to
         // look into enabling the ones we want later. Doc: https://github.com/import-js/eslint-plugin-import/tree/main
+        "import/no-deprecated": "error",
         "import/order": [
             "error",
             {

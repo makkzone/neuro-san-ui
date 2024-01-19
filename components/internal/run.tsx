@@ -801,10 +801,10 @@ export default function RunPage(props: RunProps): React.ReactElement {
         )
     }
 
-    const propsId = `${props.id}`
+    const propsId = props.id
     return (
         <div
-            id={`${propsId}`}
+            id={propsId}
             className="mr-8 ml-8"
         >
             {flowDiv}

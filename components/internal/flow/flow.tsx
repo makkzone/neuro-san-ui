@@ -4,7 +4,6 @@ import debugModule from "debug"
 import {InfoSignIcon} from "evergreen-ui"
 import {Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState} from "react"
 import {Button, Container, Dropdown} from "react-bootstrap"
-import uuid from "react-uuid"
 // eslint-disable-next-line import/no-named-as-default
 import ReactFlow, {
     applyEdgeChanges,
@@ -570,7 +569,7 @@ export default function Flow(props: FlowProps) {
      * @return The new edge with a random UUID
      */
     function getPrescriptorEdge(sourceNodeID: string, targetPrescriptorNodeID: string): PrescriptorEdge {
-        const edgeId = uuid()
+        const edgeId = crypto.randomUUID()
         return {
             id: edgeId,
             source: sourceNodeID,
@@ -596,7 +595,7 @@ export default function Flow(props: FlowProps) {
      */
     function getGeneralEdge(sourceNodeID: string, targetNodeID: string): PredictorEdge {
         return {
-            id: uuid(),
+            id: crypto.randomUUID(),
             source: sourceNodeID,
             target: targetNodeID,
             animated: false,
@@ -727,7 +726,7 @@ export default function Flow(props: FlowProps) {
         }
 
         // Create a unique ID
-        const predictorNodeID = uuid()
+        const predictorNodeID = crypto.randomUUID()
 
         // Add the Predictor Node
         const maxPredictorNodeY = Math.max(
@@ -862,7 +861,7 @@ export default function Flow(props: FlowProps) {
         const edgesCopy = edges.slice()
 
         // Create a unique ID
-        const prescriptorNodeID = uuid()
+        const prescriptorNodeID = crypto.randomUUID()
 
         // Get outcomes from all current predictors to use for prescriptor fitness
         let outcomes = FlowQueries.extractCheckedFields(predictorNodes, CAOType.OUTCOME)
@@ -968,7 +967,7 @@ export default function Flow(props: FlowProps) {
                 : predictorNode.position.x + 200
 
             // Create a unique ID
-            const uncertaintyNodeID = uuid()
+            const uncertaintyNodeID = crypto.randomUUID()
 
             // Add the uncertainty model node
             const uncertaintyNode: ConfigurableNode = {
@@ -1048,7 +1047,7 @@ export default function Flow(props: FlowProps) {
         // Add Activation LLM after prescriptor
 
         // Create a unique ID
-        const actuationLlmNodeID = uuid()
+        const actuationLlmNodeID = crypto.randomUUID()
 
         // LLM after prescriptor
         const actuationLlmNode: ConfigurableNode = {
@@ -1116,7 +1115,7 @@ export default function Flow(props: FlowProps) {
         }
 
         // Create new node
-        const analyticsNodeID = uuid()
+        const analyticsNodeID = crypto.randomUUID()
         const analyticsNode: NodeType = {
             id: analyticsNodeID,
             type: "analytics_node",
@@ -1178,7 +1177,7 @@ export default function Flow(props: FlowProps) {
         }
 
         // Create new node
-        const categoryReducerNodeID = uuid()
+        const categoryReducerNodeID = crypto.randomUUID()
         const categoryReducerNode: NodeType = {
             id: categoryReducerNodeID,
             type: "category_reducer_node",
@@ -1227,7 +1226,7 @@ export default function Flow(props: FlowProps) {
         const dataNode = dataNodes[0]
 
         // Create a unique ID
-        const confabulatorNodeID = uuid()
+        const confabulatorNodeID = crypto.randomUUID()
 
         // Create new node
         const confabulatorNode = {
@@ -1719,11 +1718,11 @@ export default function Flow(props: FlowProps) {
         )
     }
 
-    const propsId = `${props.id}`
+    const propsId = props.id
 
     return (
         <Container
-            id={`${propsId}`}
+            id={propsId}
             className="mt-5"
         >
             {/* Only render buttons if ElementsSelectable is true, meaning Flow is editable */}

@@ -30,7 +30,7 @@ export default NextAuth({
     theme: {
         colorScheme: "auto", // "auto" | "dark" | "light"
         brandColor: "0033a0", // Hex color value
-        logo: "http://unileaf.evolution.ml/leaffavicon.png", // Absolute URL to logo image
+        logo: "https://neuro-ai.evolution.ml/cognizantfavicon.ico", // Absolute URL to logo image
     },
 
     // Set this to "true" for verbose debugging messages from next-auth

@@ -2,7 +2,6 @@ import "@testing-library/jest-dom"
 // eslint-disable-next-line no-shadow
 import {act, render, screen, waitFor} from "@testing-library/react"
 import user from "@testing-library/user-event"
-import uuid from "react-uuid"
 import {Position} from "reactflow"
 
 import {EdgeType} from "../../components/internal/flow/edges/types"
@@ -13,9 +12,9 @@ import loadDataTags from "../../controller/fetchdatataglist"
 import {NotificationType, sendNotification} from "../../controller/notification"
 
 // Generate some random values to use in tests
-const testUser = uuid()
+const testUser = crypto.randomUUID()
 const testProjectId = Math.floor(Math.random() * 100_000)
-const testDataSourceName = uuid()
+const testDataSourceName = crypto.randomUUID()
 
 // Flow with a data node and a predictor node
 const FLOW_WITH_PREDICTOR = [

@@ -3,9 +3,6 @@
 // enables IDEs to type check this config file.
 // See: https://nextjs.org/docs/basic-features/typescript
 
-/**
- * @type {import('next').NextConfig}
- **/
 import path from "path"
 import {fileURLToPath} from "url"
 
@@ -39,6 +36,9 @@ const securityHeaders = [
     },
 ]
 
+/**
+ * @type {import('next').NextConfig}
+ **/
 const nextConfig = {
     typescript: {
         // Cause build to fail on Typescript transpilation errors
@@ -62,7 +62,14 @@ const nextConfig = {
     output: "standalone",
 
     images: {
-        domains: ["avatars.githubusercontent.com"],
+        // See: https://nextjs.org/docs/app/api-reference/components/image#remotepatterns
+        remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "**avatars.githubusercontent.com",
+                port: "",
+            },
+        ],
     },
 
     poweredByHeader: false,
@@ -81,7 +88,19 @@ const nextConfig = {
         includePaths: [path.join(__dirname, "styles")],
     },
 
-    transpilePackages: ["echarts", "echarts-gl", "zrender"],
+    transpilePackages: [
+        "@ant-design/pro-editor",
+        "@ant-design/icons",
+        "@ant-design/icons-svg",
+        "echarts",
+        "echarts-gl",
+        "rc-pagination",
+        "rc-picker",
+        "rc-table",
+        "rc-tree",
+        "rc-util",
+        "zrender",
+    ],
 
     compiler: {
         // Prevent errors like "webpack Warning: Prop `className` did not match. Server: ..."

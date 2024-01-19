@@ -1,5 +1,5 @@
 import Link, {LinkProps} from "next/link"
-import {useState} from "react"
+import {ReactElement, useState} from "react"
 import {AiFillEdit} from "react-icons/ai"
 import {BsFillPlusSquareFill} from "react-icons/bs"
 
@@ -7,7 +7,7 @@ import {BsFillPlusSquareFill} from "react-icons/bs"
 interface NavbarProps {
     id: string
     Title: string
-    InfoTip?: React.ReactElement
+    InfoTip?: ReactElement
     LinkComponentProps?: LinkProps
     DisplayNewLink?: boolean
     handleLinkCallback?
@@ -133,10 +133,10 @@ export default function NewBar(props: NavbarProps) {
         )
     }
 
-    const propsId = `${props.id}`
+    const propsId = props.id
     return (
         <div
-            id={`${propsId}`}
+            id={propsId}
             className="flex justify-between py-6 items-center border-b-2 border-black"
         >
             {title}

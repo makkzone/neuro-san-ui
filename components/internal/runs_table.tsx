@@ -10,7 +10,6 @@ import {AiFillDelete, AiFillEdit} from "react-icons/ai"
 import {BiNoEntry} from "react-icons/bi"
 import {FiDownload} from "react-icons/fi"
 import ClipLoader from "react-spinners/ClipLoader"
-import uuid from "react-uuid"
 
 import {
     DEFAULT_DOWNLOAD_ARTIFACT,
@@ -585,7 +584,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
         tableHeaderElements.push(
             <th
                 id={`header-${header}`}
-                key={uuid()}
+                key={crypto.randomUUID()}
                 scope="col"
                 className="px-10 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
             >

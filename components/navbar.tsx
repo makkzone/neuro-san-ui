@@ -41,7 +41,7 @@ function Navbar(props: NavbarProps): ReactElement {
     const {data: session, status} = useSession()
     const signedIn: boolean = isSignedIn(session, status)
 
-    const propsId = `${props.id}`
+    const propsId = props.id
 
     const withBreadcrumbs = props.WithBreadcrumbs ?? true
 
@@ -49,7 +49,7 @@ function Navbar(props: NavbarProps): ReactElement {
         <Container id="nav-bar-container">
             <Row id="nav-bar-menu-row">
                 <BootstrapNavbar
-                    id={`${propsId}`}
+                    id={propsId}
                     collapseOnSelect
                     expand="lg"
                     style={{background: MaximumBlue, borderBottomColor: MaximumBlue}}
@@ -169,7 +169,6 @@ function Navbar(props: NavbarProps): ReactElement {
                                             }}
                                         />
                                         <Dropdown.Item
-                                            button
                                             id="user-sign-out"
                                             target="_blank"
                                             onClick={async () => signOut({redirect: false})}

@@ -114,8 +114,8 @@ async function deployModel(
         if (!response.ok) {
             console.debug("Error:", JSON.stringify(response))
             console.error(
-                `Error deploying models for run ${runName ?? runId}, deployment request: ` +
-                    `${JSON.stringify(deployRequest)}`
+                `Error deploying models for run ${runName ?? runId},` +
+                    ` deployment request: ${JSON.stringify(deployRequest)}`
             )
             return {
                 error: `Failed to deploy models for run ${runName ?? runId}: ${runId}`,
@@ -309,7 +309,7 @@ async function getDeployments(
         )
         return {
             error: `Failed to to retrieve deployed models for ${runId}`,
-            description: `Internal error occured: ${error instanceof Error ? error.message : error.toString()}`,
+            description: `Internal error occurred: ${error instanceof Error ? error.message : error.toString()}`,
         }
     }
 }
