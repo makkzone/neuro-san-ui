@@ -896,7 +896,7 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`
     const propsId = props.id
 
     return (
-        <Container id={`${propsId}`}>
+        <Container id={propsId}>
             <Form
                 id="create-data-profile"
                 onSubmit={(event) => void createDataSourceAndDataTag(event, getS3Key())}
