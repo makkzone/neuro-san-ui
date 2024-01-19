@@ -188,7 +188,6 @@
                 "devDependencies": ["__tests__/**", "jest.*", "tailwind.config.js"]
             }
         ],
-        "import/no-named-as-default-member": "error",
         "import/no-self-import": "error",
         "import/no-useless-path-segments": "error",
         "import/no-unresolved": [
@@ -225,6 +224,12 @@
 
         // Deprecated rule: see https://eslint.org/docs/latest/rules/no-return-await
         "no-return-await": "off",
+
+        // Not needed -- Typescript handles these.
+        // Reference: https://typescript-eslint.io/linting/troubleshooting/performance-troubleshooting/
+        "import/no-named-as-default-member": "off",
+        "import/default": "off",
+        "import/namespace": "off",
 
         // End permanently off category
 
