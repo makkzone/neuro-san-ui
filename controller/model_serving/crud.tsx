@@ -575,6 +575,7 @@ async function getModels(baseUrl: string, runId: number, cid: string) {
 export async function checkIfModelsDeployed(runID: number, prescriptorIDToDeploy: string) {
     const deploymentStatus: Deployments | ErrorResult = await getDeployments(runID)
     if ("error" in deploymentStatus) {
+        console.error(`------------ checkIfModelsDeployed ${JSON.stringify(deploymentStatus)}`)
         return deploymentStatus
     }
 
@@ -590,6 +591,7 @@ export async function checkIfModelsDeployed(runID: number, prescriptorIDToDeploy
             }
         }
     }
+    console.error(`------------ checkIfModelsDeployed models ${JSON.stringify(models)}`)
     return models
 }
 
