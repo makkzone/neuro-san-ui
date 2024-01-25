@@ -26,8 +26,8 @@
     },
     "dependencies": {
         "@babel/core": "7.23.7",
-        "@blueprintjs/core": "5.8.2",
-        "@blueprintjs/icons": "5.7.0",
+        "@blueprintjs/core": "4.17.8",
+        "@blueprintjs/icons": "4.14.5",
         "@pinecone-database/pinecone": "2.0.1",
         "@popperjs/core": "2.11.8",
         "antd": "5.13.1",
