@@ -6,21 +6,21 @@ import {
     DeploymentStatus,
     DeployRequest,
     GetDeploymentsRequest,
+    InferenceDeploymentRequest,
+    InferenceModelMetaData,
+    InferenceQueryRequest,
+    InferenceRunDeploymentMetaData,
     ModelFormat,
     ModelMetaData,
     ModelServingEnvironment,
     TearDownRequest,
-    InferenceModelMetaData,
-    InferenceDeploymentRequest,
-    InferenceDeploymentStatusRequest,
-    InferenceRunDeploymentMetaData,
-    InferenceQueryRequest
 } from "./types"
 import {MD_BASE_URL} from "../../const"
+import useFeaturesStore from "../../state/features"
 import {toSafeFilename} from "../../utils/file"
+import {empty} from "../../utils/objects"
 import {StringString} from "../base_types"
 import {PredictorParams, RioParams, Run} from "../run/types"
-import {BrowserFetchRuns} from "../run/fetch"
 
 // For deploying models
 const DEPLOY_MODELS_ROUTE = `${MD_BASE_URL}/api/v1/serving/deploy`
@@ -38,17 +38,22 @@ const INFERENCE_DEPLOY_ROUTE: string = `${MD_BASE_URL}/api/v1/inference/deploy`
 const INFERENCE_DEPLOY_STATUS_ROUTE: string = `${MD_BASE_URL}/api/v1/inference/getstatus`
 const INFERENCE_INFER_ROUTE: string = `${MD_BASE_URL}/api/v1/inference/infer`
 
+export function generateDeploymentID(runId: number, experimentId: number, projectId: number, cid?: string): string {
+    const nextGenModelServing = useFeaturesStore.getState().useNextGenModelServing
 
-function generateDeploymentID(runId: number, experimentId: number, projectId: number, cid?: string): string {
-    let deploymentId = `deployment-${projectId}-${experimentId}-${runId}`
-    if (cid) {
-        deploymentId = `${deploymentId}-${cid}`
+    if (nextGenModelServing) {
+        return `deployment-${runId}`
+    } else {
+        let deploymentId = `deployment-${projectId}-${experimentId}-${runId}`
+        if (cid) {
+            deploymentId = `${deploymentId}-${cid}`
+        }
+        return deploymentId
     }
-    return deploymentId
 }
 
 // For returning errors
-type ErrorResult = {error: string; description?: string}
+export type ErrorResult = {error: string; description?: string}
 
 /**
  * Given a fetch <code>Response</code>, return a human-readable string describing the error.
@@ -123,7 +128,7 @@ async function deployModel(
         })
 
         if (!response.ok) {
-            console.debug("Error:", JSON.stringify(response))
+            console.error("Error:", JSON.stringify(response))
             console.error(
                 `Error deploying models for run ${runName ?? runId},` +
                     ` deployment request: ${JSON.stringify(deployRequest)}`
@@ -148,32 +153,6 @@ async function deployModel(
         }
     }
 }
-
-export async function getInferenceDeploymentStatus(deploymentID: string): Promise<string> {
-    let request: DeploymentStatusRequest = {
-        deployment_id: deploymentID
-    }
-    const response = await fetch(DEPLOY_STATUS_URL, {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(request),
-        })
-
-    let my_response = await response.json()
-    console.log(my_response)
-    if (!response.ok) {
-        console.debug("Error:", JSON.stringify(response))
-        console.error(
-            `Error getting deployment status`
-        )
-        return `getInferenceDeploymentStatus: ${deploymentID} error`
-    }
-    return my_response['status']
-}
-
 function isPredictor(model: string): boolean {
     return model.startsWith("predictor")
 }
@@ -183,130 +162,161 @@ function isRioModel(model: string): boolean {
 }
 
 function isPrescriptor(model: string): boolean {
-    return model.startsWith("prescriptor") &&
-           !model.startsWith("prescriptor-text")
+    return model.startsWith("prescriptor") && !model.startsWith("prescriptor-text")
 }
-
-function isModel(model: string): boolean {
-    return isPredictor(model) || isPrescriptor(model) || isRioModel(model)
-}
-
-function getNodeId(model_id: string): string {
-    if (model_id.startsWith("predictor-")) {
-        return model_id.substring("predictor-".length)
+function getNodeId(modelId: string): string {
+    if (modelId.startsWith("predictor-")) {
+        return modelId.substring("predictor-".length)
     }
-    if (model_id.startsWith("prescriptor-")) {
-        return model_id.substring("prescriptor-".length).split("-").slice(0, -1).join("-")
+    if (modelId.startsWith("prescriptor-")) {
+        // conflicts with ESLint newline-per-chained-call rule
+        // prettier-ignore
+        return modelId.substring("prescriptor-".length)
+            .split("-")
+            .slice(0, -1)
+            .join("-")
     }
-    if (model_id.startsWith("rio-")) {
-        return model_id.substring("rio-".length).split("-").slice(0, -1).join("-")
+    if (modelId.startsWith("rio-")) {
+        // conflicts with ESLint newline-per-chained-call rule
+        // prettier-ignore
+        return modelId.substring("rio-".length)
+            .split("-")
+            .slice(0, -1)
+            .join("-")
     }
     return ""
 }
 
-export async function getRunModelsData(run_id: number, request_user: string): InferenceRunDeploymentMetaData {
-    const maskFields: string[] = ['output_artifacts']
-    const runsTmp: Runs = await BrowserFetchRuns(request_user, null, run_id, maskFields)
-
-    if (runsTmp == undefined || runsTmp == null || runsTmp.length !== 1) {
-        console.error(`FAILED to get unique Run for id: ${run_id}`)
-        return null
-    }
-
-    const artifacts = JSON.parse(runsTmp[0].output_artifacts)
-    console.log(`>>>>>>>>>>>> RUN: ${run_id}`)
-    console.log(artifacts)
-    console.log(">>>>>>>>>>>>>>>>>>")
-
-    let result: InferenceRunDeploymentMetaData = {
-        run_id: run_id,
+export function getRunModelsData(runId: number, outputArtifacts: StringString): InferenceRunDeploymentMetaData {
+    const result: InferenceRunDeploymentMetaData = {
+        run_id: runId,
         predictors: [],
         prescriptors: [],
         rio: [],
     }
 
-    for (const key in artifacts) {
-        if (artifacts.hasOwnProperty(key)) {
+    for (const key in outputArtifacts) {
+        if (Object.hasOwn(outputArtifacts, key)) {
             if (isPredictor(key)) {
-                result.predictors.push([key, artifacts[key], getNodeId(key)])
+                result.predictors.push([key, outputArtifacts[key], getNodeId(key)])
             } else if (isPrescriptor(key)) {
-                result.prescriptors.push([key, artifacts[key], getNodeId(key)])
+                result.prescriptors.push([key, outputArtifacts[key], getNodeId(key)])
             } else if (isRioModel(key)) {
-                result.rio.push([key, artifacts[key], getNodeId(key)])
+                result.rio.push([key, outputArtifacts[key], getNodeId(key)])
             }
         }
     }
-    return result
-}
 
-function addModelsToDeployment(descriptors: InferenceModelDescriptor[], models: InferenceModelMetaData[]) {
-    for (const model_descr of descriptors) {
-        const id = model_descr[0]
-        const uri = model_descr[1]
-        models.push({
-            model_id: id,
-            model_uri: uri,
-            model_format: "UNKNOWN_MODEL_FORMAT"
-        })
-        console.log(`Added model: ${id}: ${uri}`)
-    }
+    return result
 }
 
 /**
  * Request deployment of all models associated with a particular Run -- predictors, prescriptors, RIO, ...
  * If the models are already deployed, this function simply returns <code>true</code>.
+ * @param runID Run ID for the Run in question
+ * @param runName Run name for the Run in question
+ * @param experimentId Experiment ID for the Run in question
  * @param projectId Project ID for the Run in question
- * @param run The Run for which the models are to be deployed
  * @param minReplicas (not currently used) Minimum number of Kubernetes pods to host the models
  * @param cid Prescriptor (candidate) ID to deploy. If null, all prescriptors are deployed.
  * @param modelServingEnvironment Model serving environment to use. Currently only KSERVE is supported.
- * @return A tuple of a boolean indicating success or failure, deployment id and an optional error message.
+ * @return A tuple of a boolean indicating success or failure, and an optional error message.
  */
-export async function deployRun(
+export async function deployRunOld(
+    runID: number,
+    runName: string,
+    experimentId: number,
     projectId: number,
-    run: Run,
-    deploymentId: string,
     minReplicas = 0,
     cid: string = null,
     modelServingEnvironment: ModelServingEnvironment = ModelServingEnvironment.KSERVE
 ): Promise<[boolean, ErrorResult?]> {
     // Fetch the already deployed models
-    //const deploymentID: string = generateDeploymentID(run.id, run.experiment_id, projectId, cid)
-
-    console.log(`deployRun=> DeploymentID: ${deploymentId}`)
-
-//     await status = getInferenceDeploymentStatus(deploymentID)
-//     if (status == "DEPLOYMENT_READY") {
-//         // short-circuit -- already deployed
-//         return [true, deploymentID, null]
-//     }
+    const deploymentID: string = generateDeploymentID(runID, experimentId, projectId, cid)
 
     // Only deploy the model if it is not already deployed
-//     const isDeployed = await isRunDeployed(run.id, deploymentID, modelServingEnvironment)
-//     if (isDeployed) {
-//         // short-circuit -- already deployed
-//         return [true, null]
-//     }
+    const isDeployed = await isRunDeployed(runID, deploymentID, modelServingEnvironment)
+    if (isDeployed) {
+        // short-circuit -- already deployed
+        return [true, null]
+    }
 
-    const runData: InferenceRunDeploymentMetaData =
-        await getRunModelsData(run.id, run.request_user)
-    if (runData == null) {
-        return [ false,
+    try {
+        const result = await deployModel(
+            deploymentID,
+            runID,
+            experimentId,
+            projectId,
+            runName,
+            cid,
+            minReplicas,
+            modelServingEnvironment
+        )
+        if (result && "error" in result) {
+            return [false, result]
+        } else {
+            return [true, null]
+        }
+    } catch (error) {
+        console.error(
+            `Unable to deploy model for for run ID ${runID}`,
+            error,
+            error instanceof Error ? error.message : error
+        )
+        return [
+            false,
             {
                 error: "Internal error",
-                description: `Failed to get models data for run id ${run.id}. See console for more details.`,
+                description: `Unable to deploy model for run ID ${runID}. See console for more details.`,
+            },
+        ]
+    }
+}
+
+/**
+ * Request deployment of all models associated with a particular Run -- predictors, prescriptors, RIO, ...
+ * This function is idempotent: If the models are already deployed, this function simply returns
+ * <code>true</code>.
+ * @param runId Run ID for the Run in question
+ * @param experimentId Experiment ID for the Run in question
+ * @param projectId Project ID for the Run in question
+ * @param outputArtifacts Output artifacts for the Run in question (predictors, prescriptors, RIO models etc.)
+ * @return A tuple of a boolean indicating success or failure, deployment id and an optional error message.
+ */
+export async function deployRunNew(
+    runId: number,
+    experimentId: number,
+    projectId: number,
+    outputArtifacts: StringString
+): Promise<[boolean, ErrorResult?]> {
+    // Fetch the already deployed models
+    const runData: InferenceRunDeploymentMetaData = getRunModelsData(runId, outputArtifacts)
+    if (runData == null || empty(runData)) {
+        console.error(`deployRunNew: Failed to get Run metadata for ${runId}`)
+        return [
+            false,
+            {
+                error: "Internal error",
+                description: `Failed to get models data for run ID ${runId}. See console for more details.`,
             },
         ]
     }
 
-    // Request deployment for all generated models in our Run:
-    let models_to_deploy: InferenceModelMetaData[] = [];
-    addModelsToDeployment(runData.predictors, models_to_deploy)
-    addModelsToDeployment(runData.prescriptors, models_to_deploy)
-    addModelsToDeployment(runData.rio, models_to_deploy)
+    // Request deployment for all generated models in our Run
+    const deploymentId: string = generateDeploymentID(runId, experimentId, projectId)
+    const modelsToDeploy: InferenceModelMetaData[] = [
+        ...runData.predictors,
+        ...runData.prescriptors,
+        ...runData.rio,
+    ].map((model) => ({
+        model_id: model[0],
+        model_uri: model[1],
+        model_format: "UNKNOWN_MODEL_FORMAT",
+    }))
+
     const request: InferenceDeploymentRequest = {
         deployment_id: deploymentId,
-        models: models_to_deploy
+        models: modelsToDeploy,
     }
 
     try {
@@ -321,16 +331,18 @@ export async function deployRun(
         if (response.ok) {
             return [true, null]
         } else {
-            console.error(`FAILED request for deployment ${deploymentId}`)
-            return [ false,
-                { error: "Models deployment error",
-                  description: `Unable to deploy ${deploymentId} for run id ${run.id}. See console for more details.`,
+            console.error(`FAILED request for deployment ${deploymentId}. Response: ${response.statusText}`)
+            return [
+                false,
+                {
+                    error: "Models deployment error",
+                    description: `Unable to deploy ${deploymentId} for run id ${runId}. See console for more details.`,
                 },
             ]
         }
     } catch (error) {
         console.error(
-            `Unable to deploy models for run ${JSON.stringify(run)}`,
+            `Unable to deploy models for run id ${runId}`,
             error,
             error instanceof Error ? error.message : error
         )
@@ -338,41 +350,27 @@ export async function deployRun(
             false,
             {
                 error: "Internal error",
-                description: `Unable to deploy model for run id ${run.id}. See console for more details.`,
+                description: `Unable to deploy model for run id ${runId}. See console for more details.`,
             },
         ]
     }
+}
 
-//     try {
-//         const result = await deployModel(
-//             deploymentID,
-//             run.id,
-//             run.experiment_id,
-//             projectId,
-//             run.name,
-//             cid,
-//             minReplicas,
-//             modelServingEnvironment
-//         )
-//         if (result && "error" in result) {
-//             return [false, result]
-//         } else {
-//             return [true, null]
-//         }
-//     } catch (error) {
-//         console.error(
-//             `Unable to deploy model for run ${JSON.stringify(run)}`,
-//             error,
-//             error instanceof Error ? error.message : error
-//         )
-//         return [
-//             false,
-//             {
-//                 error: "Internal error",
-//                 description: `Unable to deploy model for run id ${run.id}. See console for more details.`,
-//             },
-//         ]
-//     }
+// Dispatch to the appropriate deploy function depending on whether we are using the old or new model serving
+// See individual implementations for parameter documentation
+export async function deployRun(
+    runID: number,
+    runName: string,
+    experimentId: number,
+    projectId: number,
+    outputArtifacts: StringString
+): Promise<[boolean, ErrorResult?]> {
+    const nextGenModelServing = useFeaturesStore.getState().useNextGenModelServing
+    if (nextGenModelServing) {
+        return deployRunNew(runID, experimentId, projectId, outputArtifacts)
+    } else {
+        return deployRunOld(runID, runName, experimentId, projectId, 0, null, ModelServingEnvironment.KSERVE)
+    }
 }
 
 /**
@@ -387,7 +385,7 @@ export async function deployRun(
  */
 export function undeployRunUsingBeacon(projectId: number, run: Run) {
     // Get deployment ID that we want to undeploy
-    const deploymentID: string = generateDeploymentID(run.id, run.experiment_id, projectId, null)
+    const deploymentID: string = generateDeploymentID(run.id, run.experiment_id, projectId)
 
     // Generate the request
     const tearDownRequest: TearDownRequest = {
@@ -408,7 +406,7 @@ export async function undeployRun(
     // Typescript lib uses "any" so we have to as well
 ) {
     // Get deployment ID that we want to undeploy
-    const deploymentID: string = generateDeploymentID(run.id, run.experiment_id, projectId, null)
+    const deploymentID: string = generateDeploymentID(run.id, run.experiment_id, projectId)
 
     // Generate the request
     const tearDownRequest: TearDownRequest = {
@@ -502,6 +500,23 @@ function getModelInferenceUrl(baseUrl: string, modelName: string) {
     return `http://${baseUrl}/${MODEL_INFERENCE_ROUTE}/${modelName}/infer`
 }
 
+function extractModelURLs(modelsArray: string[], baseUrl: string, cid: string) {
+    // Pull out predictor, prescriptor and RIO models
+    const predictors = modelsArray
+        .filter((model: string) => model.startsWith("predictor"))
+        .map((model: string) => [model, getModelInferenceUrl(baseUrl, model)])
+    const prescriptors = modelsArray
+        .filter(
+            (model: string) =>
+                model.startsWith("prescriptor") && !model.startsWith("prescriptor-text") && model.endsWith(`-${cid}`)
+        )
+        .map((model: string) => [model, getModelInferenceUrl(baseUrl, model)])
+    const rioModels = modelsArray
+        .filter((model: string) => model.startsWith("rio"))
+        .map((model: string) => [model, getModelInferenceUrl(baseUrl, model)])
+    return {predictors, prescriptors, rioModels}
+}
+
 /**
  * Retrieve model names (predictor, prescriptor) for a particular run.
  * Only supports kserve-hosted models!
@@ -535,21 +550,7 @@ async function getModels(baseUrl: string, runId: number, cid: string) {
         const modelsObject = await response.json()
         const modelsArray: string[] = modelsObject.models
 
-        // Pull out predictor, prescriptor and RIO models
-        const predictors = modelsArray
-            .filter((model: string) => model.startsWith("predictor"))
-            .map((model: string) => [model, getModelInferenceUrl(baseUrl, model)])
-        const prescriptors = modelsArray
-            .filter(
-                (model: string) =>
-                    model.startsWith("prescriptor") &&
-                    !model.startsWith("prescriptor-text") &&
-                    model.endsWith(`-${cid}`)
-            )
-            .map((model: string) => [model, getModelInferenceUrl(baseUrl, model)])
-        const rioModels = modelsArray
-            .filter((model: string) => model.startsWith("rio"))
-            .map((model: string) => [model, getModelInferenceUrl(baseUrl, model)])
+        const {predictors, prescriptors, rioModels} = extractModelURLs(modelsArray, baseUrl, cid)
 
         return {
             predictors: predictors,
@@ -575,7 +576,6 @@ async function getModels(baseUrl: string, runId: number, cid: string) {
 export async function checkIfModelsDeployed(runID: number, prescriptorIDToDeploy: string) {
     const deploymentStatus: Deployments | ErrorResult = await getDeployments(runID)
     if ("error" in deploymentStatus) {
-        console.error(`------------ checkIfModelsDeployed ${JSON.stringify(deploymentStatus)}`)
         return deploymentStatus
     }
 
@@ -591,33 +591,39 @@ export async function checkIfModelsDeployed(runID: number, prescriptorIDToDeploy
             }
         }
     }
-    console.error(`------------ checkIfModelsDeployed models ${JSON.stringify(models)}`)
     return models
 }
 
-export async function checkIfDeploymentReady(deploymentID: number): boolean {
-    const request: DeploymentStatusRequest = {
-        deployment_id: deploymentID
+export async function checkModelsReady(
+    runId: number,
+    experimentId: number,
+    projectId: number,
+    cid: string = null
+): Promise<boolean> {
+    const deploymentId: string = generateDeploymentID(runId, experimentId, projectId, cid)
+    return checkIfDeploymentReady(deploymentId)
+}
+
+export async function checkIfDeploymentReady(deploymentID: string): Promise<boolean> {
+    const request = {
+        deployment_id: deploymentID,
     }
     const response = await fetch(INFERENCE_DEPLOY_STATUS_ROUTE, {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(request),
-        })
+        method: "POST",
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
+    })
 
-    let my_response = await response.json()
-    console.log(my_response)
+    const jsonResponse = await response.json()
     if (!response.ok) {
-        console.debug("Error:", JSON.stringify(response))
-        console.error(
-            `Error getting deployment status`
-        )
+        console.error("Error getting deployment status", JSON.stringify(response))
         return false
     }
-    return my_response['status'] == "DEPLOYMENT_READY"
+
+    return jsonResponse.status === DeploymentStatus[DeploymentStatus.DEPLOYMENT_READY]
 }
 
 /**
@@ -631,63 +637,48 @@ export function vectorize(inputs: {[key: string]: string | number}): PredictorPa
 }
 
 function findModelDataByUrl(runData: InferenceRunDeploymentMetaData, modelUrl: string): [string, string] {
-    for (const model_descr of runData.prescriptors) {
-        console.log(`Compare: ${model_descr[1]} vs ${modelUrl}`)
-        if (model_descr[1] == modelUrl) {
-            return [model_descr[0], model_descr[2]]
+    for (const model of runData.prescriptors) {
+        if (model[1] === modelUrl) {
+            return [model[0], model[2]]
         }
     }
-    for (const model_descr of runData.predictors) {
-        console.log(`Compare: ${model_descr[1]} vs ${modelUrl}`)
-        if (model_descr[1] == modelUrl) {
-            return [model_descr[0], model_descr[2]]
+    for (const model of runData.predictors) {
+        if (model[1] === modelUrl) {
+            return [model[0], model[2]]
         }
     }
-    for (const model_descr of runData.rio) {
-        console.log(`Compare: ${model_descr[1]} vs ${modelUrl}`)
-        if (model_descr[1] == modelUrl) {
-            return [model_descr[0], model_descr[2]]
+    for (const model of runData.rio) {
+        if (model[1] === modelUrl) {
+            return [model[0], model[2]]
         }
     }
-    console.error(`Failed to find ${modelUrl} for run ${runData.run_id}`)
     return ["", ""]
 }
 
-export async function queryModel(
-    run: Run,
-    modelUrl: string,
-    flow: string,
-    inputs: PredictorParams | RioParams
-    // Typescript lib uses "any" so we have to as well
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any> {
-
-    const runData: InferenceRunDeploymentMetaData =
-        await getRunModelsData(run.id, run.request_user)
+async function queryModelNew(run: Run, modelUrl: string, flow: string, inputs: PredictorParams | RioParams) {
+    const runData: InferenceRunDeploymentMetaData = getRunModelsData(run.id, JSON.parse(run.output_artifacts))
     if (runData == null) {
         console.error(`queryModel: Failed to get Run metadata for ${run.id}`)
         return null
     }
-    const runDataStr: string = JSON.stringify(runData, null, 2)
-    console.log(`********* RUN DATA: ${runDataStr}`)
-    const [model_id, node_id] = findModelDataByUrl(runData, modelUrl)
-    if (model_id == "") {
+    const [modelId, nodeId] = findModelDataByUrl(runData, modelUrl)
+    if (!modelId) {
         return null
     }
 
     try {
-        const model_data: InferenceModelMetaData = {
-            model_id: model_id,
+        const modelData: InferenceModelMetaData = {
+            model_id: modelId,
             model_uri: modelUrl,
-            model_format: "UNKNOWN_MODEL_FORMAT"
+            model_format: "UNKNOWN_MODEL_FORMAT",
         }
         const request: InferenceQueryRequest = {
-            model: model_data,
+            model: modelData,
             run_flow: {
-                flow: JSON.stringify({"flow_graph": flow}),
-                node_id: node_id,
+                flow: JSON.stringify({flow_graph: flow}),
+                node_id: nodeId,
             },
-            sample: JSON.stringify(inputs)
+            sample: JSON.stringify(inputs),
         }
         const response = await fetch(INFERENCE_INFER_ROUTE, {
             method: "POST",
@@ -695,7 +686,7 @@ export async function queryModel(
                 Accept: "application/json",
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(request)
+            body: JSON.stringify(request),
         })
         if (!response.ok) {
             return {
@@ -703,6 +694,48 @@ export async function queryModel(
                 description: `Error code ${response.status}, response: ${(await response.json())?.error}`,
             }
         }
+
+        const jsonResponse = await response.json()
+        const innerResponse = jsonResponse["response"]
+        return JSON.parse(innerResponse)
+    } catch (error) {
+        console.error("Unable to access model", modelUrl)
+        console.error(error, error instanceof Error && error.stack)
+        return {
+            error: "Model access error",
+            description: `Failed to query model at ${modelUrl}. Error: ${
+                error instanceof Error ? error.message : error
+            }`,
+        }
+    }
+}
+
+async function queryModelOld(modelUrl: string, inputs: PredictorParams | RioParams) {
+    // Use old model inference system
+    try {
+        const body = JSON.stringify({
+            url: modelUrl,
+            method: "POST",
+            payload: inputs,
+        })
+
+        const response = await fetch(`${MD_BASE_URL}/api/v1/passthrough`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            body: body,
+        })
+
+        if (!response.ok) {
+            return {
+                error: `Failed to query model at ${modelUrl}`,
+                description: `Error code ${response.status}, response: ${(await response.json())?.error}`,
+            }
+        }
+
         return await response.json()
     } catch (error) {
         console.error("Unable to access model", modelUrl)
@@ -716,10 +749,25 @@ export async function queryModel(
     }
 }
 
+export async function queryModel(
+    run: Run,
+    modelUrl: string,
+    flow: string,
+    inputs: PredictorParams | RioParams
+    // Typescript lib uses "any" so we have to as well
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> {
+    // Use old or new model inference system depending on the feature flag
+    if (useFeaturesStore.getState().useNextGenModelServing) {
+        return queryModelNew(run, modelUrl, flow, inputs)
+    } else {
+        return queryModelOld(modelUrl, inputs)
+    }
+}
 
 /**
  * Query a model for a given set of inputs. The model must have already been deployed by a preceding call to
- * {@link deployRun} and is specified by its URL.
+ * {@link deployRunNew} and is specified by its URL.
  * The inputs are specified as a set of vectorized name-value inputs. See {@link vectorize} for more details.
  * See {@link PredictorParams} for specification.
  *

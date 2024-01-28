@@ -382,13 +382,13 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     outcomeFields
                 )
                 if (!response.ok) {
-                    console.debug("error json", await response.json())
+                    console.error("error json", await response.json())
                     return
                 }
                 const data = await response.json()
                 setInterpretedRules(data.response)
             } catch (error) {
-                console.debug("error", error)
+                console.error("error", error)
             } finally {
                 setRulesInterpretationLoading(false)
             }
@@ -421,7 +421,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     outcomeFields
                 )
                 if (!response.ok) {
-                    console.debug("error json", await response.json())
+                    console.error("error json", await response.json())
                     return
                 }
                 const data = await response.json()

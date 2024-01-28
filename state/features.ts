@@ -15,6 +15,10 @@ interface FeaturesStore {
     // Generic branding for the entire app, if Cognizant branding is not desired
     isGeneric: boolean
     setIsGeneric: (isGeneric: boolean) => void
+
+    // Whether to use next gen model serving
+    useNextGenModelServing: boolean
+    setUseNextGenModelServing: (useNextGenModelServing: boolean) => void
 }
 
 /**
@@ -25,6 +29,9 @@ const useFeaturesStore = create<FeaturesStore>((set) => ({
     setIsDemoUser: (isDemoUser) => set(() => ({isDemoUser: isDemoUser})),
     isGeneric: false,
     setIsGeneric: (isGeneric) => set(() => ({isGeneric: isGeneric})),
+    useNextGenModelServing: false,
+    setUseNextGenModelServing: (useNextGenModelServing) =>
+        set(() => ({useNextGenModelServing: useNextGenModelServing})),
 }))
 
 export default useFeaturesStore

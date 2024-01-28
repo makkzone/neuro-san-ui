@@ -25,18 +25,18 @@ export interface ModelMetaData {
 }
 
 export type InferenceModelMetaData = {
-   model_uri: string
-   model_id?: string
-   model_format: string
+    model_uri: string
+    model_id?: string
+    model_format: string
 }
 
 export type InferenceDeploymentRequest = {
-  deployment_id: string
-  models: InferenceModelMetaData[]
+    deployment_id: string
+    models: InferenceModelMetaData[]
 }
 
 export type InferenceDeploymentStatusRequest = {
-  deployment_id: string
+    deployment_id: string
 }
 
 // Model ID, Model URL, Node ID
@@ -44,9 +44,9 @@ export type InferenceModelDescriptor = [string, string, string]
 
 export type InferenceRunDeploymentMetaData = {
     run_id: number
-    predictors: InferenceModelDescriptor[],
-    prescriptors: InferenceModelDescriptor[],
-    rio: InferenceModelDescriptor[],
+    predictors: InferenceModelDescriptor[]
+    prescriptors: InferenceModelDescriptor[]
+    rio: InferenceModelDescriptor[]
 }
 
 export type InferenceQueryRequest = {

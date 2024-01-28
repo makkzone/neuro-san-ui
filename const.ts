@@ -3,11 +3,10 @@ import getConfig from "next/config"
 // Define the Base Colors
 export const MaximumBlue: string = "#000048"
 export const Apple: string = "#26EFE9"
-//const {publicRuntimeConfig} = getConfig()
+const {publicRuntimeConfig} = getConfig()
 
 // Set the env var MD_SERVER_URL
 export const MD_BASE_URL: string = publicRuntimeConfig.md_server_url
-//export const MD_BASE_URL: string = "https://neuro-ai-dev.evolution.ml"
 
 // Name to use for application
 export const LOGO: string = "Cognizant Neuro® AI Model Orchestrator"
@@ -15,7 +14,9 @@ export const GENERIC_LOGO: string = "Autopilot"
 
 // Build version (passed in from build system)
 export const UNILEAF_VERSION: string = publicRuntimeConfig.unileafVersion
-//export const UNILEAF_VERSION: string = "0.0.1"
+
+// Model serving system to use. We expect "new" or "old" as values. Default to "old" if setting is missing or invalid.
+export const MODEL_SERVING_VERSION: string = publicRuntimeConfig.modelServingVersion
 
 export const EvaluateCandidateCode: string = `def evaluate_candidate(self, candidate: object) -> Dict[str, object]:
 """

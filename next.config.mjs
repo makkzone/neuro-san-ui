@@ -57,6 +57,7 @@ const nextConfig = {
         // this way we don't accidentally point prod->staging or vice versa
         md_server_url: process.env.MD_SERVER_URL ?? "MD_SERVER_URL_must_be_set",
         unileafVersion: process.env.UNILEAF_VERSION,
+        modelServingVersion: process.env.MODEL_SERVING_VERSION ?? "old",
     },
 
     output: "standalone",
