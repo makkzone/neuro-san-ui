@@ -222,7 +222,7 @@ export function getRunModelsData(runId: number, outputArtifacts: StringString): 
  * @param modelServingEnvironment Model serving environment to use. Currently only KSERVE is supported.
  * @return A tuple of a boolean indicating success or failure, and an optional error message.
  */
-export async function deployRunOld(
+async function deployRunOld(
     runID: number,
     runName: string,
     experimentId: number,
