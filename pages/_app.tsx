@@ -15,7 +15,7 @@ import "../styles/styles.css"
 import Head from "next/head"
 import {useRouter} from "next/router"
 import {SessionProvider} from "next-auth/react"
-import {ReactElement, useEffect} from "react"
+import {ReactElement, ReactFragment, useEffect} from "react"
 import {Container} from "react-bootstrap"
 
 import {Auth} from "../components/auth"
@@ -29,33 +29,31 @@ import useFeaturesStore, {ModelServingVersion} from "../state/features"
 // Has to be export default for NextJS so tell ts-prune to ignore
 // ts-prune-ignore-next
 export default function LEAF({Component, pageProps: {session, ...pageProps}}): ReactElement {
-    const {isGeneric, setIsGeneric, setIsDemoUser, setModelServingVersion} = useFeaturesStore()
+    const {isGeneric} = useFeaturesStore()
 
-    const router = useRouter()
-
-    useEffect(() => {
-        // Set "generic branding" flag in store
-        setIsGeneric("generic" in router.query)
-
-        // Set "demo" flag in store
-        setIsDemoUser("demo" in router.query)
-    }, [router.query])
+    const {query, isReady, pathname} = useRouter()
 
     useEffect(() => {
-        // default to using old model serving
-        let modelServingVersion: ModelServingVersion
-        const queryStringSetting = router.query?.modelServingVersion
-        if (queryStringSetting) {
-            modelServingVersion = queryStringSetting as ModelServingVersion
-        } else {
-            modelServingVersion = MODEL_SERVING_VERSION as ModelServingVersion
+        if (isReady) {
+            let modelServingVersion: ModelServingVersion
+            const queryStringSetting = query?.modelServingVersion
+            if (queryStringSetting) {
+                modelServingVersion = queryStringSetting as ModelServingVersion
+            } else {
+                modelServingVersion = MODEL_SERVING_VERSION as ModelServingVersion
+            }
+
+            // Set features in store
+            useFeaturesStore.setState({
+                isGeneric: "generic" in query,
+                isDemoUser: "demo" in query,
+                modelServingVersion: modelServingVersion,
+            })
         }
+    }, [isReady])
 
-        setModelServingVersion(modelServingVersion)
-    }, [MODEL_SERVING_VERSION, router.query])
-
-    let body
-    if (router.pathname === "/") {
+    let body: JSX.Element | ReactFragment
+    if (pathname === "/") {
         body = (
             <div id="body-div">
                 <Component

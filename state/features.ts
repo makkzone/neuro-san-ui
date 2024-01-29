@@ -28,11 +28,11 @@ interface FeaturesStore {
  * The hook that lets apps use the store
  */
 const useFeaturesStore = create<FeaturesStore>((set) => ({
-    isDemoUser: false,
+    isDemoUser: null,
     setIsDemoUser: (isDemoUser) => set(() => ({isDemoUser: isDemoUser})),
-    isGeneric: false,
+    isGeneric: null,
     setIsGeneric: (isGeneric) => set(() => ({isGeneric: isGeneric})),
-    modelServingVersion: "old",
+    modelServingVersion: null,
     setModelServingVersion: (modelServingVersion: ModelServingVersion) =>
         set(() => ({modelServingVersion: modelServingVersion})),
 }))
