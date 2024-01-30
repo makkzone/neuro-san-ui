@@ -162,7 +162,7 @@ function isRioModel(model: string): boolean {
 }
 
 function isPrescriptor(model: string): boolean {
-    return model.startsWith("prescriptor") && !model.startsWith("prescriptor-text")
+    return model.startsWith("prescriptor")
 }
 function getNodeId(modelId: string): string {
     if (modelId.startsWith("predictor-")) {
@@ -506,10 +506,7 @@ function extractModelURLs(modelsArray: string[], baseUrl: string, cid: string) {
         .filter((model: string) => model.startsWith("predictor"))
         .map((model: string) => [model, getModelInferenceUrl(baseUrl, model)])
     const prescriptors = modelsArray
-        .filter(
-            (model: string) =>
-                model.startsWith("prescriptor") && !model.startsWith("prescriptor-text") && model.endsWith(`-${cid}`)
-        )
+        .filter((model: string) => model.startsWith("prescriptor") && model.endsWith(`-${cid}`))
         .map((model: string) => [model, getModelInferenceUrl(baseUrl, model)])
     const rioModels = modelsArray
         .filter((model: string) => model.startsWith("rio"))
@@ -656,8 +653,6 @@ function findModelDataByUrl(runData: InferenceRunDeploymentMetaData, modelUrl: s
 }
 
 async function queryModelNew(run: Run, modelUrl: string, inputs: PredictorParams | RioParams) {
-    console.debug("queryModelNew", inputs, modelUrl)
-
     const runData: InferenceRunDeploymentMetaData = getRunModelsData(run.id, JSON.parse(run.output_artifacts))
     if (runData == null) {
         console.error(`queryModel: Failed to get Run metadata for ${run.id}`)
