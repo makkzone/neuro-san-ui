@@ -259,7 +259,7 @@ async function deployRunOld(
         }
     } catch (error) {
         console.error(
-            `Unable to deploy model for for run ID ${runID}`,
+            `Unable to deploy model for run ID ${runID}`,
             error,
             error instanceof Error ? error.message : error
         )
