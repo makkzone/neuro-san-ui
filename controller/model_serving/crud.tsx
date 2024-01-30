@@ -687,7 +687,6 @@ async function queryModelNew(run: Run, modelUrl: string, inputs: PredictorParams
         })
         console.log(`queryModelNew: response.ok=${response.ok}`)
         if (!response.ok) {
-            // console.log("Error:", response.status, await response.json())
             return {
                 error: `Failed to query model at ${modelUrl}`,
                 description: `Error code ${response.status}, response: ${(await response.json())?.error}`,
