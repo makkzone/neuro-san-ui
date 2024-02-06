@@ -1,7 +1,10 @@
 // Main function.
+import ClipLoader from "react-spinners/ClipLoader"
 // Has to be export default for NextJS so tell ts-prune to ignore
 import SyntaxHighlighter from "react-syntax-highlighter"
 import {docco} from "react-syntax-highlighter/dist/cjs/styles/hljs"
+
+import {MaximumBlue} from "../../../const"
 import {InfoTip} from "../../infotip"
 
 export function RulesInferenceDetails(props: {
@@ -9,6 +12,7 @@ export function RulesInferenceDetails(props: {
     trainingRulesStats
     inferenceRulesString
     llmIntepretation
+    isAccessingLlm: boolean
 }) {
     return (
         <>
@@ -19,7 +23,7 @@ export function RulesInferenceDetails(props: {
                     info="This is the set of rules that were used to make the inference when you clicked Prescribe."
                 />
             </div>
-            <p></p>
+            <p />
             <div
                 id="show_rules_inference"
                 className="my-2 py-2"
@@ -54,7 +58,7 @@ export function RulesInferenceDetails(props: {
                     {props.inferenceRulesString}
                 </SyntaxHighlighter>
             </div>
-            <p></p>
+            <p />
             <div style={{display: "flex"}}>
                 <h5>From training:</h5>
                 <InfoTip
@@ -87,7 +91,7 @@ export function RulesInferenceDetails(props: {
                     {props.trainingRulesStats}
                 </SyntaxHighlighter>
             </div>
-            <p></p>
+            <p />
             <div style={{display: "flex"}}>
                 <h5>LLM insights:</h5>
                 <InfoTip
@@ -99,7 +103,18 @@ export function RulesInferenceDetails(props: {
                 />
             </div>
             <div>
-                <pre>{props.llmIntepretation}</pre>
+                {props.isAccessingLlm ? (
+                    <div>
+                    Accessing LLM...
+                    <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                        color={MaximumBlue}
+                        loading={true}
+                        size={18}
+                     />
+                    </div>
+                ) : (
+                    <pre>{props.llmIntepretation}</pre>
+                )}
             </div>
         </>
     )
