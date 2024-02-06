@@ -41,3 +41,24 @@ export async function fetchLlmRules(
         }),
     })
 }
+
+export async function fetchLlmInferenceInsights(
+    projectTitle: string,
+    projectDescription: string,
+    inferenceRules: string,
+    trainingRules: string
+) {
+    return fetch("/api/gpt/inference", {
+        method: "POST",
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            projectTitle: projectTitle,
+            projectDescription: projectDescription,
+            inferenceRules: inferenceRules,
+            trainingRules: trainingRules,
+        }),
+    })
+}
