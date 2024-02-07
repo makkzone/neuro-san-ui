@@ -587,7 +587,10 @@ export async function checkIfModelsDeployed(runID: number, prescriptorIDToDeploy
         if (deployedModels.length === 1) {
             const model = deploymentStatus.deployed_models[0]
             // Check if model is ready for use
-            if (model.model_status.status === DeploymentStatus[DeploymentStatus.DEPLOYMENT_READY]) {
+            if (
+                model.model_status.status === DeploymentStatus[DeploymentStatus.DEPLOYMENT_READY] ||
+                model.model_status.status === DeploymentStatus[DeploymentStatus.DEPLOYMENT_ALREADY_EXISTS]
+            ) {
                 const baseUrl = model.model_reference.base_url
                 models = await getModels(baseUrl, runID, prescriptorIDToDeploy)
             }
