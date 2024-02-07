@@ -104,15 +104,17 @@ export function RulesInferenceDetails(props: {
             <div>
                 {props.isAccessingLlm ? (
                     <div>
-                    Accessing LLM...
-                    <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                        color={MaximumBlue}
-                        loading={true}
-                        size={18}
-                     />
+                        Accessing LLM...
+                        <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                            color={MaximumBlue}
+                            loading={true}
+                            size={18}
+                        />
                     </div>
                 ) : (
-                    <pre style={{wordWrap: "break-word", whiteSpace: "pre-line"}}>{props.llmIntepretation}</pre>
+                    <pre style={{wordWrap: "break-word", whiteSpace: "pre-line", backgroundColor: "whitesmoke"}}>
+                        {props.llmIntepretation}
+                    </pre>
                 )}
             </div>
         </>
