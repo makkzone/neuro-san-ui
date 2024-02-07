@@ -59,7 +59,7 @@ export function RulesInferenceDetails(props: {
                 </SyntaxHighlighter>
             </div>
             <p />
-            <div style={{display: "flex"}}>
+            <div style={{display: "flex", marginTop: "48px"}}>
                 <h5>From training:</h5>
                 <InfoTip
                     id="id-1"
@@ -91,8 +91,7 @@ export function RulesInferenceDetails(props: {
                     {props.trainingRulesStats}
                 </SyntaxHighlighter>
             </div>
-            <p />
-            <div style={{display: "flex"}}>
+            <div style={{display: "flex", marginTop: "48px"}}>
                 <h5>LLM insights:</h5>
                 <InfoTip
                     id="id-1"
@@ -113,7 +112,7 @@ export function RulesInferenceDetails(props: {
                      />
                     </div>
                 ) : (
-                    <pre>{props.llmIntepretation}</pre>
+                    <pre style={{wordWrap: "break-word", whiteSpace: "pre-line"}}>{props.llmIntepretation}</pre>
                 )}
             </div>
         </>
