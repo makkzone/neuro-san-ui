@@ -5,9 +5,9 @@ import {Card} from "react-bootstrap"
 import {Handle, NodeProps, Position, Node as RFNode} from "reactflow"
 
 import {DataSource} from "../../../../controller/datasources/types"
+import loadDataTags from "../../../../controller/datatag/fetchdatataglist"
 import {DataTag} from "../../../../controller/datatag/types"
-import loadDataTags from "../../../../controller/fetchdatataglist"
-import {NotificationType, sendNotification} from "../../../../controller/notification"
+import {NotificationType, sendNotification} from "../../../notification"
 
 export interface DataSourceNodeData {
     // Project ID that this new experiment belongs to.

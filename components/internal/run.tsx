@@ -20,11 +20,10 @@ import {FlowQueries} from "./flow/flowqueries"
 import {PrescriptorNode} from "./flow/nodes/prescriptornode"
 import {NodeType} from "./flow/nodes/types"
 import {MaximumBlue} from "../../const"
-import {NotificationType, sendNotification} from "../../controller/notification"
-import {BrowserFetchProjects} from "../../controller/projects/fetch"
+import {fetchProjects} from "../../controller/projects/fetch"
 import {Project, Projects} from "../../controller/projects/types"
 import {fetchLlmRules} from "../../controller/rules/rules"
-import {BrowserFetchRuns, FetchSingleRunArtifact} from "../../controller/run/fetch"
+import {fetchRunArtifact, fetchRuns} from "../../controller/run/fetch"
 import {constructRunMetricsForRunPlot} from "../../controller/run/results"
 import {Artifact, Run, Runs} from "../../controller/run/types"
 import useFeaturesStore from "../../state/features"
@@ -35,6 +34,7 @@ import BlankLines from "../blanklines"
 import ESPRunPlot from "../esprunplot"
 import MetricsTable from "../metricstable"
 import NewBar from "../newbar"
+import {NotificationType, sendNotification} from "../notification"
 import {MultiPareto} from "../pareto/multi_pareto"
 
 interface RunProps {
@@ -177,7 +177,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     async function retrieveRulesPrescriptor() {
         const rulesURL = generateArtifactURL(flow)
         if (rulesURL) {
-            const artifactTmp: Artifact[] = await FetchSingleRunArtifact(rulesURL)
+            const artifactTmp: Artifact[] = await fetchRunArtifact(rulesURL)
 
             if (artifactTmp) {
                 setArtifactObj(artifactTmp[0])
@@ -192,7 +192,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     async function loadRun(runID: number) {
         if (runID) {
             const propertiesToRetrieve = ["output_artifacts", "metrics", "flow", "id", "experiment_id"]
-            const runs: Runs = await BrowserFetchRuns(currentUser, null, runID, propertiesToRetrieve)
+            const runs: Runs = await fetchRuns(currentUser, null, runID, propertiesToRetrieve)
             if (runs.length === 1) {
                 const runTmp = runs[0]
 
@@ -218,7 +218,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             return
         }
 
-        const projects: Projects = await BrowserFetchProjects(currentUser, projectID, ["name", "description"])
+        const projects: Projects = await fetchProjects(currentUser, projectID, ["name", "description"])
         if (projects && projects.length === 1) {
             setProject(projects[0])
         }

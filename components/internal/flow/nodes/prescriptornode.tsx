@@ -14,8 +14,8 @@ import SyntaxHighlighter from "react-syntax-highlighter"
 import {docco} from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import {Handle, Position as HandlePosition, NodeProps, Node as RFNode} from "reactflow"
 
-import {loadDataTag} from "../../../../controller/fetchdatataglist"
-import {NotificationType, sendNotification} from "../../../../controller/notification"
+import {loadDataTag} from "../../../../controller/datatag/fetchdatataglist"
+import {NotificationType, sendNotification} from "../../../notification"
 
 // Define an interface for the structure
 // of the nodes

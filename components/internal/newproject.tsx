@@ -22,13 +22,13 @@ import {updateDataSource} from "../../controller/datasources/update"
 import AccessionDataTag from "../../controller/datatag/accession"
 import {DataTag, DataTagFields} from "../../controller/datatag/types"
 import {uploadFile} from "../../controller/files/upload"
-import {NotificationType, sendNotification} from "../../controller/notification"
 import AccessionProject from "../../controller/projects/accession"
 import {Project} from "../../controller/projects/types"
 import useFeaturesStore from "../../state/features"
 import {getFileName, splitFilename, toSafeFilename} from "../../utils/file"
 import {empty} from "../../utils/objects"
 import BlankLines from "../blanklines"
+import {NotificationType, sendNotification} from "../notification"
 
 const debug = Debug("new_project")
 

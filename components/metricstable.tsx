@@ -4,8 +4,8 @@ import {FiAlertCircle} from "react-icons/fi"
 
 import {FlowQueries} from "./internal/flow/flowqueries"
 import {PredictorNode} from "./internal/flow/nodes/predictornode"
+import {fetchMetrics} from "./internal/flow/predictorinfo"
 import NewBar from "./newbar"
-import {FetchMetrics} from "../controller/predictor"
 
 interface MetricstableProps {
     readonly PredictorRunData
@@ -25,7 +25,7 @@ export default function MetricsTable(props: MetricstableProps) {
 
         // Get the predictor type (regressor/classifier) so we can get the appropriate list of metrics info
         const predictorType = predictor.data.ParentPredictorState.selectedPredictorType
-        const metricsInfo = FetchMetrics(predictorType)
+        const metricsInfo = fetchMetrics(predictorType)
 
         // After training, metrics IDs are returned to us in the format [test|train]_[metric name]_[outcome name]
         // We want just the middle part to look up the metric in the Map.

@@ -3,7 +3,7 @@ Utilities for validating data tags etc.
  */
 
 import {CAOType, DataTagFields} from "../../../controller/datatag/types"
-import {NotificationType, sendNotification} from "../../../controller/notification"
+import {NotificationType, sendNotification} from "../../notification"
 
 // Sanity check on data tags before proceeding to creation or update
 export function checkValidity(dataTagFields: DataTagFields): boolean {

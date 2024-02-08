@@ -4,7 +4,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react"
 
 import {GenerationsAnimation} from "./generations_animation"
 import {ParetoPlotProps} from "./types"
-import {NotificationType, sendNotification} from "../../controller/notification"
+import {NotificationType, sendNotification} from "../notification"
 
 interface EchartPlotProps {
     // Component ID

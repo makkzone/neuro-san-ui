@@ -42,8 +42,8 @@ import {UNCERTAINTY_MODEL_PARAMS} from "./uncertaintymodelinfo"
 import {EvaluateCandidateCode, OutputOverrideCode} from "../../../const"
 import {DataSource} from "../../../controller/datasources/types"
 import {CAOType, DataTag} from "../../../controller/datatag/types"
-import {NotificationType, sendNotification} from "../../../controller/notification"
 import {useStateWithCallback} from "../../../utils/react_utils"
+import {NotificationType, sendNotification} from "../../notification"
 
 const debug = debugModule("flow")
 

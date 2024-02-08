@@ -28,15 +28,15 @@ import {
 } from "./artifacts/artifacts"
 import {MaximumBlue} from "../../const"
 import {Experiment} from "../../controller/experiments/types"
-import {NotificationType, sendNotification} from "../../controller/notification"
 import updateRun, {sendAbortRequest} from "../../controller/run/accession"
-import {BrowserFetchRuns} from "../../controller/run/fetch"
+import {fetchRuns} from "../../controller/run/fetch"
 import {Run, Runs} from "../../controller/run/types"
 import {toFriendlyDateTime} from "../../utils/date_time"
 import {downloadFile} from "../../utils/file"
 import {useExtendedState} from "../../utils/state"
 import {removeItemOnce} from "../../utils/transformation"
 import {InfoTip} from "../infotip"
+import {NotificationType, sendNotification} from "../notification"
 
 interface RunTableProps {
     readonly currentUser: string
@@ -176,7 +176,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
         status description and completed flag
         */
         if (experimentIdTmp && props.runs) {
-            const updatedRunStatuses: Runs = await BrowserFetchRuns(props.currentUser, experimentIdTmp, null, [
+            const updatedRunStatuses: Runs = await fetchRuns(props.currentUser, experimentIdTmp, null, [
                 "id",
                 "status",
                 "completed",
@@ -305,7 +305,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
         if (parsedStatus.subcontexts && parsedStatus.subcontexts.length > 0) {
             const statusItem = parsedStatus.subcontexts[0]
 
-            phase = `${statusItem.phase} : ${!isNaN(statusItem.progress) ? toPercentage(statusItem.progress) : "?"}%`
+            phase = `${statusItem.phase} : ${isNaN(statusItem.progress) ? "?" : toPercentage(statusItem.progress)}%`
             detailedProgress = run.status
         }
 

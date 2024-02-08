@@ -7,9 +7,9 @@ import {Position} from "reactflow"
 import {EdgeType} from "../../components/internal/flow/edges/types"
 import Flow from "../../components/internal/flow/flow"
 import {NodeType} from "../../components/internal/flow/nodes/types"
+import {NotificationType, sendNotification} from "../../components/notification"
+import loadDataTags from "../../controller/datatag/fetchdatataglist"
 import {DataType} from "../../controller/datatag/types"
-import loadDataTags from "../../controller/fetchdatataglist"
-import {NotificationType, sendNotification} from "../../controller/notification"
 
 // Generate some random values to use in tests
 const testUser = crypto.randomUUID()
@@ -124,10 +124,10 @@ jest.mock("next-auth/react", () => {
 })
 
 // Don't want to send user notifications during tests so mock this
-jest.mock("../../controller/notification")
+jest.mock("../../components/notification")
 
 // Mock this so we don't have to deal with the actual API during tests
-jest.mock("../../controller/fetchdatataglist", () => {
+jest.mock("../../controller/datatag/fetchdatataglist", () => {
     return {
         __esModule: true,
         default: jest.fn(() => {

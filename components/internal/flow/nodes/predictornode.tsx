@@ -13,15 +13,14 @@ import {getOutgoers, Handle, Position as HandlePosition, NodeProps, Node as RFNo
 
 import {NodeData, NodeType} from "./types"
 import {StringBool} from "../../../../controller/base_types"
+import {loadDataTag} from "../../../../controller/datatag/fetchdatataglist"
 import {DataTag} from "../../../../controller/datatag/types"
-import {loadDataTag} from "../../../../controller/fetchdatataglist"
-import {NotificationType, sendNotification} from "../../../../controller/notification"
-import {FetchMetrics, FetchParams, FetchPredictors} from "../../../../controller/predictor"
 import useFeaturesStore from "../../../../state/features"
+import {NotificationType, sendNotification} from "../../../notification"
 import ConfigNumeric from "../confignumeric"
 import {EdgeType} from "../edges/types"
 import {FlowQueries} from "../flowqueries"
-import {PredictorParams} from "../predictorinfo"
+import {fetchMetrics, fetchParams, fetchPredictors, PredictorParams} from "../predictorinfo"
 
 // Interface for Predictor CAO
 export interface CAOChecked {
@@ -94,8 +93,8 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
 
     // Fetch the available metrics and predictors and these are not state dependant
     const metrics = {
-        regressor: FetchMetrics("regressor"),
-        classifier: FetchMetrics("classifier"),
+        regressor: fetchMetrics("regressor"),
+        classifier: fetchMetrics("classifier"),
     }
 
     // These predictors will only be shown in demo mode. As of writing (June 2023) they aren't implement and are
@@ -104,11 +103,11 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
 
     const predictors = {
         regressor: isDemoUser
-            ? FetchPredictors("regressor")
-            : FetchPredictors("regressor").filter((predictor) => {
+            ? fetchPredictors("regressor")
+            : fetchPredictors("regressor").filter((predictor) => {
                   return !demoOnlyPredictors.includes(predictor)
               }),
-        classifier: FetchPredictors("classifier"),
+        classifier: fetchPredictors("classifier"),
     }
 
     // Since predictors change
@@ -192,7 +191,7 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
 
         // If the parameters do not exist in the state update them
         if (!predictorParams || Object.keys(predictorParams).length === 0) {
-            predictorParams = FetchParams(ParentPredictorState.selectedPredictorType, selectedPredictor)
+            predictorParams = fetchParams(ParentPredictorState.selectedPredictorType, selectedPredictor)
             // We add a key called value to adjust for user input
             predictorParams &&
                 Object.keys(predictorParams).forEach((key) => {
@@ -206,7 +205,7 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
                     }
                 })
         } else {
-            const keys = Object.keys(FetchParams(ParentPredictorState.selectedPredictorType, selectedPredictor))
+            const keys = Object.keys(fetchParams(ParentPredictorState.selectedPredictorType, selectedPredictor))
 
             // Make sure predictor config items are presented to the user in consistent order
             // We sort them in the same order as the keys in the definition in SUPPORTED_REGRESSION_MODELS
@@ -292,7 +291,7 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
         */
 
         // Invoke the controller
-        const params = FetchParams(predictorType, selectedPredictor)
+        const params = fetchParams(predictorType, selectedPredictor)
 
         // We add a key called value to adjust for user input
         params &&
@@ -305,7 +304,7 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
             })
 
         // Get default metric for new predictor type
-        const selectedMetric = Array.from(FetchMetrics(predictorType).keys())[0]
+        const selectedMetric = Array.from(fetchMetrics(predictorType).keys())[0]
 
         // Write the state.
         SetParentPredictorState({
@@ -518,7 +517,7 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
     // made so that we can be in sync with which kind of predictor type we are looking at.
     const selectedPredictor =
         ParentPredictorState.selectedPredictor || predictors[ParentPredictorState.selectedPredictorType][0]
-    const defaultParams = FetchParams(ParentPredictorState.selectedPredictorType, selectedPredictor)
+    const defaultParams = fetchParams(ParentPredictorState.selectedPredictorType, selectedPredictor)
 
     // Create the configuration Panel
     const predictorConfigurationPanel = (

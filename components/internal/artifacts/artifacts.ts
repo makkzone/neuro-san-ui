@@ -3,11 +3,11 @@
  */
 
 import {Experiment} from "../../../controller/experiments/types"
-import {NotificationType, sendNotification} from "../../../controller/notification"
-import {FetchSingleRunArtifact} from "../../../controller/run/fetch"
+import {fetchRunArtifact} from "../../../controller/run/fetch"
 import {Artifact, Run} from "../../../controller/run/types"
 import {fromBinary} from "../../../utils/conversion"
 import {downloadFile, toSafeFilename} from "../../../utils/file"
+import {NotificationType, sendNotification} from "../../notification"
 
 // Default to downloading this unless the user selects something else
 export const DEFAULT_DOWNLOAD_ARTIFACT = "notebook"
@@ -65,16 +65,17 @@ export function isArtifactAvailable(requestedArtifact: string, availableArtifact
         return false
     }
 
-    if (requestedArtifact === "notebook") {
-        return artifactNames.includes("experiment")
-    } else if (requestedArtifact === "llm_log_file") {
-        return artifactNames.includes("llm_log_file")
-    } else if (requestedArtifact === "modified_dataset") {
-        return artifactUrls.some((artifact) => artifact.endsWith(".csv"))
-    } else if (requestedArtifact === "requirements") {
-        return artifactNames.includes("requirements")
-    } else {
-        return false
+    switch (requestedArtifact) {
+        case "notebook":
+            return artifactNames.includes("experiment")
+        case "llm_log_file":
+            return artifactNames.includes("llm_log_file")
+        case "modified_dataset":
+            return artifactUrls.some((artifact) => artifact.endsWith(".csv"))
+        case "requirements":
+            return artifactNames.includes("requirements")
+        default:
+            return false
     }
 }
 
@@ -120,12 +121,12 @@ export async function downloadArtifact(
     }
 
     // Retrieve the artifact
-    const artifacts: Artifact[] = await FetchSingleRunArtifact(downloadUrl)
+    const artifacts: Artifact[] = await fetchRunArtifact(downloadUrl)
     if (!artifacts || artifacts.length !== 1) {
         sendNotification(
             NotificationType.error,
             "Internal error",
-            `Unexpected number of artifacts returned for Run id ${run.id}: ${artifacts != null ? artifacts.length : 0}`
+            `Unexpected number of artifacts returned for Run id ${run.id}: ${artifacts == null ? 0 : artifacts.length}`
         )
     }
 
