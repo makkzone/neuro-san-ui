@@ -16,14 +16,17 @@ export function RulesInferenceDetails(props: {
 }) {
     return (
         <>
-            <div style={{display: "flex"}}>
-                <h5>From this inference request:</h5>
+            <div
+                id="rules-inference-div"
+                style={{display: "flex"}}
+            >
+                <h5 id="rules-inference-header">From this inference request:</h5>
                 <InfoTip
                     id="id-1"
                     info="This is the set of rules that were used to make the inference when you clicked Prescribe."
                 />
             </div>
-            <p />
+            <p id="paragraph-1" />
             <div
                 id="show_rules_inference"
                 className="my-2 py-2"
@@ -36,9 +39,14 @@ export function RulesInferenceDetails(props: {
                     borderColor: "red",
                 }}
             >
-                <p>
-                    <span style={{backgroundColor: "yellow"}}>Highlight</span> indicates that the rule fired during
-                    inference on the model.
+                <p id="paragraph-2">
+                    <span
+                        id="highlight-span"
+                        style={{backgroundColor: "yellow"}}
+                    >
+                        Highlight
+                    </span>{" "}
+                    indicates that the rule fired during inference on the model.
                 </p>
                 <SyntaxHighlighter
                     id="syntax-highlighter"
@@ -58,9 +66,12 @@ export function RulesInferenceDetails(props: {
                     {props.inferenceRulesString}
                 </SyntaxHighlighter>
             </div>
-            <p />
-            <div style={{display: "flex", marginTop: "48px"}}>
-                <h5>From training:</h5>
+            <p id="paragraph-3" />
+            <div
+                id="from-training-div"
+                style={{display: "flex", marginTop: "48px"}}
+            >
+                <h5 id="from-training-header">From training:</h5>
                 <InfoTip
                     id="id-1"
                     info={
@@ -91,8 +102,11 @@ export function RulesInferenceDetails(props: {
                     {props.trainingRulesStats}
                 </SyntaxHighlighter>
             </div>
-            <div style={{display: "flex", marginTop: "48px"}}>
-                <h5>LLM insights:</h5>
+            <div
+                id="llm-insights-div"
+                style={{display: "flex", marginTop: "48px"}}
+            >
+                <h5 id="llm-insights-header">LLM insights:</h5>
                 <InfoTip
                     id="id-1"
                     info={
@@ -101,9 +115,9 @@ export function RulesInferenceDetails(props: {
                     }
                 />
             </div>
-            <div>
+            <div id="llm-output-div">
                 {props.isAccessingLlm ? (
-                    <div>
+                    <div id="accessing-llm-div">
                         Accessing LLM...
                         <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
                             color={MaximumBlue}
@@ -112,7 +126,10 @@ export function RulesInferenceDetails(props: {
                         />
                     </div>
                 ) : (
-                    <pre style={{wordWrap: "break-word", whiteSpace: "pre-line", backgroundColor: "whitesmoke"}}>
+                    <pre
+                        id="llm-interpretation"
+                        style={{wordWrap: "break-word", whiteSpace: "pre-line", backgroundColor: "whitesmoke"}}
+                    >
                         {props.llmIntepretation}
                     </pre>
                 )}
