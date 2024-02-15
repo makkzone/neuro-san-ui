@@ -231,4 +231,17 @@ export class FlowQueries {
     static hasDemoNodes(nodes: NodeType[]) {
         return nodes?.some((node) => DEMO_NODES.includes(node.type))
     }
+
+    /**
+     * Returns true if the supplied graph contains a rule-based prescriptor.
+     *
+     * @param flowTmp The graph to search
+     * @return <code>true</code> if the graph contains a rule-based prescriptor, <code>false</code> otherwise
+     * @note Assumes only one prescriptor per flow.
+     */
+    static isRuleBased(flowTmp: NodeType[]) {
+        const prescriptorNode = FlowQueries.getPrescriptorNodes(flowTmp)?.[0]
+        const representation = prescriptorNode?.data.ParentPrescriptorState.LEAF.representation
+        return representation === "RuleBased"
+    }
 }

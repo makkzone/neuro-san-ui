@@ -146,12 +146,6 @@ export default function RunPage(props: RunProps): React.ReactElement {
         }
     }
 
-    function isRuleBased(flowTmp: NodeType[]) {
-        const prescriptorNode = FlowQueries.getPrescriptorNodes(FlowQueries.getAllNodes(flowTmp) as NodeType[])[0]
-        const representation = prescriptorNode.data.ParentPrescriptorState.LEAF.representation
-        return representation === "RuleBased"
-    }
-
     function generateArtifactURL(flowTmp: NodeType[]) {
         const prescriptorNode = FlowQueries.getPrescriptorNodes(FlowQueries.getAllNodes(flowTmp) as NodeType[])[0]
         let rulesURL = null
@@ -246,7 +240,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
         // If nodeToCIDMap has been populated, we can load the rules
         if (run && nodeToCIDMap) {
             // If it contains a rule-based prescriptor, load the rules
-            if (isRuleBased(flow)) {
+            if (FlowQueries.isRuleBased(flow)) {
                 void retrieveRulesPrescriptor()
             }
         }
