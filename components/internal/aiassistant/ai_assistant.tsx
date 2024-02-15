@@ -143,7 +143,7 @@ export function AIAssistant(props: {
         } catch (error) {
             if (error instanceof Error) {
                 if (error.name === "AbortError") {
-                    setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.`)
+                    setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.\n\n`)
                 } else {
                     console.error(error.stack)
                 }
@@ -361,6 +361,7 @@ export function AIAssistant(props: {
                                 onClick={() => setUserLlmChatInput("")}
                                 style={{
                                     backgroundColor: "transparent",
+                                    color: "var(--bs-primary)",
                                     border: "none",
                                     fontWeight: 550,
                                     left: "calc(100% - 45px)",
@@ -370,6 +371,7 @@ export function AIAssistant(props: {
                                     width: "10px",
                                     zIndex: 99999,
                                 }}
+                                disabled={userInputEmpty}
                             >
                                 X
                             </Button>
