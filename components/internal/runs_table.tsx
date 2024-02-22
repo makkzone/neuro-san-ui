@@ -138,7 +138,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
             1000,
             {leading: true, trailing: false, maxWait: 1000}
         ),
-        []
+        [props.runs]
     )
 
     function resetEditingLoading(idx: number) {
