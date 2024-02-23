@@ -2,7 +2,7 @@ import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
 import {Modal} from "antd"
 import {Text as EvergreenText, InfoSignIcon, Popover, Tooltip} from "evergreen-ui"
 import debounce from "lodash/debounce"
-import {Dispatch, FC, MouseEvent as ReactMouseEvent, SetStateAction, useCallback, useEffect, useState} from "react"
+import {Dispatch, FC, MouseEvent as ReactMouseEvent, SetStateAction, useEffect, useState} from "react"
 import {Card, Col, Collapse, Container, Row} from "react-bootstrap"
 import {AiFillDelete} from "react-icons/ai"
 import {GrSettingsOption} from "react-icons/gr"
@@ -97,15 +97,12 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
     }
 
     // Use lodash to debounce delete (in case user clicks delete multiple times)
-    const debouncedDelete = useCallback(
-        debounce(
-            (event: ReactMouseEvent<HTMLElement>) => {
-                handleDelete(event)
-            },
-            1000,
-            {leading: true, trailing: false, maxWait: 1000}
-        ),
-        []
+    const debouncedDelete = debounce(
+        (event: ReactMouseEvent<HTMLElement>) => {
+            handleDelete(event)
+        },
+        1000,
+        {leading: true, trailing: false, maxWait: 1000}
     )
 
     useEffect(() => {

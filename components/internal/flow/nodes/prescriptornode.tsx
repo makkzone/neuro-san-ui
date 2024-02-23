@@ -4,7 +4,7 @@ import {Text as EvergreenText, Popover, Position, Tab, Tablist} from "evergreen-
 import debounce from "lodash/debounce"
 import {useSession} from "next-auth/react"
 import Slider from "rc-slider"
-import {FC, MouseEvent as ReactMouseEvent, useCallback, useEffect, useState} from "react"
+import {FC, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
 import {Card, Col, Container, Row} from "react-bootstrap"
 import {AiFillDelete} from "react-icons/ai"
 import {BiPlusMedical} from "react-icons/bi"
@@ -123,15 +123,12 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
     }
 
     // Use lodash to debounce delete (in case user clicks delete multiple times)
-    const debouncedDelete = useCallback(
-        debounce(
-            (event: ReactMouseEvent<HTMLElement>) => {
-                handleDelete(event)
-            },
-            1000,
-            {leading: true, trailing: false, maxWait: 1000}
-        ),
-        []
+    const debouncedDelete = debounce(
+        (event: ReactMouseEvent<HTMLElement>) => {
+            handleDelete(event)
+        },
+        1000,
+        {leading: true, trailing: false, maxWait: 1000}
     )
 
     // Fetch the Data Tag
