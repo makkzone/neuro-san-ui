@@ -1,7 +1,6 @@
 import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
 import {Modal} from "antd"
 import {Text as EvergreenText, InfoSignIcon, Popover, Tooltip} from "evergreen-ui"
-import debounce from "lodash/debounce"
 import {Dispatch, FC, MouseEvent as ReactMouseEvent, SetStateAction, useEffect, useState} from "react"
 import {Card, Col, Collapse, Container, Row} from "react-bootstrap"
 import {AiFillDelete} from "react-icons/ai"
@@ -63,10 +62,12 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
 
     // Allows the trash icon to change color when hovered over
     const [trashHover, setTrashHover] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
     const trashColor = trashHover ? "var(--bs-red)" : null
 
     const handleDelete = (event: ReactMouseEvent<HTMLElement>) => {
         event.preventDefault()
+        setShowDeleteModal(true)
         Modal.confirm({
             title: (
                 <span id={`delete-confirm-${flowPrefix}-title${idExtension}`}>
@@ -88,6 +89,10 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
             okText: "Delete",
             onOk: async () => {
                 DeleteNode(NodeID)
+                setShowDeleteModal(false)
+            },
+            onCancel: () => {
+                setShowDeleteModal(false)
             },
             cancelText: "Keep",
             cancelButtonProps: {
@@ -95,15 +100,6 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
             },
         })
     }
-
-    // Use lodash to debounce delete (in case user clicks delete multiple times)
-    const debouncedDelete = debounce(
-        (event: ReactMouseEvent<HTMLElement>) => {
-            handleDelete(event)
-        },
-        1000,
-        {leading: true, trailing: false, maxWait: 1000}
-    )
 
     useEffect(() => {
         const nodeState = {...ParentNodeState}
@@ -368,7 +364,11 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
                     <button
                         id={`${flowPrefix}-delete-button${idExtension}`}
                         type="button"
-                        onClick={(event: ReactMouseEvent<HTMLElement>) => debouncedDelete(event)}
+                        onClick={(event: ReactMouseEvent<HTMLElement>) => {
+                            if (!showDeleteModal) {
+                                handleDelete(event)
+                            }
+                        }}
                     >
                         <AiFillDelete
                             id={`${flowPrefix}-delete-button-fill${idExtension}`}

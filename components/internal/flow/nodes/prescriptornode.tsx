@@ -1,7 +1,6 @@
 import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
 import {Tooltip as AntdTooltip, Modal} from "antd"
 import {Text as EvergreenText, Popover, Position, Tab, Tablist} from "evergreen-ui"
-import debounce from "lodash/debounce"
 import {useSession} from "next-auth/react"
 import Slider from "rc-slider"
 import {FC, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
@@ -92,11 +91,13 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
 
     // Allows the trash icon to change color when hovered over
     const [trashHover, setTrashHover] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
     const trashColor = trashHover ? "var(--bs-red)" : null
 
     // Called when a user clicks the trash can to delete the node
-    const handleDelete = (event) => {
+    const handleDelete = (event: ReactMouseEvent<HTMLElement>) => {
         event.preventDefault()
+        setShowDeleteModal(true)
         Modal.confirm({
             title: <span id={`delete-confirm-${flowPrefix}-title`}>Delete this Prescriptor node?</span>,
             content: (
@@ -114,6 +115,10 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
             okText: "Delete",
             onOk: async () => {
                 DeleteNode(NodeID)
+                setShowDeleteModal(false)
+            },
+            onCancel: () => {
+                setShowDeleteModal(false)
             },
             cancelText: "Keep",
             cancelButtonProps: {
@@ -121,15 +126,6 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
             },
         })
     }
-
-    // Use lodash to debounce delete (in case user clicks delete multiple times)
-    const debouncedDelete = debounce(
-        (event: ReactMouseEvent<HTMLElement>) => {
-            handleDelete(event)
-        },
-        1000,
-        {leading: true, trailing: false, maxWait: 1000}
-    )
 
     // Fetch the Data Tag
     useEffect(() => {
@@ -1143,7 +1139,11 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                     <button
                         id={`${flowPrefix}-delete-button`}
                         type="button"
-                        onClick={debouncedDelete}
+                        onClick={(event) => {
+                            if (!showDeleteModal) {
+                                handleDelete(event)
+                            }
+                        }}
                     >
                         <AiFillDelete
                             id={`${flowPrefix}-delete-button-fill`}

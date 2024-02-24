@@ -1,7 +1,6 @@
 import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
 import {Tooltip as AntdTooltip, Modal} from "antd"
 import {Text as EvergreenText, InfoSignIcon, Popover, Position, Tab, Tablist, Tooltip} from "evergreen-ui"
-import debounce from "lodash/debounce"
 import {useSession} from "next-auth/react"
 import Slider from "rc-slider"
 import {Dispatch, FC, MouseEvent as ReactMouseEvent, SetStateAction, useEffect, useState} from "react"
@@ -115,6 +114,7 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
 
     // Allows the trash icon to change color when hovered over
     const [trashHover, setTrashHover] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
     const trashColor = trashHover ? "var(--bs-red)" : null
 
     //Set the dropdown defaults here since the dropdown is created here
@@ -124,6 +124,7 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
     // Called when a user clicks the trash can to delete the node
     const handleDelete = (event: ReactMouseEvent<HTMLElement>) => {
         event.preventDefault()
+        setShowDeleteModal(true)
         Modal.confirm({
             title: <span id={`delete-confirm-${flowPrefix}-title${idExtension}`}>Delete this Predictor node?</span>,
             content: (
@@ -141,6 +142,10 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
             okText: "Delete",
             onOk: async () => {
                 DeleteNode(NodeID)
+                setShowDeleteModal(false)
+            },
+            onCancel: () => {
+                setShowDeleteModal(false)
             },
             cancelText: "Keep",
             cancelButtonProps: {
@@ -148,15 +153,6 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
             },
         })
     }
-
-    // Use lodash to debounce delete (in case user clicks delete multiple times)
-    const debouncedDelete = debounce(
-        (event: ReactMouseEvent<HTMLElement>) => {
-            handleDelete(event)
-        },
-        1000,
-        {leading: true, trailing: false, maxWait: 1000}
-    )
 
     // Fetch the Data Tag
     useEffect(() => {
@@ -974,7 +970,11 @@ const PredictorNodeComponent: FC<NodeProps<PredictorNodeData>> = (props) => {
                         id={`${flowPrefix}-delete-button${idExtension}`}
                         type="button"
                         className="hover:text-red-700 text-xs"
-                        onClick={debouncedDelete}
+                        onClick={(event) => {
+                            if (!showDeleteModal) {
+                                handleDelete(event)
+                            }
+                        }}
                     >
                         <AiFillDelete
                             id={`${flowPrefix}-delete-button-fill${idExtension}`}
