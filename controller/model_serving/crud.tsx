@@ -221,6 +221,9 @@ async function deployRunOld(
     cid: string = null,
     modelServingEnvironment: ModelServingEnvironment = ModelServingEnvironment.KSERVE
 ): Promise<[boolean, ErrorResult?]> {
+    console.debug(
+        `deployRunOld: runID = ${runID}, runName = ${runName}, experimentId = ${experimentId}, projectId = ${projectId}`
+    )
     // Fetch the already deployed models
     const deploymentID: string = generateDeploymentID(runID, experimentId, projectId, cid)
 
@@ -243,6 +246,7 @@ async function deployRunOld(
             modelServingEnvironment
         )
         if (result && "error" in result) {
+            console.debug(`Error deploying model for run ID ${runID}: ${result.error}`)
             return [false, result]
         } else {
             return [true, null]
@@ -313,6 +317,7 @@ async function deployRunNew(
     const inferDeployRoute = `${baseUrl}/api/v1/inference/deploy`
 
     try {
+        console.info(`Requesting deployment for run ${runId} with deployment ID ${deploymentId}`)
         const response = await fetch(inferDeployRoute, {
             method: "POST",
             headers: {
@@ -359,6 +364,7 @@ export async function deployRun(
     outputArtifacts: StringString
 ): Promise<[boolean, ErrorResult?]> {
     const modelServingVersion = useFeaturesStore.getState().modelServingVersion
+    console.debug(`deployRun: modelServingVersion = ${modelServingVersion}`)
     if (modelServingVersion === "new") {
         return deployRunNew(runID, experimentId, projectId, outputArtifacts)
     } else {
