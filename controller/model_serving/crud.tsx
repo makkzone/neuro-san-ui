@@ -1,3 +1,4 @@
+import debugModule from "debug"
 import httpStatus from "http-status"
 
 import {
@@ -25,6 +26,8 @@ import {PredictorParams, RioParams, Run} from "../run/types"
 
 // For inferencing deployed models
 const MODEL_INFERENCE_ROUTE = "v2/models"
+
+const debug = debugModule("crud")
 
 function generateDeploymentID(runId: number, experimentId: number, projectId: number, cid?: string): string {
     const modelServingVersion = useFeaturesStore.getState().modelServingVersion
@@ -221,7 +224,7 @@ async function deployRunOld(
     cid: string = null,
     modelServingEnvironment: ModelServingEnvironment = ModelServingEnvironment.KSERVE
 ): Promise<[boolean, ErrorResult?]> {
-    console.debug(
+    debug(
         `deployRunOld: runID = ${runID}, runName = ${runName}, experimentId = ${experimentId}, projectId = ${projectId}`
     )
     // Fetch the already deployed models
@@ -246,7 +249,7 @@ async function deployRunOld(
             modelServingEnvironment
         )
         if (result && "error" in result) {
-            console.debug(`Error deploying model for run ID ${runID}: ${result.error}`)
+            debug(`Error deploying model for run ID ${runID}: ${result.error}`)
             return [false, result]
         } else {
             return [true, null]
@@ -364,7 +367,7 @@ export async function deployRun(
     outputArtifacts: StringString
 ): Promise<[boolean, ErrorResult?]> {
     const modelServingVersion = useFeaturesStore.getState().modelServingVersion
-    console.debug(`deployRun: modelServingVersion = ${modelServingVersion}`)
+    debug(`deployRun: modelServingVersion = ${modelServingVersion}`)
     if (modelServingVersion === "new") {
         return deployRunNew(runID, experimentId, projectId, outputArtifacts)
     } else {
@@ -751,7 +754,7 @@ async function queryModelNew(run: Run, modelUrl: string, inputs: PredictorParams
 }
 
 async function queryModelOld(modelUrl: string, inputs: PredictorParams | RioParams) {
-    console.debug("queryModelOld", inputs, modelUrl)
+    debug("queryModelOld", inputs, modelUrl)
 
     // Use old model inference system
     try {
