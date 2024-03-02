@@ -2,7 +2,7 @@
  * This is the module for the "AI decision assistant".
  */
 import {ChatMessage} from "langchain/schema"
-import {ChangeEvent, FormEvent, useEffect, useRef, useState} from "react"
+import {FormEvent, useEffect, useRef, useState} from "react"
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {Typeahead} from "react-bootstrap-typeahead"
 import {BsStopBtn, BsTrash} from "react-icons/bs"
@@ -20,9 +20,6 @@ import BlankLines from "../../blanklines"
  * (via the backend) with full context about the current DMS page, in a question-and-answer chat format.
  */
 export function OpportunityFinder() {
-    // User LLM chat input
-    const [userLlmChatInput, setUserLlmChatInput] = useState<string>("")
-
     // Previous user query (for "regenerate" feature)
     const [previousUserQuery, setPreviousUserQuery] = useState<string>("")
 
@@ -31,6 +28,9 @@ export function OpportunityFinder() {
 
     // Stores whether are currently awaiting LLM response (for knowing when to show spinners)
     const [isAwaitingLlm, setIsAwaitingLlm] = useState(false)
+
+    // State for the typeahead
+    const [selected, setSelected] = useState<string>("")
 
     // Ref for output text area, so we can auto scroll it
     const llmOutputTextAreaRef = useRef(null)
@@ -48,10 +48,15 @@ export function OpportunityFinder() {
     // chat session
     const currentResponse = useRef<string>("")
 
+    function clearInput() {
+        inputAreaRef?.current?.clear()
+        setSelected("")
+    }
+
     useEffect(() => {
         // Delay for a second before focusing on the input area; gets around ChatBot stealing focus.
         setTimeout(() => {
-            inputAreaRef?.current.focus()
+            inputAreaRef?.current?.focus()
         }, 1000)
     }, [])
 
@@ -121,7 +126,7 @@ export function OpportunityFinder() {
         } finally {
             // Reset state, whatever happened during request
             setIsAwaitingLlm(false)
-            setUserLlmChatInput("")
+            clearInput()
             currentResponse.current = ""
         }
     }
@@ -134,33 +139,9 @@ export function OpportunityFinder() {
     async function handleUserQuery(event: FormEvent<HTMLFormElement>) {
         // Prevent submitting form
         event.preventDefault()
-
-        await sendQuery(userLlmChatInput)
+        await sendQuery(selected)
     }
 
-    const handleInputAreaChange = (event: ChangeEvent<HTMLInputElement>) => {
-        // Check if enter key was pressed. Seems a bit of a cheesy way to do it but couldn't find a better way in
-        // this event handler, given what is passed as the Event.
-        const isEnter = "inputType" in event.nativeEvent && event.nativeEvent.inputType === "insertLineBreak"
-
-        // Enter key is handled by KeyUp handler, so ignore it here
-        if (!isEnter) {
-            const inputText = event.target.value
-            setUserLlmChatInput(inputText)
-        }
-    }
-
-    async function handleInputAreaKeyUp(event) {
-        // If shift enter pressed, just add a newline. Otherwise, if enter pressed, send query.
-        if (event.key === "Enter") {
-            if (event.shiftKey) {
-                setUserLlmChatInput(`${userLlmChatInput}\n`)
-            } else if (!hasOnlyWhitespace(userLlmChatInput)) {
-                event.preventDefault()
-                await sendQuery(userLlmChatInput)
-            }
-        }
-    }
 
     function handleStop() {
         try {
@@ -168,13 +149,13 @@ export function OpportunityFinder() {
             controller.current = null
         } finally {
             setIsAwaitingLlm(false)
-            setUserLlmChatInput("")
+            clearInput()
             currentResponse.current = ""
         }
     }
 
     // Regex to check if user has typed anything besides whitespace
-    const userInputEmpty = hasOnlyWhitespace(userLlmChatInput)
+    const userInputEmpty = !selected || selected.length === 0 || hasOnlyWhitespace(selected)
 
     // Disable Send when request is in progress
     const shouldDisableSendButton = userInputEmpty || isAwaitingLlm
@@ -210,6 +191,7 @@ export function OpportunityFinder() {
                                 resize: "none",
                                 whiteSpace: "pre-wrap",
                             }}
+                            tabIndex={-1}
                             value={userLlmChatOutput}
                         />
                         <Button
@@ -304,9 +286,6 @@ export function OpportunityFinder() {
                                 id="user-input"
                                 allowNew={true}
                                 minLength={2}
-                                onInputChange={(_, event) => handleInputAreaChange(event)}
-                                onKeyDown={handleInputAreaKeyUp}
-                                // onKeyUp={handleInputAreaKeyUp}
                                 placeholder="Company name, for example, IBM"
                                 ref={inputAreaRef}
                                 style={{
@@ -317,37 +296,36 @@ export function OpportunityFinder() {
                                 // rows={3}
                                 // value={userLlmChatInput}
                                 options={data.companies}
+                                onInputChange={(text: string) => {
+                                    console.debug("sel", text)
+                                    setSelected(text)
+                                }}
+                                onChange={(selectedItems) => {
+                                    if (selectedItems && selectedItems.length > 0) {
+                                        setSelected(selectedItems[0] as string)
+                                    }
+                                }}
+                                selected={[selected]}
                             />
-                            {/*<Form.Control*/}
-                            {/*    as="textarea"*/}
-                            {/*    id="user-input"*/}
-                            {/*    onChange={handleInputAreaChange}*/}
-                            {/*    onKeyUp={handleInputAreaKeyUp}*/}
-                            {/*    placeholder="Company name, for example, IBM"*/}
-                            {/*    ref={inputAreaRef}*/}
-                            {/*    style={{*/}
-                            {/*        fontSize: "90%",*/}
-                            {/*        marginLeft: "7px",*/}
-                            {/*    }}*/}
-                            {/*    rows={3}*/}
-                            {/*    value={userLlmChatInput}*/}
-                            {/*/>*/}
                             <Button
                                 id="clear-input-button"
-                                onClick={() => setUserLlmChatInput("")}
+                                onClick={() => {
+                                    clearInput()
+                                }}
                                 style={{
                                     backgroundColor: "transparent",
                                     color: "var(--bs-primary)",
                                     border: "none",
                                     fontWeight: 550,
                                     left: "calc(100% - 45px)",
-                                    // top: 10,
                                     lineHeight: "35px",
+                                    opacity: userInputEmpty ? "25%" : "100%",
                                     position: "absolute",
                                     width: "10px",
                                     zIndex: 99999,
                                 }}
                                 disabled={userInputEmpty}
+                                tabIndex={-1}
                             >
                                 X
                             </Button>

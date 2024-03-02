@@ -9,7 +9,8 @@
  * @returns True if input contains only whitespace, false otherwise
  */
 export function hasOnlyWhitespace(input: string) {
-    return input.trim().length === 0
+    console.debug(`hasOnlyWhitespace: input = ${JSON.stringify(input, null, 2)}`)
+    return input?.trim().length === 0
 }
 
 /* eslint-disable max-len */
