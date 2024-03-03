@@ -167,7 +167,7 @@ export function OpportunityFinder() {
         } catch (error) {
             if (error instanceof Error) {
                 if (error.name === "AbortError") {
-                    setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.`)
+                    setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.\n\n`)
                 } else {
                     console.error(error.stack)
                 }
@@ -200,7 +200,7 @@ export function OpportunityFinder() {
 
     function handleStop() {
         try {
-            controller?.current?.abort("User cancelled request")
+            controller?.current?.abort()
             controller.current = null
         } finally {
             setIsAwaitingLlm(false)
@@ -354,8 +354,6 @@ export function OpportunityFinder() {
                                     marginLeft: "7px",
                                     width: "100%",
                                 }}
-                                // rows={3}
-                                // value={userLlmChatInput}
                                 options={data.companies}
                                 onInputChange={(text: string) => {
                                     setSelectedString(text)
