@@ -395,36 +395,33 @@ export function OpportunityFinder() {
                                 X
                             </Button>
                         </InputGroup>
-                        <Button
-                            id="submit-query-button"
-                            variant="primary"
-                            type="submit"
-                            disabled={shouldDisableSendButton}
-                            style={{
-                                background: MaximumBlue,
-                                borderColor: MaximumBlue,
-                                color: "white",
-                                opacity: shouldDisableSendButton ? "50%" : "100%",
-                                marginLeft: "10px",
-                                marginRight: "10px",
-                            }}
-                        >
-                            <div
-                                id="send-button-div"
-                                style={{width: "4ch", lineHeight: 1.5}}
-                            >
-                                {isAwaitingLlm ? (
-                                    <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                        // ClipLoader does not have an id property
-                                        color={MaximumBlue}
-                                        loading={true}
-                                        size={20}
-                                    />
-                                ) : (
-                                    "Send"
-                                )}
-                            </div>
-                        </Button>
+                        <div id="send-div" style={{display: "flex", width: "100px", justifyContent: "center"}}>
+                            {isAwaitingLlm ? (
+                                <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                    // ClipLoader does not have an id property
+                                    color={MaximumBlue}
+                                    loading={true}
+                                    size={45}
+                                />
+                            ) : (
+                                <Button
+                                    id="submit-query-button"
+                                    variant="primary"
+                                    type="submit"
+                                    disabled={shouldDisableSendButton}
+                                    style={{
+                                        background: MaximumBlue,
+                                        borderColor: MaximumBlue,
+                                        color: "white",
+                                        opacity: shouldDisableSendButton ? "50%" : "100%",
+                                        marginLeft: "10px",
+                                        marginRight: "10px",
+                                    }}
+                                >
+                                    Send
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </Form.Group>
             </Form>
