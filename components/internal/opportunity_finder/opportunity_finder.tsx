@@ -393,7 +393,10 @@ export function OpportunityFinder() {
                                 X
                             </Button>
                         </InputGroup>
-                        <div id="send-div" style={{display: "flex", width: "100px", justifyContent: "center"}}>
+                        <div
+                            id="send-div"
+                            style={{display: "flex", width: "100px", justifyContent: "center"}}
+                        >
                             {isAwaitingLlm ? (
                                 <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                     // ClipLoader does not have an id property
