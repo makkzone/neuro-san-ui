@@ -1,4 +1,4 @@
-import {OpportunityFinderRequestType} from "../pages/api/gpt/of/types"
+import {OpportunityFinderRequestType} from "../../pages/api/gpt/opportunityFinder/types"
 
 export async function sendOpportunityFinderRequest(
     userQuery: string,
@@ -8,7 +8,7 @@ export async function sendOpportunityFinderRequest(
     opportunitiesText?: string,
     optionNumber?: number
 ) {
-    const res = await fetch("/api/gpt/of", {
+    const res = await fetch("/api/gpt/opportunityFinder", {
         method: "POST",
         headers: {
             Accept: "application/json",

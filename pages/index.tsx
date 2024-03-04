@@ -152,7 +152,7 @@ export default function Index(): ReactElement {
                         </HeaderLineOne>
                         <Link
                             id="of-link"
-                            href={`/of?${buildQueryString()}`}
+                            href={`/opportunityFinder?${buildQueryString()}`}
                             legacyBehavior={true} // Need this so we can "open in new tab"
                             passHref
                         >
