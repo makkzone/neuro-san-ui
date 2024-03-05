@@ -1,3 +1,4 @@
+import {NodeType} from "../components/internal/flow/nodes/types"
 // Miscellaneous object transformation utilities
 
 // Removes the first instance of "value" from array"arr", if found, and returns the modified
@@ -8,4 +9,39 @@ export function removeItemOnce(arr, value) {
         arr.splice(index, 1)
     }
     return arr
+}
+
+export const consolidateFlow = (flowNodes) => {
+    const consolidatedFlowNodes: NodeType[] = []
+    flowNodes.forEach((node) => {
+        const copyNode = structuredClone(node)
+
+        if (
+            ((node?.data && node?.type === "uncertaintymodelnode") ||
+                node?.type === "category_reducer_node" ||
+                node?.type === "analytics_node" ||
+                node?.type === "activation_node" ||
+                node?.type === "confabulator_node" ||
+                node?.type === "confabulation_node" ||
+                node?.type === "llmnode") &&
+            !node?.data?.ParentNodeState?.params
+        ) {
+            copyNode.data.ParentNodeState = {params: node.data.ParentNodeState}
+            delete node.data.ParentPredictorState
+            delete copyNode.data.ParentPredictorState
+        } else if (
+            !node?.data?.ParentNodeState &&
+            !node?.data?.ParentPrescriptorState &&
+            node?.data?.ParentPredictorState
+        ) {
+            copyNode.data.ParentNodeState = copyNode.data.ParentPredictorState
+
+            if (node?.data?.ParentPredictorState?.predictorParams) {
+                copyNode.data.ParentNodeState.params = node.data.ParentPredictorState.predictorParams
+            }
+        }
+
+        consolidatedFlowNodes.push(copyNode)
+    })
+    return consolidatedFlowNodes
 }

@@ -29,6 +29,7 @@ import {Artifact, Run, Runs} from "../../controller/run/types"
 import useFeaturesStore from "../../state/features"
 import decode from "../../utils/conversion"
 import {empty} from "../../utils/objects"
+import {consolidateFlow} from "../../utils/transformation"
 import {useLocalStorage} from "../../utils/use_local_storage"
 import BlankLines from "../blanklines"
 import ESPRunPlot from "../esprunplot"
@@ -192,7 +193,8 @@ export default function RunPage(props: RunProps): React.ReactElement {
 
                 // Use temporary variable to avoid shadowing outer "flow" variable
                 const flowTmp: NodeType[] = JSON.parse(runTmp.flow)
-                setFlow(flowTmp)
+                const consolidatedFlow = consolidateFlow(flowTmp)
+                setFlow(consolidatedFlow)
                 setRun(runTmp)
                 cacheRun(runTmp)
             } else {

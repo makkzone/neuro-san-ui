@@ -47,21 +47,26 @@ export interface CAOChecked {
     outcome?: StringBool
 }
 
+export interface NodeTabs {
+    title: string
+    component: JSX.Element
+}
+
 export interface ConfigurableNodeParameter {
-    description?: string
+    description: string
 
     // Data type of the parameter
-    type?: BaseParameterType
+    type: BaseParameterType
 
     // Associated enum, if this is an enum type parameter
     enum?: Enum
 
     // Default value for the field
-    default_value?: ParameterType
+    default_value: ParameterType
 
     // Value is an optional field that can be used within a form
     // etc to denote user input
-    value?: ParameterType
+    value: ParameterType
 
     min?: number
     max?: number
@@ -70,8 +75,6 @@ export interface ConfigurableNodeParameter {
     isAdvanced?: boolean
 
     rows?: number
-
-    typeArray?: string[] | number[]
 }
 
 export interface NodeParams {

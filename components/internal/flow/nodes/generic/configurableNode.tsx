@@ -7,7 +7,7 @@ import {AiFillDelete} from "react-icons/ai"
 import {GrSettingsOption} from "react-icons/gr"
 import {Handle, Position as HandlePosition, NodeProps, Node as RFNode} from "reactflow"
 
-import {BaseParameterType, ConfigurableNodeState, NodeParams} from "./types"
+import {BaseParameterType, ConfigurableNodeState, NodeParams, NodeTabs} from "./types"
 import ConfigNumeric from "../../confignumeric"
 
 // Define an interface for the structure of the node
@@ -39,12 +39,7 @@ export interface ConfigurableNodeData {
     SelectedDataSourceId?: number
 
     // Optional tab props for multi-tab popovers
-    tabs?: {
-        title: string
-        component: JSX.Element
-    }[]
-
-    hideShowAdvanced?: boolean
+    tabs?: NodeTabs[]
 
     enableCAOActions?: boolean
 }
