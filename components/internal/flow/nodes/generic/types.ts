@@ -75,8 +75,6 @@ export interface ConfigurableNodeParameter {
     isAdvanced?: boolean
 
     rows?: number
-
-    typeArray?: string[] | number[]
 }
 
 export interface NodeParams {

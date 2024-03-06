@@ -7,8 +7,61 @@ interface PredictorNodeParameters {
     [key: string]: ConfigurableNodeParameter
 }
 
-export interface PredictorParams {
+interface PredictorParams {
     [key: string]: PredictorNodeParameters
+}
+
+// eslint-disable-next-line no-shadow
+enum MaxFeatures {
+    "auto",
+    "sqrt",
+    "log2",
+}
+
+// eslint-disable-next-line no-shadow
+enum Booster {
+    "gbtree",
+    "gblinear",
+    "dart",
+}
+
+// eslint-disable-next-line no-shadow
+enum TreeMethod {
+    "auto",
+    "exact",
+    "approx",
+    "hist",
+    "gpu_hist",
+}
+
+// eslint-disable-next-line no-shadow
+enum ImportanceType {
+    "gain",
+    "weight",
+    "cover",
+    "total_gain",
+    "total_cover",
+}
+
+// eslint-disable-next-line no-shadow
+enum SupportedRegressionCriterion {
+    "mse",
+    "mae",
+}
+
+// eslint-disable-next-line no-shadow
+enum SupportedClassificationCriterion {
+    "gini",
+    "entropy",
+    "log_loss",
+}
+
+// eslint-disable-next-line no-shadow
+enum Verbosity {
+    ZERO,
+    ONE,
+    TWO,
+    THREE,
 }
 
 const SUPPORTED_REGRESSION_MODELS: PredictorParams = {
@@ -24,8 +77,8 @@ const SUPPORTED_REGRESSION_MODELS: PredictorParams = {
                            Supported criteria are mse for the mean squared error, 
                            which is equal to variance reduction as feature selection 
                            criterion, and mae for the mean absolute error.`,
-            type: BaseParameterType.ARRAY,
-            typeArray: ["mse", "mae"],
+            type: BaseParameterType.ENUM,
+            enum: SupportedRegressionCriterion,
         },
         max_depth: {
             default_value: 100,
@@ -76,8 +129,8 @@ const SUPPORTED_REGRESSION_MODELS: PredictorParams = {
             Note: the search for a split does not stop until at least one valid partition of the node samples 
             is found, even if it requires to effectively inspect more than max_features features.
             `,
-            type: BaseParameterType.ARRAY,
-            typeArray: ["auto", "sqrt", "log2"],
+            type: BaseParameterType.ENUM,
+            enum: MaxFeatures,
         },
         max_leaf_nodes: {
             default_value: 100,
@@ -198,14 +251,14 @@ const SUPPORTED_REGRESSION_MODELS: PredictorParams = {
         verbosity: {
             default_value: 1,
             description: "The degree of verbosity. Valid values are 0 (silent) - 3 (debug).",
-            type: BaseParameterType.ARRAY,
-            typeArray: [0, 1, 2, 3],
+            type: BaseParameterType.ENUM,
+            enum: Verbosity,
         },
         booster: {
             default_value: "gbtree",
             description: "Specify which booster to use: gbtree, gblinear or dart.",
-            type: BaseParameterType.ARRAY,
-            typeArray: ["gbtree", "gblinear", "dart"],
+            type: BaseParameterType.ENUM,
+            enum: Booster,
         },
         tree_method: {
             default_value: "auto",
@@ -215,8 +268,8 @@ const SUPPORTED_REGRESSION_MODELS: PredictorParams = {
                 available.  It's recommended to study this option from parameters
                 document.
                 `,
-            type: BaseParameterType.ARRAY,
-            typeArray: ["auto", "exact", "approx", "hist", "gpu_hist"],
+            type: BaseParameterType.ENUM,
+            enum: TreeMethod,
         },
         n_jobs: {
             default_value: 1,
@@ -301,8 +354,8 @@ const SUPPORTED_REGRESSION_MODELS: PredictorParams = {
             The feature importance type for the feature_importances. property:
             either "gain", "weight", "cover", "total_gain" or "total_cover".
             `,
-            type: BaseParameterType.ARRAY,
-            typeArray: ["gain", "weight", "cover", "total_gain", "total_cover"],
+            type: BaseParameterType.ENUM,
+            enum: ImportanceType,
         },
     },
     Databricks: {
@@ -344,8 +397,8 @@ const SUPPORTED_CLASSIFICATION_MODELS: PredictorParams = {
                            Supported criteria are mse for the mean squared error, 
                            which is equal to variance reduction as feature selection 
                            criterion, and mae for the mean absolute error.`,
-            type: BaseParameterType.ARRAY,
-            typeArray: ["gini", "entropy", "log_loss"],
+            type: BaseParameterType.ENUM,
+            enum: SupportedClassificationCriterion,
         },
         max_depth: {
             default_value: 100,
@@ -400,8 +453,8 @@ const SUPPORTED_CLASSIFICATION_MODELS: PredictorParams = {
             Note: the search for a split does not stop until at least one valid partition of the node samples 
             is found, even if it requires to effectively inspect more than max_features features.
             `,
-            type: BaseParameterType.ARRAY,
-            typeArray: ["auto", "sqrt", "log2"],
+            type: BaseParameterType.ENUM,
+            enum: MaxFeatures,
         },
         max_leaf_nodes: {
             default_value: 100,

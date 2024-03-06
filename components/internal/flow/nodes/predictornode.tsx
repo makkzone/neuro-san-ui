@@ -454,19 +454,19 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
                             id={`${flowPrefix}-${param}-data-type-div${idExtension}`}
                             className="item2 col-span-4"
                         >
-                            {defaultParams[param].type === BaseParameterType.INT ||
-                                (defaultParams[param].type === BaseParameterType.FLOAT && (
-                                    <ConfigNumeric
-                                        id={`${flowPrefix}-${param}-value${idExtension}`}
-                                        paramName={param}
-                                        defaultParam={defaultParams[param]}
-                                        value={
-                                            ParentNodeState.params[param]?.value != null &&
-                                            ParentNodeState.params[param].value
-                                        }
-                                        onParamChange={(event) => onParamChange(event, param)}
-                                    />
-                                ))}
+                            {(defaultParams[param].type === BaseParameterType.INT ||
+                                defaultParams[param].type === BaseParameterType.FLOAT) && (
+                                <ConfigNumeric
+                                    id={`${flowPrefix}-${param}-value${idExtension}`}
+                                    paramName={param}
+                                    defaultParam={defaultParams[param]}
+                                    value={
+                                        ParentNodeState.params[param]?.value !== null &&
+                                        ParentNodeState.params[param].value
+                                    }
+                                    onParamChange={(event) => onParamChange(event, param)}
+                                />
+                            )}
                             {defaultParams[param].type === BaseParameterType.BOOLEAN && (
                                 <input
                                     id={`${flowPrefix}-${param}-value${idExtension}`}
@@ -481,7 +481,7 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
                                     onChange={(event) => onPredictorParamCheckBoxChange(event, param)}
                                 />
                             )}
-                            {defaultParams[param].type === BaseParameterType.ARRAY && (
+                            {defaultParams[param].type === BaseParameterType.ENUM && (
                                 <select
                                     id={`${flowPrefix}-${param}-value${idExtension}`}
                                     value={
@@ -494,13 +494,13 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
                                     onChange={(event) => onParamChange(event, param)}
                                     className="w-32 p-0"
                                 >
-                                    {(defaultParams[param].typeArray as string[]).map((value) => (
+                                    {Object.entries(defaultParams[param].enum).map((value) => (
                                         <option
-                                            id={`${flowPrefix}-${param}-${value}${idExtension}`}
-                                            key={value}
-                                            value={value}
+                                            id={`${flowPrefix}-${param}-${value[0]}${idExtension}`}
+                                            key={value[0]}
+                                            value={value[1].toString()}
                                         >
-                                            {value}
+                                            {value[0]}
                                         </option>
                                     ))}
                                 </select>
@@ -532,7 +532,7 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
                         >
                             <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 // 2/6/23 DEF - Tooltip does not have an id property when compiling
-                                content={<>{defaultParams?.[param].description}</>}
+                                content={defaultParams?.[param].description}
                             >
                                 <InfoSignIcon id={`${flowPrefix}-${param}-tooltip-info-sign-icon${idExtension}`} />
                             </Tooltip>

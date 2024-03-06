@@ -11,29 +11,28 @@ export function removeItemOnce(arr, value) {
     return arr
 }
 
+/*
+ * This method consolidates the old flow schema with the new one
+ * while also keeping backwards compatibility for
+ * Predictor and Configurable Nodes
+ */
 export const consolidateFlow = (flowNodes) => {
     const consolidatedFlowNodes: NodeType[] = []
     flowNodes.forEach((node) => {
         const copyNode = structuredClone(node)
 
-        if (
-            ((node?.data && node?.type === "uncertaintymodelnode") ||
-                node?.type === "category_reducer_node" ||
-                node?.type === "analytics_node" ||
-                node?.type === "activation_node" ||
-                node?.type === "confabulator_node" ||
-                node?.type === "confabulation_node" ||
-                node?.type === "llmnode") &&
-            !node?.data?.ParentNodeState?.params
-        ) {
+        const isLLMNode =
+            (node?.data && node?.type === "uncertaintymodelnode") ||
+            node?.type === "category_reducer_node" ||
+            node?.type === "analytics_node" ||
+            node?.type === "activation_node" ||
+            node?.type === "confabulator_node" ||
+            node?.type === "confabulation_node" ||
+            node?.type === "llmnode"
+
+        if (isLLMNode && !node?.data?.ParentNodeState?.params) {
             copyNode.data.ParentNodeState = {params: node.data.ParentNodeState}
-            delete node.data.ParentPredictorState
-            delete copyNode.data.ParentPredictorState
-        } else if (
-            !node?.data?.ParentNodeState &&
-            !node?.data?.ParentPrescriptorState &&
-            node?.data?.ParentPredictorState
-        ) {
+        } else if (!node?.data?.ParentNodeState && node?.data?.ParentPredictorState) {
             copyNode.data.ParentNodeState = copyNode.data.ParentPredictorState
 
             if (node?.data?.ParentPredictorState?.predictorParams) {
