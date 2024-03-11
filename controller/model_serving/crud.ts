@@ -16,7 +16,7 @@ import {
     ModelServingEnvironment,
     TearDownRequest,
 } from "./types"
-import {getBaseUrl} from "../../state/environment"
+import useEnvironmentStore from "../../state/environment"
 import useFeaturesStore from "../../state/features"
 import {toSafeFilename} from "../../utils/file"
 import {empty} from "../../utils/objects"
@@ -91,7 +91,7 @@ async function deployModelOld(
     let customPredictorArgs: StringString
     if (modelServingEnvironment === ModelServingEnvironment.KSERVE) {
         customPredictorArgs = {
-            gateway_url: getBaseUrl(),
+            gateway_url: useEnvironmentStore.getState().backendApiUrl,
             run_id: runId.toString(),
         }
         if (cid) {
@@ -108,7 +108,7 @@ async function deployModelOld(
         custom_predictor_args: customPredictorArgs,
     }
 
-    const baseUrl = getBaseUrl()
+    const baseUrl = useEnvironmentStore.getState().backendApiUrl
     const deployModelsRoute = `${baseUrl}/api/v1/serving/deploy`
 
     try {
@@ -316,7 +316,7 @@ async function deployRunNew(
         models: modelsToDeploy,
     }
 
-    const baseUrl = getBaseUrl()
+    const baseUrl = useEnvironmentStore.getState().backendApiUrl
     const inferDeployRoute = `${baseUrl}/api/v1/inference/deploy`
 
     try {
@@ -395,7 +395,7 @@ export function undeployRunUsingBeacon(projectId: number, run: Run) {
         model_serving_environment: ModelServingEnvironment.KSERVE,
     }
 
-    const baseUrl = getBaseUrl()
+    const baseUrl = useEnvironmentStore.getState().backendApiUrl
     const tearDownModelsRoute = `${baseUrl}/api/v1/serving/teardown`
     navigator.sendBeacon(tearDownModelsRoute, JSON.stringify(tearDownRequest))
 }
@@ -419,7 +419,7 @@ export async function undeployRun(
         model_serving_environment: ModelServingEnvironment.KSERVE,
     }
 
-    const baseUrl = getBaseUrl()
+    const baseUrl = useEnvironmentStore.getState().backendApiUrl
     const tearDownModelsRoute = `${baseUrl}/api/v1/serving/teardown`
 
     try {
@@ -467,7 +467,7 @@ async function getDeployments(
         model_serving_environment: modelServingEnvironment,
     }
 
-    const baseUrl = getBaseUrl()
+    const baseUrl = useEnvironmentStore.getState().backendApiUrl
     const queryDeploymentsRoute = `${baseUrl}/api/v1/serving/deployments`
 
     try {
@@ -537,7 +537,7 @@ function extractModelURLs(modelsArray: string[], baseUrl: string, cid: string) {
 async function getModels(modelBaseUrl: string, runId: number, cid: string) {
     const url = `http://${modelBaseUrl}/${MODEL_INFERENCE_ROUTE}`
 
-    const baseUrl = getBaseUrl()
+    const baseUrl = useEnvironmentStore.getState().backendApiUrl
     const passThroughUrl = `${baseUrl}/api/v1/passthrough`
 
     try {
@@ -623,7 +623,7 @@ async function checkIfDeploymentReady(deploymentID: string): Promise<boolean> {
         deployment_id: deploymentID,
     }
 
-    const baseUrl = getBaseUrl()
+    const baseUrl = useEnvironmentStore.getState().backendApiUrl
     const inferDeployStatusRoute = `${baseUrl}/api/v1/inference/getstatus`
 
     const response = await fetch(inferDeployStatusRoute, {
@@ -712,7 +712,7 @@ async function queryModelNew(run: Run, modelUrl: string, inputs: PredictorParams
             sample: JSON.stringify(inputs),
         }
 
-        const baseUrl = getBaseUrl()
+        const baseUrl = useEnvironmentStore.getState().backendApiUrl
         const inferRoute = `${baseUrl}/api/v1/inference/infer`
 
         const response = await fetch(inferRoute, {
@@ -764,7 +764,7 @@ async function queryModelOld(modelUrl: string, inputs: PredictorParams | RioPara
             payload: inputs,
         })
 
-        const baseUrl = getBaseUrl()
+        const baseUrl = useEnvironmentStore.getState().backendApiUrl
         const passThroughUrl = `${baseUrl}/api/v1/passthrough`
 
         const response = await fetch(passThroughUrl, {

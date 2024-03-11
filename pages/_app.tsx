@@ -27,7 +27,7 @@ import {Auth} from "../components/auth"
 import ErrorBoundary from "../components/errorboundary"
 import NeuroAIChatbot from "../components/internal/chatbot/neuro_ai_chatbot"
 import Navbar from "../components/navbar"
-import {GENERIC_LOGO, LOGO, MD_BASE_URL, MODEL_SERVING_VERSION} from "../const"
+import {GENERIC_LOGO, LOGO, MODEL_SERVING_VERSION} from "../const"
 import useEnvironmentStore from "../state/environment"
 import useFeaturesStore, {ModelServingVersion} from "../state/features"
 
@@ -78,18 +78,16 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
                 },
             })
 
-            // If error, and no MD_BASE_URL to fall back on, throw error
-            if (!res.ok && !MD_BASE_URL) {
+            // Check result
+            if (!res.ok) {
                 throw new Error(`Failed to fetch environment variables: ${res.status} ${res.statusText}`)
             }
 
             const data = await res.json()
-            // If error, and no MD_BASE_URL to fall back on, throw error
-            if (!data.backendApiUrl && !MD_BASE_URL) {
+            // Make sure we got the backend API URL
+            if (!data.backendApiUrl) {
                 throw new Error("No backend API URL found in response")
-            }
-
-            if (data.backendApiUrl) {
+            } else {
                 // Cache backend API URL in feature store
                 debug(`Received backend API URL from NodeJS server. Setting to ${data.backendApiUrl}`)
                 setBackendApiUrl(data.backendApiUrl)
