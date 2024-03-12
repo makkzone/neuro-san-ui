@@ -147,7 +147,7 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
                                         size={35}
                                     />
                                     <span
-                                        id="dms-loading-prescriptor-model"
+                                        id="main-page-loading-span"
                                         style={{marginLeft: "1em"}}
                                     >
                                         Loading...
