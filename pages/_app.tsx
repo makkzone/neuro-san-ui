@@ -22,12 +22,13 @@ import {useRouter} from "next/router"
 import {SessionProvider} from "next-auth/react"
 import {ReactElement, ReactFragment, useEffect} from "react"
 import {Container} from "react-bootstrap"
+import ClipLoader from "react-spinners/ClipLoader"
 
 import {Auth} from "../components/auth"
 import ErrorBoundary from "../components/errorboundary"
 import NeuroAIChatbot from "../components/internal/chatbot/neuro_ai_chatbot"
 import Navbar from "../components/navbar"
-import {GENERIC_LOGO, LOGO, MODEL_SERVING_VERSION} from "../const"
+import {GENERIC_LOGO, LOGO, MaximumBlue, MODEL_SERVING_VERSION} from "../const"
 import useEnvironmentStore from "../state/environment"
 import useFeaturesStore, {ModelServingVersion} from "../state/features"
 
@@ -38,7 +39,7 @@ const debug = debugModule("app")
 // ts-prune-ignore-next
 export default function LEAF({Component, pageProps: {session, ...pageProps}}): ReactElement {
     const {isGeneric} = useFeaturesStore()
-    const {setBackendApiUrl} = useEnvironmentStore()
+    const {backendApiUrl, setBackendApiUrl} = useEnvironmentStore()
 
     const {query, isReady, pathname} = useRouter()
 
@@ -99,6 +100,7 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
 
     let body: JSX.Element | ReactFragment
     if (pathname === "/") {
+        // Main page is special
         body = (
             <div id="body-div">
                 <Component
@@ -120,21 +122,37 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
                             Logo={isGeneric ? GENERIC_LOGO : LOGO}
                             WithBreadcrumbs={Component.withBreadcrumbs ?? true}
                         />
+
                         <Container id="body-container">
-                            {Component.authRequired ? (
-                                <Auth // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                // 2/6/23 DEF - SessionProvider does not have an id property when compiling
-                                >
+                            {backendApiUrl ? (
+                                Component.authRequired ? (
+                                    <Auth // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                    >
+                                        <Component
+                                            id="body-auth-component"
+                                            {...pageProps}
+                                        />
+                                    </Auth>
+                                ) : (
                                     <Component
-                                        id="body-auth-component"
+                                        id="body-non-auth-component"
                                         {...pageProps}
                                     />
-                                </Auth>
+                                )
                             ) : (
-                                <Component
-                                    id="body-non-auth-component"
-                                    {...pageProps}
-                                />
+                                <h3 id="loading-header">
+                                    <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                        color={MaximumBlue}
+                                        loading={true}
+                                        size={35}
+                                    />
+                                    <span
+                                        id="dms-loading-prescriptor-model"
+                                        style={{marginLeft: "1em"}}
+                                    >
+                                        Loading...
+                                    </span>
+                                </h3>
                             )}
                             <div
                                 id="fixed-pos-div"
