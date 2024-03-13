@@ -70,6 +70,7 @@ export function getUrlForArtifact(artifactToDownload: string, availableArtifacts
     // Find out what is available in the Run
     switch (artifactToDownload) {
         case "llm_log_file":
+            // For example "s3://leaf-unileaf-dev-artifacts/run_data/4435/artifacts/llm_log_file.txt"
             return availableArtifacts.llm_log_file
         case "original_dataset": {
             // Original datasets have URLs like this, where 525 is the data source ID.
@@ -84,8 +85,10 @@ export function getUrlForArtifact(artifactToDownload: string, availableArtifacts
             return Object.values(availableArtifacts).find((artifactUrl) => regex.test(artifactUrl))
         }
         case "notebook":
+            // For example "s3://leaf-unileaf-dev-artifacts/run_data/4435/artifacts/experiment.ipynb"
             return availableArtifacts.experiment
         case "requirements":
+            // For example "s3://leaf-unileaf-dev-artifacts/run_data/4435/artifacts/requirements.txt"
             return availableArtifacts.requirements
         case "predictors":
         case "prescriptors":
