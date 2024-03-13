@@ -66,7 +66,7 @@ export function isArtifactAvailable(requestedArtifact: string, outputArtifacts: 
 }
 
 // Allows user to download artifacts created by the run: models, Jupyter notebook etc.
-export function getUrlForArtifact(artifactToDownload: string, availableArtifacts: Record<string, string>) {
+function getUrlForArtifact(artifactToDownload: string, availableArtifacts: Record<string, string>) {
     // Find out what is available in the Run
     switch (artifactToDownload) {
         case "llm_log_file":
