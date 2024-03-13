@@ -29,6 +29,7 @@ interface ArtifactInfo {
 // Artifacts that can be downloaded.
 const DOWNLOADABLE_ARTIFACTS: ArtifactInfo[] = [
     {value: "llm_log_file", label: "LLM chat log", fileType: "txt"},
+    {value: "original_dataset", label: "Original Dataset", fileType: "csv"},
     {value: "modified_dataset", label: "Modified Dataset", fileType: "csv"},
     {value: "notebook", label: "Notebook", fileType: "ipynb"},
     {value: "predictors", label: "Predictors (future)", fileType: ""},
@@ -53,29 +54,47 @@ export function getDownloadableArtifacts(): ArtifactInfo[] {
  * named "experiment" gives us the artifact for the "notebook". Some day we may reconcile these and this
  * "mapping" logic would become trivial or unnecessary.
  *
+ * An artifact is defined to be available if we can figure out the URL for the requested artifact from the list
+ * of output_artifacts in the Run.
+ *
+ * @param outputArtifacts The list of output artifacts from the Run, as name-value pairs
  * @param requestedArtifact Name of the artifact we're interested in, eg. "notebook"
- * @param availableArtifacts List of available artifacts, as returned by the server.
  * @return A boolean indicating whether we think the artifact requested is one of those the server listed.
  */
-export function isArtifactAvailable(requestedArtifact: string, availableArtifacts: Record<string, string>) {
-    const artifactNames = Object.keys(availableArtifacts)
-    const artifactUrls = Object.values(availableArtifacts)
+export function isArtifactAvailable(outputArtifacts: Record<string, string>, requestedArtifact: string) {
+    return getUrlForArtifact(outputArtifacts, requestedArtifact) != null
+}
 
-    if (!availableArtifacts || artifactNames.length === 0) {
-        return false
-    }
-
-    switch (requestedArtifact) {
-        case "notebook":
-            return artifactNames.includes("experiment")
+// Allows user to download artifacts created by the run: models, Jupyter notebook etc.
+export function getUrlForArtifact(availableArtifacts: Record<string, string>, artifactToDownload: string) {
+    // Find out what is available in the Run
+    switch (artifactToDownload) {
         case "llm_log_file":
-            return artifactNames.includes("llm_log_file")
-        case "modified_dataset":
-            return artifactUrls.some((artifact) => artifact.endsWith(".csv"))
+            return availableArtifacts.llm_log_file
+        case "original_dataset": {
+            // Original datasets have URLs like this, where 525 is the data source ID.
+            // "s3://leaf-unileaf-dev-artifacts/run_data/4435/artifacts/525.csv"
+            const regex = /\/\d+.csv/u
+            return Object.values(availableArtifacts).find((artifactUrl) => regex.test(artifactUrl))
+        }
+        case "modified_dataset": {
+            // Modified datasets have URLs like this, with a timestamp:
+            // "s3://leaf-unileaf-dev-artifacts/run_data/4435/artifacts/525_20240207-0031.csv"
+            const regex = /\/\d+_\d+-\d+.csv/u
+            return Object.values(availableArtifacts).find((artifactUrl) => regex.test(artifactUrl))
+        }
+        case "notebook":
+            return availableArtifacts.experiment
         case "requirements":
-            return artifactNames.includes("requirements")
+            return availableArtifacts.requirements
+        case "predictors":
+        case "prescriptors":
+        case "all":
+            // not yet supported
+            return null
         default:
-            return false
+            console.error(`Unexpected artifact download request: ${artifactToDownload}`)
+            return null
     }
 }
 
@@ -84,41 +103,24 @@ export async function downloadArtifact(
     run: Run,
     artifactToDownload: string,
     artifactFriendlyName: string,
+    availableArtifacts: Record<string, string>,
     projectName: string,
     projectId: number,
     experiment: Experiment
 ) {
-    // Find out what is available in the Run
-    const availableArtifacts: Record<string, string> = JSON.parse(run.output_artifacts)
-
     // Pull out the download URL for the requested artifact.
-    let downloadUrl
-    switch (artifactToDownload) {
-        case "llm_log_file":
-            downloadUrl = availableArtifacts.llm_log_file
-            break
-        case "modified_dataset":
-            downloadUrl = Object.values(availableArtifacts).find((a) => a.endsWith(".csv"))
-            break
-        case "notebook":
-            downloadUrl = availableArtifacts.experiment
-            break
-        case "predictors":
-            // not yet supported
-            return
-        case "prescriptors":
-            // not yet supported
-            return
-        case "requirements":
-            downloadUrl = availableArtifacts.requirements
-            break
-        case "all":
-            // not yet supported
-            return
-        default:
-            console.error(`Unexpected artifact download request: ${artifactToDownload}`)
-            return
+    const downloadUrl: string = getUrlForArtifact(availableArtifacts, artifactToDownload)
+
+    if (!downloadUrl) {
+        // If we got this far, it means we think the artifact _should_ be available, so something has gone wrong.
+        sendNotification(
+            NotificationType.error,
+            "Internal error",
+            `No download URL found for "${artifactFriendlyName}" in run id ${run.id}`
+        )
+        return
     }
+
 
     // Retrieve the artifact
     const artifacts: Artifact[] = await fetchRunArtifact(downloadUrl)
