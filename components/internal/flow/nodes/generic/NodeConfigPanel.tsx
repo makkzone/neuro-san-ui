@@ -349,7 +349,7 @@ const NodeConfigPanel = ({
                     </div>
                 ))
             ) : (
-                <p id="no-config-params">No config settings available for this predictor type.</p>
+                <p id="no-config-params">No config settings available for this Node type.</p>
             )}
         </Card.Body>
     )

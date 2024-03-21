@@ -22,7 +22,6 @@ export const consolidateFlow = (flowNodes) => {
         const copyNode = structuredClone(node)
 
         const isLLMNode =
-            node?.type === "uncertaintymodelnode" ||
             node?.type === "category_reducer_node" ||
             node?.type === "analytics_node" ||
             node?.type === "activation_node" ||
@@ -30,16 +29,20 @@ export const consolidateFlow = (flowNodes) => {
             node?.type === "confabulation_node" ||
             node?.type === "llmnode"
 
+        const isUncertaintyNode = node?.type === "uncertaintymodelnode"
+
         if (isLLMNode && !node?.data?.ParentNodeState?.params) {
             copyNode.data.ParentNodeState = {params: node.data.ParentNodeState}
+        } else if (isUncertaintyNode && node?.data?.ParameterSet) {
+            copyNode.data.ParentNodeState = {params: node.data.ParameterSet}
         } else if (!node?.data?.ParentNodeState && node?.data?.ParentPredictorState) {
             copyNode.data.ParentNodeState = copyNode.data.ParentPredictorState
-
             if (node?.data?.ParentPredictorState?.predictorParams) {
                 copyNode.data.ParentNodeState.params = node.data.ParentPredictorState.predictorParams
             }
         }
 
+        delete copyNode?.data?.ParentNodeState?.predictorParams
         consolidatedFlowNodes.push(copyNode)
     })
     return consolidatedFlowNodes
