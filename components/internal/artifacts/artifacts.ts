@@ -32,6 +32,7 @@ const DOWNLOADABLE_ARTIFACTS: ArtifactInfo[] = [
     {value: "original_dataset", label: "Original Dataset", fileType: "csv"},
     {value: "modified_dataset", label: "Modified Dataset", fileType: "csv"},
     {value: "notebook", label: "Notebook", fileType: "ipynb"},
+    {value: "llm_dataops", label: "LLM Data Operations Notebook", fileType: "ipynb"},
     {value: "predictors", label: "Predictors (future)", fileType: ""},
     {value: "prescriptors", label: "Prescriptors (future)", fileType: ""},
     {value: "requirements", label: "Notebook Python Dependencies", fileType: "txt"},
@@ -72,6 +73,9 @@ function getUrlForArtifact(artifactToDownload: string, availableArtifacts: Recor
         case "llm_log_file":
             // For example "s3://leaf-unileaf-dev-artifacts/run_data/4435/artifacts/llm_log_file.txt"
             return availableArtifacts.llm_log_file
+        case "llm_dataops":
+            //For example "s3://leaf-unileaf-dev-artifacts/run_data/4872/artifacts/llm_dataops.ipynb"
+            return availableArtifacts.llm_dataops
         case "original_dataset": {
             // Original datasets have URLs like this, where 525 is the data source ID.
             // "s3://leaf-unileaf-dev-artifacts/run_data/4435/artifacts/525.csv"
