@@ -142,7 +142,11 @@ export default function ProfileTable(props: ProfileTableProps) {
                 <select
                     id={`${field}-data-type-select`}
                     name={`${field}-data_type`}
-                    value={fields[field].data_type}
+                    value={
+                        typeof fields[field].data_type === "string"
+                            ? fields[field].data_type
+                            : DataType[fields[field].data_type]
+                    }
                     onChange={(event) => {
                         const profileCopy = {...profile}
                         profileCopy.data_tag.fields[field].data_type = DataType[event.target.value]
