@@ -142,14 +142,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                 <select
                     id={`${field}-data-type-select`}
                     name={`${field}-data_type`}
-                    value={
-                        // show the correct value in dropdown because initial
-                        // createProfile call returns data_type values as strings (ex: "INT", "STRING")
-                        // the onChange event for this dropdown sets the data_type value as a DataType enum
-                        typeof fields[field].data_type === "string"
-                            ? fields[field].data_type
-                            : DataType[fields[field].data_type]
-                    }
+                    value={fields[field].data_type}
                     onChange={(event) => {
                         const profileCopy = {...profile}
                         profileCopy.data_tag.fields[field].data_type = DataType[event.target.value]
