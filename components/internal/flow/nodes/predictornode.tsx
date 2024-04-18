@@ -8,7 +8,6 @@ import ConfigurableNodeComponent, {ConfigurableNode, ConfigurableNodeData} from 
 import {NodeData, NodeType} from "./types"
 import {loadDataTag} from "../../../../controller/datatag/fetchdatataglist"
 import {DataTag} from "../../../../controller/datatag/types"
-import useFeaturesStore from "../../../../state/features"
 import {NotificationType, sendNotification} from "../../../notification"
 import {EdgeType} from "../edges/types"
 import {FlowQueries} from "../flowqueries"
@@ -18,9 +17,6 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
     /*
     This function is responsible to render the Predictor Node
     */
-
-    // Retrieve the demo user flag from the store
-    const {isDemoUser} = useFeaturesStore()
 
     const data: ConfigurableNodeData = props.data
     const {idExtension = ""} = data
@@ -46,14 +42,10 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
 
     // These predictors will only be shown in demo mode. As of writing (June 2023) they aren't implement and are
     // only in the list for demo purposes.
-    const demoOnlyPredictors = ["Transformer", "LLM"]
+    const DISABLED_PREDICTORS = new Set(["Transformer", "LLM"])
 
     const predictors = {
-        regressor: isDemoUser
-            ? fetchPredictors("regressor")
-            : fetchPredictors("regressor").filter((predictor) => {
-                  return !demoOnlyPredictors.includes(predictor)
-              }),
+        regressor: fetchPredictors("regressor"),
         classifier: fetchPredictors("classifier"),
     }
 
@@ -63,7 +55,6 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
     //Set the dropdown defaults here since the dropdown is created here
     const DEFAULT_CLASSIFIER_METRIC = Array.from(metrics.classifier.keys())[0]
     const DEFAULT_REGRESSOR_METRIC = Array.from(metrics.regressor.keys())[0]
-
     // Fetch the Data Tag
     useEffect(() => {
         //TODO: If the data node has the data source and tag available we should not fetch it but use that.
@@ -315,6 +306,7 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
                                         id={`${flowPrefix}-option-${predictor}${idExtension}`}
                                         key={predictor}
                                         value={predictor}
+                                        disabled={DISABLED_PREDICTORS.has(predictor)}
                                     >
                                         {predictor}
                                     </option>
