@@ -19,15 +19,13 @@ PROTO_PATH="--proto_path=${GENERATED_DIR} \
             --proto_path=${PROTOS_DIR} \
             --proto_path=./node_modules/protobufjs"
 
-PACKAGE="backend.grpc.generated"
-
 echo "Generating gRPC code in ${GENERATED_DIR}..."
 
 # Create the generated directory if it doesn't exist already
 mkdir -p "${GENERATED_DIR}"
 
 # Clean existing
-rm -rf "${GENERATED_DIR}"/*
+rm -rf "${GENERATED_DIR:?}"/*
 
 ALL_PROTO_FILES=$(< "${PROTOS_DIR}"/backend_shared_proto.txt)
 
@@ -38,6 +36,7 @@ do
     echo "generating gRPC code for ${PROTO_FILE}."
 
     # See ts-proto doc (linked at top of this file) for what these various options do
+     # shellcheck disable=SC2086    # PROTO_PATH is compilation of cmd line args
     protoc  --plugin=./node_modules/.bin/protoc-gen-ts_proto ${PROTO_PATH} \
             --ts_proto_opt=comments=false \
             --ts_proto_opt=esModuleInterop=true \
