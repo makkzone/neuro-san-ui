@@ -10,7 +10,7 @@
 # This script must be run from the nextfront directory, which is in line with the Docker build which runs from the
 # nextfront directory.
 
-# Define dirs
+# Define directories
 GENERATED_DIR=./generated
 PROTOS_DIR=./proto
 
