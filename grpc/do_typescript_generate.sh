@@ -37,7 +37,15 @@ do
     # Generate the GRPC code for a single service proto file.
     echo "generating gRPC code for ${PROTO_FILE}."
 
+    # See ts-proto doc (linked at top of this file) for what these various options do
     protoc  --plugin=./node_modules/.bin/protoc-gen-ts_proto ${PROTO_PATH} \
-            --ts_proto_out="${GENERATED_DIR}" "${PROTO_FILE}" \
-            --ts_proto_opt=esModuleInterop=true
+            --ts_proto_opt=comments=false \
+            --ts_proto_opt=esModuleInterop=true \
+            --ts_proto_opt=lowerCaseServiceMethods=true \
+            --ts_proto_opt=outputClientImpl=false \
+            --ts_proto_opt=outputEncodeMethods=false \
+            --ts_proto_opt=removeEnumPrefix=true \
+            --ts_proto_opt=stringEnums=true \
+            --ts_proto_opt=useSnakeTypeName=false \
+            --ts_proto_out="${GENERATED_DIR}" "${PROTO_FILE}"
 done

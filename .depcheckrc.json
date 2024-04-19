@@ -13,6 +13,7 @@
         "sharp",
         "ts-node",
         "ts-jest",
+        "ts-proto",
         "ts-prune"
     ],
     "specials": ["babel", "eslint", "jest", "tslint", "typescript"]
