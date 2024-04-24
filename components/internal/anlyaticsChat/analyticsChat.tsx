@@ -32,7 +32,7 @@ const debug = debugModule("analytics_chat")
  * Analytics Chat page. For using an LLM to analyze your data, and graph it in various ways using a backend service.
  */
 export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
-    console.debug("Analytics Chat props: ", props)
+    debug("Analytics Chat props: ", props)
 
     // Previous user query (for "regenerate" feature)
     const [previousUserQuery, setPreviousUserQuery] = useState<string>("")
@@ -90,7 +90,7 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
             if (props.dataSourceId && props.projectId && props.user) {
                 const dataSources = await fetchDataSources(props.user, props.projectId, props.dataSourceId, ["s3_url"])
                 if (dataSources.length > 0) {
-                    console.debug("Data source: ", dataSources[0])
+                    debug("Data source: ", dataSources[0])
                     setDataSourceUrl(dataSources[0].s3_url)
                 } else {
                     sendNotification(
@@ -157,11 +157,10 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
             )
 
             // Extract response
-            const response: CsvDataChatResponse = JSON.parse(currentResponse.current)
-            console.debug("Response: ", response)
+            const response: CsvDataChatResponse = CsvDataChatResponse.fromJSON(JSON.parse(currentResponse.current))
 
             // Get last message from response
-            const lastMessage = response.chat_response
+            const lastMessage = response.chatResponse
 
             // Add response to chat output
             setUserLlmChatOutput((currentOutput) => `${currentOutput}\n${lastMessage?.text}\n`)
