@@ -81,13 +81,13 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
     }
 
     // Create img tag from data in Uint8Array format
-    function getImg(data: Uint8Array): ReactElement {
-        const base64 = Buffer.from(data).toString("base64")
+    function getImage(): JSX.Element {
         return (
+            // We don't want the fancy NextJS image features here
             // eslint-disable-next-line @next/next/no-img-element
             <img
                 id="plot-img"
-                src={`data:image/png;base64,${base64}`}
+                src={`data:image/png;base64,${imageData}`}
                 alt="plot"
             />
         )
@@ -186,19 +186,25 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
             }
 
             // Extract response
-            const response: CsvDataChatResponse = CsvDataChatResponse.fromJSON(JSON.parse(currentResponse.current))
-            console.debug("Received response: ", response)
+            const responseAsJSON = JSON.parse(currentResponse.current)
+
+            // Did we get an image? If so, display it.
+            // Note: we are in "pre-conversion" world here so we have to use snake case. We do it this way because
+            // we need the image bytes in base64, which they are at this point. After the conversion step below,
+            // they will be in binary which is no use to us for building an <img> tag. The alternative would be to
+            // let the conversion happen, then convert *back* to base64 which is ugly and inefficient.
+            if (responseAsJSON?.chat_response?.image_data?.image_bytes) {
+                setImageData(responseAsJSON?.chat_response?.image_data?.image_bytes)
+                setShowPlot(true)
+            }
+
+            const response: CsvDataChatResponse = CsvDataChatResponse.fromJSON(responseAsJSON)
+
             // Get last message from response
             const lastMessage = response.chatResponse
 
             // Add response to chat output
             setUserLlmChatOutput((currentOutput) => `${currentOutput}\n${lastMessage?.text}\n`)
-
-            // Did we get an image?
-            if (lastMessage?.imageData?.imageBytes) {
-                setImageData(lastMessage?.imageData?.imageBytes)
-                setShowPlot(true)
-            }
 
             // Record bot answer in history.
             if (currentResponse.current) {
@@ -282,7 +288,7 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                     zIndex={99999}
                     cancelButtonProps={{style: {display: "none"}}}
                 >
-                    {imageData && getImg(imageData)}
+                    {imageData && getImage()}
                 </Modal>
             </div>
             <Form
