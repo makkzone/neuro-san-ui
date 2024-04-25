@@ -373,5 +373,6 @@
             "typescript": true,
             "node": true
         }
-    }
+    },
+    "ignorePatterns": ["generated/"]
 }
