@@ -14,6 +14,7 @@ import ClipLoader from "react-spinners/ClipLoader"
 import {MaximumBlue} from "../../../const"
 import {sendAnalyticsChatQuery} from "../../../controller/analyticsChat/analyticsChat"
 import {fetchDataSources} from "../../../controller/datasources/fetch"
+import {DataSources} from "../../../controller/datasources/types"
 import {CsvDataChatResponse} from "../../../generated/analytics_chat"
 import {ChatMessage as AnalyticsChatMessage, ChatMessageChatMessageType} from "../../../generated/chat"
 import {hasOnlyWhitespace} from "../../../utils/text"
@@ -103,7 +104,12 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
     useEffect(() => {
         async function retrieveDataSourceUrl() {
             if (props.dataSourceId && props.projectId && props.user) {
-                const dataSources = await fetchDataSources(props.user, props.projectId, props.dataSourceId, ["s3_url"])
+                const dataSources: DataSources = await fetchDataSources(
+                    props.user,
+                    props.projectId,
+                    props.dataSourceId,
+                    ["s3_url"]
+                )
                 if (dataSources.length > 0) {
                     setDataSourceUrl(dataSources[0].s3_url)
                 } else {
@@ -194,7 +200,7 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
             // they will be in binary which is no use to us for building an <img> tag. The alternative would be to
             // let the conversion happen, then convert *back* to base64 which is ugly and inefficient.
             if (responseAsJSON?.chat_response?.image_data?.image_bytes) {
-                setImageData(responseAsJSON?.chat_response?.image_data?.image_bytes)
+                setImageData(responseAsJSON.chat_response.image_data.image_bytes)
                 setShowPlot(true)
             }
 
