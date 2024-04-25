@@ -137,7 +137,7 @@ export default function NewBar(props: NavbarProps) {
     return (
         <div
             id={propsId}
-            className="flex justify-between py-6 items-center border-b-2 border-black"
+            className="flex justify-between items-center border-b-2 border-black"
         >
             {title}
             {newButton}

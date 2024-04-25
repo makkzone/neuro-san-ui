@@ -1,7 +1,7 @@
 /**
  * This is the module for the "AI decision assistant".
  */
-import {Tooltip} from "antd"
+import {Modal, Tooltip} from "antd"
 import debugModule from "debug"
 import {ChatMessage as LangchainChatMessage} from "langchain/schema"
 import {FormEvent, ReactElement, useEffect, useRef, useState} from "react"
@@ -32,8 +32,6 @@ const debug = debugModule("analytics_chat")
  * Analytics Chat page. For using an LLM to analyze your data, and graph it in various ways using a backend service.
  */
 export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
-    debug("Analytics Chat props: ", props)
-
     // Previous user query (for "regenerate" feature)
     const [previousUserQuery, setPreviousUserQuery] = useState<string>("")
 
@@ -74,8 +72,25 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
     // Data source URL
     const [dataSourceUrl, setDataSourceUrl] = useState<string>("")
 
+    const [imageData, setImageData] = useState<Uint8Array>(null)
+
+    const [showPlot, setShowPlot] = useState<boolean>(false)
+
     function clearInput() {
         setUserInput("")
+    }
+
+    // Create img tag from data in Uint8Array format
+    function getImg(data: Uint8Array): ReactElement {
+        const base64 = Buffer.from(data).toString("base64")
+        return (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+                id="plot-img"
+                src={`data:image/png;base64,${base64}`}
+                alt="plot"
+            />
+        )
     }
 
     useEffect(() => {
@@ -90,7 +105,6 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
             if (props.dataSourceId && props.projectId && props.user) {
                 const dataSources = await fetchDataSources(props.user, props.projectId, props.dataSourceId, ["s3_url"])
                 if (dataSources.length > 0) {
-                    debug("Data source: ", dataSources[0])
                     setDataSourceUrl(dataSources[0].s3_url)
                 } else {
                     sendNotification(
@@ -137,9 +151,12 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
             // Record user query in chat history
             chatHistory.current = [...chatHistory.current, new LangchainChatMessage(userQuery, "human")]
 
+            // Save previous query for "regenerate" feature
             setPreviousUserQuery(userQuery)
 
             setIsAwaitingLlm(true)
+
+            setImageData(null)
 
             // Always start output by echoing user query
             setUserLlmChatOutput((currentOutput) => `${currentOutput}\nQuery:\n${userQuery}\n\nResponse:`)
@@ -149,21 +166,39 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
 
             // Send the query to the server. Response will be streamed to our callback which updates the output
             // display as tokens are received.
-            await sendAnalyticsChatQuery(
-                tokenReceivedHandler,
-                abortController.signal,
-                [{url: dataSourceUrl, versionId: null, user: {login: props.user}}],
-                convertToAnalyticsChatHistory(chatHistory.current)
-            )
+            try {
+                await sendAnalyticsChatQuery(
+                    tokenReceivedHandler,
+                    abortController.signal,
+                    [{url: dataSourceUrl, versionId: null, user: {login: props.user}}],
+                    convertToAnalyticsChatHistory(chatHistory.current)
+                )
+            } catch (e) {
+                if (e instanceof Error && e.name === "AbortError") {
+                    setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.\n\n`)
+                } else {
+                    // Add error to output
+                    setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nError occurred: ${e}\n\n`)
+
+                    // log error to console
+                    console.error(e)
+                }
+            }
 
             // Extract response
             const response: CsvDataChatResponse = CsvDataChatResponse.fromJSON(JSON.parse(currentResponse.current))
-
+            console.debug("Received response: ", response)
             // Get last message from response
             const lastMessage = response.chatResponse
 
             // Add response to chat output
             setUserLlmChatOutput((currentOutput) => `${currentOutput}\n${lastMessage?.text}\n`)
+
+            // Did we get an image?
+            if (lastMessage?.imageData?.imageBytes) {
+                setImageData(lastMessage?.imageData?.imageBytes)
+                setShowPlot(true)
+            }
 
             // Record bot answer in history.
             if (currentResponse.current) {
@@ -227,6 +262,29 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
 
     return (
         <>
+            <div
+                id="plot-div"
+                style={{position: "absolute", top: "50%", left: "50%"}}
+            >
+                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
+                <Modal
+                    open={showPlot && imageData?.length > 0}
+                    destroyOnClose={true}
+                    closable={true}
+                    onOk={() => setShowPlot(false)}
+                    onCancel={() => setShowPlot(false)}
+                    okButtonProps={{
+                        id: "confirmation-modal-ok-btn",
+                    }}
+                    okType="primary"
+                    maskClosable={true}
+                    width="50%"
+                    zIndex={99999}
+                    cancelButtonProps={{style: {display: "none"}}}
+                >
+                    {imageData && getImg(imageData)}
+                </Modal>
+            </div>
             <Form
                 id="user-query-form"
                 onSubmit={handleUserQuery}

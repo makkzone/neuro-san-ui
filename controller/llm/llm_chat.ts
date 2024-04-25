@@ -37,6 +37,11 @@ export async function sendLlmRequest(
         signal: signal,
     })
 
+    // Check if the request was successful
+    if (!res.ok) {
+        throw new Error(`Failed to fetch: ${res.statusText} error code ${res.status}`)
+    }
+
     const reader = res.body.getReader()
     const utf8decoder = new TextDecoder("utf8")
 

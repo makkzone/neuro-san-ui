@@ -1,7 +1,9 @@
 import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
+import {Tooltip} from "evergreen-ui"
 import {useSession} from "next-auth/react"
 import {FC, useEffect, useState} from "react"
 import {Card} from "react-bootstrap"
+import {BsDatabaseGear} from "react-icons/bs"
 import {Handle, NodeProps, Position, Node as RFNode} from "reactflow"
 
 import {DataSource} from "../../../../controller/datasources/types"
@@ -80,6 +82,29 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = (props) => {
             >
                 <Card.Header id={`data-source-header${idExtension}`}>Data Source</Card.Header>
                 <Card.Body id={`data-source-body${idExtension}`}>
+                    <div
+                        id="analytics-div"
+                        style={{position: "absolute", top: "5px", right: "10px"}}
+                    >
+                        <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                            showDelay={1}
+                            content="Analyze your data with the help of an LLM"
+                        >
+                            <a
+                                id="analytics-link"
+                                href={
+                                    `/analyticsChat/?projectID=${projectId}&` +
+                                    `dataSourceID=${taggedDataList?.length > 0 && taggedDataList[0].DataSource.id}`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <span id={`datasource-${idExtension}-analytics-span`}>
+                                    <BsDatabaseGear id={`datasource-${idExtension}-tooltip-data-analytics`} />
+                                </span>
+                            </a>
+                        </Tooltip>
+                    </div>
                     {taggedDataList.length > 0 ? (
                         <select
                             name="dataset"
