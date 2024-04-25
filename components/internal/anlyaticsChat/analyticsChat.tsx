@@ -2,7 +2,6 @@
  * This is the module for the "AI decision assistant".
  */
 import {Modal, Tooltip} from "antd"
-import debugModule from "debug"
 import {ChatMessage as LangchainChatMessage} from "langchain/schema"
 import {FormEvent, ReactElement, useEffect, useRef, useState} from "react"
 import {Button, Form, InputGroup} from "react-bootstrap"
@@ -26,8 +25,6 @@ interface AnalyticsChatProps {
     readonly dataSourceId: number
     readonly user: string
 }
-
-const debug = debugModule("analytics_chat")
 
 /**
  * Analytics Chat page. For using an LLM to analyze your data, and graph it in various ways using a backend service.
