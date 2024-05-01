@@ -14,9 +14,9 @@ import ClipLoader from "react-spinners/ClipLoader"
 import {MaximumBlue} from "../../../const"
 import {sendAnalyticsChatQuery} from "../../../controller/analyticsChat/analyticsChat"
 import {fetchDataSources} from "../../../controller/datasources/fetch"
-import {DataSources} from "../../../controller/datasources/types"
 import {CsvDataChatResponse} from "../../../generated/analytics_chat"
 import {ChatMessage as AnalyticsChatMessage, ChatMessageChatMessageType} from "../../../generated/chat"
+import {DataSource} from "../../../generated/metadata"
 import {hasOnlyWhitespace} from "../../../utils/text"
 import BlankLines from "../../blanklines"
 import {NotificationType, sendNotification} from "../../notification"
@@ -102,14 +102,14 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
     useEffect(() => {
         async function retrieveDataSourceUrl() {
             if (props.dataSourceId && props.projectId && props.user) {
-                const dataSources: DataSources = await fetchDataSources(
+                const dataSources: DataSource[] = await fetchDataSources(
                     props.user,
                     props.projectId,
                     props.dataSourceId,
                     ["s3_url"]
                 )
                 if (dataSources.length > 0) {
-                    setDataSourceUrl(dataSources[0].s3_url)
+                    setDataSourceUrl(dataSources[0].s3Url)
                 } else {
                     sendNotification(
                         NotificationType.error,

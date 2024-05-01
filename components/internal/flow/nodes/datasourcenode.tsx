@@ -6,9 +6,8 @@ import {Card} from "react-bootstrap"
 import {BsDatabaseGear} from "react-icons/bs"
 import {Handle, NodeProps, Position, Node as RFNode} from "reactflow"
 
-import {DataSource} from "../../../../controller/datasources/types"
 import loadDataTags from "../../../../controller/datatag/fetchdatataglist"
-import {DataTag} from "../../../../controller/datatag/types"
+import {DataSource, DataTag} from "../../../../generated/metadata"
 import {NotificationType, sendNotification} from "../../../notification"
 
 export interface DataSourceNodeData {

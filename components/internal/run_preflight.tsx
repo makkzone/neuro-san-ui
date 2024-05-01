@@ -1,7 +1,7 @@
 import {FlowQueries} from "./flow/flowqueries"
 import {NodeType} from "./flow/nodes/types"
 import {MAX_ALLOWED_CATEGORIES} from "../../const"
-import {CAOType} from "../../controller/datatag/types"
+import {DataTagFieldCAOType} from "../../generated/metadata"
 import {arraysEqual, commaListFromArray} from "../../utils/objects"
 import {NotificationType, sendNotification} from "../notification"
 
@@ -76,9 +76,12 @@ export function checkValidity(flow: NodeType[]): boolean {
     }
 
     // Predictor Actions must match prescriptor Actions or training will fail
-    const prescriptorActions = FlowQueries.extractCheckedFieldsForNode(prescriptorNodes[0], CAOType.ACTION)
+    const prescriptorActions = FlowQueries.extractCheckedFieldsForNode(prescriptorNodes[0], DataTagFieldCAOType.ACTION)
     for (const predictor of predictorNodes) {
-        const predictorActions: string[] = FlowQueries.extractCheckedFieldsForNode(predictor, CAOType.ACTION)
+        const predictorActions: string[] = FlowQueries.extractCheckedFieldsForNode(
+            predictor,
+            DataTagFieldCAOType.ACTION
+        )
         if (!arraysEqual(prescriptorActions, predictorActions)) {
             const description = (
                 <>
@@ -98,9 +101,15 @@ export function checkValidity(flow: NodeType[]): boolean {
     }
 
     // Predictor Context must match prescriptor Context or training will fail
-    const prescriptorContexts = FlowQueries.extractCheckedFieldsForNode(prescriptorNodes[0], CAOType.CONTEXT)
+    const prescriptorContexts = FlowQueries.extractCheckedFieldsForNode(
+        prescriptorNodes[0],
+        DataTagFieldCAOType.CONTEXT
+    )
     for (const predictor of predictorNodes) {
-        const predictorContexts: string[] = FlowQueries.extractCheckedFieldsForNode(predictor, CAOType.CONTEXT)
+        const predictorContexts: string[] = FlowQueries.extractCheckedFieldsForNode(
+            predictor,
+            DataTagFieldCAOType.CONTEXT
+        )
         if (!arraysEqual(prescriptorContexts, predictorContexts)) {
             const description = (
                 <>
@@ -121,7 +130,7 @@ export function checkValidity(flow: NodeType[]): boolean {
 
     // Multiple predictors shouldn't predict the same outcomes
     const allOutcomes = predictorNodes
-        .reduce((acc, node) => [...acc, FlowQueries.extractCheckedFieldsForNode(node, CAOType.OUTCOME)], [])
+        .reduce((acc, node) => [...acc, FlowQueries.extractCheckedFieldsForNode(node, DataTagFieldCAOType.OUTCOME)], [])
         .flatMap((outcomes) => outcomes)
     const dupes = allOutcomes.filter((item, index) => allOutcomes.indexOf(item) !== index)
     if (dupes.length > 0) {
@@ -153,19 +162,25 @@ export function checkValidity(flow: NodeType[]): boolean {
         // any fields blocked by category reducer field or hasNaN fields are unchecked, which should enable training
         const checkedPredictorContextActions = new Set()
         for (const predictor of predictorNodes) {
-            const predictorContexts: string[] = FlowQueries.extractCheckedFieldsForNode(predictor, CAOType.CONTEXT)
+            const predictorContexts: string[] = FlowQueries.extractCheckedFieldsForNode(
+                predictor,
+                DataTagFieldCAOType.CONTEXT
+            )
             predictorContexts.forEach((context) => checkedPredictorContextActions.add(context))
 
-            const predictorActions: string[] = FlowQueries.extractCheckedFieldsForNode(predictor, CAOType.ACTION)
+            const predictorActions: string[] = FlowQueries.extractCheckedFieldsForNode(
+                predictor,
+                DataTagFieldCAOType.ACTION
+            )
             predictorActions.forEach((action) => checkedPredictorContextActions.add(action))
         }
         const columnsWithNaNs = Object.keys(dataTag.fields).filter(
-            (key) => dataTag.fields[key].has_nan && checkedPredictorContextActions.has(key)
+            (key) => dataTag.fields[key].hasNan && checkedPredictorContextActions.has(key)
         )
         const columnsWithTooManyCategories = Object.keys(dataTag.fields).filter(
             (key) =>
                 dataTag.fields[key].valued === "CATEGORICAL" &&
-                dataTag.fields[key].discrete_categorical_values.length > MAX_ALLOWED_CATEGORIES &&
+                dataTag.fields[key].discreteCategoricalValues.length > MAX_ALLOWED_CATEGORIES &&
                 checkedPredictorContextActions.has(key)
         )
         let validFlow = true

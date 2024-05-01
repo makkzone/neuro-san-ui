@@ -39,8 +39,7 @@ import NodeTypes, {NodeData, NodeType} from "./nodes/types"
 import {FlowElementsType} from "./types"
 import {UNCERTAINTY_MODEL_PARAMS} from "./uncertaintymodelinfo"
 import {EvaluateCandidateCode, OutputOverrideCode} from "../../../const"
-import {DataSource} from "../../../controller/datasources/types"
-import {CAOType, DataTag} from "../../../controller/datatag/types"
+import {DataSource, DataTag, DataTagFieldCAOType} from "../../../generated/metadata"
 import {useStateWithCallback} from "../../../utils/react_utils"
 import {NotificationType, sendNotification} from "../../notification"
 
@@ -426,7 +425,7 @@ export default function Flow(props: FlowProps) {
                     const predictors = FlowQueries.getPredictorNodes(nodes).filter((aNode) => aNode.id !== NodeID)
 
                     // Take the Union of all the checked outcomes on the predictors
-                    let checkedOutcomes = FlowQueries.extractCheckedFields(predictors, CAOType.OUTCOME)
+                    let checkedOutcomes = FlowQueries.extractCheckedFields(predictors, DataTagFieldCAOType.OUTCOME)
 
                     // Append the new state outcome
                     if (newState.caoState) {
@@ -840,7 +839,7 @@ export default function Flow(props: FlowProps) {
         const prescriptorNodeID = crypto.randomUUID()
 
         // Get outcomes from all current predictors to use for prescriptor fitness
-        let outcomes = FlowQueries.extractCheckedFields(predictorNodes, CAOType.OUTCOME)
+        let outcomes = FlowQueries.extractCheckedFields(predictorNodes, DataTagFieldCAOType.OUTCOME)
 
         // Make this a set
         outcomes = outcomes.filter((value, index, sourceArray) => sourceArray.indexOf(value) === index)
@@ -1320,7 +1319,7 @@ export default function Flow(props: FlowProps) {
             }
 
             // Get outcomes from all current predictors to use for prescriptor fitness
-            let outcomes = FlowQueries.extractCheckedFields(predictorsLeft, CAOType.OUTCOME)
+            let outcomes = FlowQueries.extractCheckedFields(predictorsLeft, DataTagFieldCAOType.OUTCOME)
 
             // Make this a set
             outcomes = outcomes.filter((value, index, sourceArray) => sourceArray.indexOf(value) === index)

@@ -6,7 +6,7 @@ import {DataSourceNode} from "./nodes/datasourcenode"
 import {ConfigurableNode} from "./nodes/generic/configurableNode"
 import {PrescriptorNode} from "./nodes/prescriptornode"
 import {NodeType} from "./nodes/types"
-import {CAOType} from "../../../controller/datatag/types"
+import {DataTagFieldCAOType} from "../../../generated/metadata"
 const debug = debugModule("flowqueries")
 
 // These nodes are LLM Nodes
@@ -61,14 +61,16 @@ export class FlowQueries {
         return FlowQueries.getNodesByType(nodes, "uncertaintymodelnode") as ConfigurableNode[]
     }
 
-    static extractCheckedFields(nodes, caoType: CAOType) {
+    static extractCheckedFields(nodes, caoType: DataTagFieldCAOType) {
         /*
-        The function extracts all user-selected (checked) fields of the given CAOType from the
-        relevant sub-nodes. It knows which nodes to search for each CAOType.
+        The function extracts all user-selected (checked) fields of the given DataTagFieldCAOType from the
+        relevant sub-nodes. It knows which nodes to search for each DataTagFieldCAOType.
          */
         const parentNode =
-            caoType === CAOType.CONTEXT || caoType === CAOType.ACTION ? "ParentPrescriptorState" : "ParentNodeState"
-        const caoTypeAsString = CAOType[caoType].toLowerCase()
+            caoType === DataTagFieldCAOType.CONTEXT || caoType === DataTagFieldCAOType.ACTION
+                ? "ParentPrescriptorState"
+                : "ParentNodeState"
+        const caoTypeAsString = DataTagFieldCAOType[caoType].toLowerCase()
         const checkedFields = []
         nodes?.forEach((node) => {
             const caoNode = node.data[parentNode].caoState[caoTypeAsString]
@@ -81,13 +83,13 @@ export class FlowQueries {
         return checkedFields
     }
 
-    static extractCheckedFieldsForNode(node: NodeType, caoType: CAOType): string[] {
+    static extractCheckedFieldsForNode(node: NodeType, caoType: DataTagFieldCAOType): string[] {
         /*
-       The function extracts all user-selected (checked) fields of the given CAOType from the
+       The function extracts all user-selected (checked) fields of the given DataTagFieldCAOType from the
        given node. For example, "get all checked Actions for this Predictor".
         */
         const parentNode = node.type === "prescriptornode" ? "ParentPrescriptorState" : "ParentNodeState"
-        const caoTypeString = CAOType[caoType].toLowerCase()
+        const caoTypeString = DataTagFieldCAOType[caoType].toLowerCase()
         return Object.entries(node.data[parentNode].caoState[caoTypeString])
             .filter((e) => e[1] === true) // only checked items
             .map((e) => e[0])
@@ -207,7 +209,7 @@ export class FlowQueries {
      * @return <code>boolean</code> value indicating whether the node has more than one outcome.
      */
     static hasMultipleOutcomes(predictorNode): boolean {
-        return FlowQueries.extractCheckedFieldsForNode(predictorNode, CAOType.OUTCOME).length > 1
+        return FlowQueries.extractCheckedFieldsForNode(predictorNode, DataTagFieldCAOType.OUTCOME).length > 1
     }
 
     /**

@@ -7,7 +7,7 @@ import {getOutgoers, NodeProps, useEdges, useNodes} from "reactflow"
 import ConfigurableNodeComponent, {ConfigurableNode, ConfigurableNodeData} from "./generic/configurableNode"
 import {NodeData, NodeType} from "./types"
 import {loadDataTag} from "../../../../controller/datatag/fetchdatataglist"
-import {DataTag} from "../../../../controller/datatag/types"
+import {DataTag} from "../../../../generated/metadata"
 import {NotificationType, sendNotification} from "../../../notification"
 import {EdgeType} from "../edges/types"
 import {FlowQueries} from "../flowqueries"
@@ -120,10 +120,10 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
         if (taggedData) {
             // For predictors with only one outcome, we want to check it by default
             const hasOnlyOneOutcome: boolean =
-                Object.values(taggedData.fields).filter((f) => f.esp_type === "OUTCOME").length === 1
+                Object.values(taggedData.fields).filter((f) => f.espType === "OUTCOME").length === 1
             Object.keys(taggedData.fields).forEach((fieldName) => {
                 const field = taggedData.fields[fieldName]
-                const espType = field.esp_type.toString()
+                const espType = field.espType.toString()
                 switch (espType) {
                     case "CONTEXT":
                         CAOState.context[fieldName] = CAOState?.context?.[fieldName] ?? true

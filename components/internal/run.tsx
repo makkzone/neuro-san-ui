@@ -502,7 +502,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
             return "(Decision Making System not available: internal error.)"
         }
 
-        const dataSourceId = dataSourceNodes[0].data.DataTag.data_source_id
+        const dataSourceId = dataSourceNodes[0].data.DataTag.DataSourceId
         const projectId = props.ProjectId
         const experimentId = run.experiment_id
         const runId = run.id
@@ -514,7 +514,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     pathname: dmsLink,
 
                     // Pass along query params
-                    query: {...router.query, data_source_id: dataSourceId},
+                    query: {...router.query, DataSourceId: dataSourceId},
                 }}
                 style={{
                     color: "white",

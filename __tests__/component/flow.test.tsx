@@ -9,7 +9,7 @@ import Flow from "../../components/internal/flow/flow"
 import {NodeType} from "../../components/internal/flow/nodes/types"
 import {NotificationType, sendNotification} from "../../components/notification"
 import loadDataTags from "../../controller/datatag/fetchdatataglist"
-import {DataType} from "../../controller/datatag/types"
+import {DataTagFieldCAOType, DataTagFieldDataType, DataTagFieldValued} from "../../generated/metadata"
 
 // Generate some random values to use in tests
 const testUser = crypto.randomUUID()
@@ -17,7 +17,7 @@ const testProjectId = Math.floor(Math.random() * 100_000)
 const testDataSourceName = crypto.randomUUID()
 
 // Flow with a data node and a predictor node
-const FLOW_WITH_PREDICTOR = [
+const FLOW_WITH_PREDICTOR: (NodeType | EdgeType)[] = [
     {
         id: "root",
         type: "datanode",
@@ -27,26 +27,50 @@ const FLOW_WITH_PREDICTOR = [
                 id: 1234,
                 name: testDataSourceName,
                 options: {},
-                request_user: testUser,
+                requestUser: testUser,
+                createdAt: undefined,
+                updatedAt: undefined,
+                type: undefined,
+                s3Url: undefined,
+                s3Version: undefined,
+                dataTags: undefined,
+                headers: undefined,
+                numRows: undefined,
+                numCols: undefined,
+                hidden: undefined,
+                ProjectId: undefined,
+                mask: undefined,
+                s3Key: undefined,
+                owner: undefined,
+                lastEditedBy: undefined,
+                rejectedColumnsBlob: undefined,
+                rejectedColumns: undefined,
+                dataReferenceId: undefined,
             },
             DataTag: {
                 id: 1,
-                data_source_id: 1234,
+                DataSourceId: 1234,
                 description: "Test Data Tag",
                 fields: {
                     field1: {
-                        data_type: DataType.INT,
-                        esp_type: "context",
+                        dataType: DataTagFieldDataType.INT,
+                        espType: DataTagFieldCAOType.CONTEXT,
                         sum: 100,
-                        std_dev: 10,
+                        stdDev: 10,
                         range: [1, 10],
-                        discrete_categorical_values: ["value1", "value2"],
-                        has_nan: false,
-                        valued: "categorical",
+                        discreteCategoricalValues: ["value1", "value2"],
+                        hasNan: false,
+                        valued: DataTagFieldValued.CATEGORICAL,
                         mean: 5,
-                        is_ordered: false,
+                        isOrdered: false,
                     },
                 },
+                createdAt: undefined,
+                updatedAt: undefined,
+                hidden: undefined,
+                owner: undefined,
+                lastEditedBy: undefined,
+                requestUser: undefined,
             },
             SelfStateUpdateHandler: jest.fn(),
         },

@@ -4,9 +4,8 @@ import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd"
 import {Col, Container, Form, ListGroup, Row} from "react-bootstrap"
 import {AiFillDelete, AiFillEdit, AiFillWarning} from "react-icons/ai"
 
-import {Profile} from "../../../controller/dataprofile/types"
-import {reasonToHumanReadable} from "../../../controller/datasources/types"
-import {DataType} from "../../../controller/datatag/types"
+import {reasonToHumanReadable} from "../../../controller/datasources/conversion"
+import {DataTagFieldCAOType, DataTagFieldDataType, DataTagFieldValued, Profile} from "../../../generated/metadata"
 import {empty, jsonStringifyInOrder} from "../../../utils/objects"
 import NeuroAIChatbot from "../chatbot/neuro_ai_chatbot"
 
@@ -74,10 +73,10 @@ export default function ProfileTable(props: ProfileTableProps) {
 
     // Fields are in arbitrary order as returned from DataProfiler (gRPC runtime jumbles the keys since maps are
     // defined as not having a key order)
-    const fields = profile ? profile.data_tag.fields : {}
+    const fields = profile ? profile.dataTag.fields : {}
 
     // Headers should be in CSV column order. For backward compatibility, use data tag fields if headers missing
-    const headers = profile ? profile.data_source.headers || Object.keys(fields) : []
+    const headers = profile ? profile.dataSource.headers || Object.keys(fields) : []
 
     // Only display fields that weren't dropped by DataProfiler due to errors
     const fieldsInCsvOrder = headers.filter((header) => Object.keys(fields).includes(header))
@@ -87,7 +86,7 @@ export default function ProfileTable(props: ProfileTableProps) {
         <tr
             id={field}
             key={field}
-            style={{backgroundColor: caoColorCoding[fields[field].esp_type]}}
+            style={{backgroundColor: caoColorCoding[fields[field].espType]}}
         >
             {/*Field name*/}
             <td
@@ -104,12 +103,12 @@ export default function ProfileTable(props: ProfileTableProps) {
             >
                 <select
                     id={`${field}-esp-type-select`}
-                    name={`${field}-esp_type`}
-                    value={fields[field].esp_type}
+                    name={`${field}-espType`}
+                    value={fields[field].espType}
                     className="w-18"
                     onChange={(event) => {
                         const profileCopy = {...profile}
-                        profileCopy.data_tag.fields[field].esp_type = event.target.value
+                        profileCopy.dataTag.fields[field].espType = DataTagFieldCAOType[event.target.value]
                         setProfile(profileCopy)
                     }}
                 >
@@ -141,11 +140,11 @@ export default function ProfileTable(props: ProfileTableProps) {
             >
                 <select
                     id={`${field}-data-type-select`}
-                    name={`${field}-data_type`}
-                    value={fields[field].data_type}
+                    name={`${field}-dataType`}
+                    value={fields[field].dataType}
                     onChange={(event) => {
                         const profileCopy = {...profile}
-                        profileCopy.data_tag.fields[field].data_type = DataType[event.target.value]
+                        profileCopy.dataTag.fields[field].dataType = DataTagFieldDataType[event.target.value]
                         setProfile(profileCopy)
                     }}
                 >
@@ -187,7 +186,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                     value={fields[field].valued}
                     onChange={(event) => {
                         const profileCopy = {...profile}
-                        profileCopy.data_tag.fields[field].valued = event.target.value
+                        profileCopy.dataTag.fields[field].valued = DataTagFieldValued[event.target.value]
                         setProfile(profileCopy)
                     }}
                 >
@@ -229,7 +228,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                             >
                                 Click for values:
                             </option>
-                            {fields[field].discrete_categorical_values.map((item) => (
+                            {fields[field].discreteCategoricalValues.map((item) => (
                                 <option
                                     id={`${field}-categorical-value-${item}`}
                                     value={item}
@@ -247,8 +246,8 @@ export default function ProfileTable(props: ProfileTableProps) {
                                 e.preventDefault()
 
                                 setFieldBeingEditedName(field)
-                                setCurrentCategoryValues(fields[field].discrete_categorical_values)
-                                setCategoryOrder(fields[field].discrete_categorical_values)
+                                setCurrentCategoryValues(fields[field].discreteCategoricalValues)
+                                setCategoryOrder(fields[field].discreteCategoricalValues)
                                 setShowFieldEditor(true)
                             }}
                         >
@@ -280,7 +279,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                             value={fields[field].range[0]}
                             onChange={(event) => {
                                 const profileCopy = {...profile}
-                                profileCopy.data_tag.fields[field].range[0] = parseFloat(event.target.value)
+                                profileCopy.dataTag.fields[field].range[0] = parseFloat(event.target.value)
                                 setProfile(profileCopy)
                             }}
                         />
@@ -306,7 +305,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                             value={fields[field].range[1]}
                             onChange={(event) => {
                                 const profileCopy = {...profile}
-                                profileCopy.data_tag.fields[field].range[1] = parseFloat(event.target.value)
+                                profileCopy.dataTag.fields[field].range[1] = parseFloat(event.target.value)
                                 setProfile(profileCopy)
                             }}
                         />
@@ -337,7 +336,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                 id={`${field}-std-dev`}
                 className={tableCellClassName}
             >
-                {isContinuous(field) ? fields[field].std_dev : "N/A"}
+                {isContinuous(field) ? fields[field].stdDev : "N/A"}
             </td>
 
             {/*has nan*/}
@@ -345,17 +344,17 @@ export default function ProfileTable(props: ProfileTableProps) {
                 id={`${field}-has-nan`}
                 className={tableCellClassName}
             >
-                {fields[field].has_nan.toString()}
+                {fields[field].hasNan.toString()}
             </td>
         </tr>
     ))
 
     function getRejectedColumnRows() {
-        if (!profile?.data_source?.rejectedColumns) {
+        if (!profile?.dataSource?.rejectedColumns) {
             return []
         }
 
-        const rejectedColumns = profile.data_source.rejectedColumns
+        const rejectedColumns = profile.dataSource.rejectedColumns
         return rejectedColumns && !empty(rejectedColumns)
             ? Object.keys(rejectedColumns).map((columnName) => (
                   <tr
@@ -473,8 +472,8 @@ export default function ProfileTable(props: ProfileTableProps) {
 
         const profileCopy = {...profile}
 
-        if (profileCopy.data_tag.fields) {
-            profileCopy.data_tag.fields[fieldBeingEditedName].discrete_categorical_values = currentCategoryValues
+        if (profileCopy.dataTag.fields) {
+            profileCopy.dataTag.fields[fieldBeingEditedName].discreteCategoricalValues = currentCategoryValues
         }
         setProfile(profileCopy)
 
@@ -637,8 +636,7 @@ export default function ProfileTable(props: ProfileTableProps) {
             }
 
             if (!categoryMap[field]) {
-                /* eslint-disable-next-line max-len */
-                categoryMap[field] = new Set(fields[field].original_discrete_categorical_values) // pending BE implementation
+                categoryMap[field] = new Set([]) // pending BE implementation
             }
         })
 

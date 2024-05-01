@@ -16,14 +16,12 @@ import ProfileTable from "./dataprofile/profiletable"
 import {MAX_ALLOWED_CATEGORIES, MAX_DATA_PROFILE_ALLOWED_CATEGORIES, MaximumBlue} from "../../const"
 import {GrpcError} from "../../controller/base_types"
 import {createProfile} from "../../controller/dataprofile/generate"
-import {Profile} from "../../controller/dataprofile/types"
-import {DataSource} from "../../controller/datasources/types"
 import {updateDataSource} from "../../controller/datasources/update"
-import {DataTag, DataTagFields} from "../../controller/datatag/types"
 import updateDataTag from "../../controller/datatag/update"
 import {uploadFile} from "../../controller/files/upload"
 import {Project} from "../../controller/projects/types"
 import updateProject from "../../controller/projects/update"
+import {DataSource, DataTag, DataTagField, Profile} from "../../generated/metadata"
 import {getFileName, splitFilename, toSafeFilename} from "../../utils/file"
 import {empty} from "../../utils/objects"
 import BlankLines from "../blanklines"
@@ -541,7 +539,7 @@ export default function NewProject(props: NewProps) {
     const generateDataProfile = async (s3Key: string) => {
         // Create the Data source Message
         const dataSource: DataSource = {
-            s3_key: s3Key,
+            s3Key: s3Key,
 
             options: {
                 allow_nans: true,
@@ -550,7 +548,26 @@ export default function NewProject(props: NewProps) {
                 max_categories: MAX_DATA_PROFILE_ALLOWED_CATEGORIES,
             },
 
-            request_user: currentUser,
+            requestUser: currentUser,
+            createdAt: undefined,
+            updatedAt: undefined,
+            id: undefined,
+            name: undefined,
+            type: undefined,
+            s3Url: undefined,
+            s3Version: undefined,
+            dataTags: undefined,
+            headers: undefined,
+            numRows: undefined,
+            numCols: undefined,
+            hidden: undefined,
+            ProjectId: undefined,
+            mask: undefined,
+            owner: undefined,
+            lastEditedBy: undefined,
+            rejectedColumnsBlob: undefined,
+            rejectedColumns: undefined,
+            dataReferenceId: undefined,
         }
 
         debug("Data source: ", dataSource)
@@ -579,15 +596,15 @@ export default function NewProject(props: NewProps) {
 
         // Notify user
         // Check for any columns discarded by backend
-        const rejectedColumns = tmpProfile.data_source.rejectedColumns
+        const rejectedColumns = tmpProfile.dataSource.rejectedColumns
 
         const anyColumnsRejected = rejectedColumns && !empty(rejectedColumns)
         const notificationType = anyColumnsRejected ? NotificationType.warning : NotificationType.success
         const description = (
             <>
-                Rows: {`${tmpProfile.data_source.num_rows}`}
+                Rows: {`${tmpProfile.dataSource.numRows}`}
                 <br id="data-source-columns" />
-                Columns: {`${tmpProfile.data_source.num_cols}`}
+                Columns: {`${tmpProfile.dataSource.numCols}`}
                 <br id="data-source-rejection-reasons" />
                 {anyColumnsRejected &&
                     `WARNING: ${Object.keys(rejectedColumns).length} column(s) were rejected from your data source. ` +
@@ -617,7 +634,7 @@ export default function NewProject(props: NewProps) {
         }
 
         // Validate consistency of fields
-        const isValid = profile && checkValidity(profile.data_tag.fields)
+        const isValid = profile && checkValidity(profile.dataTag.fields)
         if (!isValid) {
             return
         }
@@ -660,13 +677,28 @@ export default function NewProject(props: NewProps) {
         }
 
         const dataSourceMessage: DataSource = {
-            project_id: tmpProjectId,
+            ProjectId: tmpProjectId,
             name: datasetName,
-            s3_key: s3Key,
-            request_user: currentUser,
-            rejectedColumns: profile.data_source.rejectedColumns,
-            headers: profile.data_source.headers,
+            s3Key: s3Key,
+            requestUser: currentUser,
+            rejectedColumns: profile.dataSource.rejectedColumns,
+            headers: profile.dataSource.headers,
             options: {},
+            createdAt: undefined,
+            updatedAt: undefined,
+            id: undefined,
+            type: undefined,
+            s3Url: undefined,
+            s3Version: undefined,
+            dataTags: undefined,
+            numRows: undefined,
+            numCols: undefined,
+            hidden: undefined,
+            mask: undefined,
+            owner: undefined,
+            lastEditedBy: undefined,
+            rejectedColumnsBlob: undefined,
+            dataReferenceId: undefined,
         }
 
         const savedDataSource: DataSource = await updateDataSource(dataSourceMessage)
@@ -678,17 +710,17 @@ export default function NewProject(props: NewProps) {
         debug("Saved Data Source: ", savedDataSource)
 
         // Unpack the values for data fields
-        const inputFieldsMapped: DataTagFields = {}
+        const inputFieldsMapped: Record<string, DataTagField> = {}
 
-        const fields = profile?.data_tag?.fields
+        const fields = profile?.dataTag?.fields
         let hasNaNField = false
         let hasTooManyCategories = false
         // Loop over the Data fields
         Object.keys(fields).forEach((fieldName) => {
             const dataField = fields[fieldName]
-            // If the any field in the data_tag contains has_nan === true
+            // If the any field in the dataTag contains hasNan === true
             // set the hasNaNField to true
-            if (dataField.has_nan) {
+            if (dataField.hasNan) {
                 hasNaNField = true
             }
 
@@ -702,26 +734,33 @@ export default function NewProject(props: NewProps) {
             // Set the value
             inputFieldsMapped[fieldName] = {
                 // Get the esp-type
-                esp_type: dataField.esp_type,
+                espType: dataField.espType,
 
                 // Get the Data type
-                data_type: dataField.data_type,
+                dataType: dataField.dataType,
                 sum: dataField.sum,
-                std_dev: dataField.std_dev,
+                stdDev: dataField.stdDev,
                 range: dataField.range,
-                discrete_categorical_values: dataField.discrete_categorical_values,
-                has_nan: dataField.has_nan,
+                discreteCategoricalValues: dataField.discreteCategoricalValues,
+                hasNan: dataField.hasNan,
                 valued: dataField.valued,
                 mean: dataField.mean,
-                is_ordered: dataField.is_ordered,
+                isOrdered: dataField.isOrdered,
             }
         })
 
         // Construct the Data tag Message
         const dataTagMessage: DataTag = {
             fields: inputFieldsMapped,
-            data_source_id: savedDataSource.id,
-            request_user: currentUser,
+            DataSourceId: savedDataSource.id,
+            requestUser: currentUser,
+            createdAt: undefined,
+            updatedAt: undefined,
+            id: undefined,
+            description: undefined,
+            hidden: undefined,
+            owner: undefined,
+            lastEditedBy: undefined,
         }
 
         debug("DataTag: ", dataTagMessage)
@@ -731,7 +770,7 @@ export default function NewProject(props: NewProps) {
             sendNotification(NotificationType.success, `Data profile "${datasetName}" created`)
         }
 
-        // Send notification if data source contains a field where has_nan === true.
+        // Send notification if data source contains a field where hasNan === true.
         if (hasNaNField) {
             sendNotification(
                 NotificationType.warning,
