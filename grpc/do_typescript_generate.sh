@@ -62,6 +62,7 @@ do
             --ts_proto_opt=outputClientImpl=false \
             --ts_proto_opt=outputEncodeMethods=false \
             --ts_proto_opt=outputJsonMethods=true \
+            --ts_proto_opt=outputServices=false \
             --ts_proto_opt=removeEnumPrefix=true \
             --ts_proto_opt=snakeToCamel=keys \
             --ts_proto_opt=stringEnums=true \
