@@ -358,7 +358,30 @@ body {
 }
 
 #logo-img {
-    width: 250px !important;
+    width: 200px !important;
+}
+
+#splash-links-container {
+    margin-top: 25px;
+}
+
+#additional-links-container {
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+.splash-link {
+    color: white;
+    text-decoration: underline;
+}
+
+.splash-link:hover {
+    color: white;
+}
+
+#neuro-ai-tools-container {
+    display: flex;
 }
 
 /* For antd tables */

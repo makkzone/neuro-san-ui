@@ -10,7 +10,7 @@ import useFeaturesStore from "../state/features"
 import {getTitleBase} from "../utils/title"
 
 const OuterContainer = styled.div`
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("/landingpagebackground.png");
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("/NeuroAI_SC_BH1.webp");
     background-size: cover;
     width: 100%;
     min-height: 100%;
@@ -19,7 +19,7 @@ const OuterContainer = styled.div`
 `
 
 const Marginer = styled.div`
-    margin: 6% 9.375% 6% 9.375%;
+    margin: 3% 9.375% 6% 9.375%;
 `
 
 const Navbar = styled.div`
@@ -43,11 +43,6 @@ const NavbarMiddleSection = styled.div`
     width: 28.59%;
 `
 
-const LeftRight = styled.div`
-    display: grid;
-    grid-template-columns: 4fr 1fr;
-`
-
 const HeaderLineOne = styled.h1`
     margin: 0;
     margin-top: 6rem;
@@ -64,19 +59,8 @@ const LaunchButton = styled.div`
     background: #26efe9;
     text-align: center;
 `
-
-const Description = styled.p`
+const HeaderLineFour = styled.h4`
     color: white;
-    font-size: 1rem;
-    width: 39rem;
-    margin-top: 4rem;
-`
-
-const Right = styled.div`
-    margin-top: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 `
 
 // Main function.
@@ -128,28 +112,34 @@ export default function Index(): ReactElement {
                     {!isGeneric && (
                         <>
                             <NavbarLogo id="logo">
-                                <NextImage
-                                    id="logo-img"
-                                    width="250"
-                                    height="45"
-                                    src="/cognizant-logo-white.svg"
-                                    alt=""
-                                />
+                                <Link
+                                    id="splash-logo-link"
+                                    href="https://www.cognizant.com/us/en"
+                                    target="_blank"
+                                >
+                                    <NextImage
+                                        id="logo-img"
+                                        width="200"
+                                        height="45"
+                                        src="/cognizant-logo-white.svg"
+                                        alt=""
+                                    />
+                                </Link>
                             </NavbarLogo>
                             <NavbarMiddleSection id="nav-bar-middle" />
                         </>
                     )}
                 </Navbar>
-                <LeftRight id="main">
-                    <div id="main-div">
-                        <HeaderLineOne id="header-line">
-                            <div
-                                id="headline-eyebrow"
-                                className="d-block text-white mb-8"
-                            >
-                                {isGeneric ? GENERIC_LOGO : LOGO}
-                            </div>
-                        </HeaderLineOne>
+                <div id="main-div">
+                    <HeaderLineOne id="header-line">
+                        <div
+                            id="headline-eyebrow"
+                            className="d-block text-white mb-8"
+                        >
+                            {isGeneric ? GENERIC_LOGO : LOGO}
+                        </div>
+                    </HeaderLineOne>
+                    <div id="neuro-ai-tools-container">
                         <Link
                             id="of-link"
                             href={`/opportunityFinder?${buildQueryString()}`}
@@ -232,18 +222,58 @@ export default function Index(): ReactElement {
                                 </LaunchButton>
                             </a>
                         </Link>
-                        {!isGeneric && (
-                            <Description id="description">
-                                With the Cognizant Neuro® AI platform, realize the business value of generative AI
-                                faster. Adopt and augment cutting-edge AI models, solve complex business problems more
-                                effectively, maximize utility of your data and with the Cognizant Neuro AI Control
-                                Plane, get unparalleled visibility and control. The generative AI future of business
-                                begins here.
-                            </Description>
-                        )}
                     </div>
-                    <Right id="right" />
-                </LeftRight>
+                </div>
+                <div id="splash-links-container">
+                    <a
+                        id="learn-more-link"
+                        className="splash-link"
+                        href="https://www.cognizant.com/us/en/services/ai/ai-lab"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Learn More →
+                    </a>
+                    <div id="additional-links-container">
+                        <HeaderLineFour id="addition-links-header">Additional Links</HeaderLineFour>
+                        <a
+                            id="ai-innovation-studios-link"
+                            className="splash-link"
+                            href="https://portal-innovationstudio-apps-prod-we-001.azurewebsites.net/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            AI Innovation Studios
+                        </a>
+                        <a
+                            id="neuro-it-ops-link"
+                            className="splash-link"
+                            href="https://www.cognizant.com/us/en/services/neuro-intelligent-automation/neuro-ai-it-operations"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Neuro IT Ops
+                        </a>
+                        <a
+                            id="flowsource-link"
+                            className="splash-link"
+                            href="https://www.cognizant.com/us/en/services/software-engineering-services/flowsource"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Flowsource
+                        </a>
+                        <a
+                            id="skygrade-link"
+                            className="splash-link"
+                            href="https://www.cognizant.com/us/en/services/cloud-solutions/cognizant-skygrade"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Skygrade
+                        </a>
+                    </div>
+                </div>
             </Marginer>
         </OuterContainer>
     )

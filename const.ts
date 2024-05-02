@@ -6,7 +6,7 @@ export const Apple: string = "#26EFE9"
 const {publicRuntimeConfig} = getConfig()
 
 // Name to use for application
-export const LOGO: string = "Cognizant Neuro® AI"
+export const LOGO: string = "Neuro AI"
 export const GENERIC_LOGO: string = "Autopilot"
 
 // Build version (passed in from build system)
