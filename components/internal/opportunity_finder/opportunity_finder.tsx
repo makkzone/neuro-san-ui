@@ -2,7 +2,7 @@
  * This is the module for the "AI decision assistant".
  */
 import {Tooltip} from "antd"
-import {ChatMessage} from "langchain/schema"
+import {AIMessage, BaseMessage, HumanMessage} from "langchain/schema"
 import {FormEvent, ReactElement, useEffect, useRef, useState} from "react"
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {BsStopBtn, BsTrash} from "react-icons/bs"
@@ -52,7 +52,7 @@ export function OpportunityFinder(): ReactElement {
     const [selectedAgent, setSelectedAgent] = useState(agentOptions[0])
 
     // Use useRef here since we don't want changes in the chat history to trigger a re-render
-    const chatHistory = useRef<ChatMessage[]>([])
+    const chatHistory = useRef<BaseMessage[]>([])
 
     // To accumulate current response, which will be different than the contents of the output window if there is a
     // chat session
@@ -108,7 +108,7 @@ export function OpportunityFinder(): ReactElement {
             autoScrollEnabled.current = true
 
             // Record user query in chat history
-            chatHistory.current = [...chatHistory.current, new ChatMessage(userQuery, "human")]
+            chatHistory.current = [...chatHistory.current, new HumanMessage(userQuery)]
 
             setPreviousUserQuery(userQuery)
 
@@ -135,19 +135,17 @@ export function OpportunityFinder(): ReactElement {
 
             // Record bot answer in history.
             if (currentResponse.current) {
-                chatHistory.current = [...chatHistory.current, new ChatMessage(currentResponse.current, "ai")]
+                chatHistory.current = [...chatHistory.current, new AIMessage(currentResponse.current)]
             }
         } catch (error) {
-            if (error instanceof Error) {
-                if (error.name === "AbortError") {
-                    setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.\n\n`)
-                } else {
-                    console.error(error.stack)
-                }
+            if (error instanceof Error && error.name === "AbortError") {
+                setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.\n\n`)
             } else {
-                setUserLlmChatOutput(
-                    `Internal error: \n\n${error}\n More information may be available in the browser console.`
-                )
+                // Add error to output
+                setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nError occurred: ${error}\n\n`)
+
+                // log error to console
+                console.error(error)
             }
         } finally {
             // Reset state, whatever happened during request
@@ -263,6 +261,7 @@ export function OpportunityFinder(): ReactElement {
                             onClick={() => {
                                 setUserLlmChatOutput("")
                                 chatHistory.current = []
+                                setPreviousUserQuery("")
                             }}
                             variant="secondary"
                             style={{

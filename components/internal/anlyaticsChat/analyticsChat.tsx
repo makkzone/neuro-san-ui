@@ -362,6 +362,8 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                             onClick={() => {
                                 setUserLlmChatOutput("")
                                 chatHistory.current = []
+                                currentResponse.current = ""
+                                setImageData(null)
                             }}
                             variant="secondary"
                             style={{

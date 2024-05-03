@@ -3,6 +3,8 @@
  * Allows streaming callback for a more interactive experience.
  */
 
+import {BaseMessage} from "langchain/schema"
+
 import {MessageWithKargs} from "../../pages/api/gpt/shared/types"
 
 /**
@@ -21,7 +23,7 @@ export async function sendLlmRequest(
     fetchUrl: string,
     params: Record<string, unknown>,
     userQuery?: string,
-    chatHistory?: MessageWithKargs[]
+    chatHistory?: (BaseMessage | MessageWithKargs)[]
 ) {
     const res = await fetch(fetchUrl, {
         method: "POST",
