@@ -63,12 +63,15 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
         // If they were to change and we had to re-run a run it might fail
         async function callSetTaggedData() {
             if (data.SelectedDataSourceId) {
-                return setTaggedData(await loadDataTag(currentUser, data.SelectedDataSourceId))
+                const dataTag = await loadDataTag(currentUser, data.SelectedDataSourceId)
+                if (dataTag) {
+                    const dataTagAsObject = DataTag.fromJSON(dataTag)
+                    setTaggedData(dataTagAsObject)
+                }
             }
-            return null
         }
 
-        callSetTaggedData()
+        void callSetTaggedData()
     }, [data.SelectedDataSourceId])
 
     // We need to take an intersection of what is in the state (for eg: Predictor Node Creation)

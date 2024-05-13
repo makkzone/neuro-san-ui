@@ -109,7 +109,8 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                     ["s3_url"]
                 )
                 if (dataSources.length > 0) {
-                    setDataSourceUrl(dataSources[0].s3Url)
+                    const dataSourceAsObject = DataSource.fromJSON(dataSources[0])
+                    setDataSourceUrl(dataSourceAsObject.s3Url)
                 } else {
                     sendNotification(
                         NotificationType.error,

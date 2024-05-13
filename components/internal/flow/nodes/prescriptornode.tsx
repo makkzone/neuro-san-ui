@@ -14,6 +14,7 @@ import {docco} from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import {Handle, Position as HandlePosition, NodeProps, Node as RFNode} from "reactflow"
 
 import {loadDataTag} from "../../../../controller/datatag/fetchdatataglist"
+import {DataTag} from "../../../../generated/metadata"
 import {NotificationType, sendNotification} from "../../../notification"
 
 // Define an interface for the structure
@@ -133,10 +134,14 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
         //TODO: Reason: Data Tags can change and we don"t version them explicitly - this will be an easy way of doing
         // that. If they were to change and we had to re-run a run it might fail
         async function callSetTaggedData() {
-            return setTaggedData(await loadDataTag(currentUser, data.SelectedDataSourceId))
+            const dataTag = await loadDataTag(currentUser, data.SelectedDataSourceId)
+            if (dataTag) {
+                const dataTagAsObject = DataTag.fromJSON(dataTag)
+                setTaggedData(dataTagAsObject)
+            }
         }
 
-        callSetTaggedData()
+        void callSetTaggedData()
     }, [data.SelectedDataSourceId])
 
     useEffect(() => {
@@ -147,7 +152,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
             if (taggedData) {
                 Object.keys(taggedData.fields).forEach((fieldName) => {
                     const field = taggedData.fields[fieldName]
-                    switch (field.esp_type.toString()) {
+                    switch (field.espType.toString()) {
                         case "CONTEXT":
                             CAOState.context[fieldName] = CAOState.context[fieldName] ?? true
                             break

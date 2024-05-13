@@ -21,7 +21,7 @@ import updateDataTag from "../../controller/datatag/update"
 import {uploadFile} from "../../controller/files/upload"
 import {Project} from "../../controller/projects/types"
 import updateProject from "../../controller/projects/update"
-import {DataSource, DataTag, DataTagField, Profile} from "../../generated/metadata"
+import {DataSource, DataSourceDataSourceType, DataTag, DataTagField, Profile} from "../../generated/metadata"
 import {getFileName, splitFilename, toSafeFilename} from "../../utils/file"
 import {empty} from "../../utils/objects"
 import BlankLines from "../blanklines"
@@ -553,7 +553,7 @@ export default function NewProject(props: NewProps) {
             updatedAt: undefined,
             id: undefined,
             name: undefined,
-            type: undefined,
+            type: DataSourceDataSourceType.CSV,
             s3Url: undefined,
             s3Version: undefined,
             dataTags: undefined,
@@ -592,7 +592,7 @@ export default function NewProject(props: NewProps) {
         }
 
         // If we got this far, profile was created successfully
-        const tmpProfile: Profile = await response.json()
+        const tmpProfile: Profile = Profile.fromJSON(await response.json())
 
         // Notify user
         // Check for any columns discarded by backend
@@ -687,7 +687,7 @@ export default function NewProject(props: NewProps) {
             createdAt: undefined,
             updatedAt: undefined,
             id: undefined,
-            type: undefined,
+            type: DataSourceDataSourceType.CSV,
             s3Url: undefined,
             s3Version: undefined,
             dataTags: undefined,
@@ -726,7 +726,7 @@ export default function NewProject(props: NewProps) {
 
             if (
                 dataField.valued === "CATEGORICAL" &&
-                dataField.discrete_categorical_values.length > MAX_ALLOWED_CATEGORIES
+                dataField.discreteCategoricalValues.length > MAX_ALLOWED_CATEGORIES
             ) {
                 hasTooManyCategories = true
             }
@@ -774,8 +774,8 @@ export default function NewProject(props: NewProps) {
         if (hasNaNField) {
             sendNotification(
                 NotificationType.warning,
-                "This Project's data source contains rows that have NaN values. " +
-                    "A confabulator node will need to be added to fill in the NaN values."
+                "This Project's data source contains rows that have NaN values. A confabulator node will need to be " +
+                    "added to fill in the NaN values."
             )
         }
         if (hasTooManyCategories) {

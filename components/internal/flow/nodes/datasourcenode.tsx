@@ -8,6 +8,7 @@ import {Handle, NodeProps, Position, Node as RFNode} from "reactflow"
 
 import loadDataTags from "../../../../controller/datatag/fetchdatataglist"
 import {DataSource, DataTag} from "../../../../generated/metadata"
+import {TaggedDataInfo} from "../../../../pages/projects/[projectID]/experiments/new"
 import {NotificationType, sendNotification} from "../../../notification"
 
 export interface DataSourceNodeData {
@@ -30,7 +31,7 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = (props) => {
     const {idExtension = ""} = data
     const projectId: number = data.ProjectID
 
-    const [taggedDataList, setTaggedDataList] = useState([])
+    const [taggedDataList, setTaggedDataList] = useState<TaggedDataInfo[]>([])
 
     // Get the current user
     const {data: session} = useSession()
@@ -38,9 +39,9 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = (props) => {
 
     // Fetch the Data Sources and the Data Tags
     useEffect(() => {
-        async function loadDataTag() {
+        async function loadDataTagList() {
             if (projectId != null) {
-                const taggedDataListTmp = await loadDataTags(currentUser, projectId)
+                const taggedDataListTmp: TaggedDataInfo[] = await loadDataTags(currentUser, projectId)
                 if (taggedDataListTmp != null && taggedDataListTmp.length > 0) {
                     setTaggedDataList(taggedDataListTmp)
                 } else {
@@ -56,7 +57,7 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = (props) => {
             }
         }
 
-        void loadDataTag()
+        void loadDataTagList()
     }, [projectId])
 
     // Set the Selected Data Source Id at initialization of data tags
