@@ -545,6 +545,7 @@ export default function NewProject(props: NewProps) {
 
             options: {
                 allow_nans: true,
+                max_categories: 10000,
             },
 
             request_user: currentUser,
@@ -679,6 +680,7 @@ export default function NewProject(props: NewProps) {
 
         const fields = profile?.data_tag?.fields
         let hasNaNField = false
+        let hasTooManyCategories = false
         // Loop over the Data fields
         Object.keys(fields).forEach((fieldName) => {
             const dataField = fields[fieldName]
@@ -686,6 +688,10 @@ export default function NewProject(props: NewProps) {
             // set the hasNaNField to true
             if (dataField.has_nan) {
                 hasNaNField = true
+            }
+
+            if (dataField.valued === "CATEGORICAL" && dataField.discrete_categorical_values.length > 20) {
+                hasTooManyCategories = true
             }
 
             // Set the value
@@ -726,6 +732,13 @@ export default function NewProject(props: NewProps) {
                 NotificationType.warning,
                 /* eslint-disable-next-line max-len */
                 "This Project's data source contains rows that have NaN values. A confabulator node will need to be added to fill in the NaN values."
+            )
+        }
+        if (hasTooManyCategories) {
+            sendNotification(
+                NotificationType.warning,
+                /* eslint-disable-next-line max-len */
+                "This Project's data source contains a Categorical row(s) that has over 20 categories. A category reducer node will need to be added."
             )
         }
         debug("Saved DT: ", savedDataTag)

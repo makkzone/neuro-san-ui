@@ -13,7 +13,7 @@ import {NotificationType, sendNotification} from "../notification"
  *
  * @return <code>true</code> if all checks pass and okay to proceed with training, otherwise <code>false</code>.
  */
-export function checkValidity(flow: NodeType[]): boolean {
+export async function checkValidity(flow: NodeType[]): Promise<boolean> {
     // Must have at least one predictor
     const predictorNodes = FlowQueries.getPredictorNodes(flow)
     if (predictorNodes.length === 0) {
@@ -148,20 +148,52 @@ export function checkValidity(flow: NodeType[]): boolean {
         const dataNode = dataNodes[0]
         const dataTag = dataNode.data.DataTag
         const columnsWithNaNs = Object.keys(dataTag.fields).filter((key) => dataTag.fields[key].has_nan)
+        const columnsWithTooManyCategories = Object.keys(dataTag.fields).filter((key) => {
+            return (
+                dataTag.fields[key].valued === "CATEGORICAL" &&
+                dataTag.fields[key].discrete_categorical_values.length > 20
+            )
+        })
+        let validFlow = true
+
         if (columnsWithNaNs.length > 0) {
             // We have columns containing NaNs. Is there an LLM in the flow to rescue us?
             const hasConfabulatorNodes = FlowQueries.getNodesByType(flow, "confabulator_node")?.length > 0
             if (!hasConfabulatorNodes) {
+                validFlow = false
                 sendNotification(
                     NotificationType.warning,
                     "Some columns have NaN values which must be filled in prior to training. Please add a " +
                         "confabulator LLM node to continue",
                     `Fields with NaNs: ${commaListFromArray(columnsWithNaNs)}`
                 )
-                return false
+                // set a wait timer here so notifications that come after won't cancel animation
+                await (() =>
+                    new Promise((resolve) => {
+                        setTimeout(resolve, 300)
+                    }))()
             }
         }
+
+        if (columnsWithTooManyCategories.length) {
+            //We have Categorical columns with more than 20 categories. Add a category reduer node.
+            const hasCategoryReducerNode = FlowQueries.getNodesByType(flow, "category_reducer_node")?.length > 0
+            if (!hasCategoryReducerNode) {
+                validFlow = false
+                sendNotification(
+                    NotificationType.warning,
+                    "Some columns have Categorical values with greater than 20 categories. Please add a " +
+                        "category reducer LLM node to continue",
+                    `Fields with too many categories: ${commaListFromArray(columnsWithTooManyCategories)}`
+                )
+            }
+        }
+
+        if (!validFlow) {
+            return false
+        }
     }
+
     // If we got here, all is well
     return true
 }
