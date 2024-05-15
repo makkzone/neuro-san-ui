@@ -14,7 +14,7 @@ import {NotificationType, sendNotification} from "../notification"
  *
  * @return <code>true</code> if all checks pass and okay to proceed with training, otherwise <code>false</code>.
  */
-export async function checkValidity(flow: NodeType[]): Promise<boolean> {
+export function checkValidity(flow: NodeType[]): boolean {
     // Must have at least one predictor
     const predictorNodes = FlowQueries.getPredictorNodes(flow)
     if (predictorNodes.length === 0) {
@@ -167,11 +167,6 @@ export async function checkValidity(flow: NodeType[]): Promise<boolean> {
                         "confabulator LLM node to continue",
                     `Fields with NaNs: ${commaListFromArray(columnsWithNaNs)}`
                 )
-                // set a wait timer here so notifications that come after won't cancel animation
-                await (() =>
-                    new Promise((resolve) => {
-                        setTimeout(resolve, 300)
-                    }))()
             }
         }
 
