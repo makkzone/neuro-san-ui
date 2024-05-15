@@ -1,6 +1,7 @@
 import {FlowQueries} from "./flow/flowqueries"
 import {NodeType} from "./flow/nodes/types"
 import {CAOType} from "../../controller/datatag/types"
+import {MAX_ALLOWED_CATEGORIES} from "../../utils/constants"
 import {arraysEqual, commaListFromArray} from "../../utils/objects"
 import {NotificationType, sendNotification} from "../notification"
 
@@ -148,12 +149,11 @@ export async function checkValidity(flow: NodeType[]): Promise<boolean> {
         const dataNode = dataNodes[0]
         const dataTag = dataNode.data.DataTag
         const columnsWithNaNs = Object.keys(dataTag.fields).filter((key) => dataTag.fields[key].has_nan)
-        const columnsWithTooManyCategories = Object.keys(dataTag.fields).filter((key) => {
-            return (
+        const columnsWithTooManyCategories = Object.keys(dataTag.fields).filter(
+            (key) =>
                 dataTag.fields[key].valued === "CATEGORICAL" &&
-                dataTag.fields[key].discrete_categorical_values.length > 20
-            )
-        })
+                dataTag.fields[key].discrete_categorical_values.length > MAX_ALLOWED_CATEGORIES
+        )
         let validFlow = true
 
         if (columnsWithNaNs.length > 0) {

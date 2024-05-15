@@ -63,5 +63,4 @@ export function sendNotification(
         closeIcon: closeIcon,
         placement: placement,
     })
-    // set a wait timer here so notifications that come after won't cancel animation
 }

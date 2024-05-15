@@ -24,6 +24,7 @@ import updateDataTag from "../../controller/datatag/update"
 import {uploadFile} from "../../controller/files/upload"
 import {Project} from "../../controller/projects/types"
 import updateProject from "../../controller/projects/update"
+import {MAX_ALLOWED_CATEGORIES} from "../../utils/constants"
 import {getFileName, splitFilename, toSafeFilename} from "../../utils/file"
 import {empty} from "../../utils/objects"
 import BlankLines from "../blanklines"
@@ -690,7 +691,10 @@ export default function NewProject(props: NewProps) {
                 hasNaNField = true
             }
 
-            if (dataField.valued === "CATEGORICAL" && dataField.discrete_categorical_values.length > 20) {
+            if (
+                dataField.valued === "CATEGORICAL" &&
+                dataField.discrete_categorical_values.length > MAX_ALLOWED_CATEGORIES
+            ) {
                 hasTooManyCategories = true
             }
 
@@ -730,15 +734,15 @@ export default function NewProject(props: NewProps) {
         if (hasNaNField) {
             sendNotification(
                 NotificationType.warning,
-                /* eslint-disable-next-line max-len */
-                "This Project's data source contains rows that have NaN values. A confabulator node will need to be added to fill in the NaN values."
+                "This Project's data source contains rows that have NaN values. " +
+                    "A confabulator node will need to be added to fill in the NaN values."
             )
         }
         if (hasTooManyCategories) {
             sendNotification(
                 NotificationType.warning,
-                /* eslint-disable-next-line max-len */
-                "This Project's data source contains a Categorical row(s) that has over 20 categories. A category reducer node will need to be added."
+                "This Project's data source contains a Categorical row(s) that has over 20 categories. " +
+                    "A category reducer node will need to be added."
             )
         }
         debug("Saved DT: ", savedDataTag)
