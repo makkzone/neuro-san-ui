@@ -361,7 +361,7 @@ body {
     width: 250px !important;
 }
 
-/* For antd table header */
+/* For antd tables */
 .ant-table-thead .ant-table-cell {
     background-color: #2f78c4 !important;
     color: white !important;
@@ -369,6 +369,25 @@ body {
 
 .antd-row-hover:hover {
     cursor: pointer;
+}
+
+/* Fix for antd table column sorting icons. There are other rules in this stylesheet that are very general
+and apply to all SVGs, so we need to be more specific here.
+ */
+.ant-table-column-sorter-up.active svg {
+    fill: white;
+}
+
+.ant-table-column-sorter-up svg {
+    fill: gray;
+}
+
+.ant-table-column-sorter-down.active svg {
+    fill: white;
+}
+
+.ant-table-column-sorter-down svg {
+    fill: gray;
 }
 
 /*
