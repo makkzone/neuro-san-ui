@@ -13,7 +13,7 @@ import ClipLoader from "react-spinners/ClipLoader"
 
 import {checkValidity} from "./dataprofile/dataprofileutils"
 import ProfileTable from "./dataprofile/profiletable"
-import {MaximumBlue} from "../../const"
+import {MAX_ALLOWED_CATEGORIES, MaximumBlue} from "../../const"
 import {GrpcError} from "../../controller/base_types"
 import {createProfile} from "../../controller/dataprofile/generate"
 import {Profile} from "../../controller/dataprofile/types"
@@ -24,7 +24,6 @@ import updateDataTag from "../../controller/datatag/update"
 import {uploadFile} from "../../controller/files/upload"
 import {Project} from "../../controller/projects/types"
 import updateProject from "../../controller/projects/update"
-import {MAX_ALLOWED_CATEGORIES} from "../../utils/constants"
 import {getFileName, splitFilename, toSafeFilename} from "../../utils/file"
 import {empty} from "../../utils/objects"
 import BlankLines from "../blanklines"
@@ -546,7 +545,7 @@ export default function NewProject(props: NewProps) {
 
             options: {
                 allow_nans: true,
-                // This is tha max number of categories any categorical column can have
+                // This is the max number of categories any categorical column can have
                 // https://leaf-ai.atlassian.net/browse/UN-2078
                 max_categories: 200,
             },

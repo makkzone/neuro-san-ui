@@ -1,7 +1,7 @@
 import {FlowQueries} from "./flow/flowqueries"
 import {NodeType} from "./flow/nodes/types"
+import {MAX_ALLOWED_CATEGORIES} from "../../const"
 import {CAOType} from "../../controller/datatag/types"
-import {MAX_ALLOWED_CATEGORIES} from "../../utils/constants"
 import {arraysEqual, commaListFromArray} from "../../utils/objects"
 import {NotificationType, sendNotification} from "../notification"
 
