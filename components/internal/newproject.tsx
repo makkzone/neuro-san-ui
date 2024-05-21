@@ -13,7 +13,7 @@ import ClipLoader from "react-spinners/ClipLoader"
 
 import {checkValidity} from "./dataprofile/dataprofileutils"
 import ProfileTable from "./dataprofile/profiletable"
-import {MAX_ALLOWED_CATEGORIES, MaximumBlue} from "../../const"
+import {MAX_ALLOWED_CATEGORIES, MAX_DATA_PROFILE_ALLOWED_CATEGORIES, MaximumBlue} from "../../const"
 import {GrpcError} from "../../controller/base_types"
 import {createProfile} from "../../controller/dataprofile/generate"
 import {Profile} from "../../controller/dataprofile/types"
@@ -547,7 +547,7 @@ export default function NewProject(props: NewProps) {
                 allow_nans: true,
                 // This is the max number of categories any categorical column can have
                 // https://leaf-ai.atlassian.net/browse/UN-2078
-                max_categories: 200,
+                max_categories: MAX_DATA_PROFILE_ALLOWED_CATEGORIES,
             },
 
             request_user: currentUser,
@@ -742,8 +742,8 @@ export default function NewProject(props: NewProps) {
         if (hasTooManyCategories) {
             sendNotification(
                 NotificationType.warning,
-                "This Project's data source contains a Categorical row(s) that has over 20 categories. " +
-                    "A category reducer node will need to be added."
+                `This Project's data source contains a Categorical row(s) that has greater than 
+                ${MAX_ALLOWED_CATEGORIES} categories. A category reducer node will need to be added.`
             )
         }
         debug("Saved DT: ", savedDataTag)

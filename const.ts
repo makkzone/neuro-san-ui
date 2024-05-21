@@ -85,3 +85,7 @@ export const chatbotTheme = {
 // Maximum allowed categorical values before we prompt a user to add a category reducer node.
 // This number was the previous maximum categorical values the BE would handle.
 export const MAX_ALLOWED_CATEGORIES = 20
+
+// Maximum allowed categorical values from a datasource before the row is rejected.
+// https://leaf-ai.atlassian.net/browse/UN-2078
+export const MAX_DATA_PROFILE_ALLOWED_CATEGORIES = 200

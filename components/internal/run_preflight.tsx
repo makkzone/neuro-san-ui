@@ -177,8 +177,8 @@ export function checkValidity(flow: NodeType[]): boolean {
                 validFlow = false
                 sendNotification(
                     NotificationType.warning,
-                    "Some columns have Categorical values with greater than 20 categories. Please add a " +
-                        "category reducer LLM node to continue",
+                    `Some columns have Categorical values with greater than 
+                    ${MAX_ALLOWED_CATEGORIES} categories. Please add a category reducer LLM node to continue`,
                     `Fields with too many categories: ${commaListFromArray(columnsWithTooManyCategories)}`
                 )
             }
