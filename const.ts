@@ -89,3 +89,6 @@ export const MAX_ALLOWED_CATEGORIES = 20
 // Maximum allowed categorical values from a datasource before the row is rejected.
 // https://leaf-ai.atlassian.net/browse/UN-2078
 export const MAX_DATA_PROFILE_ALLOWED_CATEGORIES = 200
+
+// "Magic" user name for demo projects
+export const DEMO_USER = "leaf_demo_user"
