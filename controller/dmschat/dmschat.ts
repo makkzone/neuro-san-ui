@@ -1,7 +1,7 @@
 /**
  * Controller module for interacting with the DMS CHAT LLM API.
  */
-import {ChatMessage} from "@langchain/core/messages"
+import {BaseMessage} from "@langchain/core/messages"
 
 import {sendLlmRequest} from "../llm/llm_chat"
 import {Run} from "../run/types"
@@ -28,7 +28,7 @@ export async function sendDmsChatQuery(
     callback: (string) => void,
     signal: AbortSignal,
     run: Run,
-    chatHistory?: ChatMessage[],
+    chatHistory?: BaseMessage[],
     projectName?: string,
     projectDescription?: string
 ) {

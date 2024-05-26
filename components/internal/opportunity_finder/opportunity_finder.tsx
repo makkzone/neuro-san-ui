@@ -22,6 +22,9 @@ import BlankLines from "../../blanklines"
  * (via the backend) with full context about the current DMS page, in a question-and-answer chat format.
  */
 export function OpportunityFinder(): ReactElement {
+    // User LLM chat input
+    const [userLlmChatInput, setUserLlmChatInput] = useState<string>("")
+
     // Previous user query (for "regenerate" feature)
     const [previousUserQuery, setPreviousUserQuery] = useState<string>("")
 
@@ -31,8 +34,12 @@ export function OpportunityFinder(): ReactElement {
     // Stores whether are currently awaiting LLM response (for knowing when to show spinners)
     const [isAwaitingLlm, setIsAwaitingLlm] = useState(false)
 
-    // State for the typeahead
-    const [selectedString, setSelectedString] = useState<string>("")
+    // Use useRef here since we don't want changes in the chat history to trigger a re-render
+    const chatHistory = useRef<BaseMessage[]>([])
+
+    // To accumulate current response, which will be different than the contents of the output window if there is a
+    // chat session
+    const currentResponse = useRef<string>("")
 
     // Type for agent options
     type AgentOption = {
@@ -50,13 +57,6 @@ export function OpportunityFinder(): ReactElement {
 
     // Selected option for agent to interact with
     const [selectedAgent, setSelectedAgent] = useState(agentOptions[0])
-
-    // Use useRef here since we don't want changes in the chat history to trigger a re-render
-    const chatHistory = useRef<BaseMessage[]>([])
-
-    // To accumulate current response, which will be different than the contents of the output window if there is a
-    // chat session
-    const currentResponse = useRef<string>("")
 
     // Ref for output text area, so we can auto scroll it
     const llmOutputTextAreaRef = useRef(null)
@@ -77,7 +77,7 @@ export function OpportunityFinder(): ReactElement {
     const [shouldWrapOutput, setShouldWrapOutput] = useState<boolean>(true)
 
     function clearInput() {
-        setSelectedString("")
+        setUserLlmChatInput("")
     }
 
     useEffect(() => {
@@ -163,7 +163,7 @@ export function OpportunityFinder(): ReactElement {
     async function handleUserQuery(event: FormEvent<HTMLFormElement>) {
         // Prevent submitting form
         event.preventDefault()
-        await sendQuery(selectedString)
+        await sendQuery(userLlmChatInput)
     }
 
     function handleStop() {
@@ -178,7 +178,7 @@ export function OpportunityFinder(): ReactElement {
     }
 
     // Regex to check if user has typed anything besides whitespace
-    const userInputEmpty = !selectedString || selectedString.length === 0 || hasOnlyWhitespace(selectedString)
+    const userInputEmpty = !userLlmChatInput || userLlmChatInput.length === 0 || hasOnlyWhitespace(userLlmChatInput)
 
     // Disable Send when request is in progress
     const shouldDisableSendButton = userInputEmpty || isAwaitingLlm
@@ -375,9 +375,9 @@ export function OpportunityFinder(): ReactElement {
                                     marginLeft: "7px",
                                 }}
                                 onChange={(event) => {
-                                    setSelectedString(event.target.value)
+                                    setUserLlmChatInput(event.target.value)
                                 }}
-                                value={selectedString}
+                                value={userLlmChatInput}
                             />
                             <Button
                                 id="clear-input-button"

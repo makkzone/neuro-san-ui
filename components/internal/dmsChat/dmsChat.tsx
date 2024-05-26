@@ -1,7 +1,7 @@
 /**
  * This is the module for the "AI decision assistant".
  */
-import {ChatMessage} from "@langchain/core/messages"
+import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
 import {Drawer} from "antd"
 import {ChangeEvent, FormEvent, ReactElement, useRef, useState} from "react"
 import {Button, Form, InputGroup} from "react-bootstrap"
@@ -42,6 +42,12 @@ export function DMSChat(props: {
     // Stores whether are currently awaiting LLM response (for knowing when to show spinners)
     const [isAwaitingLlm, setIsAwaitingLlm] = useState(false)
 
+    // Use useRef here since we don't want changes in the chat history to trigger a re-render
+    const chatHistory = useRef<BaseMessage[]>([])
+
+    // To accumulate current response, which will be different than the contents of the output window if there is a
+    // chat session
+    const currentResponse = useRef<string>("")
     // Ref for output text area, so we can auto scroll it
     const llmOutputTextAreaRef = useRef(null)
 
@@ -50,14 +56,9 @@ export function DMSChat(props: {
 
     // Controller for cancelling fetch request
     const controller = useRef<AbortController>(null)
-
-    // Use useRef here since we don't want changes in the chat history to trigger a re-render
-    const chatHistory = useRef<ChatMessage[]>([])
-
-    // To accumulate current response, which will be different than the contents of the output window if there is a
-    // chat session
-    const currentResponse = useRef<string>("")
-
+    function clearInput() {
+        setUserLlmChatInput("")
+    }
     /**
      * Handles a token received from the LLM via callback on the fetch request.
      * @param token The token received from the LLM
@@ -98,7 +99,7 @@ export function DMSChat(props: {
     async function sendQuery(userQuery: string) {
         try {
             // Record user query in chat history
-            chatHistory.current = [...chatHistory.current, new ChatMessage(userQuery, "human")]
+            chatHistory.current = [...chatHistory.current, new HumanMessage(userQuery)]
 
             setPreviousUserQuery(userQuery)
 
@@ -108,7 +109,7 @@ export function DMSChat(props: {
             setIsAwaitingLlm(true)
 
             // Always start output by echoing user query
-            setUserLlmChatOutput((currentOutput) => `${currentOutput}Query: ${userQuery}\n\nResponse:\n\n`)
+            setUserLlmChatOutput((currentOutput) => `${currentOutput}\nQuery:\n${userQuery}\n\nResponse:\n\n`)
 
             const abortController = new AbortController()
             controller.current = abortController
@@ -138,24 +139,22 @@ export function DMSChat(props: {
             // tokens.
             const finalAnswer = extractFinalAnswer(currentResponse.current)
             if (finalAnswer && finalAnswer.length > 0) {
-                chatHistory.current = [...chatHistory.current, new ChatMessage(finalAnswer[0], "ai")]
+                chatHistory.current = [...chatHistory.current, new AIMessage(finalAnswer[0])]
             }
         } catch (error) {
-            if (error instanceof Error) {
-                if (error.name === "AbortError") {
-                    setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.\n\n`)
-                } else {
-                    console.error(error.stack)
-                }
+            if (error instanceof Error && error.name === "AbortError") {
+                setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.\n\n`)
             } else {
-                setUserLlmChatOutput(
-                    `Internal error: \n\n${error}\n More information may be available in the browser console.`
-                )
+                // Add error to output
+                setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nError occurred: ${error}\n\n`)
+
+                // log error to console
+                console.error(error)
             }
         } finally {
             // Reset state, whatever happened during request
             setIsAwaitingLlm(false)
-            setUserLlmChatInput("")
+            clearInput()
             currentResponse.current = ""
         }
     }
@@ -198,11 +197,11 @@ export function DMSChat(props: {
 
     function handleStop() {
         try {
-            controller?.current?.abort("User cancelled request")
+            controller?.current?.abort()
             controller.current = null
         } finally {
             setIsAwaitingLlm(false)
-            setUserLlmChatInput("")
+            clearInput()
             currentResponse.current = ""
         }
     }
@@ -243,6 +242,7 @@ export function DMSChat(props: {
                             readOnly={true}
                             ref={llmOutputTextAreaRef}
                             as="textarea"
+                            placeholder="(DMS Chat output will appear here)"
                             style={{
                                 background: "ghostwhite",
                                 borderColor: MaximumBlue,
@@ -259,6 +259,7 @@ export function DMSChat(props: {
                             onClick={() => {
                                 setUserLlmChatOutput("")
                                 chatHistory.current = []
+                                setPreviousUserQuery("")
                             }}
                             variant="secondary"
                             style={{
