@@ -50,7 +50,7 @@ const HeaderLineOne = styled.h1`
 
 const LaunchButton = styled.div`
     display: inline-block;
-    margin-top: 4rem;
+    margin-top: 3rem;
     font-weight: bold;
     font-size: 1.25rem;
     border-radius: 1000px;

@@ -362,7 +362,7 @@ body {
 }
 
 #splash-links-container {
-    margin-top: 25px;
+    margin-top: 8rem;
 }
 
 #additional-links-container {
@@ -380,10 +380,6 @@ body {
 
 .splash-link:hover {
     color: white;
-}
-
-#neuro-ai-tools-container {
-    display: flex;
 }
 
 /* For antd tables */
