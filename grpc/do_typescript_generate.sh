@@ -18,13 +18,12 @@ PROTOS_DIR=./proto
 mkdir -p "${PROTOS_DIR}/internal"
 cp -r "node_modules/protobufjs/google" "${PROTOS_DIR}/internal"
 
+# More copying of files to work around Google hard-coded paths
 OPENAPIV2=protoc-gen-openapiv2
 GRPC_ECOSYSTEM_PATH="grpc-ecosystem/grpc-gateway/v2"
 
 # This is a hack to avoid nasty problems with proto files
 # import paths and such.
-# End result is much simpler generation, and these extra protobuf features
-# will likely go away anyway, when we abandon Golang implementation.
 echo "Copying up ${OPENAPIV2} directory"
 rm -rf "${PROTOS_DIR:?}/${OPENAPIV2:?}"
 cp -R "${PROTOS_DIR}/${GRPC_ECOSYSTEM_PATH}/${OPENAPIV2}" "${PROTOS_DIR}"
@@ -32,7 +31,6 @@ cp -R "${PROTOS_DIR}/${GRPC_ECOSYSTEM_PATH}/${OPENAPIV2}" "${PROTOS_DIR}"
 # Ordering matters w/rt where generated file is output
 PROTO_PATH="--proto_path=${GENERATED_DIR} \
             --proto_path=${PROTOS_DIR} \
-            --proto_path=${PROTOS_DIR}/grpc-ecosystem/grpc-gateway/v2 \
             --proto_path=./node_modules/protobufjs"
 
 echo "PROTO_PATH=${PROTO_PATH}"

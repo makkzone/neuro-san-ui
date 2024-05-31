@@ -10,6 +10,12 @@ Note: Previously the project was known as UniLEAF and that name is still used in
     -   Example on mac: `brew install node@18`
     -   For Ubuntu, see this link: https://joshtronic.com/2022/04/24/how-to-install-nodejs-18-on-ubuntu-2004-lts/
     -   Make sure that the node executable is in your path. You can do this by typing `node --version`.
+-   Install the protobuf compiler. This is needed to generate the protocol buffer files for the UI.
+    Instructions for various platforms are [here](https://grpc.io/docs/protoc-installation/).
+-   Generate the protocol buffer files for the UI. This is done by running the following command in the `nextfront` directory:
+    -   `yarn generate`
+    -   This command will generate the necessary files in the `nextfront/generated` directory.
+    -   To view the files: `ls nextfront/generated`
 -   Install `yarn` on your development host. Instructions for all platforms are [here](https://classic.yarnpkg.com/lang/en/docs)
     -   Example using current version on mac: `brew install yarn`
     -   For Ubuntu, see this link: https://classic.yarnpkg.com/lang/en/docs/cli/self-update/
@@ -36,9 +42,23 @@ AUTH0_DOMAIN=cognizant-ai.auth0.com
 # Next items are only needed if you're working on the LLM features of the UI such as the ChatBot or DMS assistant.
 OPENAI_API_KEY=<redacted>
 
+# Model names for the LLM features of the UI. Different models can be used for different features.
+DMS_CHAT_MODEL_NAME=gpt-4o
+OF_MODEL_NAME=gpt-4o
+OPEN_AI_MODEL_NAME=gpt-4o
+
+# Next items are for tracing langchain calls via langsmith: https://smith.langchain.com/
+LANGCHAIN_API_KEY=<your langsmith API key>
+LANGCHAIN_TRACING_V2=<set to true to enable>
+LANGCHAIN_PROJECT=<choose any project name you want>
+
 PINECONE_API_KEY=<redacted>
 PINECONE_INDEX=prod
 PINECONE_ENVIRONMENT=us-east-1-aws
+
+# Next item is if you want to use Bing search in Opportunity Finder
+BingApiKey=ca930e94677e42d0b3b9ec86a75f4e0c
+
 ```
 
 -   Instructions for generating NEXTAUTH_SECRET are [here](https://next-auth.js.org/configuration/options#secret).
