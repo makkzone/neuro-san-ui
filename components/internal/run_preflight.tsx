@@ -1,7 +1,8 @@
 import {FlowQueries} from "./flow/flowqueries"
+import {DataSourceNode} from "./flow/nodes/datasourcenode"
 import {NodeType} from "./flow/nodes/types"
 import {MAX_ALLOWED_CATEGORIES} from "../../const"
-import {DataTagFieldCAOType} from "../../generated/metadata"
+import {DataTag, DataTagFieldCAOType} from "../../generated/metadata"
 import {arraysEqual, commaListFromArray} from "../../utils/objects"
 import {NotificationType, sendNotification} from "../notification"
 
@@ -155,8 +156,8 @@ export function checkValidity(flow: NodeType[]): boolean {
     const dataNodes = FlowQueries.getDataNodes(flow)
     if (dataNodes && dataNodes.length === 1) {
         // Currently we only support a single datasource node
-        const dataNode = dataNodes[0]
-        const dataTag = dataNode.data.DataTag
+        const dataNode: DataSourceNode = dataNodes[0]
+        const dataTag: DataTag = DataTag.fromJSON(dataNode.data.DataTag)
 
         // Store all checked fields from predictor actions and context so that preflight check can verify whether
         // any fields blocked by category reducer field or hasNaN fields are unchecked, which should enable training
@@ -177,6 +178,7 @@ export function checkValidity(flow: NodeType[]): boolean {
         const columnsWithNaNs = Object.keys(dataTag.fields).filter(
             (key) => dataTag.fields[key].hasNan && checkedPredictorContextActions.has(key)
         )
+
         const columnsWithTooManyCategories = Object.keys(dataTag.fields).filter(
             (key) =>
                 dataTag.fields[key].valued === "CATEGORICAL" &&
