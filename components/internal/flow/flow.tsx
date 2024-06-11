@@ -1685,6 +1685,7 @@ export default function Flow(props: FlowProps) {
                                 <ControlButton
                                     id="magic-wand"
                                     onClick={props.handleMagicWand}
+                                    className="pulsing-button"
                                 >
                                     <SlMagicWand
                                         id="magic-wand-icon"
