@@ -1681,17 +1681,19 @@ export default function Flow(props: FlowProps) {
                             }}
                             onFitView={() => tidyView()}
                         >
-                            <ControlButton
-                                id="magic-wand"
-                                onClick={props.handleMagicWand}
-                            >
-                                <SlMagicWand
-                                    id="magic-wand-icon"
-                                    color="black"
-                                    strokeWidth={10}
-                                    size={20}
-                                />
-                            </ControlButton>
+                            <Tooltip title="Use a powerful LLM to analyze your experiment and suggest improvements">
+                                <ControlButton
+                                    id="magic-wand"
+                                    onClick={props.handleMagicWand}
+                                >
+                                    <SlMagicWand
+                                        id="magic-wand-icon"
+                                        color="black"
+                                        strokeWidth={10}
+                                        size={20}
+                                    />
+                                </ControlButton>
+                            </Tooltip>
                         </Controls>
                         {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
                         <Background
