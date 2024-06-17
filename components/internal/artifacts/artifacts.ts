@@ -36,7 +36,7 @@ const DOWNLOADABLE_ARTIFACTS: ArtifactInfo[] = [
     {value: "predictors", label: "Predictors (future)", fileType: ""},
     {value: "prescriptors", label: "Prescriptors (future)", fileType: ""},
     {value: "requirements", label: "Notebook Python Dependencies", fileType: "txt"},
-    {value: "private_dependencies", label: "Archive file containing private library wheel files", fileType: ".zip"},
+    {value: "private_dependencies", label: "Archive file containing private library wheel files", fileType: "zip"},
     {value: "all", label: "All artifacts (zip, future)", fileType: "zip"},
 ]
 
