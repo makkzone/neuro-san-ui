@@ -27,3 +27,10 @@
     margin-bottom: 1rem;
     width: 2.5rem;
 }
+
+#body-div {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("/NeuroAI_SC_BH1.webp");
+    background-size: cover;
+    min-height: 100vh;
+    padding-bottom: 2rem;
+}

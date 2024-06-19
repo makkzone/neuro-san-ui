@@ -9,12 +9,9 @@ import useFeaturesStore from "../state/features"
 import {getTitleBase} from "../utils/title"
 
 const OuterContainer = styled.div`
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("/NeuroAI_SC_BH1.webp");
-    background-size: cover;
     width: 100%;
-    min-height: 100%;
+    min-height: 75vh;
     overflow: scroll;
-    position: absolute;
 `
 
 const Marginer = styled.div`
@@ -63,14 +60,6 @@ const HeaderLineFive = styled.h5`
     font-weight: bold;
 `
 
-const Footer = styled.footer`
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin-bottom: 2rem;
-`
-
 // Main function.
 // Has to be export default for NextJS so tell ts-prune to ignore
 // ts-prune-ignore-next
@@ -114,97 +103,99 @@ export default function Index(): ReactElement {
     }
 
     return (
-        <OuterContainer id="outer-container">
-            <Marginer id="marginer">
-                <Navbar id="nav-bar">
-                    {!isGeneric && (
-                        <>
-                            <NavbarLogo id="logo">
-                                <Link
-                                    id="splash-logo-link"
-                                    href="https://www.cognizant.com/us/en"
+        <div id="splash-page__container">
+            <OuterContainer id="outer-container">
+                <Marginer id="marginer">
+                    <Navbar id="nav-bar">
+                        {!isGeneric && (
+                            <>
+                                <NavbarLogo id="logo">
+                                    <Link
+                                        id="splash-logo-link"
+                                        href="https://www.cognizant.com/us/en"
+                                        target="_blank"
+                                    >
+                                        <NextImage
+                                            id="logo-img"
+                                            width="200"
+                                            height="45"
+                                            src="/cognizant-logo-white.svg"
+                                            alt=""
+                                        />
+                                    </Link>
+                                </NavbarLogo>
+                                <NavbarMiddleSection id="nav-bar-middle" />
+                            </>
+                        )}
+                    </Navbar>
+                    <div id="main-div">
+                        <HeaderLineOne id="header-line">
+                            <div
+                                id="headline-eyebrow"
+                                className="d-block text-white mb-8"
+                            >
+                                {isGeneric ? GENERIC_LOGO : LOGO}
+                            </div>
+                        </HeaderLineOne>
+                        <div id="neuro-ai-tools-container">
+                            <Link
+                                id="of-link"
+                                href={`/opportunityFinder?${buildQueryString()}`}
+                                legacyBehavior={true} // Need this so we can "open in new tab"
+                                passHref
+                            >
+                                <a
+                                    id="of-link-anchor"
                                     target="_blank"
+                                    rel="noopener noreferrer"
+                                    href={`/of?${buildQueryString()}`}
+                                    onMouseEnter={handleMouseEnter}
+                                    onMouseLeave={handleMouseLeave}
                                 >
-                                    <NextImage
-                                        id="logo-img"
-                                        width="200"
-                                        height="45"
-                                        src="/cognizant-logo-white.svg"
-                                        alt=""
-                                    />
-                                </Link>
-                            </NavbarLogo>
-                            <NavbarMiddleSection id="nav-bar-middle" />
-                        </>
-                    )}
-                </Navbar>
-                <div id="main-div">
-                    <HeaderLineOne id="header-line">
-                        <div
-                            id="headline-eyebrow"
-                            className="d-block text-white mb-8"
-                        >
-                            {isGeneric ? GENERIC_LOGO : LOGO}
-                        </div>
-                    </HeaderLineOne>
-                    <div id="neuro-ai-tools-container">
-                        <Link
-                            id="of-link"
-                            href={`/opportunityFinder?${buildQueryString()}`}
-                            legacyBehavior={true} // Need this so we can "open in new tab"
-                            passHref
-                        >
-                            <a
-                                id="of-link-anchor"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                href={`/of?${buildQueryString()}`}
-                                onMouseEnter={handleMouseEnter}
-                                onMouseLeave={handleMouseLeave}
-                            >
-                                <LaunchButton
-                                    id="opportunity-finder-button"
-                                    style={{
-                                        position: "relative",
-                                        ...getButtonStyle([
-                                            "opportunity-finder-button",
-                                            "star-new-span",
-                                            "of-link-anchor",
-                                        ]),
-                                    }}
-                                >
-                                    Opportunity Finder
-                                </LaunchButton>
-                            </a>
-                        </Link>
-                        <Link
-                            id="orchestrator-link"
-                            // Use the URL object form of `href` to pass along the query string
-                            href={`/projects?${buildQueryString()}`}
-                            legacyBehavior={true}
-                            passHref
-                        >
-                            <a
-                                id="of-link-anchor"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                    <LaunchButton
+                                        id="opportunity-finder-button"
+                                        style={{
+                                            position: "relative",
+                                            ...getButtonStyle([
+                                                "opportunity-finder-button",
+                                                "star-new-span",
+                                                "of-link-anchor",
+                                            ]),
+                                        }}
+                                    >
+                                        Opportunity Finder
+                                    </LaunchButton>
+                                </a>
+                            </Link>
+                            <Link
+                                id="orchestrator-link"
+                                // Use the URL object form of `href` to pass along the query string
                                 href={`/projects?${buildQueryString()}`}
-                                style={{marginLeft: "50px"}}
-                                onMouseEnter={handleMouseEnter}
-                                onMouseLeave={handleMouseLeave}
+                                legacyBehavior={true}
+                                passHref
                             >
-                                <LaunchButton
-                                    id="model-orchestrator-button"
-                                    style={{position: "relative", ...getButtonStyle(["model-orchestrator-button"])}}
+                                <a
+                                    id="of-link-anchor"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    href={`/projects?${buildQueryString()}`}
+                                    style={{marginLeft: "50px"}}
+                                    onMouseEnter={handleMouseEnter}
+                                    onMouseLeave={handleMouseLeave}
                                 >
-                                    Model Orchestrator
-                                </LaunchButton>
-                            </a>
-                        </Link>
+                                    <LaunchButton
+                                        id="model-orchestrator-button"
+                                        style={{position: "relative", ...getButtonStyle(["model-orchestrator-button"])}}
+                                    >
+                                        Model Orchestrator
+                                    </LaunchButton>
+                                </a>
+                            </Link>
+                        </div>
                     </div>
-                </div>
-            </Marginer>
-            <Footer id="footer">
+                </Marginer>
+            </OuterContainer>
+            <footer id="footer">
                 <div id="footer_divider" />
                 <div id="additional-links-container">
                     <HeaderLineFive id="additional-links-header">Links</HeaderLineFive>
@@ -258,8 +249,8 @@ export default function Index(): ReactElement {
                         Skygrade
                     </a>
                 </div>
-            </Footer>
-        </OuterContainer>
+            </footer>
+        </div>
     )
 }
 
