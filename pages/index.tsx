@@ -58,8 +58,17 @@ const LaunchButton = styled.div`
     background: #26efe9;
     text-align: center;
 `
-const HeaderLineFour = styled.h4`
+const HeaderLineFive = styled.h5`
     color: white;
+    font-weight: bold;
+`
+
+const Footer = styled.footer`
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin-bottom: 2rem;
 `
 
 // Main function.
@@ -194,7 +203,15 @@ export default function Index(): ReactElement {
                         </Link>
                     </div>
                 </div>
-                <div id="splash-links-container">
+            </Marginer>
+            <Footer id="footer">
+                <div id="footer_divider" />
+                <div id="additional-links-container">
+                    <HeaderLineFive id="additional-links-header">Links</HeaderLineFive>
+                    <div
+                        id="additional-links-divider"
+                        className="link-divider"
+                    />
                     <a
                         id="learn-more-link"
                         className="splash-link"
@@ -202,49 +219,46 @@ export default function Index(): ReactElement {
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        Learn More →
+                        About
                     </a>
-                    <div id="additional-links-container">
-                        <HeaderLineFour id="addition-links-header">Additional Links</HeaderLineFour>
-                        <a
-                            id="ai-innovation-studios-link"
-                            className="splash-link"
-                            href="https://portal-innovationstudio-apps-prod-we-001.azurewebsites.net/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            AI Innovation Studios
-                        </a>
-                        <a
-                            id="neuro-it-ops-link"
-                            className="splash-link"
-                            href="https://www.cognizant.com/us/en/services/neuro-intelligent-automation/neuro-ai-it-operations"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Neuro IT Ops
-                        </a>
-                        <a
-                            id="flowsource-link"
-                            className="splash-link"
-                            href="https://www.cognizant.com/us/en/services/software-engineering-services/flowsource"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Flowsource
-                        </a>
-                        <a
-                            id="skygrade-link"
-                            className="splash-link"
-                            href="https://www.cognizant.com/us/en/services/cloud-solutions/cognizant-skygrade"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Skygrade
-                        </a>
-                    </div>
+                    <a
+                        id="ai-innovation-studios-link"
+                        className="splash-link"
+                        href="https://portal-innovationstudio-apps-prod-we-001.azurewebsites.net/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        AI Innovation Studios
+                    </a>
+                    <a
+                        id="neuro-it-ops-link"
+                        className="splash-link"
+                        href="https://www.cognizant.com/us/en/services/neuro-intelligent-automation/neuro-ai-it-operations"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Neuro IT Ops
+                    </a>
+                    <a
+                        id="flowsource-link"
+                        className="splash-link"
+                        href="https://www.cognizant.com/us/en/services/software-engineering-services/flowsource"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Flowsource
+                    </a>
+                    <a
+                        id="skygrade-link"
+                        className="splash-link"
+                        href="https://www.cognizant.com/us/en/services/cloud-solutions/cognizant-skygrade"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Skygrade
+                    </a>
                 </div>
-            </Marginer>
+            </Footer>
         </OuterContainer>
     )
 }
