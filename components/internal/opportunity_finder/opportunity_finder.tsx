@@ -287,6 +287,9 @@ export function OpportunityFinder(): ReactElement {
                 <div
                     id="opp-finder-agent-div"
                     style={getStyle()}
+                    onClick={() => {
+                        window.open("/projects", "_blank").focus()
+                    }}
                     className={getClassName(3)}
                 >
                     <LuBrainCircuit
@@ -298,12 +301,6 @@ export function OpportunityFinder(): ReactElement {
                         style={{textAlign: "center"}}
                     >
                         Orchestration Agent
-                    </div>
-                    <div
-                        id="coming-soon-text"
-                        style={{textAlign: "center"}}
-                    >
-                        (Coming Soon)
                     </div>
                 </div>
             </div>
