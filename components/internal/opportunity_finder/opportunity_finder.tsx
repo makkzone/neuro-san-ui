@@ -274,7 +274,7 @@ export function OpportunityFinder(): ReactElement {
                 />
                 <div
                     id="opp-finder-agent-div"
-                    style={getStyle()}
+                    style={{...getStyle(), cursor: "pointer"}}
                     onClick={() => {
                         window.open("/projects", "_blank").focus()
                     }}
