@@ -1685,18 +1685,20 @@ export default function Flow(props: FlowProps) {
                                 id="magic-wand-tooltip"
                                 title="Use a powerful LLM to analyze your experiment and suggest improvements"
                             >
-                                <ControlButton
-                                    id="magic-wand"
-                                    onClick={props.handleMagicWand}
-                                    className="pulsing-button"
-                                >
-                                    <SlMagicWand
-                                        id="magic-wand-icon"
-                                        color="black"
-                                        strokeWidth={10}
-                                        size={20}
-                                    />
-                                </ControlButton>
+                                {props.handleMagicWand && (
+                                    <ControlButton
+                                        id="magic-wand"
+                                        onClick={props.handleMagicWand}
+                                        className="pulsing-button"
+                                    >
+                                        <SlMagicWand
+                                            id="magic-wand-icon"
+                                            color="black"
+                                            strokeWidth={10}
+                                            size={20}
+                                        />
+                                    </ControlButton>
+                                )}
                             </Tooltip>
                         </Controls>
                         {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
