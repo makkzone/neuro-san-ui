@@ -182,7 +182,7 @@ const CAOButtons = (props) => {
                                             id={`${flowPrefix}-outcomes-label-${element}${idExtension}`}
                                             className="capitalize"
                                             style={{
-                                                ...(dataOutcomes[element].disabled && {color: "gray"}),
+                                                ...(dataOutcomes[element].disabled && {opacity: "50%"}),
                                             }}
                                         >
                                             {" "}
