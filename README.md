@@ -12,16 +12,16 @@ Note: Previously the project was known as UniLEAF and that name is still used in
     -   Make sure that the node executable is in your path. You can do this by typing `node --version`.
 -   Install the protobuf compiler. This is needed to generate the protocol buffer files for the UI.
     Instructions for various platforms are [here](https://grpc.io/docs/protoc-installation/).
--   Generate the protocol buffer files for the UI. This is done by running the following command in the `nextfront` directory:
-    -   `yarn generate`
-    -   This command will generate the necessary files in the `nextfront/generated` directory.
-    -   To view the files: `ls nextfront/generated`
 -   Install `yarn` on your development host. Instructions for all platforms are [here](https://classic.yarnpkg.com/lang/en/docs)
     -   Example using current version on mac: `brew install yarn`
     -   For Ubuntu, see this link: https://classic.yarnpkg.com/lang/en/docs/cli/self-update/
     -   Make sure that the yarn executable is in your path. You can do this by typing `yarn --version`.
 -   Install app dependencies.
     -   Assuming you've cloned the UniLEAF repo: `cd unileaf/nextfront && yarn install`
+-   Generate the protocol buffer files for the UI. This is done by running the following command in the `nextfront` directory:
+    -   `yarn generate`
+    -   This command will generate the necessary files in the `nextfront/generated` directory.
+    -   To view the files: `ls nextfront/generated`
 -   Set environment variable to specify the gateway.
     -   Most likely you'll want the Dev environment: `export MD_SERVER_URL=https://neuro-ai-dev.evolution.ml`
 -   In your `nextfront` directory, create a file named `.env` which contains the following keys.  
