@@ -804,19 +804,24 @@ export default function RunPage(props: RunProps): React.ReactElement {
 
     const propsId = props.id
     return runLoading ? (
-        <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
-            // ClipLoader does not have an id property
-            color={MaximumBlue}
-            loading={true}
-            cssOverride={{
+        <div
+            style={{
                 position: "absolute",
                 top: "50%",
                 left: "0",
                 right: "0",
                 margin: "auto",
+                textAlign: "center",
             }}
-            size={100}
-        />
+        >
+            <h5>Training Run loading... Please wait</h5>
+            <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                // ClipLoader does not have an id property
+                color={MaximumBlue}
+                loading={true}
+                size={100}
+            />
+        </div>
     ) : (
         <div
             id={propsId}
