@@ -3,7 +3,7 @@
 #
 # Taken from here with slight modifications: https://github.com/vercel/next.js/blob/main/examples/with-docker/Dockerfile
 #
-# It uses multi-stage builds for a smaller resulting image
+# It uses multi-stage builds for a smaller resulting image 
 #
 
 # This is the major version of NodeJS we will enforce
@@ -44,13 +44,11 @@ ENV MODEL_SERVING_VERSION ${MODEL_SERVING_VERSION}
 # Install protobuf compiler and lib
 RUN apt-get update && \
     apt-get install --quiet --assume-yes --no-install-recommends --no-install-suggests \
-      protobuf-compiler libprotobuf-dev
+      protobuf-compiler=3.12.4-1+deb11u1 libprotobuf-dev=3.12.4-1+deb11u1
 
-# Generate probotobuf files
-RUN /bin/bash -c "./grpc/do_typescript_generate.sh"
-
-# Use yarn to build and install dependencies
-RUN yarn build
+# Generate probotobuf files and run yarn
+RUN /bin/bash -c "./grpc/do_typescript_generate.sh" \
+    && yarn build
 
 # Production image, copy all the files and run next
 FROM gcr.io/distroless/nodejs:$NODEJS_VERSION AS runner
