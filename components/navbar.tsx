@@ -12,6 +12,7 @@ import {ReactElement} from "react"
 import {Navbar as BootstrapNavbar, Container, Dropdown, Nav, NavItem, NavLink, Row} from "react-bootstrap"
 
 import {MaximumBlue, UNILEAF_VERSION} from "../const"
+import useUserInfoStore from "../state/userInfo"
 import {useAuthentication} from "../utils/authentication"
 
 // Define Constants
@@ -45,6 +46,43 @@ function Navbar(props: NavbarProps): ReactElement {
 
     const userInfo = session.user
     const userName = userInfo.name
+
+    // access user info store
+    const {currentUser, setCurrentUser, setPicture} = useUserInfoStore()
+
+    function createAuth0LogoutUrl(returnTo: string) {
+        // const AUTH0_DOMAIN = process.env.NEXT_PUBLIC_AUTH0_DOMAIN
+        // const CLIENT_ID = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID
+
+        // https://YOUR_AUTH0_DOMAIN/v2/logout?client_id=YOUR_CLIENT_ID&returnTo=YOUR_RETURN_URL
+
+        const AUTH0_DOMAIN = "cognizant-ai.auth0.com"
+        const CLIENT_ID = "MKuUdcFmgAqwD9qGemVSQHJBLxui7juf"
+
+        return `https://${AUTH0_DOMAIN}/v2/logout?client_id=${CLIENT_ID}&returnTo=${encodeURIComponent(returnTo)}`
+    }
+
+    async function handleSignOut() {
+        if (currentUser === undefined) {
+            // Don't know what authentication provider we're using, so just return
+            return
+        }
+
+        if (currentUser !== null) {
+            // ALB case
+            setCurrentUser(undefined)
+            setPicture(undefined)
+            const logoutUrl = createAuth0LogoutUrl("https://uitest.evolution.ml")
+            console.debug("Logging out with URL:", logoutUrl)
+            window.location.href = logoutUrl
+        } else {
+            // NextAuth case
+            await signOut({redirect: false})
+        }
+    }
+
+    const brand = `${props.Logo} (${currentUser ? "ALB" : "NextAuth"})`
+
     return (
         <Container id="nav-bar-container">
             <Row id="nav-bar-menu-row">
@@ -69,7 +107,7 @@ function Navbar(props: NavbarProps): ReactElement {
                             style={{color: LOGO_COLOR}}
                             className="font-bold ml-2"
                         >
-                            {props.Logo}
+                            {brand}
                         </BootstrapNavbar.Brand>
                     </Link>
                     <BootstrapNavbar.Collapse id="responsive-navbar-nav">
@@ -83,22 +121,7 @@ function Navbar(props: NavbarProps): ReactElement {
                                 className="px-3"
                                 style={{color: NAV_ITEMS_COLOR}}
                             >
-                                Build: {UNILEAF_VERSION ?? "Unknown"}
-                            </Nav.Item>
-                            <Nav.Item
-                                id="projects"
-                                className="px-3"
-                            >
-                                <Link
-                                    id="project-links"
-                                    style={{color: NAV_ITEMS_COLOR}}
-                                    href={{
-                                        pathname: "/projects",
-                                        query: router.query,
-                                    }}
-                                >
-                                    Projects
-                                </Link>
+                                Build: <strong id="build-strong">{UNILEAF_VERSION ?? "Unknown"}</strong>
                             </Nav.Item>
                             <Dropdown
                                 id="help-dropdown"
@@ -112,7 +135,10 @@ function Navbar(props: NavbarProps): ReactElement {
                                 >
                                     Help
                                 </Dropdown.Toggle>
-                                <Dropdown.Menu id="help-menu">
+                                <Dropdown.Menu
+                                    id="help-menu"
+                                    style={{backgroundColor: "ghostwhite"}}
+                                >
                                     <Dropdown.Item
                                         id="user-guide"
                                         href="/userguide"
@@ -129,9 +155,12 @@ function Navbar(props: NavbarProps): ReactElement {
                                 >
                                     <Dropdown.Toggle
                                         as={NavLink}
-                                        className="px-3 py-0"
+                                        className="px-3 py-0 d-flex align-items-center"
                                         id="user-dropdown-toggle"
-                                        style={{color: NAV_ITEMS_COLOR, background: MaximumBlue}}
+                                        style={{
+                                            color: NAV_ITEMS_COLOR,
+                                            background: MaximumBlue,
+                                        }}
                                     >
                                         {session?.user?.image && (
                                             <NextImage
@@ -140,11 +169,14 @@ function Navbar(props: NavbarProps): ReactElement {
                                                 width="30"
                                                 height="30"
                                                 title={userName}
-                                                alt="..."
+                                                alt="User image"
                                             />
                                         )}
                                     </Dropdown.Toggle>
-                                    <Dropdown.Menu id="user-menu">
+                                    <Dropdown.Menu
+                                        id="user-menu"
+                                        style={{backgroundColor: "ghostwhite"}}
+                                    >
                                         <Dropdown.Item
                                             id="user-signed-in-as"
                                             target="_blank"
@@ -171,7 +203,7 @@ function Navbar(props: NavbarProps): ReactElement {
                                         <Dropdown.Item
                                             id="user-sign-out"
                                             target="_blank"
-                                            onClick={async () => signOut({redirect: false})}
+                                            onClick={handleSignOut}
                                         >
                                             Sign out
                                         </Dropdown.Item>
