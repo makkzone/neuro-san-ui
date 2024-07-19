@@ -62,9 +62,9 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const {data: session} = useAuthentication()
     const currentUser: string = session.user.name
 
-    const [predictorPlotData, setPredictorPlotData] = useState({})
-    const [prescriptorPlotData, setPrescriptorPlotData] = useState({})
-    const [paretoPlotData, setParetoPlotData] = useState({})
+    const [predictorPlotData, setPredictorPlotData] = useState(null)
+    const [prescriptorPlotData, setPrescriptorPlotData] = useState(null)
+    const [paretoPlotData, setParetoPlotData] = useState(null)
     const [isLoadingPlotData, setIsLoadingPlotData] = useState(false)
     const [nodeToCIDMap, setNodeToCIDMap] = useState<Record<string, string>>({})
     const [run, setRun] = useState(null)
