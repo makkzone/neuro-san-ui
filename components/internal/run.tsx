@@ -62,9 +62,9 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const {data: session} = useAuthentication()
     const currentUser: string = session.user.name
 
-    const [predictorPlotData, setPredictorPlotData] = useState(null)
-    const [prescriptorPlotData, setPrescriptorPlotData] = useState(null)
-    const [paretoPlotData, setParetoPlotData] = useState(null)
+    const [predictorPlotData, setPredictorPlotData] = useState<object | null>(null)
+    const [prescriptorPlotData, setPrescriptorPlotData] = useState<object | null>(null)
+    const [paretoPlotData, setParetoPlotData] = useState<object | null>(null)
     const [isLoadingPlotData, setIsLoadingPlotData] = useState(false)
     const [nodeToCIDMap, setNodeToCIDMap] = useState<Record<string, string>>({})
     const [run, setRun] = useState(null)
@@ -307,6 +307,10 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     prescriptors: prescriptorInfo,
                 })
             }
+        } else {
+            setPredictorPlotData({})
+            setPrescriptorPlotData({})
+            setParetoPlotData({})
         }
         setIsLoadingPlotData(false)
     }
