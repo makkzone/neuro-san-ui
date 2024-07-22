@@ -4,3 +4,4 @@ next-env.d.ts
 proto
 tsconfig.tsbuildinfo
 yarn-error.log
+coverage

@@ -13,10 +13,29 @@ const createJestConfig = nextJest({
 
 /** @type {import('jest').Config} */
 const config: Config.InitialOptions = {
-    // Add more setup options before each test is run
-    setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+    // For details on these settings: https://jestjs.io/docs/configuration#coveragethreshold-object
 
+    verbose: true,
+    setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
     testEnvironment: "jest-environment-jsdom",
+    collectCoverage: true,
+    collectCoverageFrom: ["**/*.{js,jsx,ts,tsx}", "!**/node_modules/**", "!.next/**", "!**/coverage/**", "!jest*.ts"],
+    coverageReporters: ["text-summary"],
+    coverageThreshold: {
+        global: {
+            lines: 8.0,
+            branches: 3.5,
+            functions: 6.8,
+            statements: 7.8,
+        },
+        // Coverage on utils is a little higher
+        "./utils/": {
+            statements: 15.0,
+            branches: 5.8,
+            functions: 15.0,
+            lines: 15.0,
+        },
+    },
 }
 
 // Required for Jest to function so tell ts-prune to ignore it
