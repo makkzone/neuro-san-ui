@@ -773,7 +773,6 @@ async function queryModelNew(run: Run, modelUrl: string, inputs: PredictorParams
             sampleData: JSON.stringify(inputs),
         }
 
-
         const requestJson = InferenceRequest.toJSON(request)
         const baseUrl = useEnvironmentStore.getState().backendApiUrl
         const inferRoute = `${baseUrl}/api/v1/inference/infer`
