@@ -1,6 +1,5 @@
 import {Button, Modal} from "antd"
 import {useState} from "react"
-import ClipLoader from "react-spinners/ClipLoader"
 
 export const ConfirmationModal = ({
     title = "",
@@ -23,29 +22,14 @@ export const ConfirmationModal = ({
             disabled={isLoading}
             onClick={async () => {
                 if (handleOk) {
-                    const isHandleOkAsync = handleOk.constructor.name === "AsyncFunction"
-                    if (isHandleOkAsync) {
-                        setIsLoading(true)
-                        await handleOk()
-                        setIsLoading(false)
-                    } else {
-                        handleOk()
-                    }
+                    setIsLoading(true)
+                    await handleOk()
+                    setIsLoading(false)
                 }
                 setModalOpen(false)
             }}
         >
-            {isLoading ? (
-                <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                    key="confirmation-modal-loading"
-                    loading={true}
-                    color="#FFFFFF"
-                    cssOverride={{verticalAlign: "middle"}}
-                    size={12}
-                />
-            ) : (
-                "Confirm"
-            )}
+            Confirm
         </Button>,
     ]
 
