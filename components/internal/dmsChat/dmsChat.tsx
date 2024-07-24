@@ -25,7 +25,6 @@ export function DMSChat(props: {
     contextInputs: StringToStringOrNumber
     onClose: () => void
     open: boolean
-    resetUndeployModelsTimer: () => void
     run: Run
     projectName?: string
     projectDescription?: string
@@ -102,9 +101,6 @@ export function DMSChat(props: {
             chatHistory.current = [...chatHistory.current, new HumanMessage(userQuery)]
 
             setPreviousUserQuery(userQuery)
-
-            // User interacted so reset timer
-            props.resetUndeployModelsTimer()
 
             setIsAwaitingLlm(true)
 

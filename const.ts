@@ -12,9 +12,6 @@ export const GENERIC_LOGO: string = "Autopilot"
 // Build version (passed in from build system)
 export const UNILEAF_VERSION: string = publicRuntimeConfig.unileafVersion
 
-// Model serving system to use. We expect "new" or "old" as values. Default to "old" if setting is missing or invalid.
-export const MODEL_SERVING_VERSION: string = publicRuntimeConfig.modelServingVersion
-
 export const EvaluateCandidateCode: string = `def evaluate_candidate(self, candidate: object) -> Dict[str, object]:
 """
 This function receives a candidate and can be

@@ -31,9 +31,9 @@ import {Auth} from "../components/auth"
 import ErrorBoundary from "../components/errorboundary"
 import NeuroAIChatbot from "../components/internal/chatbot/neuro_ai_chatbot"
 import Navbar from "../components/navbar"
-import {GENERIC_LOGO, LOGO, MaximumBlue, MODEL_SERVING_VERSION} from "../const"
+import {GENERIC_LOGO, LOGO, MaximumBlue} from "../const"
 import useEnvironmentStore from "../state/environment"
-import useFeaturesStore, {ModelServingVersion} from "../state/features"
+import useFeaturesStore from "../state/features"
 import useUserInfoStore from "../state/userInfo"
 
 const debug = debugModule("app")
@@ -52,20 +52,9 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
 
     useEffect(() => {
         if (isReady) {
-            let modelServingVersion: ModelServingVersion
-            const queryStringSetting = query?.modelServingVersion
-            if (queryStringSetting) {
-                debug(`Setting model serving version from query string: ${queryStringSetting}`)
-                modelServingVersion = queryStringSetting as ModelServingVersion
-            } else {
-                debug(`Setting model serving version from const: ${MODEL_SERVING_VERSION}`)
-                modelServingVersion = MODEL_SERVING_VERSION as ModelServingVersion
-            }
-
             // Set features in store
             const featureFlags = {
                 isGeneric: "generic" in query,
-                modelServingVersion: modelServingVersion,
             }
 
             debug(`Setting feature flags to ${JSON.stringify(featureFlags, null, 2)}`)
