@@ -878,8 +878,8 @@ export async function queryModel(
     run: Run,
     modelUrl: string,
     inputs: PredictorParams | RioParams,
-    dataTag?: DataTag,
-    flow?: NodeType[]
+    dataTag: DataTag,
+    flow: NodeType[]
     // Typescript lib uses "any" so we have to as well
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
