@@ -286,7 +286,8 @@ export async function queryModel(
     modelUrl: string,
     inputs: PredictorParams | RioParams,
     dataTag: DataTag,
-    flow: NodeType[]) {
+    flow: NodeType[]
+) {
     if (!flow) {
         return {
             error: "Model access error",
