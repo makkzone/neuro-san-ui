@@ -11,7 +11,7 @@ const EXPECTED_NUMBER_OF_JWT_HEADERS = 3
 // ts-prune-ignore-next  (has to be exported for NextJS to hook into it)
 export default async function handler(req: NextApiRequest, res: NextApiResponse<UserInfoResponse>) {
     // Fetch user info from ALB or your backend service
-    const userInfo = await fetchUserInfoFromALB(req)
+    const userInfo = fetchUserInfoFromALB(req)
     if (!userInfo) {
         // We found the header, but couldn't parse it
         res.status(httpStatus.UNAUTHORIZED).json({oidcHeaderFound: false})
@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     res.status(httpStatus.OK).json(userInfo)
 }
 
-async function fetchUserInfoFromALB(req) {
+function fetchUserInfoFromALB(req) {
     debug("Headers:", req.headers)
 
     const oidcDataHeader = req.headers["x-amzn-oidc-data"] as string

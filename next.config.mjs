@@ -54,7 +54,6 @@ const nextConfig = {
 
     publicRuntimeConfig: {
         unileafVersion: process.env.UNILEAF_VERSION,
-        modelServingVersion: process.env.MODEL_SERVING_VERSION ?? "old",
     },
 
     output: "standalone",

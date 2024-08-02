@@ -4,9 +4,9 @@ import {useRouter} from "next/router"
 import {ReactElement, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
 import {styled} from "styled-components"
 
-import {GENERIC_LOGO, LOGO} from "../const"
-import useFeaturesStore from "../state/features"
-import {getTitleBase} from "../utils/title"
+import {GENERIC_LOGO, LOGO} from "../../const"
+import useFeaturesStore from "../../state/features"
+import {getTitleBase} from "../../utils/title"
 
 const OuterContainer = styled.div`
     width: 100%;
@@ -119,7 +119,7 @@ export default function Index(): ReactElement {
                                             id="logo-img"
                                             width="200"
                                             height="45"
-                                            src="/cognizant-logo-white.svg"
+                                            src="/images/cognizant-logo-white.svg"
                                             alt=""
                                         />
                                     </Link>
