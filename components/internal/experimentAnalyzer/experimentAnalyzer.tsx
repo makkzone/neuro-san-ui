@@ -63,20 +63,18 @@ export function ExperimentAnalyzer(props: {
         const dataNode: DataSourceNode = FlowQueries.getDataNodes(flowClone)[0]
         const dataTag: DataTag = DataTag.fromJSON(dataNode.data.DataTag)
         dataTag.fields = Object.fromEntries(
-            Object.entries(dataTag.fields).map(([key, value]) => {
-                return [
-                    key,
-                    {
-                        ...value,
+            Object.entries(dataTag.fields).map(([key, value]) => [
+                key,
+                {
+                    ...value,
                         // For continuous fields, drop the categories entirely so as not to confuse the LLM
                         // For categorical fields, limit the number of categories to MAX_ALLOWED_CATEGORIES
-                        discreteCategoricalValues:
-                            value.valued === DataTagFieldValued.CATEGORICAL
-                                ? value.discreteCategoricalValues.slice(0, MAX_ALLOWED_CATEGORIES)
-                                : undefined,
-                    },
-                ]
-            })
+                    discreteCategoricalValues:
+                        value.valued === DataTagFieldValued.CATEGORICAL
+                            ? value.discreteCategoricalValues.slice(0, MAX_ALLOWED_CATEGORIES)
+                            : undefined,
+                },
+            ])
         )
 
         dataNode.data.DataTag = dataTag
