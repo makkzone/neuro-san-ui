@@ -37,7 +37,7 @@ export interface PrescriptorNodeData {
     readonly GetElementIndex: (nodeID: string) => number
 
     // Disables deleting of flow node.
-    readonly readOnly: boolean
+    readonly readOnlyNode: boolean
 }
 
 // For RuleBased
@@ -60,7 +60,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
     const currentUser: string = session.user.name
 
     // Unpack the mapping
-    const {NodeID, ParentPrescriptorState, SetParentPrescriptorState, DeleteNode, GetElementIndex} = data
+    const {NodeID, ParentPrescriptorState, SetParentPrescriptorState, DeleteNode, GetElementIndex, readOnlyNode} = data
 
     const flowIndex = GetElementIndex(NodeID) + 1
     const flowPrefix = `prescriptor-${flowIndex}`
@@ -1113,7 +1113,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         </Popover>
                     </div>
                 </Card.Body>
-                {!readOnly ? (
+                {!readOnlyNode ? (
                     <div
                         id={`${flowPrefix}-delete-div`}
                         className="px-1 my-1"

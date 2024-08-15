@@ -26,6 +26,7 @@ import {fetchRunArtifact, fetchRuns} from "../../controller/run/fetch"
 import {constructRunMetricsForRunPlot} from "../../controller/run/results"
 import {Artifact, Run, Runs} from "../../controller/run/types"
 import {useAuthentication} from "../../utils/authentication"
+import {AuthorizationInfo} from "../../utils/authorization"
 import decode from "../../utils/conversion"
 import {empty} from "../../utils/objects"
 import {consolidateFlow} from "../../utils/transformation"
@@ -53,6 +54,7 @@ interface RunProps {
     setRuns: (arg: Runs) => void
     runs: Runs
     idExtension?: string
+    projectPermissions?: AuthorizationInfo
 }
 
 export default function RunPage(props: RunProps): React.ReactElement {
@@ -803,7 +805,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
                         Flow={flow}
                         ElementsSelectable={false}
                         idExtension={props.idExtension}
-                        readOnly={!project?.canWrite}
+                        projectPermissions={props.projectPermissions}
                     />
                 </ReactFlowProvider>
             </div>

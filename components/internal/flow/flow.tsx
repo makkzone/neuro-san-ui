@@ -41,6 +41,7 @@ import NodeTypes, {NodeData, NodeType} from "./nodes/types"
 import {FlowElementsType} from "./types"
 import {UNCERTAINTY_MODEL_PARAMS} from "./uncertaintymodelinfo"
 import {DataSource, DataTag, DataTagFieldCAOType} from "../../../generated/metadata"
+import {AuthorizationInfo} from "../../../utils/authorization"
 import {useStateWithCallback} from "../../../utils/react_utils"
 import {NotificationType, sendNotification} from "../../notification"
 
@@ -74,7 +75,7 @@ interface FlowProps {
     handleMagicWand?: () => void
 
     // If this is set to true, flow will be in readonly state
-    readonly readOnly?: boolean
+    readonly projectPermissions?: AuthorizationInfo
 }
 
 /**
@@ -93,6 +94,9 @@ export default function Flow(props: FlowProps) {
     const elementsSelectable = props.ElementsSelectable
 
     const [flowInstance, setFlowInstance] = useState<ReactFlowInstance>(null)
+
+    const readOnlyFlow =
+        !props.projectPermissions?.create && !props.projectPermissions?.update && !props.projectPermissions?.delete
 
     const [initialNodes, initialEdges] = useMemo(() => {
         let initialFlowValue
@@ -115,7 +119,7 @@ export default function Flow(props: FlowProps) {
                             SetParentNodeState: (state) => ParentNodeSetStateHandler(state, node.id),
                             DeleteNode: (nodeId) => deleteNodeById(nodeId),
                             GetElementIndex: (nodeId) => getElementIndex(nodeId),
-                            readOnly: props.readOnly,
+                            readOnlyNode: readOnlyFlow,
                         }
                         break
                     case "prescriptornode":
@@ -125,7 +129,7 @@ export default function Flow(props: FlowProps) {
                             SetParentPrescriptorState: (state) => PrescriptorSetStateHandler(state, node.id),
                             DeleteNode: (nodeId) => deleteNodeById(nodeId),
                             GetElementIndex: (nodeId) => getElementIndex(nodeId),
-                            readOnly: props.readOnly,
+                            readOnlyNode: readOnlyFlow,
                         }
                         break
                     case "uncertaintymodelnode":
@@ -140,7 +144,7 @@ export default function Flow(props: FlowProps) {
                             // These two have to be added in since nodes in legacy experiments don't have them
                             ParameterSet: UNCERTAINTY_MODEL_PARAMS,
                             NodeTitle: "Uncertainty Model",
-                            readOnly: props.readOnly,
+                            readOnlyNode: readOnlyFlow,
                         }
                         break
                     case "prescriptoredge":
@@ -161,7 +165,7 @@ export default function Flow(props: FlowProps) {
                             SetParentNodeState: (state) => ParentNodeSetStateHandler(state, node.id),
                             DeleteNode: (nodeId) => deleteNodeById(nodeId),
                             GetElementIndex: (nodeId) => getElementIndex(nodeId),
-                            readOnly: props.readOnly,
+                            readOnlyNode: readOnlyFlow,
                         }
                         break
                     default:
@@ -711,7 +715,7 @@ export default function Flow(props: FlowProps) {
                 DeleteNode: (predictorNodeId) => deleteNodeById(predictorNodeId),
                 GetElementIndex: (id) => getElementIndex(id),
                 idExtension,
-                readOnly: props.readOnly,
+                readOnlyNode: readOnlyFlow,
             },
             position: {
                 x: nodes[0].position.x + 250,
@@ -859,7 +863,7 @@ export default function Flow(props: FlowProps) {
                 DeleteNode: (prescriptorNodeId) => deleteNodeById(prescriptorNodeId),
                 GetElementIndex: (id) => getElementIndex(id),
                 idExtension,
-                readOnly: props.readOnly,
+                readOnlyNode: readOnlyFlow,
             },
             position: {
                 x: prescriptorNodeXPos,
@@ -947,7 +951,7 @@ export default function Flow(props: FlowProps) {
                     ParameterSet: UNCERTAINTY_MODEL_PARAMS,
                     NodeTitle: "Uncertainty Model",
                     idExtension,
-                    readOnly: props.readOnly,
+                    readOnlyNode: readOnlyFlow,
                 },
                 position: {
                     x: uncertaintyNodeXPos,
@@ -1028,7 +1032,7 @@ export default function Flow(props: FlowProps) {
                 ParameterSet: ACTIVATION_NODE_PARAMS,
                 NodeTitle: "Activation LLM",
                 idExtension,
-                readOnly: props.readOnly,
+                readOnlyNode: readOnlyFlow,
             },
             position: {
                 x: prescriptorNode.position.x + 200,
@@ -1095,7 +1099,7 @@ export default function Flow(props: FlowProps) {
                 ParameterSet: ANALYTICS_NODE_PARAMS,
                 NodeTitle: "Analytics LLM",
                 idExtension,
-                readOnly: props.readOnly,
+                readOnlyNode: readOnlyFlow,
             },
             position: {x: addAfter.position.x + 250, y: addAfter.position.y},
         }
@@ -1158,7 +1162,7 @@ export default function Flow(props: FlowProps) {
                 ParameterSet: CATEGORY_REDUCER_NODE_PARAMS,
                 NodeTitle: "Category Reducer LLM",
                 idExtension,
-                readOnly: props.readOnly,
+                readOnlyNode: readOnlyFlow,
             },
             position: {x: addAfter.position.x + 250, y: addAfter.position.y},
         }
@@ -1210,7 +1214,7 @@ export default function Flow(props: FlowProps) {
                 ParameterSet: CONFABULATOR_NODE_PARAMS,
                 NodeTitle: "Confabulator LLM",
                 idExtension,
-                readOnly: props.readOnly,
+                readOnlyNode: readOnlyFlow,
             },
             position: {
                 x: dataNode.position.x + 250,
@@ -1661,8 +1665,7 @@ export default function Flow(props: FlowProps) {
                         onNodeDragStop={onNodeDragStop}
                         fitView
                         preventScrolling={false}
-                        nodesDraggable={!props.readOnly}
-                        // panOnDrag={!props.readOnly}
+                        nodesDraggable={true}
                     >
                         <Controls
                             id="react-flow-controls"
@@ -1671,7 +1674,7 @@ export default function Flow(props: FlowProps) {
                                 top: "0px",
                                 left: "0px",
                             }}
-                            showInteractive={!props.readOnly}
+                            showInteractive={true}
                             onFitView={() => tidyView()}
                         >
                             <Tooltip
@@ -1713,7 +1716,7 @@ export default function Flow(props: FlowProps) {
             className="mt-5"
         >
             {/* Only render buttons if ElementsSelectable is true, meaning Flow is editable */}
-            {elementsSelectable && getFlowButtons()}
+            {elementsSelectable && !readOnlyFlow && getFlowButtons()}
 
             {/*Get the flow diagram itself*/}
             {getFlow()}

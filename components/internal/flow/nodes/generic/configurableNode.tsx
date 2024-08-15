@@ -49,7 +49,7 @@ export interface ConfigurableNodeData {
     dataSourceFields?: {[key: string]: DataTagField}
 
     // Disables deleting of flow node.
-    readonly readOnly: boolean
+    readonly readOnlyNode: boolean
 }
 
 export type ConfigurableNode = RFNode<ConfigurableNodeData>
@@ -85,7 +85,7 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
         tabs,
         enableCAOActions = false,
         dataSourceFields,
-        readOnly,
+        readOnlyNode,
     } = data
 
     // Allows the trash icon to change color when hovered over
@@ -381,7 +381,7 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
                         ) : null}
                     </div>
                 </Card.Body>
-                {!readOnly ? (
+                {!readOnlyNode ? (
                     <div
                         id={`${flowPrefix}-delete-button-div${idExtension}`}
                         className="px-1 my-1"
