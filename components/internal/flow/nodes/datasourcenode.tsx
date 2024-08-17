@@ -22,6 +22,9 @@ export interface DataSourceNodeData {
     // We get passed the Node Definitions and a hook to update the definition
     readonly SelfStateUpdateHandler
     idExtension?: string
+
+    // Flag to determine whether node is in read only state
+    readOnlyNode?: boolean
 }
 
 export type DataSourceNode = RFNode<DataSourceNodeData>
@@ -131,12 +134,13 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = (props) => {
                                 // Hack to get valid id into the option tag
                                 // DEF: Right now there is only ever one data source, but someday
                                 //      there will be more and Vince would like the id to correspond
-                                //      to what is visible so he can verify more easily.
+                                //      to what is visible so he can verify more easily. d
                                 return (
                                     <option
                                         key={dataTmp.DataSource.id}
                                         id={`data-source-node-selected${idExtension}`}
                                         value={dataTmp.DataSource.id}
+                                        disabled={data.readOnlyNode}
                                     >
                                         {dataTmp.DataSource.name}
                                     </option>

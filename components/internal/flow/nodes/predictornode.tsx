@@ -26,7 +26,7 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
     const currentUser: string = session?.user?.name || ""
 
     // Unpack the data
-    const {NodeID, ParentNodeState, SetParentNodeState, GetElementIndex} = data
+    const {NodeID, ParentNodeState, SetParentNodeState, GetElementIndex, readOnlyNode} = data
 
     const nodes = useNodes<NodeData>() as NodeType[]
     const edges = useEdges() as EdgeType[]
@@ -254,12 +254,14 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
                             <option
                                 id={`${flowPrefix}-regressor${idExtension}`}
                                 value="regressor"
+                                disabled={readOnlyNode}
                             >
                                 Regressor
                             </option>
                             <option
                                 id={`${flowPrefix}-classifier${idExtension}`}
                                 value="classifier"
+                                disabled={readOnlyNode}
                             >
                                 Classifier
                             </option>
@@ -309,7 +311,7 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
                                         id={`${flowPrefix}-option-${predictor}${idExtension}`}
                                         key={predictor}
                                         value={predictor}
-                                        disabled={DISABLED_PREDICTORS.has(predictor)}
+                                        disabled={DISABLED_PREDICTORS.has(predictor) || readOnlyNode}
                                     >
                                         {`${predictor}${DISABLED_PREDICTORS.has(predictor) ? " (Coming soon)" : ""}`}
                                     </option>
@@ -346,6 +348,7 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
                                         id={`${flowPrefix}-metric-${metric}${idExtension}`}
                                         key={metric}
                                         value={metric}
+                                        disabled={readOnlyNode}
                                     >
                                         {metric}
                                     </option>

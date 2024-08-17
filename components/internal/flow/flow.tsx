@@ -4,6 +4,7 @@ import debugModule from "debug"
 import {InfoSignIcon} from "evergreen-ui"
 import {Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState} from "react"
 import {Button, Container, Dropdown} from "react-bootstrap"
+import {AiFillLock} from "react-icons/ai"
 import {SlMagicWand} from "react-icons/sl"
 // eslint-disable-next-line import/no-named-as-default
 import ReactFlow, {
@@ -109,6 +110,7 @@ export default function Flow(props: FlowProps) {
                         node.data = {
                             ...node.data,
                             idExtension,
+                            readOnlyNode: readOnlyFlow,
                             SelfStateUpdateHandler: DataNodeStateUpdateHandler,
                         }
                         break
@@ -522,6 +524,7 @@ export default function Flow(props: FlowProps) {
                 ProjectID: projectId,
                 SelfStateUpdateHandler: DataNodeStateUpdateHandler,
                 idExtension,
+                readOnlyNode: readOnlyFlow,
             },
             position: {x: 500, y: 500},
         }
@@ -1717,6 +1720,25 @@ export default function Flow(props: FlowProps) {
         >
             {/* Only render buttons if ElementsSelectable is true, meaning Flow is editable */}
             {elementsSelectable && !readOnlyFlow && getFlowButtons()}
+            {readOnlyFlow ? (
+                <div
+                    className="flex justify-content-center align-items-center gap-2 mt-2 mb-2"
+                    id="flow-table-read-only-message-container"
+                >
+                    <AiFillLock
+                        id="flow-read-only-lock-icon"
+                        size="50"
+                        color="red"
+                    />
+                    <h4
+                        id="flow-read-only-message"
+                        style={{color: "red"}}
+                        className="mb-0"
+                    >
+                        You are not authorized to make changes to this experiment.
+                    </h4>
+                </div>
+            ) : null}
 
             {/*Get the flow diagram itself*/}
             {getFlow()}

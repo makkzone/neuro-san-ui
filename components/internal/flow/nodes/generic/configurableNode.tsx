@@ -188,6 +188,7 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
                 parentNodeState={ParentNodeState}
                 setParentNodeState={SetParentNodeState}
                 inputTypes={new Set(["inputs", "showTextArea"])}
+                readOnlyNode={readOnlyNode}
                 customStyles={{
                     inputsCardHeight: "h-100",
                     inputRowWidth: "w-100",
@@ -218,6 +219,7 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
                     setParentNodeState={SetParentNodeState}
                     inputTypes={tabComponentProps.inputTypes}
                     key={`${tabComponentProps["id"]}`}
+                    readOnlyNode={readOnlyNode}
                 />
             )
         })
@@ -377,6 +379,7 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
                                 flowPrefix={flowPrefix}
                                 idExtension={idExtension}
                                 fields={dataSourceFields}
+                                readOnlyNode={readOnlyNode}
                             />
                         ) : null}
                     </div>
