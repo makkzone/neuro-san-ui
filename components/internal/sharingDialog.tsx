@@ -1,4 +1,5 @@
 import {Alert, Modal, Tooltip} from "antd"
+import {camelCase, startCase} from "lodash"
 import {ChangeEvent, ReactNode, useEffect, useState} from "react"
 import {Col, Form, Row} from "react-bootstrap"
 import {IoMdClose} from "react-icons/io"
@@ -105,12 +106,13 @@ export default function SharingDialog({
                             value={targetUser}
                             onChange={handleInputChange}
                             disabled={operationComplete}
+                            ref={(input) => input?.focus()}
                         />
                     </Col>
                     <Col
                         id="sharing-form-col-role"
                         md={4}
-                        style={{margin: "0", padding: "0 4px"}}
+                        style={{margin: "0", padding: "0 8px"}}
                     >
                         <Form.Select
                             id="sharing-form-role-select"
@@ -121,7 +123,7 @@ export default function SharingDialog({
                                 id="sharing-form-role-viewer"
                                 value="1"
                             >
-                                Viewer
+                                Tourist
                             </option>
                             <option
                                 id="sharing-form-role-collaborator"
@@ -216,6 +218,8 @@ export default function SharingDialog({
                                                             setCurrentShares((prevShares) =>
                                                                 prevShares.filter(([u]) => u !== user)
                                                             )
+                                                            setOperationComplete(false)
+                                                            setTargetUser(null)
                                                         },
                                                         cancelButtonProps: {
                                                             id: "unshare-cancel-button",
@@ -224,7 +228,7 @@ export default function SharingDialog({
                                                 }}
                                             />
                                         </Tooltip>
-                                        {user} - {relation}
+                                        {user} - {startCase(camelCase(relation))}
                                     </div>
                                 ))}
                             </div>
