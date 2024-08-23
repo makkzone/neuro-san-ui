@@ -1,8 +1,11 @@
-import {Tooltip, Alert, Modal} from "antd"
-import {ReactNode, useState} from "react"
+import {Alert, Modal, Tooltip} from "antd"
+import {ChangeEvent, ReactNode, useEffect, useState} from "react"
 import {Col, Form, Row} from "react-bootstrap"
+import {IoMdClose} from "react-icons/io"
 
-import {share} from "../../controller/authorization/share"
+import {getShares, share} from "../../controller/authorization/share"
+import {Project} from "../../controller/projects/types"
+import {RelationType} from "../../generated/auth"
 import {NotificationType, sendNotification} from "../notification"
 
 interface SharingDialogProps {
@@ -10,7 +13,7 @@ interface SharingDialogProps {
     readonly visible: boolean
     readonly closeModal: () => void
     readonly currentUser: string
-    readonly projectId: number
+    readonly project: Project
 }
 
 export default function SharingDialog({
@@ -18,13 +21,28 @@ export default function SharingDialog({
     visible,
     closeModal,
     currentUser,
-    projectId,
+    project,
 }: SharingDialogProps): JSX.Element | null {
     const [targetUser, setTargetUser] = useState<string>(null)
     const [loading, setLoading] = useState<boolean>(false)
     const [operationComplete, setOperationComplete] = useState<boolean>(false)
+    const [currentShares, setCurrentShares] = useState<[string, RelationType][]>([])
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    useEffect(() => {
+        async function getCurrentShares() {
+            try {
+                const currentSharesTmp = await getShares(project.id, currentUser)
+                console.debug("currentSharesTmp", currentSharesTmp)
+                setCurrentShares(currentSharesTmp)
+            } catch (e) {
+                sendNotification(NotificationType.error, "Failed to get current shares", `Due to: ${e}`)
+            }
+        }
+
+        void getCurrentShares()
+    }, [])
+
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         setTargetUser(e.target.value)
     }
 
@@ -37,7 +55,8 @@ export default function SharingDialog({
     async function handleOk() {
         setLoading(true)
         try {
-            await share(projectId, currentUser, targetUser)
+            await share(project.id, currentUser, targetUser)
+            setCurrentShares((prevShares) => [...prevShares, [targetUser, RelationType.TOURIST]])
             setOperationComplete(true)
         } catch (e) {
             sendNotification(NotificationType.error, "Failed to share project", `Due to: ${e}`)
@@ -59,38 +78,44 @@ export default function SharingDialog({
             destroyOnClose={true}
             okText={operationComplete ? "Close" : "Ok"}
             okButtonProps={{
+                id: "sharing-dialog-ok-button",
                 disabled: !operationComplete && shouldDisableOkButton,
                 loading: loading,
                 style: {opacity: shouldDisableOkButton && !operationComplete ? 0.5 : 1},
             }}
-            cancelButtonProps={{style: {display: operationComplete ? "none" : "inline-block"}}}
+            cancelButtonProps={{
+                id: "sharing-dialog-cancel-button",
+                style: {display: operationComplete ? "none" : "inline-block"},
+            }}
         >
             <Form id="sharing-form">
                 <Form.Group
                     id="sharing-form-group-email"
                     as={Row}
-                    className="my-8 pr-0 pl-0"
+                    style={{marginTop: "16px", paddingRight: "0", paddingLeft: "0"}}
                 >
                     <Col
                         id="sharing-form-col-email"
                         md={8}
-                        className="mx-0 px-1"
+                        style={{margin: "0", padding: "0 4px"}}
                     >
                         <Form.Control
                             id="sharing-form-target-user"
-                            placeholder="john.doe@my_company.com"
+                            placeholder="User to share with"
                             value={targetUser}
                             onChange={handleInputChange}
+                            disabled={operationComplete}
                         />
                     </Col>
                     <Col
                         id="sharing-form-col-role"
                         md={4}
-                        className="mx-0 px-1"
+                        style={{margin: "0", padding: "0 4px"}}
                     >
                         <Form.Select
                             id="sharing-form-role-select"
                             defaultValue={1}
+                            disabled={operationComplete}
                         >
                             <option
                                 id="sharing-form-role-viewer"
@@ -111,7 +136,7 @@ export default function SharingDialog({
                 <Form.Group
                     id="sharing-form-group-checkbox"
                     as={Row}
-                    className="my-8"
+                    style={{marginTop: "16px"}}
                 >
                     <Col id="sharing-form-col-checkbox">
                         <Tooltip
@@ -121,7 +146,7 @@ export default function SharingDialog({
                                 "For now, only entire project hierarchies can be shared."
                             }
                         >
-                            <span id="sharing-form-checkbox-tooltip">
+                            <span id="sharing-form-checkbox-tooltip-span">
                                 <Form.Check
                                     id="sharing-form-checkbox"
                                     type="checkbox"
@@ -134,12 +159,93 @@ export default function SharingDialog({
                         </Tooltip>
                     </Col>
                 </Form.Group>
+                <Form.Group
+                    id="sharing-form-group-current-shares"
+                    style={{marginTop: "16px"}}
+                >
+                    <text
+                        id="sharing-form-current-shares-text"
+                        style={{fontSize: "large"}}
+                    >
+                        People with access
+                    </text>
+                    <hr id="sharing-form-current-shares-hr" />
+
+                    {currentShares && currentShares.length > 0 ? (
+                        <>
+                            <div id="current-shares-container">
+                                {currentShares.map(([user, relation], index) => (
+                                    <div
+                                        key={user}
+                                        id={`current-share-${index}`}
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            marginTop: "4px",
+                                            marginBottom: "4px",
+                                            width: "100%",
+                                        }}
+                                    >
+                                        <Tooltip
+                                            id={`remove-share-tooltip-${index}`}
+                                            title="Remove share"
+                                        >
+                                            <IoMdClose
+                                                id={`close-icon-${index}`}
+                                                style={{
+                                                    marginRight: "10px",
+                                                    cursor: "pointer",
+                                                    transition: "color 0.3s ease",
+                                                    color: "black",
+                                                }}
+                                                onMouseEnter={(e) => (e.currentTarget.style.color = "red")}
+                                                onMouseLeave={(e) => (e.currentTarget.style.color = "black")}
+                                                onClick={async () => {
+                                                    Modal.confirm({
+                                                        title: "Remove share",
+                                                        content:
+                                                            "You are about to revoke access to project " +
+                                                            `"${project.name}" for "${user}". Are you sure?`,
+                                                        centered: true,
+                                                        okButtonProps: {
+                                                            id: "remove-share-ok-button",
+                                                        },
+                                                        okText: "Remove",
+                                                        onOk: async () => {
+                                                            await share(project.id, currentUser, user, false)
+                                                            setCurrentShares((prevShares) =>
+                                                                prevShares.filter(([u]) => u !== user)
+                                                            )
+                                                        },
+                                                        cancelButtonProps: {
+                                                            id: "unshare-cancel-button",
+                                                        },
+                                                    })
+                                                }}
+                                            />
+                                        </Tooltip>
+                                        {user} - {relation}
+                                    </div>
+                                ))}
+                            </div>
+                            <hr id="sharing-form-current-shares-hr-bottom" />
+                        </>
+                    ) : (
+                        <div
+                            id="sharing-form-no-shares"
+                            style={{marginTop: "16px"}}
+                        >
+                            Not currently shared with anyone.
+                        </div>
+                    )}
+                </Form.Group>
             </Form>
             {operationComplete ? (
                 // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
                 <Alert
                     message={`Project shared with "${targetUser}"`}
                     type="success"
+                    style={{marginTop: "20px", marginBottom: "20px"}}
                 />
             ) : null}
         </Modal>
