@@ -694,7 +694,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                         className="mb-0"
                         style={{color: "red"}}
                     >
-                        You are not authorized to make changes to this project.
+                        You are not authorized to make changes to this project
                     </h3>
                 </div>
             ) : null}

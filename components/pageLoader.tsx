@@ -11,7 +11,7 @@ export const PageLoader = ({id}) => (
         <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
             color={MaximumBlue}
             loading={true}
-            size={100}
+            size="100px"
         />
     </div>
 )

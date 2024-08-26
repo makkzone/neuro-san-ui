@@ -2,13 +2,14 @@
 Unit tests for the authorization utility module
  */
 
-import * as authFetch from "../../controller/auth/fetch"
+import * as authFetch from "../../controller/authorize/fetch"
 import {AuthInfo, PermissionType, ResourceType} from "../../generated/auth"
-import {condenseAuthorizationInfo, getAllPermissionsByResourceType} from "../../utils/authorization"
+import {condenseAuthorizationInfo, getAllPermissions} from "../../utils/authorization"
 
-describe("getAllPermissionsByResourceType", () => {
+describe("getAllPermissions", () => {
     it("should return the authorization policies in a formatted response", async () => {
-        jest.spyOn(authFetch, "fetchAuthorization")
+        const authFetchSpy = jest
+            .spyOn(authFetch, "fetchAuthorization")
             .mockImplementationOnce(
                 () =>
                     [
@@ -40,7 +41,8 @@ describe("getAllPermissionsByResourceType", () => {
                     ] as unknown as Promise<AuthInfo[]>
             )
 
-        const response = await getAllPermissionsByResourceType("mockUser", ResourceType.PROJECT, [{id: 2539}])
+        const response = await getAllPermissions("mockUser", ResourceType.PROJECT, [{id: 2539}])
+        expect(authFetchSpy).toHaveBeenCalled()
 
         expect(response).toEqual([
             {

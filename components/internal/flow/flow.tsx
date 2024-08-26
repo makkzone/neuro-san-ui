@@ -1735,7 +1735,7 @@ export default function Flow(props: FlowProps) {
                         style={{color: "red"}}
                         className="mb-0"
                     >
-                        You are not authorized to make changes to this experiment.
+                        You are not authorized to make changes to this experiment
                     </h4>
                 </div>
             ) : null}
