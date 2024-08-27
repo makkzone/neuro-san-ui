@@ -138,7 +138,7 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = (props) => {
                                 // Hack to get valid id into the option tag
                                 // DEF: Right now there is only ever one data source, but someday
                                 //      there will be more and Vince would like the id to correspond
-                                //      to what is visible so he can verify more easily. d
+                                //      to what is visible so he can verify more easily.
                                 return (
                                     <option
                                         key={dataTmp.DataSource.id}
