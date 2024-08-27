@@ -19,10 +19,10 @@ const config: Config.InitialOptions = {
         },
         // Coverage on utils is a little higher
         "./utils/": {
-            statements: 29.7,
-            branches: 19.1,
-            functions: 25.6,
-            lines: 28.9,
+            statements: 41.1,
+            branches: 22.0,
+            functions: 40.8,
+            lines: 38.9,
         },
     },
 }
