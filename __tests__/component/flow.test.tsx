@@ -477,10 +477,9 @@ describe("Flow Test", () => {
             delete: false,
         })
 
-        const {container} = render(flow)
+        render(flow)
 
-        const unAuthorizedMessage: HTMLElement = container.querySelector("#flow-read-only-message")
+        const unAuthorizedMessage = screen.getByText("You are not authorized to make changes to this experiment")
         expect(unAuthorizedMessage).toBeInTheDocument()
-        expect(unAuthorizedMessage.innerHTML).toEqual("You are not authorized to make changes to this experiment")
     })
 })
