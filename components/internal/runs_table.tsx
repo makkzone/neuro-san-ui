@@ -31,6 +31,7 @@ import {Experiment} from "../../controller/experiments/types"
 import {fetchRuns} from "../../controller/run/fetch"
 import {Run, Runs} from "../../controller/run/types"
 import updateRun, {sendAbortRequest} from "../../controller/run/update"
+import {AuthorizationInfo} from "../../utils/authorization"
 import {toFriendlyDateTime} from "../../utils/date_time"
 import {downloadFile} from "../../utils/file"
 import {useExtendedState} from "../../utils/state"
@@ -44,6 +45,7 @@ interface RunTableProps {
     readonly experimentId: number
     readonly projectId: number
     readonly projectName: string
+    readonly projectPermissions: AuthorizationInfo
     readonly experiment: Experiment
     readonly runDrawer: boolean
     readonly runs: Runs
@@ -418,25 +420,27 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                         </AntdTooltip>
                     </Col>
 
-                    <Col
-                        id={`editing-loading-col-${runId}`}
-                        md={6}
-                        style={{
-                            width: 0,
-                        }}
-                    >
-                        <AiFillEdit
-                            id={`edit-loading-copy-${runId}-fill-edit`}
-                            onClick={() => {
-                                const editingLoadingCopy = [...props.editingLoading]
-                                editingLoadingCopy[idx] = {
-                                    ...editingLoadingCopy[idx],
-                                    editing: true,
-                                }
-                                props.setEditingLoading(editingLoadingCopy)
+                    {props.projectPermissions?.update ? (
+                        <Col
+                            id={`editing-loading-col-${runId}`}
+                            md={6}
+                            style={{
+                                width: 0,
                             }}
-                        />
-                    </Col>
+                        >
+                            <AiFillEdit
+                                id={`edit-loading-copy-${runId}-fill-edit`}
+                                onClick={() => {
+                                    const editingLoadingCopy = [...props.editingLoading]
+                                    editingLoadingCopy[idx] = {
+                                        ...editingLoadingCopy[idx],
+                                        editing: true,
+                                    }
+                                    props.setEditingLoading(editingLoadingCopy)
+                                }}
+                            />
+                        </Col>
+                    ) : null}
                 </Row>
             </Container>
         )
@@ -596,12 +600,14 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                     )}
                 </td>
 
-                <td
-                    id={`delete-training-run-${runId}`}
-                    className={tableCellClass}
-                >
-                    {getActionsColumn(idx, runId, run)}
-                </td>
+                {props.projectPermissions?.delete ? (
+                    <td
+                        id={`delete-training-run-${runId}`}
+                        className={tableCellClass}
+                    >
+                        {getActionsColumn(idx, runId, run)}
+                    </td>
+                ) : null}
             </tr>
         )
     }
@@ -650,15 +656,11 @@ export default function RunsTable(props: RunTableProps): ReactElement {
     }
 
     // Declare table headers
-    const tableHeaders = [
-        "Training Run Name",
-        "Created At",
-        "Last Modified",
-        "Launched By",
-        "Status",
-        "Download",
-        "Actions",
-    ]
+    const tableHeaders = ["Training Run Name", "Created At", "Last Modified", "Launched By", "Status", "Download"]
+
+    if (props.projectPermissions?.delete) {
+        tableHeaders.push("Actions")
+    }
 
     // Create Table header elements
     const tableHeaderElements: ReactElement[] = []

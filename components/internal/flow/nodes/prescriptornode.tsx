@@ -35,6 +35,9 @@ export interface PrescriptorNodeData {
 
     // Gets a simpler index for testing ids (at least)
     readonly GetElementIndex: (nodeID: string) => number
+
+    // Disables deleting of flow node.
+    readonly readOnlyNode: boolean
 }
 
 // For RuleBased
@@ -57,7 +60,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
     const currentUser: string = session.user.name
 
     // Unpack the mapping
-    const {NodeID, ParentPrescriptorState, SetParentPrescriptorState, DeleteNode, GetElementIndex} = data
+    const {NodeID, ParentPrescriptorState, SetParentPrescriptorState, DeleteNode, GetElementIndex, readOnlyNode} = data
 
     const flowIndex = GetElementIndex(NodeID) + 1
     const flowPrefix = `prescriptor-${flowIndex}`
@@ -221,12 +224,14 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                     <option
                         id={`${metricPrefix}-objective-maximize`}
                         value="true"
+                        disabled={readOnlyNode}
                     >
                         Maximize
                     </option>
                     <option
                         id={`${metricPrefix}-objective-minimize`}
                         value="false"
+                        disabled={readOnlyNode}
                     >
                         Minimize
                     </option>
@@ -253,24 +258,26 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
             >
                 Hidden Layer {idx + 1}{" "}
             </h6>
-            <button
-                id={`${flowPrefix}-hidden-layer-${idx}-button`}
-                style={{width: "1rem"}}
-                className="mb-2"
-                type="button"
-                onClick={(event) => {
-                    event.stopPropagation()
-                    if (ParentPrescriptorState.network.hidden_layers.length === 1) {
-                        sendNotification(NotificationType.warning, "Last remaining hidden layer cannot be deleted")
-                    } else {
-                        const stateCopy = {...ParentPrescriptorState}
-                        stateCopy.network.hidden_layers.splice(idx, 1)
-                        SetParentPrescriptorState(stateCopy)
-                    }
-                }}
-            >
-                <MdDelete id={`${flowPrefix}-hidden-layer-${idx}-delete`} />
-            </button>
+            {!readOnlyNode && (
+                <button
+                    id={`${flowPrefix}-hidden-layer-${idx}-button`}
+                    style={{width: "1rem"}}
+                    className="mb-2"
+                    type="button"
+                    onClick={(event) => {
+                        event.stopPropagation()
+                        if (ParentPrescriptorState.network.hidden_layers.length === 1) {
+                            sendNotification(NotificationType.warning, "Last remaining hidden layer cannot be deleted")
+                        } else {
+                            const stateCopy = {...ParentPrescriptorState}
+                            stateCopy.network.hidden_layers.splice(idx, 1)
+                            SetParentPrescriptorState(stateCopy)
+                        }
+                    }}
+                >
+                    <MdDelete id={`${flowPrefix}-hidden-layer-${idx}-delete`} />
+                </button>
+            )}
             <div
                 id={`${flowPrefix}-hidden-layer-${idx}-neural-net-config`}
                 className="grid grid-cols-3 gap-1 mb-2 justify-items-center"
@@ -296,6 +303,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         min={8}
                         max={256}
                         value={hiddenLayer.layer_params.units}
+                        disabled={readOnlyNode}
                         onChange={(event) => {
                             const modifiedHiddenLayerState = {...ParentPrescriptorState}
                             modifiedHiddenLayerState.network.hidden_layers[idx].layer_params.units = parseInt(
@@ -316,6 +324,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         id={`${flowPrefix}-hidden-layer-${idx}-activation-select`}
                         defaultValue="tanh"
                         value={hiddenLayer.layer_params.activation}
+                        disabled={readOnlyNode}
                         onChange={(event) => {
                             const modifiedHiddenLayerState = {...ParentPrescriptorState}
                             modifiedHiddenLayerState.network.hidden_layers[idx].layer_params.activation =
@@ -328,6 +337,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                                 id={`${flowPrefix}-hidden-layer-${idx}-activation-${activationFn}`}
                                 key={`hidden-layer-activation-${activationFn}`}
                                 value={activationFn}
+                                disabled={readOnlyNode}
                             >
                                 {activationFn}
                             </option>
@@ -347,6 +357,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         type="checkbox"
                         defaultChecked={true}
                         checked={hiddenLayer.layer_params.use_bias}
+                        disabled={readOnlyNode}
                         onChange={(event) => {
                             const modifiedHiddenLayerState = {...ParentPrescriptorState}
                             modifiedHiddenLayerState.network.hidden_layers[idx].layer_params.use_bias =
@@ -387,6 +398,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         min={0}
                         max={9}
                         value={Number(representationConfig.max_exponent)}
+                        disabled={readOnlyNode}
                         marks={{
                             0: {label: "0"},
                             9: {label: "9", style: {color: "#53565A"}}, // To prevent end mark from being "grayed out"
@@ -429,6 +441,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         min={1}
                         max={9}
                         value={Number(representationConfig.number_of_building_block_conditions)}
+                        disabled={readOnlyNode}
                         marks={{
                             1: {label: "1"},
                             9: {label: "9", style: {color: "#53565A"}}, // To prevent end mark from being "grayed out"
@@ -471,6 +484,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         min={1}
                         max={99}
                         value={Number(representationConfig.number_of_building_block_rules)}
+                        disabled={readOnlyNode}
                         marks={{
                             1: {label: "1"},
                             99: {label: "99", style: {color: "#53565A"}}, // To prevent end mark from being "grayed out"
@@ -528,12 +542,14 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                     <option
                         id={`${flowPrefix}-representation-nn-weights`}
                         value="NNWeights"
+                        disabled={readOnlyNode}
                     >
                         Neural Network
                     </option>
                     <option
                         id={`${flowPrefix}-representation-rules`}
                         value="RuleBased"
+                        disabled={readOnlyNode}
                     >
                         Rules
                     </option>
@@ -550,26 +566,28 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         className="overflow-y-auto h-40"
                     >
                         {neuralNetworkConfiguration}
-                        <button
-                            type="button"
-                            className="float-right"
-                            id={`${flowPrefix}-nn-weights-button`}
-                            onClick={() => {
-                                const stateCopy = {...ParentPrescriptorState}
-                                stateCopy.network.hidden_layers.push({
-                                    layer_name: `hidden-${ParentPrescriptorState.network.hidden_layers.length}`,
-                                    layer_type: "dense",
-                                    layer_params: {
-                                        units: 2 * Object.keys(ParentPrescriptorState.caoState.context).length,
-                                        activation: "tanh",
-                                        use_bias: true,
-                                    },
-                                })
-                                SetParentPrescriptorState(stateCopy)
-                            }}
-                        >
-                            <BiPlusMedical id={`${flowPrefix}-nn-weights-button-plus`} />
-                        </button>
+                        {!readOnlyNode && (
+                            <button
+                                type="button"
+                                className="float-right"
+                                id={`${flowPrefix}-nn-weights-button`}
+                                onClick={() => {
+                                    const stateCopy = {...ParentPrescriptorState}
+                                    stateCopy.network.hidden_layers.push({
+                                        layer_name: `hidden-${ParentPrescriptorState.network.hidden_layers.length}`,
+                                        layer_type: "dense",
+                                        layer_params: {
+                                            units: 2 * Object.keys(ParentPrescriptorState.caoState.context).length,
+                                            activation: "tanh",
+                                            use_bias: true,
+                                        },
+                                    })
+                                    SetParentPrescriptorState(stateCopy)
+                                }}
+                            >
+                                <BiPlusMedical id={`${flowPrefix}-nn-weights-button-plus`} />
+                            </button>
+                        )}
                     </div>
                 )}
                 {ParentPrescriptorState.LEAF.representation === "RuleBased" && (
@@ -609,6 +627,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         min={1}
                         max={1000}
                         defaultValue={10}
+                        disabled={readOnlyNode}
                         value={ParentPrescriptorState.evolution.nb_generations}
                         onChange={(event) =>
                             SetParentPrescriptorState({
@@ -639,6 +658,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         min={5}
                         max={1000}
                         defaultValue={10}
+                        disabled={readOnlyNode}
                         value={ParentPrescriptorState.evolution.population_size}
                         onChange={(event) =>
                             SetParentPrescriptorState({
@@ -669,6 +689,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         min={0}
                         max={100}
                         defaultValue={2}
+                        disabled={readOnlyNode}
                         value={ParentPrescriptorState.evolution.nb_elites}
                         onChange={(event) =>
                             SetParentPrescriptorState({
@@ -709,6 +730,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         <option
                             id={`${flowPrefix}-parent-selection-tournament`}
                             value="tournament"
+                            disabled={readOnlyNode}
                         >
                             Tournament
                         </option>
@@ -733,6 +755,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         max={0.99}
                         defaultValue={0.8}
                         value={ParentPrescriptorState.evolution.remove_population_pct}
+                        disabled={readOnlyNode}
                         onChange={(event) =>
                             SetParentPrescriptorState({
                                 ...ParentPrescriptorState,
@@ -772,18 +795,21 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         <option
                             id={`${flowPrefix}-mutation-gaussian-noise-percentage`}
                             value="gaussian_noise_percentage"
+                            disabled={readOnlyNode}
                         >
                             Gaussian Noise Percentage
                         </option>
                         <option
                             id={`${flowPrefix}-mutation-gaussian-noise-fixed`}
                             value="gaussian_noise_fixed"
+                            disabled={readOnlyNode}
                         >
                             Gaussian Noise Fixed
                         </option>
                         <option
                             id={`${flowPrefix}-mutation-uniform-reset`}
                             value="uniform_reset"
+                            disabled={readOnlyNode}
                         >
                             Uniform Reset
                         </option>
@@ -807,6 +833,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         min={0.0}
                         max={1.0}
                         defaultValue={0.1}
+                        disabled={readOnlyNode}
                         value={ParentPrescriptorState.evolution.mutation_probability}
                         onChange={(event) =>
                             SetParentPrescriptorState({
@@ -836,6 +863,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         step="0.01"
                         defaultValue={0.1}
                         value={ParentPrescriptorState.evolution.mutation_factor}
+                        disabled={readOnlyNode}
                         onChange={(event) =>
                             SetParentPrescriptorState({
                                 ...ParentPrescriptorState,
@@ -875,24 +903,28 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         <option
                             id={`${flowPrefix}-initialization-distribution-orthogonal`}
                             value="orthogonal"
+                            disabled={readOnlyNode}
                         >
                             Orthogonal
                         </option>
                         <option
                             id={`${flowPrefix}-initialization-distribution-uniform`}
                             value="uniform"
+                            disabled={readOnlyNode}
                         >
                             Uniform
                         </option>
                         <option
                             id={`${flowPrefix}-initialization-distribution-normal`}
                             value="normal"
+                            disabled={readOnlyNode}
                         >
                             Normal
                         </option>
                         <option
                             id={`${flowPrefix}-initialization-distribution-cauchy`}
                             value="cauchy"
+                            disabled={readOnlyNode}
                         >
                             Cauchy
                         </option>
@@ -915,6 +947,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         step="0.01"
                         defaultValue={1}
                         value={ParentPrescriptorState.evolution.initialization_range}
+                        disabled={readOnlyNode}
                         onChange={(event) =>
                             SetParentPrescriptorState({
                                 ...ParentPrescriptorState,
@@ -1042,6 +1075,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                                                 name={element}
                                                 type="checkbox"
                                                 defaultChecked={true}
+                                                disabled={readOnlyNode}
                                                 checked={ParentPrescriptorState.caoState.context[element]}
                                                 onChange={(event) => updateCAOState(event, "context")}
                                             />
@@ -1091,6 +1125,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                                                 name={element}
                                                 type="checkbox"
                                                 defaultChecked={true}
+                                                disabled={readOnlyNode}
                                                 checked={ParentPrescriptorState.caoState.action[element]}
                                                 onChange={(event) => updateCAOState(event, "action")}
                                             />
@@ -1110,29 +1145,31 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         </Popover>
                     </div>
                 </Card.Body>
-                <div
-                    id={`${flowPrefix}-delete-div`}
-                    className="px-1 my-1"
-                    style={{position: "absolute", bottom: "0px", right: "1px"}}
-                >
-                    <button
-                        id={`${flowPrefix}-delete-button`}
-                        type="button"
-                        onClick={(event) => {
-                            if (!showDeleteModal) {
-                                handleDelete(event)
-                            }
-                        }}
+                {!readOnlyNode ? (
+                    <div
+                        id={`${flowPrefix}-delete-div`}
+                        className="px-1 my-1"
+                        style={{position: "absolute", bottom: "0px", right: "1px"}}
                     >
-                        <AiFillDelete
-                            id={`${flowPrefix}-delete-button-fill`}
-                            size="15"
-                            color={trashColor}
-                            onMouseEnter={() => setTrashHover(true)}
-                            onMouseLeave={() => setTrashHover(false)}
-                        />
-                    </button>
-                </div>
+                        <button
+                            id={`${flowPrefix}-delete-button`}
+                            type="button"
+                            onClick={(event) => {
+                                if (!showDeleteModal) {
+                                    handleDelete(event)
+                                }
+                            }}
+                        >
+                            <AiFillDelete
+                                id={`${flowPrefix}-delete-button-fill`}
+                                size="15"
+                                color={trashColor}
+                                onMouseEnter={() => setTrashHover(true)}
+                                onMouseLeave={() => setTrashHover(false)}
+                            />
+                        </button>
+                    </div>
+                ) : null}
             </Card>
 
             <Handle

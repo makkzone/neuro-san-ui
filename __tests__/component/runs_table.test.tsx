@@ -12,6 +12,12 @@ describe("Runs Table Test", () => {
                 experimentId={0}
                 projectId={0}
                 projectName=""
+                projectPermissions={{
+                    id: 0,
+                    create: true,
+                    update: true,
+                    delete: true,
+                }}
                 experiment={{name: "test experiment", flow: null}}
                 runDrawer={false}
                 runs={[

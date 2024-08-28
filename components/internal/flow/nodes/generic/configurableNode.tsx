@@ -47,6 +47,9 @@ export interface ConfigurableNodeData {
 
     // Data tag fields that can be passed to predictor nodes for CAO formatting
     dataSourceFields?: {[key: string]: DataTagField}
+
+    // Disables deleting of flow node.
+    readonly readOnlyNode: boolean
 }
 
 export type ConfigurableNode = RFNode<ConfigurableNodeData>
@@ -82,6 +85,7 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
         tabs,
         enableCAOActions = false,
         dataSourceFields,
+        readOnlyNode,
     } = data
 
     // Allows the trash icon to change color when hovered over
@@ -184,6 +188,7 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
                 parentNodeState={ParentNodeState}
                 setParentNodeState={SetParentNodeState}
                 inputTypes={new Set(["inputs", "showTextArea"])}
+                readOnlyNode={readOnlyNode}
                 customStyles={{
                     inputsCardHeight: "h-100",
                     inputRowWidth: "w-100",
@@ -214,6 +219,7 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
                     setParentNodeState={SetParentNodeState}
                     inputTypes={tabComponentProps.inputTypes}
                     key={`${tabComponentProps["id"]}`}
+                    readOnlyNode={readOnlyNode}
                 />
             )
         })
@@ -373,33 +379,36 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
                                 flowPrefix={flowPrefix}
                                 idExtension={idExtension}
                                 fields={dataSourceFields}
+                                readOnlyNode={readOnlyNode}
                             />
                         ) : null}
                     </div>
                 </Card.Body>
-                <div
-                    id={`${flowPrefix}-delete-button-div${idExtension}`}
-                    className="px-1 my-1"
-                    style={{position: "absolute", bottom: "0px", right: "1px"}}
-                >
-                    <button
-                        id={`${flowPrefix}-delete-button${idExtension}`}
-                        type="button"
-                        onClick={(event: ReactMouseEvent<HTMLElement>) => {
-                            if (!showDeleteModal) {
-                                handleDelete(event)
-                            }
-                        }}
+                {!readOnlyNode ? (
+                    <div
+                        id={`${flowPrefix}-delete-button-div${idExtension}`}
+                        className="px-1 my-1"
+                        style={{position: "absolute", bottom: "0px", right: "1px"}}
                     >
-                        <AiFillDelete
-                            id={`${flowPrefix}-delete-button-fill${idExtension}`}
-                            size="15"
-                            color={trashColor}
-                            onMouseEnter={() => setTrashHover(true)}
-                            onMouseLeave={() => setTrashHover(false)}
-                        />
-                    </button>
-                </div>
+                        <button
+                            id={`${flowPrefix}-delete-button${idExtension}`}
+                            type="button"
+                            onClick={(event: ReactMouseEvent<HTMLElement>) => {
+                                if (!showDeleteModal) {
+                                    handleDelete(event)
+                                }
+                            }}
+                        >
+                            <AiFillDelete
+                                id={`${flowPrefix}-delete-button-fill${idExtension}`}
+                                size="15"
+                                color={trashColor}
+                                onMouseEnter={() => setTrashHover(true)}
+                                onMouseLeave={() => setTrashHover(false)}
+                            />
+                        </button>
+                    </div>
+                ) : null}
             </Card>
             <Handle
                 id={`${flowPrefix}-source-handle${idExtension}`}

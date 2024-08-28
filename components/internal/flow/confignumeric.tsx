@@ -23,6 +23,9 @@ interface ConfigNumericProps {
 
     // Function to be called when input changes
     onParamChange: (event, paramName: string) => void
+
+    // Determines whether input can be interacted with
+    disabled?: boolean
 }
 
 /**
@@ -87,6 +90,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
     const useMax = getMax(props.defaultParam)
     const useDefaultValue = getDefaultValue(props.defaultParam)
     const value = props.value != null ? props.value.toString() : useDefaultValue
+    const disabled = props.disabled
 
     return (
         <input
@@ -98,6 +102,7 @@ export default function ConfigNumeric(props: ConfigNumericProps) {
             value={value}
             onChange={(event) => props.onParamChange(event, param)}
             style={props.style}
+            disabled={disabled}
         />
     )
 }

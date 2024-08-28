@@ -2,7 +2,7 @@ import {Button, Input, Modal, Space} from "antd"
 import {ReactElement, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd"
 import {Col, Container, Form, ListGroup, Row} from "react-bootstrap"
-import {AiFillDelete, AiFillEdit, AiFillWarning} from "react-icons/ai"
+import {AiFillDelete, AiFillEdit, AiFillLock, AiFillWarning} from "react-icons/ai"
 
 import {reasonToHumanReadable} from "../../../controller/datasources/conversion"
 import {DataTagFieldCAOType, DataTagFieldDataType, DataTagFieldValued, Profile} from "../../../generated/metadata"
@@ -13,10 +13,13 @@ interface ProfileTableProps {
     id: string
     Profile: Profile
     ProfileUpdateHandler: (value: Profile) => void
+
+    // enable/disble saving of profile
+    readonly updatePermission?: boolean
 }
 
 export default function ProfileTable(props: ProfileTableProps) {
-    const profile = props.Profile
+    const {Profile: profile, updatePermission} = props
     const setProfile = props.ProfileUpdateHandler
     const [fieldBeingEditedName, setFieldBeingEditedName] = useState(null)
     const [showFieldEditor, setShowFieldEditor] = useState(false)
@@ -117,18 +120,21 @@ export default function ProfileTable(props: ProfileTableProps) {
                     <option
                         id={`${field}-esp-type-context`}
                         value="CONTEXT"
+                        disabled={!updatePermission}
                     >
                         CONTEXT
                     </option>
                     <option
                         id={`${field}-esp-type-action`}
                         value="ACTION"
+                        disabled={!updatePermission}
                     >
                         ACTION
                     </option>
                     <option
                         id={`${field}-esp-type-outcome`}
                         value="OUTCOME"
+                        disabled={!updatePermission}
                     >
                         OUTCOME
                     </option>
@@ -153,24 +159,28 @@ export default function ProfileTable(props: ProfileTableProps) {
                     <option
                         id={`${field}-data-type-int`}
                         value="INT"
+                        disabled={!updatePermission}
                     >
                         INT
                     </option>
                     <option
                         id={`${field}-data-type-string`}
                         value="STRING"
+                        disabled={!updatePermission}
                     >
                         STRING
                     </option>
                     <option
                         id={`${field}-data-type-float`}
                         value="FLOAT"
+                        disabled={!updatePermission}
                     >
                         FLOAT
                     </option>
                     <option
                         id={`${field}-data-type-bool`}
                         value="BOOL"
+                        disabled={!updatePermission}
                     >
                         BOOL
                     </option>
@@ -195,12 +205,14 @@ export default function ProfileTable(props: ProfileTableProps) {
                     <option
                         id={`${field}-data-continuity-categorical`}
                         value="CATEGORICAL"
+                        disabled={!updatePermission}
                     >
                         CATEGORICAL
                     </option>
                     <option
                         id={`${field}-data-continuity-continuous`}
                         value="CONTINUOUS"
+                        disabled={!updatePermission}
                     >
                         CONTINUOUS
                     </option>
@@ -241,24 +253,26 @@ export default function ProfileTable(props: ProfileTableProps) {
                                 </option>
                             ))}
                         </select>
-                        <button
-                            id={`${field}-set-current-category-values`}
-                            onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
-                                // Don't want to submit form here!
-                                e.preventDefault()
+                        {updatePermission ? (
+                            <button
+                                id={`${field}-set-current-category-values`}
+                                onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
+                                    // Don't want to submit form here!
+                                    e.preventDefault()
 
-                                setFieldBeingEditedName(field)
-                                setCurrentCategoryValues(fields[field].discreteCategoricalValues)
-                                setCategoryOrder(fields[field].discreteCategoricalValues)
-                                setShowFieldEditor(true)
-                            }}
-                        >
-                            <AiFillEdit
-                                id={`${field}-set-current-category-values-fill`}
-                                size="14"
-                                style={{cursor: "pointer"}}
-                            />
-                        </button>
+                                    setFieldBeingEditedName(field)
+                                    setCurrentCategoryValues(fields[field].discreteCategoricalValues)
+                                    setCategoryOrder(fields[field].discreteCategoricalValues)
+                                    setShowFieldEditor(true)
+                                }}
+                            >
+                                <AiFillEdit
+                                    id={`${field}-set-current-category-values-fill`}
+                                    size="14"
+                                    style={{cursor: "pointer"}}
+                                />
+                            </button>
+                        ) : null}
                     </span>
                 ) : (
                     "N/A"
@@ -279,6 +293,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                             name={`${field}-min-range`}
                             type="number"
                             value={fields[field].range[0]}
+                            disabled={!updatePermission}
                             onChange={(event) => {
                                 const profileCopy = {...profile}
                                 profileCopy.dataTag.fields[field].range[0] = parseFloat(event.target.value)
@@ -305,6 +320,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                             name={`${field}-max-range`}
                             type="number"
                             value={fields[field].range[1]}
+                            disabled={!updatePermission}
                             onChange={(event) => {
                                 const profileCopy = {...profile}
                                 profileCopy.dataTag.fields[field].range[1] = parseFloat(event.target.value)
@@ -663,9 +679,28 @@ export default function ProfileTable(props: ProfileTableProps) {
                 setCurrentCategoryValues(items)
             }}
         >
+            {!updatePermission ? (
+                <div
+                    className="flex justify-content-center align-items-center gap-2 mt-2 mb-2"
+                    id="profile-table-read-only-message-container"
+                >
+                    <AiFillLock
+                        id="profile-table-read-only-lock-icon"
+                        size="50"
+                        color="red"
+                    />
+                    <h3
+                        id="profile-table-read-only-message"
+                        className="mb-0"
+                        style={{color: "red"}}
+                    >
+                        You are not authorized to make changes to this project
+                    </h3>
+                </div>
+            ) : null}
             <div
                 id={propsId}
-                className="flex flex-col mt-4"
+                className="flex flex-col"
             >
                 {editCategoryValuesModal}
                 {confirmationModal}

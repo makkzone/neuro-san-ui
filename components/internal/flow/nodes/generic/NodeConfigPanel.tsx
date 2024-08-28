@@ -27,6 +27,7 @@ type NodeConfigPanelProps = {
     inputTypes: Set<string>
     id: string
     customStyles?: NodeConfigStyles
+    readOnlyNode: boolean
 }
 
 const NodeConfigPanel = ({
@@ -38,6 +39,7 @@ const NodeConfigPanel = ({
     inputTypes,
     id,
     customStyles,
+    readOnlyNode,
 }: NodeConfigPanelProps) => {
     /**
      * This function is used to update the state of any parameter based on a user event (e.g. onChange)
@@ -127,6 +129,7 @@ const NodeConfigPanel = ({
                                 max={100}
                                 value={parentNodeState.trainSliderValue}
                                 marks={marks}
+                                disabled={readOnlyNode}
                                 handleRender={(node) => {
                                     return (
                                         <AntdTooltip
@@ -165,6 +168,7 @@ const NodeConfigPanel = ({
                                 max={100}
                                 value={parentNodeState.testSliderValue}
                                 marks={marks}
+                                disabled={readOnlyNode}
                                 handleRender={(node) => {
                                     return (
                                         <AntdTooltip
@@ -197,6 +201,7 @@ const NodeConfigPanel = ({
                                 type="number"
                                 min={0}
                                 value={parentNodeState.rngSeedValue}
+                                disabled={readOnlyNode}
                                 onChange={(event) => {
                                     setParentNodeState({
                                         ...parentNodeState,
@@ -255,12 +260,14 @@ const NodeConfigPanel = ({
                                     }
                                     onParamChange={(event) => onParamChange(event, param)}
                                     style={{width: "100%"}}
+                                    disabled={readOnlyNode}
                                 />
                             )}
                             {defaultParams[param].type === BaseParameterType.BOOLEAN && (
                                 <input
                                     id={`${flowPrefix}-${param}-value${idExtension}`}
                                     type="checkbox"
+                                    disabled={readOnlyNode}
                                     checked={
                                         parentNodeState.params[param]?.value == null
                                             ? defaultParams[param].default_value == null
@@ -292,6 +299,7 @@ const NodeConfigPanel = ({
                                             <option
                                                 id={`${flowPrefix}-${param}-${value[0]}${idExtension}`}
                                                 key={value[0]}
+                                                disabled={readOnlyNode}
                                                 value={value[1].toString()}
                                             >
                                                 {enumIsNumeric ? value[1].toString() : value[0]}
@@ -307,6 +315,7 @@ const NodeConfigPanel = ({
                                         rows={defaultParams[param].rows || 10}
                                         id={`${flowPrefix}-${param}-value${idExtension}`}
                                         onChange={(event) => onParamChange(event, param)}
+                                        disabled={readOnlyNode}
                                     >
                                         {(
                                             parentNodeState.params[param]?.value ??
@@ -321,6 +330,7 @@ const NodeConfigPanel = ({
                                         defaultValue={defaultParams[param].default_value?.toString()}
                                         value={parentNodeState.params[param]?.value?.toString()}
                                         onChange={(event) => onParamChange(event, param)}
+                                        disabled={readOnlyNode}
                                     />
                                 )
                             ) : null}
@@ -332,6 +342,7 @@ const NodeConfigPanel = ({
                                     defaultValue={defaultParams[param].default_value?.toString()}
                                     value={parentNodeState.params[param]?.value?.toString()}
                                     onChange={(event) => onParamChange(event, param)}
+                                    disabled={readOnlyNode}
                                 />
                             )}
                         </div>

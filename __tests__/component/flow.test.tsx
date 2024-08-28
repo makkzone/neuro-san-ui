@@ -10,6 +10,7 @@ import {NodeType} from "../../components/internal/flow/nodes/types"
 import {NotificationType, sendNotification} from "../../components/notification"
 import loadDataTags from "../../controller/datatag/fetchdatataglist"
 import {DataTagFieldCAOType, DataTagFieldDataType, DataTagFieldValued} from "../../generated/metadata"
+import {AuthorizationInfo} from "../../utils/authorization"
 
 // Generate some random values to use in tests
 const testUser = crypto.randomUUID()
@@ -23,6 +24,7 @@ const FLOW_WITH_PREDICTOR: (NodeType | EdgeType)[] = [
         type: "datanode",
         data: {
             ProjectID: 42548,
+            readOnlyNode: false,
             DataSource: {
                 id: 1234,
                 name: testDataSourceName,
@@ -85,6 +87,7 @@ const FLOW_WITH_PREDICTOR: (NodeType | EdgeType)[] = [
         id: "81e04790-f085-6645-c06a-1013b0259dfb",
         type: "predictornode",
         data: {
+            readOnlyNode: false,
             NodeID: "81e04790-f085-6645-c06a-1013b0259dfb",
             SelectedDataSourceId: 1234,
             ParentNodeState: {
@@ -167,7 +170,8 @@ jest.mock("../../controller/datatag/fetchdatataglist", () => {
 function createFlow(
     elementsSelectable: boolean = true,
     setParentState: jest.Mock = jest.fn(),
-    initialFlow: (NodeType | EdgeType)[] = []
+    initialFlow: (NodeType | EdgeType)[] = [],
+    projectPermissions: AuthorizationInfo = {id: testProjectId, update: true, delete: true}
 ) {
     return (
         <Flow
@@ -176,6 +180,7 @@ function createFlow(
             SetParentState={setParentState}
             Flow={initialFlow}
             ElementsSelectable={elementsSelectable}
+            projectPermissions={projectPermissions}
         />
     )
 }
@@ -452,5 +457,29 @@ describe("Flow Test", () => {
             const presc = container.getElementsByClassName("react-flow__node-prescriptornode")
             expect(presc.length).toBe(1)
         })
+    })
+
+    it("should show un-authorized message if insufficient authorization is passed to flow", async () => {
+        const mockLoadDataTags = loadDataTags as jest.Mock
+        const dataTags = [
+            {
+                DataSource: {id: "test-data-source-id", name: testDataSourceName},
+                LatestDataTag: "test tag",
+            },
+        ]
+        mockLoadDataTags.mockImplementation(() => {
+            return dataTags
+        })
+
+        const flow = createFlow(true, setParentState, FLOW_WITH_PREDICTOR, {
+            id: testProjectId,
+            update: false,
+            delete: false,
+        })
+
+        render(flow)
+
+        const unAuthorizedMessage = screen.getByText("You are not authorized to make changes to this experiment")
+        expect(unAuthorizedMessage).toBeInTheDocument()
     })
 })
