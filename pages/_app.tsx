@@ -43,7 +43,8 @@ const debug = debugModule("app")
 // ts-prune-ignore-next
 export default function LEAF({Component, pageProps: {session, ...pageProps}}): ReactElement {
     const {isGeneric} = useFeaturesStore()
-    const {backendApiUrl, setBackendApiUrl, setAuth0ClientId, setAuth0Domain} = useEnvironmentStore()
+    const {backendApiUrl, setBackendApiUrl, setAuth0ClientId, setAuth0Domain, setEnableAuthorizeAPI} =
+        useEnvironmentStore()
 
     // access user info store
     const {currentUser, setCurrentUser, picture, setPicture} = useUserInfoStore()
@@ -107,6 +108,9 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
                 debug(`Received Auth0 domain from NodeJS server. Setting to ${data.auth0Domain}`)
                 setAuth0Domain(data.auth0Domain)
             }
+
+            // get enableAuthorizeAPI flag
+            setEnableAuthorizeAPI(data.enableAuthorizeAPI)
         }
 
         void getEnvironment()

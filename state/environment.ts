@@ -19,6 +19,10 @@ interface EnvironmentStore {
     // Auth0 domain
     auth0Domain: string
     setAuth0Domain: (auth0Domain: string) => void
+
+    // enableAuthorizeAPI flag
+    enableAuthorizeAPI: boolean
+    setEnableAuthorizeAPI: (useAuthorizeAPI: boolean) => void
 }
 
 /**
@@ -26,13 +30,16 @@ interface EnvironmentStore {
  */
 const useEnvironmentStore = create<EnvironmentStore>((set) => ({
     backendApiUrl: null,
-    setBackendApiUrl: (backendApiUrl: string) => set(() => ({backendApiUrl: backendApiUrl})),
+    setBackendApiUrl: (backendApiUrl: string) => set(() => ({backendApiUrl})),
 
     auth0ClientId: null,
-    setAuth0ClientId: (auth0ClientId: string) => set(() => ({auth0ClientId: auth0ClientId})),
+    setAuth0ClientId: (auth0ClientId: string) => set(() => ({auth0ClientId})),
 
     auth0Domain: null,
-    setAuth0Domain: (auth0Domain: string) => set(() => ({auth0Domain: auth0Domain})),
+    setAuth0Domain: (auth0Domain: string) => set(() => ({auth0Domain})),
+
+    enableAuthorizeAPI: false,
+    setEnableAuthorizeAPI: (enableAuthorizeAPI: boolean) => set(() => ({enableAuthorizeAPI})),
 }))
 
 export default useEnvironmentStore

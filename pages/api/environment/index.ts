@@ -37,5 +37,6 @@ export default async function handler(_req, res) {
         backendApiUrl: backendApiUrl,
         auth0ClientId: auth0ClientId,
         auth0Domain: auth0Domain,
+        enableAuthorizeAPI: Boolean(process.env.ENABLE_AUTHORIZE_API),
     })
 }
