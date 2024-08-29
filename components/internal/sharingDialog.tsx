@@ -1,3 +1,7 @@
+/**
+ * See class comment.
+ */
+
 import {Alert, Modal, Tooltip} from "antd"
 import {camelCase, startCase} from "lodash"
 import {ChangeEvent, ReactNode, useEffect, useState} from "react"
@@ -17,6 +21,14 @@ interface SharingDialogProps {
     readonly project: Project
 }
 
+/**
+ * Dialog for sharing a project with another user.
+ * @param title The title of the dialog (customizable by caller)
+ * @param visible Whether the dialog is visible initially
+ * @param closeModal Function to close the dialog
+ * @param currentUser The current user's login
+ * @param project The project to share
+ */
 export default function SharingDialog({
     title,
     visible,
@@ -29,6 +41,7 @@ export default function SharingDialog({
     const [operationComplete, setOperationComplete] = useState<boolean>(false)
     const [currentShares, setCurrentShares] = useState<[string, RoleType][]>([])
 
+    // Retrieve current list of shares
     useEffect(() => {
         async function getCurrentShares() {
             try {
@@ -42,20 +55,26 @@ export default function SharingDialog({
         void getCurrentShares()
     }, [])
 
+    // Keypress handler
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         setTargetUser(e.target.value)
     }
 
+    // Close the dialog and clear the state
     function closeAndClear() {
         closeModal()
         setTargetUser(null)
         setOperationComplete(false)
     }
 
+    // Share the project with the target user
     async function handleOk() {
         setLoading(true)
         try {
+            // Call sharing API
             await share(project.id, currentUser, targetUser)
+
+            // Update the current shares list in the dialog to reassure the user
             setCurrentShares((prevShares) => [...prevShares, [targetUser, RoleType.TOURIST]])
             setOperationComplete(true)
         } catch (e) {
