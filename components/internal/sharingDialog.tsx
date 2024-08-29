@@ -6,7 +6,7 @@ import {IoMdClose} from "react-icons/io"
 
 import {getShares, share} from "../../controller/authorize/share"
 import {Project} from "../../controller/projects/types"
-import {RelationType} from "../../generated/auth"
+import {RoleType} from "../../generated/auth"
 import {NotificationType, sendNotification} from "../notification"
 
 interface SharingDialogProps {
@@ -27,7 +27,7 @@ export default function SharingDialog({
     const [targetUser, setTargetUser] = useState<string>(null)
     const [loading, setLoading] = useState<boolean>(false)
     const [operationComplete, setOperationComplete] = useState<boolean>(false)
-    const [currentShares, setCurrentShares] = useState<[string, RelationType][]>([])
+    const [currentShares, setCurrentShares] = useState<[string, RoleType][]>([])
 
     useEffect(() => {
         async function getCurrentShares() {
@@ -56,7 +56,7 @@ export default function SharingDialog({
         setLoading(true)
         try {
             await share(project.id, currentUser, targetUser)
-            setCurrentShares((prevShares) => [...prevShares, [targetUser, RelationType.TOURIST]])
+            setCurrentShares((prevShares) => [...prevShares, [targetUser, RoleType.TOURIST]])
             setOperationComplete(true)
         } catch (e) {
             sendNotification(NotificationType.error, "Failed to share project", `Due to: ${e}`)
