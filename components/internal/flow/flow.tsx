@@ -1,10 +1,9 @@
-import {Tooltip} from "antd"
+import {Alert, Tooltip} from "antd"
 import dagre from "dagre"
 import debugModule from "debug"
 import {InfoSignIcon} from "evergreen-ui"
 import {Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState} from "react"
 import {Button, Container, Dropdown} from "react-bootstrap"
-import {AiFillLock} from "react-icons/ai"
 import {SlMagicWand} from "react-icons/sl"
 // eslint-disable-next-line import/no-named-as-default
 import ReactFlow, {
@@ -75,7 +74,7 @@ interface FlowProps {
     // Will be called when user clicks magic wand
     handleMagicWand?: () => void
 
-    // If this is set to true, flow will be in readonly state
+    // Indicates which CRUD permissions the user has on this Flow
     readonly projectPermissions?: AuthorizationInfo
 }
 
@@ -1720,23 +1719,20 @@ export default function Flow(props: FlowProps) {
             {/* Only render buttons if ElementsSelectable is true and readOnly is, meaning Flow is editable */}
             {elementsSelectable && !readOnlyFlow && getFlowButtons()}
             {readOnlyFlow ? (
-                <div
-                    className="flex justify-content-center align-items-center gap-2 mt-2 mb-2"
-                    id="flow-table-read-only-message-container"
-                >
-                    <AiFillLock
-                        id="flow-read-only-lock-icon"
-                        size="50"
-                        color="red"
-                    />
-                    <h4
-                        id="flow-read-only-message"
-                        style={{color: "red"}}
-                        className="mb-0"
-                    >
-                        You are not authorized to make changes to this experiment
-                    </h4>
-                </div>
+                // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                <Alert
+                    type="error"
+                    message={
+                        <span
+                            id="no-permissions-alert"
+                            style={{fontSize: "x-large", color: "inherit"}}
+                        >
+                            🔒 You do not have the required permissions to make changes to this experiment.
+                        </span>
+                    }
+                    showIcon={true}
+                    style={{marginBottom: "1rem"}}
+                />
             ) : null}
 
             {/*Get the flow diagram itself*/}

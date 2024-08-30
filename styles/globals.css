@@ -470,6 +470,11 @@ span svg {
     color: var(--bs-secondary);
 }
 
+/* For antd alerts */
+div.ant-alert span svg {
+    color: inherit;
+}
+
 .bp4-card p {
     color: var(--bs-primary) !important;
 }

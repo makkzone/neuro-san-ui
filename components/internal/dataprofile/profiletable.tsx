@@ -1,8 +1,8 @@
-import {Button, Input, Modal, Space} from "antd"
+import {Alert, Button, Input, Modal, Space} from "antd"
 import {ReactElement, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd"
 import {Col, Container, Form, ListGroup, Row} from "react-bootstrap"
-import {AiFillDelete, AiFillEdit, AiFillLock, AiFillWarning} from "react-icons/ai"
+import {AiFillDelete, AiFillEdit, AiFillWarning} from "react-icons/ai"
 
 import {reasonToHumanReadable} from "../../../controller/datasources/conversion"
 import {DataTagFieldCAOType, DataTagFieldDataType, DataTagFieldValued, Profile} from "../../../generated/metadata"
@@ -680,23 +680,19 @@ export default function ProfileTable(props: ProfileTableProps) {
             }}
         >
             {!updatePermission ? (
-                <div
-                    className="flex justify-content-center align-items-center gap-2 mt-2 mb-2"
-                    id="profile-table-read-only-message-container"
-                >
-                    <AiFillLock
-                        id="profile-table-read-only-lock-icon"
-                        size="50"
-                        color="red"
-                    />
-                    <h3
-                        id="profile-table-read-only-message"
-                        className="mb-0"
-                        style={{color: "red"}}
-                    >
-                        You are not authorized to make changes to this project
-                    </h3>
-                </div>
+                // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                <Alert
+                    type="error"
+                    message={
+                        <span
+                            id="no-permission-message"
+                            style={{fontSize: "x-large", color: "inherit"}}
+                        >
+                            🔒 You do not have the required permissions to make changes to this project.
+                        </span>
+                    }
+                    showIcon={true}
+                />
             ) : null}
             <div
                 id={propsId}

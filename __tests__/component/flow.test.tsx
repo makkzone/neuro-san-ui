@@ -477,9 +477,12 @@ describe("Flow Test", () => {
             delete: false,
         })
 
-        render(flow)
-
-        const unAuthorizedMessage = await screen.findByText("You are not authorized to make changes to this experiment")
-        expect(unAuthorizedMessage).toBeInTheDocument()
+        const {container} = render(flow)
+        await waitFor(() => {
+            const alertSpan = container.querySelector("#no-permissions-alert")
+            expect(alertSpan).toHaveTextContent(
+                "You do not have the required permissions to make changes to this experiment."
+            )
+        })
     })
 })
