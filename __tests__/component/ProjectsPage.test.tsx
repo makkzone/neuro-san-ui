@@ -1,12 +1,12 @@
 import "@testing-library/jest-dom"
 // eslint-disable-next-line no-shadow
-import {render, screen, waitFor} from "@testing-library/react"
+import {cleanup, fireEvent, render, screen, waitForElementToBeRemoved} from "@testing-library/react"
 
 import {DEMO_USER} from "../../const"
-import * as authFetch from "../../controller/authorize/fetch"
+import * as listFetch from "../../controller/list/fetch"
 import * as projectFetch from "../../controller/projects/fetch"
 import {Projects} from "../../controller/projects/types"
-import {AuthInfo} from "../../generated/auth"
+import {AuthQuery} from "../../generated/auth"
 import ProjectsPage from "../../pages/projects"
 import {mockFetch} from "../testUtils"
 
@@ -34,10 +34,16 @@ jest.mock("next-auth/react", () => {
     }
 })
 
-jest.mock("../../controller/authorize/fetch", () => {
+jest.mock("../../state/features", () => ({
+    ...jest.requireActual("../../state/features"),
+    __esModule: true,
+    default: jest.fn(() => ({enableProjectSharing: true})),
+}))
+
+jest.mock("../../controller/list/fetch", () => {
     return {
         __esModule: true,
-        ...jest.requireActual("../../controller/authorize/fetch"),
+        ...jest.requireActual("../../controller/list/fetch"),
     }
 })
 
@@ -48,10 +54,23 @@ jest.mock("../../controller/projects/fetch", () => {
     }
 })
 
+jest.mock("../../controller/projects/update", () => ({
+    ...jest.requireActual("../../controller/projects/update"),
+    __esModule: true,
+    default: jest.fn(() => []),
+}))
+
 jest.mock("../../components/internal/newproject", () => {
     return {
         __esModule: true,
         default: jest.fn(() => <div>Mock New Project</div>),
+    }
+})
+
+jest.mock("../../components/notification", () => {
+    return {
+        __esModule: true,
+        ...jest.requireActual("../../components/notification"),
     }
 })
 
@@ -62,35 +81,29 @@ jest.mock("next/link", () => {
     }
 })
 
-describe("Projects Page", () => {
-    // Mock API calls
-    beforeEach(() => {
-        window.fetch = mockFetch({})
-        jest.spyOn(authFetch, "fetchAuthorization").mockImplementation(
-            () =>
-                [
-                    {
-                        authQuery: {
-                            permission: "DELETE",
-                            target: {
-                                resourceType: "PROJECT",
-                                id: "1",
-                            },
-                        },
-                        isAuthorized: true,
-                    },
-                    {
-                        authQuery: {
-                            permission: "DELETE",
-                            target: {
-                                resourceType: "PROJECT",
-                                id: "2",
-                            },
-                        },
-                    },
-                ] as unknown as Promise<AuthInfo[]>
-        )
+window.fetch = mockFetch({})
+jest.spyOn(listFetch, "fetchResourceList").mockImplementation(
+    () =>
+        [
+            {
+                role: "OWNER",
+                target: {
+                    resourceType: "PROJECT",
+                    id: "1",
+                },
+            },
+            {
+                role: "OWNER",
+                target: {
+                    resourceType: "PROJECT",
+                    id: "2",
+                },
+            },
+        ] as unknown as Promise<AuthQuery[]>
+)
 
+describe("Projects Page", () => {
+    beforeEach(() => {
         jest.spyOn(projectFetch, "fetchProjects").mockImplementation(
             () =>
                 [
@@ -118,6 +131,10 @@ describe("Projects Page", () => {
         )
     })
 
+    afterEach(() => {
+        cleanup()
+    })
+
     it("should display a project page with projects visible to user", async () => {
         render(<ProjectsPage />)
 
@@ -128,22 +145,55 @@ describe("Projects Page", () => {
         expect(demoProject).toBeInTheDocument()
     })
 
-    it("should show delete button if they have delete authorization", async () => {
+    it("should show error page if project list returns falsy", async () => {
+        jest.spyOn(projectFetch, "fetchProjects").mockReturnValue(null as unknown as Promise<Projects>)
         render(<ProjectsPage />)
-        let demoProjectDeleteBtnFound
 
-        await waitFor(async () => {
-            const deleteProjectBtn = await screen.findByTestId("project-1-delete-button")
-            expect(deleteProjectBtn).toBeInTheDocument()
-        })
+        const errorText = await screen.findByText("Unable to retrieve projects")
+        expect(errorText).toBeInTheDocument()
+    })
 
-        try {
-            await screen.findByTestId("project-2-delete-button")
-            demoProjectDeleteBtnFound = true
-        } catch (e) {
-            demoProjectDeleteBtnFound = false
-        }
+    it("should be able to delete a project if user is the owner", async () => {
+        render(<ProjectsPage />)
+        const deleteProjectBtn = await screen.findByTestId("project-1-delete-button")
+        fireEvent.click(deleteProjectBtn)
 
-        expect(demoProjectDeleteBtnFound).toEqual(false)
+        const deleteConfirm = await screen.findByText("Delete")
+        fireEvent.click(deleteConfirm)
+
+        expect(async () => {
+            await waitForElementToBeRemoved(async () => {
+                await screen.findByText("Delete")
+            })
+        }).not.toThrow()
+
+        expect(async () => {
+            await waitForElementToBeRemoved(async () => {
+                await screen.findByText("mock project description...")
+            })
+        }).not.toThrow()
+    })
+
+    it("should show sharing icon if they are an owner", async () => {
+        render(<ProjectsPage />)
+        const sharingIconFound = await screen.findByTestId("project-1-tooltip-share")
+        expect(sharingIconFound).toBeInTheDocument()
+    })
+
+    it("should be able to toggle view between personal or other projects", async () => {
+        render(<ProjectsPage />)
+        const mockProject = await screen.findByText("mock project description...")
+        const demoProject = await screen.findByText("demo project description...")
+
+        const myProjectsToggle = await screen.findByText("My projects")
+        const demoProjectsToggle = await screen.findByText("Demo projects")
+
+        fireEvent.click(myProjectsToggle)
+        expect(mockProject).toBeInTheDocument()
+        expect(demoProject).not.toBeInTheDocument()
+
+        fireEvent.click(demoProjectsToggle)
+        expect(mockProject).not.toBeInTheDocument()
+        expect(screen.getByText("demo project description...")).toBeInTheDocument()
     })
 })
