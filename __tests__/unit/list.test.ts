@@ -4,7 +4,7 @@ Unit tests for the list utility module
 
 import * as listResourceFetch from "../../controller/list/fetch"
 import {AuthQuery, ResourceType, RoleType} from "../../generated/auth"
-import {getResourceListIds} from "../../utils/list"
+import {getResourceListIds} from "../../utils/listResources"
 
 const MOCK_LIST_RESOURCE_RESPONSE = [
     {
