@@ -395,7 +395,7 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
             data={{
                 ...props.data,
                 tabs,
-                NodeTitle: ParentNodeState.selectedPredictor,
+                NodeTitle: "Predictor",
                 enableCAOActions: true,
                 ParameterSet: defaultParams,
                 dataSourceFields: taggedData?.fields,

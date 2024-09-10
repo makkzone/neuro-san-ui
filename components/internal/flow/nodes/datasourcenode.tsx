@@ -53,7 +53,7 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = (props) => {
                     sendNotification(
                         NotificationType.error,
                         "Failed to load Data tags",
-                        `Unable to load data tags for project ${projectId} due to an internal error. Your experiment` +
+                        `Unable to load data tags for project ${projectId} due to an internal error. Your experiment ` +
                             "may not behave as expected. Please report this to the development team"
                     )
                 }

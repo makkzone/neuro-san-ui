@@ -394,7 +394,7 @@ describe("Flow Test", () => {
         render(createFlow(true, setParentState, callWithThreeElements))
 
         await waitFor(() => {
-            expect(screen.getByText("Random Forest")).toBeInTheDocument()
+            expect(screen.getByText("Predictor")).toBeInTheDocument()
         })
     })
 
