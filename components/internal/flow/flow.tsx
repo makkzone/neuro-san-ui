@@ -97,7 +97,7 @@ export default function Flow(props: FlowProps) {
 
     const [taggedDataList, setTaggedDataList] = useState<TaggedDataInfo[]>([])
     // for loading data tags
-    const [loadingDataTags, setLoadingDataTags] = useState<boolean>(false)
+    const [loadingDataTags, setLoadingDataTags] = useState<boolean>(true)
 
     const readOnlyFlow = !props.projectPermissions?.update && !props.projectPermissions?.delete
 
@@ -143,7 +143,7 @@ export default function Flow(props: FlowProps) {
                             idExtension,
                             readOnlyNode: readOnlyFlow,
                             SelfStateUpdateHandler: DataNodeStateUpdateHandler,
-                            ...(taggedDataList.length && {taggedDataList}),
+                            taggedDataList,
                         }
                         break
                     case "predictornode":
@@ -376,34 +376,6 @@ export default function Flow(props: FlowProps) {
         )
     }
 
-    // Fetch the Data Sources and the Data Tags
-    useEffect(() => {
-        async function loadDataTagList() {
-            try {
-                if (projectId != null) {
-                    setLoadingDataTags(true)
-                    const taggedDataListTmp: TaggedDataInfo[] = await loadDataTags(currentUser, projectId)
-                    if (taggedDataListTmp != null && taggedDataListTmp.length > 0) {
-                        setTaggedDataList(taggedDataListTmp)
-                    } else {
-                        // This is an internal error. Shouldn't have been able to create a project and an experiment
-                        // without having data tags!
-                        sendNotification(
-                            NotificationType.error,
-                            "Failed to load Data tags",
-                            `Unable to load data tags for project ${projectId} ` +
-                                "due to an internal error. Your experiment" +
-                                "may not behave as expected. Please report this to the development team"
-                        )
-                    }
-                }
-            } finally {
-                setLoadingDataTags(false)
-            }
-        }
-        void loadDataTagList()
-    }, [projectId])
-
     function ParentNodeSetStateHandler(newState, NodeID) {
         /*
         Called by nodes to update their state in the flow
@@ -514,7 +486,7 @@ export default function Flow(props: FlowProps) {
                 SelfStateUpdateHandler: DataNodeStateUpdateHandler,
                 idExtension,
                 readOnlyNode: readOnlyFlow,
-                ...(taggedDataList.length && {taggedDataList}),
+                taggedDataList,
             },
             position: {x: 500, y: 500},
         }
@@ -1304,7 +1276,6 @@ export default function Flow(props: FlowProps) {
                     Add Prescriptor
                 </Button>
                 <LLMDropdownMenu // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                    dropdownId="add-llm-dropdown__menu"
                     deleteNodeById={deleteNodeById}
                     getPrescriptorEdge={getPrescriptorEdge}
                     getGeneralEdge={getGeneralEdge}
@@ -1335,7 +1306,7 @@ export default function Flow(props: FlowProps) {
                 <ReactFlowProvider>
                     <ReactFlow
                         id="react-flow"
-                        nodes={nodes}
+                        nodes={[...nodes]} // Ensure flow updates for deep updates on a node
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}

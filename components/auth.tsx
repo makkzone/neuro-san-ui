@@ -4,6 +4,7 @@
 
 import {signIn, useSession} from "next-auth/react"
 import {useEffect} from "react"
+import {PageLoader} from "./pageLoader"
 
 // Use this provider for authentication via next-auth. It *must* correspond to one of those listed in
 // ./pages/api/auth/[...nextauth].js
@@ -39,11 +40,11 @@ export function Auth({children}) {
         }
     }, [isUser, loading])
 
-    if (isUser) {
+    if (isUser && !loading) {
         return children
     }
 
     // Session is being fetched, or no user.
     // If no user, useEffect() will redirect.
-    return <div id="loading-session">Loading session...</div>
+    return <PageLoader id="authentication-page" />
 }

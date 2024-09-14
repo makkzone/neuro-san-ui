@@ -17,7 +17,6 @@ import {DataTagFieldValued} from "../../../generated/metadata"
 import {NotificationType, sendNotification} from "../../notification"
 
 const LLMDropdownMenu = ({
-    dropdownId,
     deleteNodeById,
     getPrescriptorEdge,
     getGeneralEdge,
@@ -375,7 +374,7 @@ const LLMDropdownMenu = ({
         Object.keys(dataTagFields)?.some((field) => dataTagFields[field].valued === DataTagFieldValued.CATEGORICAL)
 
     return (
-        <Dropdown id={dropdownId}>
+        <Dropdown id="add-llm-dropdown__menu">
             <Dropdown.Toggle
                 className="w-100"
                 variant="success"
