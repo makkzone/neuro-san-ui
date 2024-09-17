@@ -1,5 +1,6 @@
 import {ConfigurableNodeState} from "./generic/types"
 import {DataTagField} from "../../../../generated/metadata"
+import {TaggedDataInfo} from "../../../../pages/projects/[projectID]/experiments/new"
 
 export interface Outcomes {
     [key: string]: {
@@ -36,3 +37,6 @@ export const addDisabledPropertyToOutcomes = (
 
     return result
 }
+
+export const getSelectedDataSource = (taggedDataList: TaggedDataInfo[], id: number): TaggedDataInfo[] =>
+    taggedDataList.filter((dataTmp) => Number(id) === Number(dataTmp.DataSource?.id))

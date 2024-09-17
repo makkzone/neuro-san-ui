@@ -31,15 +31,20 @@ export type DataSourceNode = RFNode<DataSourceNodeData>
 
 const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = (props) => {
     const data = props.data
-    const {idExtension = "", readOnlyNode = false, taggedDataList = []} = data
+    const {
+        idExtension = "",
+        readOnlyNode = false,
+        taggedDataList = [],
+    }: {idExtension?: string; readOnlyNode?: boolean; taggedDataList?: TaggedDataInfo[]} = data
     const projectId: number = data.ProjectID
+    const dataSource: DataSource = data.DataSource
 
     // Set the Selected Data Source Id at initialization of data tags
     useEffect(() => {
         if (taggedDataList.length > 0) {
             data.SelfStateUpdateHandler(taggedDataList[0].DataSource, taggedDataList[0].LatestDataTag)
         }
-    }, [taggedDataList])
+    }, [])
 
     // Create the Component structure
     return (
@@ -68,7 +73,8 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = (props) => {
                                 id="analytics-link"
                                 href={
                                     `/analyticsChat/?projectID=${projectId}&` +
-                                    `dataSourceID=${taggedDataList?.length > 0 && taggedDataList[0].DataSource.id}`
+                                    "dataSourceID=" +
+                                    `${taggedDataList?.length && (dataSource?.id || taggedDataList[0].DataSource.id)}`
                                 }
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -96,7 +102,7 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = (props) => {
                             }}
                             onChange={(event) => {
                                 const filteredSelectedData = taggedDataList.filter(
-                                    (dataTmp) => parseInt(event.target.value) === dataTmp.DataSource.id
+                                    (dataTmp) => Number(event.target.value) === Number(dataTmp.DataSource.id)
                                 )[0]
                                 data.SelfStateUpdateHandler(
                                     filteredSelectedData.DataSource,

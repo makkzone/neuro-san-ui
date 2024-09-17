@@ -1,8 +1,11 @@
 import {Skeleton, Tooltip} from "antd"
 import {InfoSignIcon} from "evergreen-ui"
+import {Dispatch, SetStateAction} from "react"
 import {Dropdown} from "react-bootstrap"
 import {getOutgoers} from "reactflow"
 
+import {PredictorEdge} from "./edges/predictoredge"
+import {PrescriptorEdge} from "./edges/prescriptoredge"
 import {EdgeType} from "./edges/types"
 import {FlowQueries} from "./flowqueries"
 import {
@@ -13,8 +16,27 @@ import {
 } from "./llmInfo"
 import {ConfigurableNode} from "./nodes/generic/configurableNode"
 import {NodeData, NodeType} from "./nodes/types"
-import {DataTagFieldValued} from "../../../generated/metadata"
+import {FlowElementsType} from "./types"
+import {DataTagField, DataTagFieldValued} from "../../../generated/metadata"
 import {NotificationType, sendNotification} from "../../notification"
+
+type LLMDropDownPropsType = {
+    deleteNodeById: (nodeID: string) => void
+    getPrescriptorEdge: (sourceNodeID: string, targetPrescriptorNodeID: string) => PrescriptorEdge
+    getGeneralEdge: (sourceNodeID: string, targetNodeID: string) => PredictorEdge
+    setNodes: Dispatch<SetStateAction<NodeType[]>>
+    setEdges: Dispatch<SetStateAction<EdgeType[]>>
+    setParentState: React.Dispatch<SetStateAction<FlowElementsType>>
+    addElementUuid: (elementType: string, elementId: string) => void
+    ParentNodeSetStateHandler: (newState: object, NodeID: string) => void
+    nodes: NodeType[]
+    getElementIndex: (nodeID: string) => number
+    idExtension: string
+    readOnlyNode: boolean
+    loadingDataTags: boolean
+    edges: EdgeType[]
+    dataTagfields: {[key: string]: DataTagField}
+}
 
 const LLMDropdownMenu = ({
     deleteNodeById,
@@ -32,7 +54,7 @@ const LLMDropdownMenu = ({
     loadingDataTags,
     edges,
     dataTagfields,
-}) => {
+}: LLMDropDownPropsType) => {
     /**
      * Adds any node after the specified node, and rewires the graph accordingly.
      *

@@ -32,6 +32,7 @@ import {ConfigurableNode, ConfigurableNodeData} from "./nodes/generic/configurab
 import {CAOChecked, ConfigurableNodeState, NodeParams} from "./nodes/generic/types"
 import {PrescriptorNode} from "./nodes/prescriptornode"
 import NodeTypes, {NodeData, NodeType} from "./nodes/types"
+import {getSelectedDataSource} from "./nodes/utils"
 import {FlowElementsType} from "./types"
 import {UNCERTAINTY_MODEL_PARAMS} from "./uncertaintymodelinfo"
 import loadDataTags from "../../../controller/datatag/fetchdatataglist"
@@ -99,6 +100,8 @@ export default function Flow(props: FlowProps) {
     // for loading data tags
     const [loadingDataTags, setLoadingDataTags] = useState<boolean>(true)
 
+    const [selectedDataSourceId, setSelectedDataSourceId] = useState<number>(null)
+
     const readOnlyFlow = !props.projectPermissions?.update && !props.projectPermissions?.delete
 
     // Fetch the Data Sources and the Data Tags
@@ -110,6 +113,9 @@ export default function Flow(props: FlowProps) {
                     const taggedDataListTmp: TaggedDataInfo[] = await loadDataTags(currentUser, projectId)
                     if (taggedDataListTmp != null && taggedDataListTmp.length > 0) {
                         setTaggedDataList(taggedDataListTmp)
+                        if (!selectedDataSourceId) {
+                            setSelectedDataSourceId(Number(taggedDataListTmp[0]?.DataSource?.id))
+                        }
                     } else {
                         // This is an internal error. Shouldn't have been able to create a project and an experiment
                         // without having data tags!
@@ -135,6 +141,7 @@ export default function Flow(props: FlowProps) {
         if (props.Flow && props.Flow.length > 0) {
             // If we are loading from a persisted flow, we need to add the handlers to the nodes since the handlers
             // do not get persisted.
+            const selectedDataSource = getSelectedDataSource(taggedDataList, selectedDataSourceId)
             initialFlowValue = props.Flow.map((node) => {
                 switch (node.type) {
                     case "datanode":
@@ -143,7 +150,7 @@ export default function Flow(props: FlowProps) {
                             idExtension,
                             readOnlyNode: readOnlyFlow,
                             SelfStateUpdateHandler: DataNodeStateUpdateHandler,
-                            taggedDataList,
+                            taggedDataList: [...taggedDataList],
                         }
                         break
                     case "predictornode":
@@ -154,8 +161,8 @@ export default function Flow(props: FlowProps) {
                             DeleteNode: (nodeId) => deleteNodeById(nodeId),
                             GetElementIndex: (nodeId) => getElementIndex(nodeId),
                             readOnlyNode: readOnlyFlow,
-                            taggedData: taggedDataList[0]?.LatestDataTag
-                                ? DataTag.fromJSON(taggedDataList[0].LatestDataTag)
+                            taggedData: selectedDataSource[0]?.LatestDataTag
+                                ? DataTag.fromJSON(selectedDataSource[0].LatestDataTag)
                                 : null,
                         }
                         break
@@ -167,8 +174,8 @@ export default function Flow(props: FlowProps) {
                             DeleteNode: (nodeId) => deleteNodeById(nodeId),
                             GetElementIndex: (nodeId) => getElementIndex(nodeId),
                             readOnlyNode: readOnlyFlow,
-                            taggedData: taggedDataList[0]?.LatestDataTag
-                                ? DataTag.fromJSON(taggedDataList[0].LatestDataTag)
+                            taggedData: selectedDataSource[0]?.LatestDataTag
+                                ? DataTag.fromJSON(selectedDataSource[0].LatestDataTag)
                                 : null,
                         }
                         break
@@ -347,6 +354,9 @@ export default function Flow(props: FlowProps) {
 
     const [elementTypeToUuidList, setElementTypeToUuidList] = useStateWithCallback(initialMap)
 
+    // Part of this function may not be needed anymore if the BE doesn't rely on
+    // selectedDataSourceId coming from prescriptor or predictor nodes
+    // confirm with Dan after he's back from vacation. File clean up ticket.
     function DataNodeStateUpdateHandler(dataSource: DataSource, dataTag: DataTag) {
         /*
         This handler is used to update the predictor
@@ -354,6 +364,7 @@ export default function Flow(props: FlowProps) {
         */
 
         // Update the selected data source
+        setSelectedDataSourceId(Number(dataSource.id))
         setNodes(
             nodes.map((node) => {
                 if (node.type === "datanode") {
@@ -486,7 +497,7 @@ export default function Flow(props: FlowProps) {
                 SelfStateUpdateHandler: DataNodeStateUpdateHandler,
                 idExtension,
                 readOnlyNode: readOnlyFlow,
-                taggedDataList,
+                taggedDataList: [...taggedDataList],
             },
             position: {x: 500, y: 500},
         }
@@ -666,14 +677,14 @@ export default function Flow(props: FlowProps) {
             nodes[0].position.y - 100
         )
 
-        const dataSourceNode = FlowQueries.getDataNodes(nodes)[0]
         const initialPredictorState = getInitialPredictorState()
+        const selectedDataSource = getSelectedDataSource(taggedDataList, selectedDataSourceId)
         nodesCopy.push({
             id: predictorNodeID,
             type: "predictornode",
             data: {
                 NodeID: predictorNodeID,
-                SelectedDataSourceId: dataSourceNode.data.DataSource.id,
+                SelectedDataSourceId: selectedDataSourceId,
                 ParentNodeState: initialPredictorState,
                 ParameterSet: initialPredictorState.params,
                 SetParentNodeState: (state) => ParentNodeSetStateHandler(state, predictorNodeID),
@@ -681,7 +692,9 @@ export default function Flow(props: FlowProps) {
                 GetElementIndex: (id) => getElementIndex(id),
                 idExtension,
                 readOnlyNode: readOnlyFlow,
-                taggedData: taggedDataList[0]?.LatestDataTag ? DataTag.fromJSON(taggedDataList[0].LatestDataTag) : null,
+                taggedData: selectedDataSource[0]?.LatestDataTag
+                    ? DataTag.fromJSON(selectedDataSource[0].LatestDataTag)
+                    : null,
             },
             position: {
                 x: nodes[0].position.x + 250,
@@ -818,6 +831,7 @@ export default function Flow(props: FlowProps) {
                 : predictorNodes[predictorNodes.length - 1].position.x + 250
         const prescriptorNodeYPos =
             uncertaintyModelNodes.length > 0 ? uncertaintyModelNodes[0].position.y : predictorNodes[0].position.y
+        const selectedDataSource = getSelectedDataSource(taggedDataList, selectedDataSourceId)
         nodesCopy.push({
             id: prescriptorNodeID,
             type: "prescriptornode",
@@ -830,7 +844,9 @@ export default function Flow(props: FlowProps) {
                 GetElementIndex: (id) => getElementIndex(id),
                 idExtension,
                 readOnlyNode: readOnlyFlow,
-                taggedData: taggedDataList[0]?.LatestDataTag ? DataTag.fromJSON(taggedDataList[0].LatestDataTag) : null,
+                taggedData: selectedDataSource[0]?.LatestDataTag
+                    ? DataTag.fromJSON(selectedDataSource[0].LatestDataTag)
+                    : null,
             },
             position: {
                 x: prescriptorNodeXPos,
@@ -1234,18 +1250,22 @@ export default function Flow(props: FlowProps) {
         setNodes(nodesTmp)
     }
 
-    const onNodesChange = useCallback((changes: NodeChange[]) => {
-        // Get the Id of the data node
-        const dataNode = FlowQueries.getDataNodes(nodes)[0]
-        if (changes.some((change) => change.type === "remove" && change.id === dataNode.id)) {
-            // If the node being removed is a data node, then we do not remove it
-            return
-        }
-        setNodes((ns) => applyNodeChanges<NodeData>(changes, ns) as NodeType[])
-    }, [])
+    const onNodesChange = useCallback(
+        (changes: NodeChange[]) => {
+            // Get the Id of the data node
+            const dataNode = FlowQueries.getDataNodes(nodes)[0]
+            if (changes.some((change) => change.type === "remove" && change.id === dataNode.id)) {
+                // If the node being removed is a data node, then we do not remove it
+                return
+            }
+            setNodes((ns) => applyNodeChanges<NodeData>(changes, ns) as NodeType[])
+        },
+        [taggedDataList]
+    )
     const onEdgesChange = useCallback((changes) => setEdges((es) => applyEdgeChanges(changes, es)), [])
 
     function getFlowButtons() {
+        const selectedDataSource = getSelectedDataSource(taggedDataList, selectedDataSourceId)
         return (
             <div
                 id="flow-buttons"
@@ -1290,7 +1310,7 @@ export default function Flow(props: FlowProps) {
                     readOnlyNode={readOnlyFlow}
                     loadingDataTags={loadingDataTags}
                     edges={edges}
-                    dataTagfields={taggedDataList[0]?.LatestDataTag?.fields}
+                    dataTagfields={selectedDataSource[0]?.LatestDataTag?.fields}
                 />
             </div>
         )
