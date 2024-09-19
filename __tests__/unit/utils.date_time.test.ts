@@ -1,4 +1,4 @@
-import {toFriendlyDateTime} from "../../utils/date_time"
+import {toFriendlyDateTime} from "../../utils/dateTime"
 
 describe("toFriendlyDateTime", () => {
     it("should convert a valid date-time string to a friendly format", () => {

@@ -1,5 +1,5 @@
 import {MDServerObject, MDServerResponse} from "./base_types"
-import {toFriendlyDateTime} from "../utils/date_time"
+import {toFriendlyDateTime} from "../utils/dateTime"
 import sortByTime from "../utils/sort"
 
 // HackyStream implements streaming a specific resource from the MD Server using a regex hack
