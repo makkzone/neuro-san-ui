@@ -1250,18 +1250,15 @@ export default function Flow(props: FlowProps) {
         setNodes(nodesTmp)
     }
 
-    const onNodesChange = useCallback(
-        (changes: NodeChange[]) => {
-            // Get the Id of the data node
-            const dataNode = FlowQueries.getDataNodes(nodes)[0]
-            if (changes.some((change) => change.type === "remove" && change.id === dataNode.id)) {
-                // If the node being removed is a data node, then we do not remove it
-                return
-            }
-            setNodes((ns) => applyNodeChanges<NodeData>(changes, ns) as NodeType[])
-        },
-        [taggedDataList]
-    )
+    const onNodesChange = useCallback((changes: NodeChange[]) => {
+        // Get the Id of the data node
+        const dataNode = FlowQueries.getDataNodes(nodes)[0]
+        if (changes.some((change) => change.type === "remove" && change.id === dataNode.id)) {
+            // If the node being removed is a data node, then we do not remove it
+            return
+        }
+        setNodes((ns) => applyNodeChanges<NodeData>(changes, ns) as NodeType[])
+    }, [])
     const onEdgesChange = useCallback((changes) => setEdges((es) => applyEdgeChanges(changes, es)), [])
 
     function getFlowButtons() {
@@ -1326,7 +1323,7 @@ export default function Flow(props: FlowProps) {
                 <ReactFlowProvider>
                     <ReactFlow
                         id="react-flow"
-                        nodes={[...nodes]} // Ensure flow updates for deep updates on a node
+                        nodes={[...nodes]} // Ensure flow updates on initial load
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}

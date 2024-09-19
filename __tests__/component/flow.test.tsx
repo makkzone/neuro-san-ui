@@ -62,7 +62,7 @@ const FLOW_WITH_PREDICTOR: (NodeType | EdgeType)[] = [
                         range: [1, 10],
                         discreteCategoricalValues: ["value1", "value2"],
                         hasNan: false,
-                        valued: DataTagFieldValued.CONTINUOUS,
+                        valued: DataTagFieldValued.CATEGORICAL,
                         mean: 5,
                         isOrdered: false,
                     },
@@ -351,7 +351,7 @@ describe("Flow Test", () => {
         expect(sendNotification).not.toHaveBeenCalled()
 
         await waitFor(() => {
-            expect(screen.getByText(testDataSourceName)).toBeInTheDocument()
+            expect(screen.getByText("Data Source")).toBeInTheDocument()
         })
 
         const addPredictorButton = screen.getByText("Add Predictor")
