@@ -65,6 +65,6 @@ export async function sendLlmRequest(
 
         return null
     } else {
-        return res.text()
+        return res.json()
     }
 }

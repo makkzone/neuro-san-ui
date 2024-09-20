@@ -1,5 +1,5 @@
 /**
- * This is the module for the "AI decision assistant".
+ * See main function description.
  */
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
 import {Tooltip} from "antd"
@@ -14,17 +14,20 @@ import {RiMenuSearchLine} from "react-icons/ri"
 import {TfiPencilAlt} from "react-icons/tfi"
 import ClipLoader from "react-spinners/ClipLoader"
 
+import {OF_INPUT} from "./ofInput"
 import {MaximumBlue} from "../../../const"
-import {sendDecisionAssistantQuery} from "../../../controller/decisionAssistant/decisionAssistant"
+import {getLogs, sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
+import {AgentStatus, ChatResponse, LogsResponse} from "../../../generated/agent"
 import {OpportunityFinderRequestType} from "../../../pages/api/gpt/opportunityFinder/types"
 import {useAuthentication} from "../../../utils/authentication"
 import {hasOnlyWhitespace} from "../../../utils/text"
 import BlankLines from "../../blanklines"
 
 /**
- * AI assistant, initially for DMS page but in theory could be used elsewhere. Allows the user to chat with an LLM
- * (via the backend) with full context about the current DMS page, in a question-and-answer chat format.
+ * This is the main module for the opportunity finder. It implements a page that allows the user to interact with
+ * an LLM to discover opportunities for a business, to scope them out, generate synthetic data, and even finally to
+ * generate a project and experiment, all automatically.
  */
 export function OpportunityFinder(): ReactElement {
     // User LLM chat input
@@ -38,6 +41,7 @@ export function OpportunityFinder(): ReactElement {
 
     // Stores whether are currently awaiting LLM response (for knowing when to show spinners)
     const [isAwaitingLlm, setIsAwaitingLlm] = useState(false)
+    const isAwaitingLlmRef = useRef(false)
 
     // Use useRef here since we don't want changes in the chat history to trigger a re-render
     const chatHistory = useRef<BaseMessage[]>([])
@@ -80,9 +84,16 @@ export function OpportunityFinder(): ReactElement {
     const {data: session} = useAuthentication()
     const currentUser: string = session.user.name
 
+    // Session ID for orchestration
+    const [sessionId, setSessionId] = useState<string>(null)
+
     function clearInput() {
         setUserLlmChatInput("")
     }
+
+    useEffect(() => {
+        isAwaitingLlmRef.current = isAwaitingLlm
+    }, [isAwaitingLlm])
 
     useEffect(() => {
         // Delay for a second before focusing on the input area; gets around ChatBot stealing focus.
@@ -90,6 +101,34 @@ export function OpportunityFinder(): ReactElement {
             inputAreaRef?.current?.focus()
         }, 1000)
     }, [])
+
+    useEffect(() => {
+        const intervalId = setInterval(async () => {
+            console.debug("sessionId", sessionId)
+            if (sessionId && !isAwaitingLlmRef.current) {
+                try {
+                    setIsAwaitingLlm(true)
+                    const response: LogsResponse = await getLogs(sessionId, controller.current.signal, currentUser)
+                    console.debug("Logs response", response)
+                    if (response.status !== AgentStatus.FOUND) {
+                        setUserLlmChatOutput(
+                            (currentOutput) => `${currentOutput}\n\nError occurred: ${response.status}\n\n`
+                        )
+                    } else if (response.chatResponse) {
+                        setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\n${response.chatResponse}\n\n`)
+                    }
+                } finally {
+                    console.debug("clearing isAwaitingLlm")
+                    setIsAwaitingLlm(false)
+                }
+            }
+        }, 5000)
+
+        // clearInterval(intervalId)
+
+        // Cleanup function to clear the interval
+        return () => clearInterval(intervalId)
+    }, [sessionId])
 
     /**
      * Handles a token received from the LLM via callback on the fetch request.
@@ -221,11 +260,20 @@ export function OpportunityFinder(): ReactElement {
         const abortController = new AbortController()
         controller.current = abortController
 
-        const orchestrationQuery = `${previousResponse.current.ScopingAgent}\n${previousResponse.current.DataGenerator}`
+        // const orchestrationQuery =
+        // `${previousResponse.current.ScopingAgent}\n${previousResponse.current.DataGenerator}`
+        const orchestrationQuery = OF_INPUT
 
         try {
-            const res = await sendDecisionAssistantQuery(null, abortController.signal, orchestrationQuery, currentUser)
-            console.debug("Orchestration response", res)
+            const response: ChatResponse = await sendChatQuery(abortController.signal, orchestrationQuery, currentUser)
+            console.debug("Orchestration response", response)
+
+            if (response.status !== AgentStatus.CREATED) {
+                setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nError occurred: ${response.status}\n\n`)
+            } else {
+                console.debug("Orchestration session ID", response.sessionId)
+                setSessionId(response.sessionId)
+            }
         } catch (e) {
             setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nError occurred: ${e}\n\n`)
         }
