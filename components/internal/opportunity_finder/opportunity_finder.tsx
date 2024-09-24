@@ -164,7 +164,7 @@ export function OpportunityFinder(): ReactElement {
                             const experimentId = matches.groups.experimentId
                             console.log(`Project ID: ${projectId}, Experiment ID: ${experimentId}`)
 
-                            const url = `/projects/${projectId}/experiments/${experimentId}`
+                            const url = `/projects/${projectId}/experiments/${experimentId}/?generated=true`
                             setProjectUrl(url)
                         }
                     }
@@ -312,8 +312,7 @@ export function OpportunityFinder(): ReactElement {
         const abortController = new AbortController()
         controller.current = abortController
 
-        // const orchestrationQuery =
-        // `${previousResponse.current.ScopingAgent}\n${previousResponse.current.DataGenerator}`
+        const orchestrationQuery = `${previousResponse.current.ScopingAgent}\n${previousResponse.current.DataGenerator}`
         try {
             const response: ChatResponse = await sendChatQuery(abortController.signal, DAN_INPUT, currentUser)
             console.debug("Orchestration response", response)
