@@ -15,7 +15,7 @@ import {RiMenuSearchLine} from "react-icons/ri"
 import {TfiPencilAlt} from "react-icons/tfi"
 import ClipLoader from "react-spinners/ClipLoader"
 
-import {DAN_INPUT} from "./danInput"
+import {SONY_INPUT} from "./sony"
 import {MaximumBlue} from "../../../const"
 import {getLogs, sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
@@ -118,7 +118,6 @@ export function OpportunityFinder(): ReactElement {
 
     useEffect(() => {
         const intervalId = setInterval(async () => {
-            console.debug("sessionId", sessionId)
             if (sessionId && !isAwaitingLlmRef.current) {
                 try {
                     setIsAwaitingLlm(true)
@@ -132,37 +131,32 @@ export function OpportunityFinder(): ReactElement {
                         setLastLogIndex(response.logs.length - 1)
 
                         for (const logLine of newLogs) {
-                            console.debug("Last line", logLine)
-
                             // extract the part of the line only up to ">>>"
                             const logLineSummary = logLine.split(">>>")[0]
                             const summarySentenceCase = logLineSummary.replace(/\w+/gu, capitalize)
-                            setUserLlmChatOutput((currentOutput) => `${currentOutput}• ${summarySentenceCase}\n\n`)
+                            tokenReceivedHandler(`• ${summarySentenceCase}\n\n`)
                         }
                     }
 
                     if (response.status !== AgentStatus.FOUND) {
-                        setUserLlmChatOutput(
-                            (currentOutput) => `${currentOutput}\n\nError occurred: ${response.status}\n\n`
+                        tokenReceivedHandler(
+                            `Error occurred: session ${sessionId} not found, status: ${response.status}\n\n`
                         )
+                        setIsAwaitingLlm(false)
+                        clearInterval(intervalId)
                     } else if (response.chatResponse) {
                         console.debug("Chat response", response.chatResponse)
-                        const experimentInfoRegx = AGENT_RESULT_REGEX
 
                         // check if response contains project info
-                        const regex = RegExp(experimentInfoRegx, "u")
+                        const regex = RegExp(AGENT_RESULT_REGEX, "u")
                         const matches = regex.exec(response.chatResponse)
                         if (matches) {
-                            setUserLlmChatOutput(
-                                (currentOutput) => `${currentOutput}• Experiment generation complete.\n\n`
-                            )
+                            tokenReceivedHandler("• Experiment generation complete.\n\n")
                             setIsAwaitingLlm(false)
                             clearInterval(intervalId)
-                            console.debug("Matches", matches)
 
                             const projectId = matches.groups.projectId
                             const experimentId = matches.groups.experimentId
-                            console.log(`Project ID: ${projectId}, Experiment ID: ${experimentId}`)
 
                             const url = `/projects/${projectId}/experiments/${experimentId}/?generated=true`
                             setProjectUrl(url)
@@ -312,9 +306,10 @@ export function OpportunityFinder(): ReactElement {
         const abortController = new AbortController()
         controller.current = abortController
 
-        const orchestrationQuery = `${previousResponse.current.ScopingAgent}\n${previousResponse.current.DataGenerator}`
+        // const orchestrationQuery = `${previousResponse.current.ScopingAgent}\n${previousResponse.current.DataGenerator}`
+        // console.debug("Orchestration query", orchestrationQuery)
         try {
-            const response: ChatResponse = await sendChatQuery(abortController.signal, DAN_INPUT, currentUser)
+            const response: ChatResponse = await sendChatQuery(abortController.signal, SONY_INPUT, currentUser)
             console.debug("Orchestration response", response)
 
             if (response.status !== AgentStatus.CREATED) {
