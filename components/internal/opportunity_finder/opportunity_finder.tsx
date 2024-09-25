@@ -447,7 +447,7 @@ export function OpportunityFinder(): ReactElement {
                         type="success"
                         message={
                             <>
-                                Your new project has been created. Click{" "}
+                                Your new experiment has been generated. Click{" "}
                                 <a
                                     id="new-project-link"
                                     target="_blank"
