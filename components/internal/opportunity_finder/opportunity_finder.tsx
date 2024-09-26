@@ -36,6 +36,14 @@ const MAX_POLLING_DURATION_SECS = 90
 // Maximum number of polling attempts for logs.
 const MAX_POLLING_ATTEMPTS = (MAX_POLLING_DURATION_SECS * 1_000) / AGENT_POLL_INTERVAL_MS
 
+// Input text placeholders for each agent type
+const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
+    OpportunityFinder: "Business name such as Acme Corporation",
+    ScopingAgent: "Scope the selected item",
+    DataGenerator: "Generate 1500 rows",
+    OrchestrationAgent: "Generate the experiment",
+}
+
 /**
  * This is the main module for the opportunity finder. It implements a page that allows the user to interact with
  * an LLM to discover opportunities for a business, to scope them out, generate synthetic data, and even finally to
@@ -672,7 +680,7 @@ export function OpportunityFinder(): ReactElement {
                                 id="user-input"
                                 as="textarea"
                                 type="text"
-                                placeholder={`Message the ${selectedAgent} agent`}
+                                placeholder={AGENT_PLACEHOLDERS[selectedAgent]}
                                 ref={inputAreaRef}
                                 style={{
                                     fontSize: "90%",
