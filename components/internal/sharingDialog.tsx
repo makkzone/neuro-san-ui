@@ -243,41 +243,45 @@ export default function SharingDialog({
                                     >
                                         <Tooltip
                                             id={`remove-share-tooltip-${index}`}
-                                            title="Remove share"
+                                            title={relation === RoleType.OWNER ? "Cannot remove owner" : "Remove share"}
                                         >
                                             <IoMdClose
                                                 id={`close-icon-${index}`}
                                                 style={{
                                                     marginRight: "10px",
-                                                    cursor: "pointer",
+                                                    cursor: relation !== RoleType.OWNER ? "pointer" : "default",
                                                     transition: "color 0.3s ease",
                                                     color: "black",
                                                 }}
-                                                onMouseEnter={(e) => (e.currentTarget.style.color = "red")}
+                                                onMouseEnter={(e) =>
+                                                    relation !== RoleType.OWNER && (e.currentTarget.style.color = "red")
+                                                }
                                                 onMouseLeave={(e) => (e.currentTarget.style.color = "black")}
                                                 onClick={async () => {
-                                                    Modal.confirm({
-                                                        title: "Remove share",
-                                                        content:
-                                                            "You are about to revoke access to project " +
-                                                            `"${project.name}" for "${user}". Are you sure?`,
-                                                        centered: true,
-                                                        okButtonProps: {
-                                                            id: "remove-share-ok-button",
-                                                        },
-                                                        okText: "Remove",
-                                                        onOk: async () => {
-                                                            await share(project.id, currentUser, user, false)
-                                                            setCurrentShares((prevShares) =>
-                                                                prevShares.filter(([u]) => u !== user)
-                                                            )
-                                                            setOperationComplete(false)
-                                                            setTargetUser(null)
-                                                        },
-                                                        cancelButtonProps: {
-                                                            id: "unshare-cancel-button",
-                                                        },
-                                                    })
+                                                    if (relation !== RoleType.OWNER) {
+                                                        Modal.confirm({
+                                                            title: "Remove share",
+                                                            content:
+                                                                "You are about to revoke access to project " +
+                                                                `"${project.name}" for "${user}". Are you sure?`,
+                                                            centered: true,
+                                                            okButtonProps: {
+                                                                id: "remove-share-ok-button",
+                                                            },
+                                                            okText: "Remove",
+                                                            onOk: async () => {
+                                                                await share(project.id, currentUser, user, false)
+                                                                setCurrentShares((prevShares) =>
+                                                                    prevShares.filter(([u]) => u !== user)
+                                                                )
+                                                                setOperationComplete(false)
+                                                                setTargetUser(null)
+                                                            },
+                                                            cancelButtonProps: {
+                                                                id: "unshare-cancel-button",
+                                                            },
+                                                        })
+                                                    }
                                                 }}
                                             />
                                         </Tooltip>

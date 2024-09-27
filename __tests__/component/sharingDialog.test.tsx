@@ -27,7 +27,7 @@ describe("Project sharing Component", () => {
         ;(getShares as jest.Mock).mockResolvedValue(mockCurrentShares)
     })
 
-    test("renders the component correctly", async () => {
+    test("Renders the component correctly", async () => {
         render(
             <SharingDialog
                 project={mockProject}
@@ -67,7 +67,7 @@ describe("Project sharing Component", () => {
         })
     })
 
-    test("handles sharing a project", async () => {
+    test("Handles sharing a project", async () => {
         ;(share as jest.Mock).mockResolvedValue(undefined)
 
         render(
@@ -110,7 +110,7 @@ describe("Project sharing Component", () => {
         })
     })
 
-    test("handles removing a share", async () => {
+    test("Handles removing a share", async () => {
         render(
             <SharingDialog
                 project={mockProject}
@@ -154,7 +154,7 @@ describe("Project sharing Component", () => {
         })
     })
 
-    test("requires a user to share with", async () => {
+    test("Requires a user to share with", async () => {
         render(
             <SharingDialog
                 project={mockProject}
@@ -180,7 +180,7 @@ describe("Project sharing Component", () => {
         expect(okButton).toBeEnabled()
     })
 
-    test("does not allow sharing with oneself", async () => {
+    test("Does not allow sharing with oneself", async () => {
         render(
             <SharingDialog
                 project={mockProject}
@@ -209,6 +209,40 @@ describe("Project sharing Component", () => {
 
         // OK button should now be enabled
         expect(okButton).toBeEnabled()
+    })
+
+    test("Does not allowing removing owner from shares", async () => {
+        render(
+            <SharingDialog
+                project={mockProject}
+                currentUser={mockCurrentUser}
+                closeModal={jest.fn()}
+                title="Share Project"
+                visible={true}
+            />
+        )
+
+        // Get owner share
+        const ownerShare = await screen.findByText("user2 - Owner")
+        expect(ownerShare).toBeInTheDocument()
+
+        const removeOwnerShareButton = ownerShare.children[0]
+        expect(removeOwnerShareButton).toBeInTheDocument()
+
+        // Attempt to remove owner -- should not be allowed
+        fireEvent.click(removeOwnerShareButton)
+        expect(screen.queryByText("Remove share")).not.toBeInTheDocument()
+
+        // Get regular user share
+        const userShare = await screen.findByText("user1 - Tourist")
+        expect(userShare).toBeInTheDocument()
+
+        // Attempt to remove regular user -- should be allowed
+        const removeUserShareButton = userShare.children[0]
+        expect(removeUserShareButton).toBeInTheDocument()
+
+        fireEvent.click(removeUserShareButton)
+        expect(await screen.findByText("Remove share")).toBeInTheDocument()
     })
 })
 /*
