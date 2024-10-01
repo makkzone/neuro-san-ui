@@ -131,21 +131,21 @@ function Navbar(props: NavbarProps): ReactElement {
                                         href="https://youtu.be/oxiu_oaTMSg"
                                         target="_blank"
                                     >
-                                        For Clients
+                                        For Clients (Video)
                                     </Dropdown.Item>
                                     <Dropdown.Item
                                         id="neuro-ai-use-case"
                                         href="https://youtu.be/KkmRtmDudMk"
                                         target="_blank"
                                     >
-                                        Use Case
+                                        Use Case (Video)
                                     </Dropdown.Item>
                                     <Dropdown.Item
                                         id="neuro-ai-concepts"
                                         href="https://youtu.be/_8g9Zfj08T8"
                                         target="_blank"
                                     >
-                                        Concepts
+                                        Concepts (Video)
                                     </Dropdown.Item>
                                     <Dropdown.Item
                                         href={null}
