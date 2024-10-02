@@ -4,7 +4,7 @@
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
 import {Alert, Tooltip} from "antd"
 import {capitalize} from "lodash"
-import {CSSProperties, FormEvent, ReactElement, useEffect, useRef, useState} from "react"
+import {CSSProperties, FormEvent, ReactElement, useEffect, useReducer, useRef, useState} from "react"
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {BsDatabaseAdd, BsStopBtn, BsTrash} from "react-icons/bs"
 import {FaArrowRightLong} from "react-icons/fa6"
@@ -123,6 +123,12 @@ export function OpportunityFinder(): ReactElement {
     // To track number of polling attempts for logs so we know when to give up
     const pollingAttempts = useRef(0)
 
+    // ID for log polling interval timer
+    const logPollingIntervalId = useRef<number | null>(null)
+
+    // Kludge: allows us to force a re-render which we need to do when we stop the orchestration process
+    const [, forceUpdate] = useReducer((x) => x + 1, 0)
+
     function clearInput() {
         setUserLlmChatInput("")
     }
@@ -140,10 +146,9 @@ export function OpportunityFinder(): ReactElement {
 
     /**
      * End the orchestration process. Resets state in preparation for next orchestration.
-     * @param intervalId The ID for the interval timer for polling
      */
-    function endOrchestration(intervalId: number) {
-        clearInterval(intervalId)
+    function endOrchestration() {
+        clearInterval(logPollingIntervalId.current)
         setIsAwaitingLlm(false)
         sessionId.current = null
         lastLogIndexRef.current = -1
@@ -154,7 +159,7 @@ export function OpportunityFinder(): ReactElement {
         // Poll the agent for logs when the Orchestration Agent is being used
         function pollAgent() {
             // Kick off the polling process
-            const intervalId = setInterval(async () => {
+            logPollingIntervalId.current = setInterval(async () => {
                 if (isAwaitingLlmRef.current) {
                     // Already a request in progress
                     return
@@ -165,7 +170,7 @@ export function OpportunityFinder(): ReactElement {
                 if (pollingAttempts.current > MAX_POLLING_ATTEMPTS) {
                     // Too many polling attempts; give up
                     tokenReceivedHandler("• Error occurred: polling for logs timed out\n\n")
-                    endOrchestration(intervalId)
+                    endOrchestration()
                     return
                 }
 
@@ -176,7 +181,7 @@ export function OpportunityFinder(): ReactElement {
 
                     const response: LogsResponse = await getLogs(
                         sessionId.current,
-                        controller?.current.signal,
+                        controller?.current?.signal,
                         currentUser
                     )
 
@@ -200,7 +205,7 @@ export function OpportunityFinder(): ReactElement {
                         tokenReceivedHandler(
                             `Error occurred: session ${sessionId?.current} not found, status: ${response.status}\n\n`
                         )
-                        endOrchestration(intervalId)
+                        endOrchestration()
                     } else if (response.chatResponse) {
                         // Check for error
                         const errorMatches = AGENT_ERROR_REGEX.exec(response.chatResponse)
@@ -210,7 +215,7 @@ export function OpportunityFinder(): ReactElement {
                                 `Error occurred: ${errorMatches.groups.error}. ` +
                                     `Traceback: ${errorMatches.groups.traceback}\n\n`
                             )
-                            endOrchestration(intervalId)
+                            endOrchestration()
                             return
                         }
 
@@ -219,7 +224,7 @@ export function OpportunityFinder(): ReactElement {
                         if (matches) {
                             // We found the agent completion message
                             tokenReceivedHandler("• Experiment generation complete.\n\n")
-                            endOrchestration(intervalId)
+                            endOrchestration()
 
                             // Build the URl and set it in state so the notification will be displayed
                             const projectId = matches.groups.projectId
@@ -235,7 +240,7 @@ export function OpportunityFinder(): ReactElement {
             }, AGENT_POLL_INTERVAL_MS) as unknown as number
 
             // Cleanup function to clear the interval
-            return () => clearInterval(intervalId)
+            return () => clearInterval(logPollingIntervalId.current)
         }
 
         if (sessionId.current) {
@@ -340,15 +345,16 @@ export function OpportunityFinder(): ReactElement {
             controller?.current?.abort()
             controller.current = null
         } finally {
-            setIsAwaitingLlm(false)
             clearInput()
             previousResponse.current[selectedAgent] = currentResponse.current
             currentResponse.current = ""
+            endOrchestration()
+            forceUpdate()
         }
     }
 
     // Determine if awaiting response from any of the agents
-    const awaitingResponse = isAwaitingLlm || Boolean(sessionId.current)
+    const awaitingResponse = isAwaitingLlm || sessionId.current != null
 
     // Regex to check if user has typed anything besides whitespace
     const userInputEmpty = !userLlmChatInput || userLlmChatInput.length === 0 || hasOnlyWhitespace(userLlmChatInput)
