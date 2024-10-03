@@ -3,6 +3,7 @@
  */
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
 import {Alert, Collapse, Tooltip} from "antd"
+import {jsonrepair} from "jsonrepair"
 const {Panel} = Collapse
 import {capitalize} from "lodash"
 import {CSSProperties, FormEvent, ReactElement, ReactNode, useEffect, useReducer, useRef, useState} from "react"
@@ -15,8 +16,9 @@ import {MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
 import {RiMenuSearchLine} from "react-icons/ri"
 import {TfiPencilAlt} from "react-icons/tfi"
 import ClipLoader from "react-spinners/ClipLoader"
+import SyntaxHighlighter from "react-syntax-highlighter"
+import {docco} from "react-syntax-highlighter/dist/cjs/styles/hljs"
 
-import {SONY_INPUT} from "./sony"
 import {MaximumBlue} from "../../../const"
 import {getLogs, sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
@@ -202,9 +204,26 @@ export function OpportunityFinder(): ReactElement {
                         for (const logLine of newLogs) {
                             // extract the part of the line only up to ">>>"
                             const logLineElements = logLine.split(">>>")
+
                             const logLineSummary = logLineElements[0]
-                            const logLineDetails = logLineElements[1]
                             const summarySentenceCase = logLineSummary.replace(/\w+/gu, capitalize)
+
+                            const logLineDetails = logLineElements[1]
+
+                            let repairedJson: string | object = null
+
+                            try {
+                                // Attempt to parse as JSON
+
+                                // First, repair it
+                                repairedJson = jsonrepair(logLineDetails)
+
+                                // Now try to parse it
+                                repairedJson = JSON.parse(repairedJson)
+                            } catch (e) {
+                                // Not valid JSON
+                                repairedJson = null
+                            }
 
                             const section = (
                                 <>
@@ -220,7 +239,19 @@ export function OpportunityFinder(): ReactElement {
                                                 id={`${summarySentenceCase}-details`}
                                                 style={{fontFamily: "monospace"}}
                                             >
-                                                {logLineDetails || "No further details"}
+                                                {repairedJson ? (
+                                                    <SyntaxHighlighter
+                                                        id="syntax-highlighter"
+                                                        language="json"
+                                                        style={docco}
+                                                        showLineNumbers={false}
+                                                        wrapLines={true}
+                                                    >
+                                                        {JSON.stringify(repairedJson, null, 2)}
+                                                    </SyntaxHighlighter>
+                                                ) : (
+                                                    logLineDetails || "No further details"
+                                                )}
                                             </p>
                                         </Panel>
                                     </Collapse>
@@ -356,7 +387,7 @@ export function OpportunityFinder(): ReactElement {
             }
 
             // Add a couple of blank lines after response
-            updateOutput("\n\n")
+            updateOutput("\n")
 
             // Record bot answer in history.
             if (currentResponse.current) {
@@ -452,7 +483,9 @@ export function OpportunityFinder(): ReactElement {
 
         // The input to Orchestration is the organization name, if we have it, plus the Python code that generates
         // the data.
-        const orchestrationQuery = `Organization in question: Sony\n${SONY_INPUT}`
+        const orchestrationQuery =
+            (inputOrganization.current ? `Organization in question: ${inputOrganization.current}\n` : "") +
+            previousResponse.current.DataGenerator
 
         try {
             // Send the initial chat query to the server.
@@ -474,7 +507,7 @@ export function OpportunityFinder(): ReactElement {
      * @returns A div containing the agent buttons
      */
     function getAgentButtons() {
-        const enableOrchestration = true
+        const enableOrchestration = previousResponse.current.DataGenerator !== null && !awaitingResponse
 
         return (
             <div
@@ -703,7 +736,9 @@ export function OpportunityFinder(): ReactElement {
                             }}
                             tabIndex={-1}
                         >
-                            {(currentOutput && currentOutput.length > 0) || "(Agent output will appear here)"}
+                            {currentOutput && currentOutput.length > 0
+                                ? currentOutput
+                                : "(Agent output will appear here)"}
                         </div>
                         <Button
                             id="clear-chat-button"
