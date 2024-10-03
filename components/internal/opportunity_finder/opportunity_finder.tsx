@@ -56,13 +56,13 @@ const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
  */
 export function OpportunityFinder(): ReactElement {
     // User LLM chat input
-    const [userLlmChatInput, setUserLlmChatInput] = useState<string>("")
+    const [chatInput, setChatInput] = useState<string>("")
 
     // Previous user query (for "regenerate" feature)
     const [previousUserQuery, setPreviousUserQuery] = useState<string>("")
 
-    // User LLM chat output
-    const [userLlmChatOutput, setUserLlmChatOutput] = useState<ReactNode[]>([])
+    // Chat output window contents
+    const [chatOutput, setChatOutput] = useState<ReactNode[]>([])
 
     // Stores whether are currently awaiting LLM response (for knowing when to show spinners)
     const [isAwaitingLlm, setIsAwaitingLlm] = useState(false)
@@ -94,10 +94,10 @@ export function OpportunityFinder(): ReactElement {
     const [selectedAgent, setSelectedAgent] = useState<OpportunityFinderRequestType>("OpportunityFinder")
 
     // Ref for output text area, so we can auto scroll it
-    const llmOutputDivRef = useRef(null)
+    const chatOutputRef = useRef(null)
 
     // Ref for user input text area, so we can handle shift-enter
-    const inputAreaRef = useRef(null)
+    const chatInputRef = useRef(null)
 
     // Controller for cancelling fetch request
     const controller = useRef<AbortController>(null)
@@ -133,7 +133,7 @@ export function OpportunityFinder(): ReactElement {
     const [, forceUpdate] = useReducer((x) => x + 1, 0)
 
     function clearInput() {
-        setUserLlmChatInput("")
+        setChatInput("")
     }
 
     useEffect(() => {
@@ -142,7 +142,7 @@ export function OpportunityFinder(): ReactElement {
 
     useEffect(() => {
         // Delay for a second before focusing on the input area; gets around ChatBot stealing focus.
-        setTimeout(() => inputAreaRef?.current?.focus(), 1000)
+        setTimeout(() => chatInputRef?.current?.focus(), 1000)
     }, [])
 
     /**
@@ -170,7 +170,7 @@ export function OpportunityFinder(): ReactElement {
                 pollingAttempts.current += 1
                 if (pollingAttempts.current > MAX_POLLING_ATTEMPTS) {
                     // Too many polling attempts; give up
-                    tokenReceivedHandler("• Error occurred: polling for logs timed out\n\n")
+                    updateOutput("• Error occurred: polling for logs timed out\n\n")
                     endOrchestration()
                     return
                 }
@@ -202,28 +202,33 @@ export function OpportunityFinder(): ReactElement {
 
                             const section = (
                                 <>
+                                    {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
                                     <Collapse>
                                         <Panel
+                                            id={`${summarySentenceCase}-panel`}
                                             header={summarySentenceCase}
                                             key={summarySentenceCase}
                                             style={{fontSize: "large"}}
                                         >
-                                            <p style={{fontFamily: "monospace"}}>
+                                            <p
+                                                id={`${summarySentenceCase}-details`}
+                                                style={{fontFamily: "monospace"}}
+                                            >
                                                 {logLineDetails || "No further details"}
                                             </p>
                                         </Panel>
                                     </Collapse>
-                                    <br />
+                                    <br id={`${summarySentenceCase}-br`} />
                                 </>
                             )
 
-                            tokenReceivedHandler(section)
+                            updateOutput(section)
                         }
                     }
 
                     // Any status other than "FOUND" means something went wrong
                     if (response.status !== AgentStatus.FOUND) {
-                        tokenReceivedHandler(
+                        updateOutput(
                             `Error occurred: session ${sessionId?.current} not found, status: ${response.status}\n\n`
                         )
                         endOrchestration()
@@ -232,7 +237,7 @@ export function OpportunityFinder(): ReactElement {
                         const errorMatches = AGENT_ERROR_REGEX.exec(response.chatResponse)
                         if (errorMatches) {
                             // We found an error message
-                            tokenReceivedHandler(
+                            updateOutput(
                                 `Error occurred: ${errorMatches.groups.error}. ` +
                                     `Traceback: ${errorMatches.groups.traceback}\n\n`
                             )
@@ -244,19 +249,25 @@ export function OpportunityFinder(): ReactElement {
                         const matches = AGENT_RESULT_REGEX.exec(response.chatResponse)
                         if (matches) {
                             // We found the agent completion message
-                            tokenReceivedHandler(
+                            updateOutput(
                                 <>
                                     {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
                                     <Collapse>
                                         <Panel
+                                            id="experiment-generation-complete-panel"
                                             header="Experiment generation complete"
                                             key="Experiment generation complete"
                                             style={{fontSize: "large"}}
                                         >
-                                            <p style={{fontFamily: "monospace"}}>{"No further details"}</p>
+                                            <p
+                                                id="experiment-generation-complete-details"
+                                                style={{fontFamily: "monospace"}}
+                                            >
+                                                No further details
+                                            </p>
                                         </Panel>
                                     </Collapse>
-                                    <br />
+                                    <br id="experiment-generation-complete-br" />
                                 </>
                             )
                             endOrchestration()
@@ -287,17 +298,17 @@ export function OpportunityFinder(): ReactElement {
     }, [sessionId.current])
 
     /**
-     * Handles a token received from the LLM via callback on the fetch request.
-     * @param token The token received from the LLM
+     * Handles adding content to the output window.
+     * @param node A ReactNode to add to the output window -- text, spinner, etc.
      */
-    function tokenReceivedHandler(token: ReactNode) {
+    function updateOutput(node: ReactNode) {
         // Auto scroll as response is generated
-        if (llmOutputDivRef.current && autoScrollEnabled.current) {
+        if (chatOutputRef.current && autoScrollEnabled.current) {
             isProgrammaticScroll.current = true
-            llmOutputDivRef.current.scrollTop = llmOutputDivRef.current.scrollHeight + 100
+            chatOutputRef.current.scrollTop = chatOutputRef.current.scrollHeight + 100
         }
-        currentResponse.current += token
-        setUserLlmChatOutput((currentOutput) => [...currentOutput, token])
+        currentResponse.current += node
+        setChatOutput((currentOutput) => [...currentOutput, node])
     }
 
     // Sends user query to backend.
@@ -314,7 +325,7 @@ export function OpportunityFinder(): ReactElement {
             setIsAwaitingLlm(true)
 
             // Always start output by echoing user query
-            tokenReceivedHandler(`Query:\n${userQuery}\n\nResponse:\n`)
+            updateOutput(`Query:\n${userQuery}\n\nResponse:\n`)
 
             const abortController = new AbortController()
             controller.current = abortController
@@ -332,14 +343,14 @@ export function OpportunityFinder(): ReactElement {
                 await sendOpportunityFinderRequest(
                     userQuery,
                     selectedAgent,
-                    tokenReceivedHandler,
+                    updateOutput,
                     abortController.signal,
                     chatHistory.current
                 )
             }
 
             // Add a couple of blank lines after response
-            tokenReceivedHandler("\n\n")
+            updateOutput("\n\n")
 
             // Record bot answer in history.
             if (currentResponse.current) {
@@ -347,10 +358,10 @@ export function OpportunityFinder(): ReactElement {
             }
         } catch (error) {
             if (error instanceof Error && error.name === "AbortError") {
-                tokenReceivedHandler("\n\nRequest cancelled.\n\n")
+                updateOutput("\n\nRequest cancelled.\n\n")
             } else {
                 // Add error to output
-                tokenReceivedHandler(`\n\nError occurred: ${error}\n\n`)
+                updateOutput(`\n\nError occurred: ${error}\n\n`)
 
                 // log error to console
                 console.error(error)
@@ -372,7 +383,7 @@ export function OpportunityFinder(): ReactElement {
     async function handleUserQuery(event: FormEvent<HTMLFormElement>) {
         // Prevent submitting form
         event.preventDefault()
-        await sendQuery(userLlmChatInput)
+        await sendQuery(chatInput)
     }
 
     function handleStop() {
@@ -392,7 +403,7 @@ export function OpportunityFinder(): ReactElement {
     const awaitingResponse = isAwaitingLlm || sessionId.current != null
 
     // Regex to check if user has typed anything besides whitespace
-    const userInputEmpty = !userLlmChatInput || userLlmChatInput.length === 0 || hasOnlyWhitespace(userLlmChatInput)
+    const userInputEmpty = !chatInput || chatInput.length === 0 || hasOnlyWhitespace(chatInput)
 
     // Disable Send when request is in progress
     const shouldDisableSendButton = userInputEmpty || awaitingResponse
@@ -403,7 +414,7 @@ export function OpportunityFinder(): ReactElement {
     // Width for the various buttons -- "regenerate", "stop" etc.
     const actionButtonWidth = 126
 
-    const disableClearChatButton = awaitingResponse || userLlmChatOutput.length === 0
+    const disableClearChatButton = awaitingResponse || chatOutput.length === 0
 
     /**
      * Get the class name for the agent button.
@@ -443,12 +454,12 @@ export function OpportunityFinder(): ReactElement {
 
             // We expect the response to have status CREATED and to contain the session ID
             if (response.status !== AgentStatus.CREATED || !response.sessionId) {
-                tokenReceivedHandler(`\n\nError occurred: ${response.status}\n\n`)
+                updateOutput(`\n\nError occurred: ${response.status}\n\n`)
             } else {
                 sessionId.current = response.sessionId
             }
         } catch (e) {
-            tokenReceivedHandler(`\n\nError occurred: ${e}\n\n`)
+            updateOutput(`\n\nError occurred: ${e}\n\n`)
         }
     }
 
@@ -616,7 +627,7 @@ export function OpportunityFinder(): ReactElement {
                         </Tooltip>
                         <div
                             id="llm-responses"
-                            ref={llmOutputDivRef}
+                            ref={chatOutputRef}
                             style={{
                                 background: "ghostwhite",
                                 borderColor: MaximumBlue,
@@ -647,12 +658,12 @@ export function OpportunityFinder(): ReactElement {
                                 }
                             }
                         >
-                            {userLlmChatOutput || "(Agent output will appear here)"}
+                            {chatOutput || "(Agent output will appear here)"}
                         </div>
                         <Button
                             id="clear-chat-button"
                             onClick={() => {
-                                setUserLlmChatOutput([])
+                                setChatOutput([])
                                 chatHistory.current = []
                                 setPreviousUserQuery("")
                                 setProjectUrl(null)
@@ -755,15 +766,15 @@ export function OpportunityFinder(): ReactElement {
                                 as="textarea"
                                 type="text"
                                 placeholder={AGENT_PLACEHOLDERS[selectedAgent]}
-                                ref={inputAreaRef}
+                                ref={chatInputRef}
                                 style={{
                                     fontSize: "90%",
                                     marginLeft: "7px",
                                 }}
                                 onChange={(event) => {
-                                    setUserLlmChatInput(event.target.value)
+                                    setChatInput(event.target.value)
                                 }}
-                                value={userLlmChatInput}
+                                value={chatInput}
                             />
                             <Button
                                 id="clear-input-button"
