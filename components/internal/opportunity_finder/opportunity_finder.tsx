@@ -2,9 +2,10 @@
  * See main function description.
  */
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
-import {Alert, Tooltip} from "antd"
+import {Alert, Collapse, Tooltip} from "antd"
+const {Panel} = Collapse
 import {capitalize} from "lodash"
-import {CSSProperties, FormEvent, ReactElement, useEffect, useReducer, useRef, useState} from "react"
+import {CSSProperties, FormEvent, ReactElement, ReactNode, useEffect, useReducer, useRef, useState} from "react"
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {BsDatabaseAdd, BsStopBtn, BsTrash} from "react-icons/bs"
 import {FaArrowRightLong} from "react-icons/fa6"
@@ -15,6 +16,7 @@ import {RiMenuSearchLine} from "react-icons/ri"
 import {TfiPencilAlt} from "react-icons/tfi"
 import ClipLoader from "react-spinners/ClipLoader"
 
+import {SONY_INPUT} from "./sony"
 import {MaximumBlue} from "../../../const"
 import {getLogs, sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
@@ -60,7 +62,7 @@ export function OpportunityFinder(): ReactElement {
     const [previousUserQuery, setPreviousUserQuery] = useState<string>("")
 
     // User LLM chat output
-    const [userLlmChatOutput, setUserLlmChatOutput] = useState<string>("")
+    const [userLlmChatOutput, setUserLlmChatOutput] = useState<ReactNode[]>([])
 
     // Stores whether are currently awaiting LLM response (for knowing when to show spinners)
     const [isAwaitingLlm, setIsAwaitingLlm] = useState(false)
@@ -92,7 +94,7 @@ export function OpportunityFinder(): ReactElement {
     const [selectedAgent, setSelectedAgent] = useState<OpportunityFinderRequestType>("OpportunityFinder")
 
     // Ref for output text area, so we can auto scroll it
-    const llmOutputTextAreaRef = useRef(null)
+    const llmOutputDivRef = useRef(null)
 
     // Ref for user input text area, so we can handle shift-enter
     const inputAreaRef = useRef(null)
@@ -110,8 +112,9 @@ export function OpportunityFinder(): ReactElement {
     const [shouldWrapOutput, setShouldWrapOutput] = useState<boolean>(true)
 
     // For access to logged in session and current user name
-    const {data: session} = useAuthentication()
-    const currentUser: string = session.user.name
+    const {
+        user: {name: currentUser},
+    } = useAuthentication().data
 
     // Session ID for orchestration. We also use this as an overall "orchestration is in process" flag. If we have a
     // session ID, we are in the orchestration process.
@@ -139,9 +142,7 @@ export function OpportunityFinder(): ReactElement {
 
     useEffect(() => {
         // Delay for a second before focusing on the input area; gets around ChatBot stealing focus.
-        setTimeout(() => {
-            inputAreaRef?.current?.focus()
-        }, 1000)
+        setTimeout(() => inputAreaRef?.current?.focus(), 1000)
     }, [])
 
     /**
@@ -194,9 +195,29 @@ export function OpportunityFinder(): ReactElement {
                         // Process new logs and display summaries to user
                         for (const logLine of newLogs) {
                             // extract the part of the line only up to ">>>"
-                            const logLineSummary = logLine.split(">>>")[0]
+                            const logLineElements = logLine.split(">>>")
+                            const logLineSummary = logLineElements[0]
+                            const logLineDetails = logLineElements[1]
                             const summarySentenceCase = logLineSummary.replace(/\w+/gu, capitalize)
-                            tokenReceivedHandler(`• ${summarySentenceCase}\n\n`)
+
+                            const section = (
+                                <>
+                                    <Collapse>
+                                        <Panel
+                                            header={summarySentenceCase}
+                                            key={summarySentenceCase}
+                                            style={{fontSize: "large"}}
+                                        >
+                                            <p style={{fontFamily: "monospace"}}>
+                                                {logLineDetails || "No further details"}
+                                            </p>
+                                        </Panel>
+                                    </Collapse>
+                                    <br />
+                                </>
+                            )
+
+                            tokenReceivedHandler(section)
                         }
                     }
 
@@ -223,7 +244,21 @@ export function OpportunityFinder(): ReactElement {
                         const matches = AGENT_RESULT_REGEX.exec(response.chatResponse)
                         if (matches) {
                             // We found the agent completion message
-                            tokenReceivedHandler("• Experiment generation complete.\n\n")
+                            tokenReceivedHandler(
+                                <>
+                                    {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
+                                    <Collapse>
+                                        <Panel
+                                            header="Experiment generation complete"
+                                            key="Experiment generation complete"
+                                            style={{fontSize: "large"}}
+                                        >
+                                            <p style={{fontFamily: "monospace"}}>{"No further details"}</p>
+                                        </Panel>
+                                    </Collapse>
+                                    <br />
+                                </>
+                            )
                             endOrchestration()
 
                             // Build the URl and set it in state so the notification will be displayed
@@ -255,14 +290,14 @@ export function OpportunityFinder(): ReactElement {
      * Handles a token received from the LLM via callback on the fetch request.
      * @param token The token received from the LLM
      */
-    function tokenReceivedHandler(token: string) {
+    function tokenReceivedHandler(token: ReactNode) {
         // Auto scroll as response is generated
-        if (llmOutputTextAreaRef.current && autoScrollEnabled.current) {
+        if (llmOutputDivRef.current && autoScrollEnabled.current) {
             isProgrammaticScroll.current = true
-            llmOutputTextAreaRef.current.scrollTop = llmOutputTextAreaRef.current.scrollHeight + 100
+            llmOutputDivRef.current.scrollTop = llmOutputDivRef.current.scrollHeight + 100
         }
         currentResponse.current += token
-        setUserLlmChatOutput((currentOutput) => currentOutput + token)
+        setUserLlmChatOutput((currentOutput) => [...currentOutput, token])
     }
 
     // Sends user query to backend.
@@ -279,7 +314,7 @@ export function OpportunityFinder(): ReactElement {
             setIsAwaitingLlm(true)
 
             // Always start output by echoing user query
-            setUserLlmChatOutput((currentOutput) => `${currentOutput}\nQuery:\n${userQuery}\n\nResponse:\n\n`)
+            tokenReceivedHandler(`Query:\n${userQuery}\n\nResponse:\n`)
 
             const abortController = new AbortController()
             controller.current = abortController
@@ -304,7 +339,7 @@ export function OpportunityFinder(): ReactElement {
             }
 
             // Add a couple of blank lines after response
-            setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\n`)
+            tokenReceivedHandler("\n\n")
 
             // Record bot answer in history.
             if (currentResponse.current) {
@@ -312,10 +347,10 @@ export function OpportunityFinder(): ReactElement {
             }
         } catch (error) {
             if (error instanceof Error && error.name === "AbortError") {
-                setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nRequest cancelled.\n\n`)
+                tokenReceivedHandler("\n\nRequest cancelled.\n\n")
             } else {
                 // Add error to output
-                setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nError occurred: ${error}\n\n`)
+                tokenReceivedHandler(`\n\nError occurred: ${error}\n\n`)
 
                 // log error to console
                 console.error(error)
@@ -400,9 +435,7 @@ export function OpportunityFinder(): ReactElement {
 
         // The input to Orchestration is the organization name, if we have it, plus the Python code that generates
         // the data.
-        const orchestrationQuery =
-            (inputOrganization.current ? `Organization in question: ${inputOrganization.current}\n` : "") +
-            previousResponse.current.DataGenerator
+        const orchestrationQuery = `Organization in question: Sony\n${SONY_INPUT}`
 
         try {
             // Send the initial chat query to the server.
@@ -410,12 +443,12 @@ export function OpportunityFinder(): ReactElement {
 
             // We expect the response to have status CREATED and to contain the session ID
             if (response.status !== AgentStatus.CREATED || !response.sessionId) {
-                setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nError occurred: ${response.status}\n\n`)
+                tokenReceivedHandler(`\n\nError occurred: ${response.status}\n\n`)
             } else {
                 sessionId.current = response.sessionId
             }
         } catch (e) {
-            setUserLlmChatOutput((currentOutput) => `${currentOutput}\n\nError occurred: ${e}\n\n`)
+            tokenReceivedHandler(`\n\nError occurred: ${e}\n\n`)
         }
     }
 
@@ -424,7 +457,7 @@ export function OpportunityFinder(): ReactElement {
      * @returns A div containing the agent buttons
      */
     function getAgentButtons() {
-        const enableOrchestration = previousResponse.current.DataGenerator !== null && !awaitingResponse
+        const enableOrchestration = true
 
         return (
             <div
@@ -581,23 +614,26 @@ export function OpportunityFinder(): ReactElement {
                                 />
                             </Button>
                         </Tooltip>
-                        <Form.Control
+                        <div
                             id="llm-responses"
-                            readOnly={true}
-                            ref={llmOutputTextAreaRef}
-                            as="textarea"
-                            placeholder="(Agent output will appear here)"
+                            ref={llmOutputDivRef}
                             style={{
                                 background: "ghostwhite",
                                 borderColor: MaximumBlue,
+                                borderWidth: "1px",
+                                borderRadius: "0.5rem",
                                 fontFamily: "monospace",
                                 fontSize: "smaller",
                                 height: "100%",
                                 resize: "none",
                                 whiteSpace: shouldWrapOutput ? "pre-wrap" : "pre",
+                                overflowY: "scroll", // Enable vertical scrollbar
+                                paddingBottom: "7.5px",
+                                paddingTop: "7.5px",
+                                paddingLeft: "15px",
+                                paddingRight: "15px",
                             }}
                             tabIndex={-1}
-                            value={userLlmChatOutput}
                             onScroll={
                                 // Disable autoscroll if user scrolls manually
                                 () => {
@@ -610,11 +646,13 @@ export function OpportunityFinder(): ReactElement {
                                     autoScrollEnabled.current = false
                                 }
                             }
-                        />
+                        >
+                            {userLlmChatOutput || "(Agent output will appear here)"}
+                        </div>
                         <Button
                             id="clear-chat-button"
                             onClick={() => {
-                                setUserLlmChatOutput("")
+                                setUserLlmChatOutput([])
                                 chatHistory.current = []
                                 setPreviousUserQuery("")
                                 setProjectUrl(null)
