@@ -4,9 +4,18 @@
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
 import {Alert, Collapse, Tooltip} from "antd"
 import {jsonrepair} from "jsonrepair"
-const {Panel} = Collapse
 import {capitalize} from "lodash"
-import {CSSProperties, FormEvent, ReactElement, ReactNode, useEffect, useReducer, useRef, useState} from "react"
+import {
+    ChangeEvent,
+    CSSProperties,
+    FormEvent,
+    ReactElement,
+    ReactNode,
+    useEffect,
+    useReducer,
+    useRef,
+    useState,
+} from "react"
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {BsDatabaseAdd, BsStopBtn, BsTrash} from "react-icons/bs"
 import {FaArrowRightLong} from "react-icons/fa6"
@@ -15,10 +24,15 @@ import {LuBrainCircuit} from "react-icons/lu"
 import {MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
 import {RiMenuSearchLine} from "react-icons/ri"
 import {TfiPencilAlt} from "react-icons/tfi"
+import ReactMarkdown from "react-markdown"
 import ClipLoader from "react-spinners/ClipLoader"
 import SyntaxHighlighter from "react-syntax-highlighter"
-import {docco} from "react-syntax-highlighter/dist/cjs/styles/hljs"
+import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
+import * as prismStyles from "react-syntax-highlighter/dist/cjs/styles/prism"
+import rehypeRaw from "rehype-raw"
+import rehypeSlug from "rehype-slug"
 
+import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
 import {MaximumBlue} from "../../../const"
 import {getLogs, sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
@@ -27,6 +41,8 @@ import {OpportunityFinderRequestType} from "../../../pages/api/gpt/opportunityFi
 import {useAuthentication} from "../../../utils/authentication"
 import {hasOnlyWhitespace} from "../../../utils/text"
 import BlankLines from "../../blanklines"
+
+const {Panel} = Collapse
 
 // Regex to extract project and experiment IDs from agent response
 const AGENT_RESULT_REGEX = /assistant: \{'project_id': '(?<projectId>\d+)', 'experiment_id': '(?<experimentId>\d+)'\}/u
@@ -57,6 +73,9 @@ const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
  * generate a project and experiment, all automatically.
  */
 export function OpportunityFinder(): ReactElement {
+    // Theme for syntax highlighter
+    const [selectedTheme, setSelectedTheme] = useState<string>("agate")
+
     // User LLM chat input
     const [chatInput, setChatInput] = useState<string>("")
 
@@ -133,6 +152,9 @@ export function OpportunityFinder(): ReactElement {
 
     // Kludge: allows us to force a re-render which we need to do when we stop the orchestration process
     const [, forceUpdate] = useReducer((x) => x + 1, 0)
+
+    // dynamic import syntax highlighter style based on selected theme
+    const style = HLJS_THEMES.includes(selectedTheme) ? hljsStyles[selectedTheme] : prismStyles[selectedTheme]
 
     function clearInput() {
         setChatInput("")
@@ -235,15 +257,12 @@ export function OpportunityFinder(): ReactElement {
                                             key={summarySentenceCase}
                                             style={{fontSize: "large"}}
                                         >
-                                            <p
-                                                id={`${summarySentenceCase}-details`}
-                                                style={{fontFamily: "monospace"}}
-                                            >
+                                            <p id={`${summarySentenceCase}-details`}>
                                                 {repairedJson ? (
                                                     <SyntaxHighlighter
                                                         id="syntax-highlighter"
                                                         language="json"
-                                                        style={docco}
+                                                        style={style}
                                                         showLineNumbers={false}
                                                         wrapLines={true}
                                                     >
@@ -296,12 +315,7 @@ export function OpportunityFinder(): ReactElement {
                                             key="Experiment generation complete"
                                             style={{fontSize: "large"}}
                                         >
-                                            <p
-                                                id="experiment-generation-complete-details"
-                                                style={{fontFamily: "monospace"}}
-                                            >
-                                                No further details
-                                            </p>
+                                            <p id="experiment-generation-complete-details">No further details</p>
                                         </Panel>
                                     </Collapse>
                                     <br id="experiment-generation-complete-br" />
@@ -361,7 +375,7 @@ export function OpportunityFinder(): ReactElement {
             setIsAwaitingLlm(true)
 
             // Always start output by echoing user query
-            updateOutput(`Query:\n${userQuery}\n\nResponse:\n`)
+            updateOutput(`## Query:\n${userQuery}\n\n## Response:\n`)
 
             const abortController = new AbortController()
             controller.current = abortController
@@ -437,7 +451,8 @@ export function OpportunityFinder(): ReactElement {
     }
 
     // Determine if awaiting response from any of the agents
-    const awaitingResponse = isAwaitingLlm || sessionId.current != null
+    const orchestrationInProgress = sessionId.current != null
+    const awaitingResponse = isAwaitingLlm || orchestrationInProgress
 
     // Regex to check if user has typed anything besides whitespace
     const userInputEmpty = !chatInput || chatInput.length === 0 || hasOnlyWhitespace(chatInput)
@@ -615,7 +630,7 @@ export function OpportunityFinder(): ReactElement {
             <div
                 id="awaitingOutputContainer"
                 key="awaitingOutputContainer"
-                style={{display: "flex", alignItems: "center", fontFamily: "monospace", fontSize: "smaller"}}
+                style={{display: "flex", alignItems: "center", fontSize: "smaller"}}
             >
                 <span
                     id="working-span"
@@ -632,6 +647,7 @@ export function OpportunityFinder(): ReactElement {
         ])
     }
 
+    // Render the component
     return (
         <>
             <Form
@@ -639,6 +655,39 @@ export function OpportunityFinder(): ReactElement {
                 onSubmit={handleUserQuery}
             >
                 {getAgentButtons()}
+                <Form.Group>
+                    <div style={{margin: "10px", position: "relative"}}>
+                        <Form.Label style={{marginRight: "1rem", marginBottom: "1rem"}}>Code/JSON theme:</Form.Label>
+                        <select
+                            id="syntax-highlighter-select"
+                            value={selectedTheme}
+                            onChange={(event: ChangeEvent<HTMLSelectElement>) => {
+                                setSelectedTheme(event.target.value)
+                            }}
+                        >
+                            <optgroup label="HLJS Themes">
+                                {HLJS_THEMES.map((theme) => (
+                                    <option
+                                        key={theme}
+                                        value={theme}
+                                    >
+                                        {theme}
+                                    </option>
+                                ))}
+                            </optgroup>
+                            <optgroup label="Prism Themes">
+                                {PRISM_THEMES.map((theme) => (
+                                    <option
+                                        key={theme}
+                                        value={theme}
+                                    >
+                                        {theme}
+                                    </option>
+                                ))}
+                            </optgroup>
+                        </select>
+                    </div>
+                </Form.Group>
                 {projectUrl && (
                     // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
                     <Alert
@@ -723,7 +772,6 @@ export function OpportunityFinder(): ReactElement {
                                 borderColor: MaximumBlue,
                                 borderWidth: "1px",
                                 borderRadius: "0.5rem",
-                                fontFamily: "monospace",
                                 fontSize: "smaller",
                                 height: "100%",
                                 resize: "none",
@@ -736,9 +784,40 @@ export function OpportunityFinder(): ReactElement {
                             }}
                             tabIndex={-1}
                         >
-                            {currentOutput && currentOutput.length > 0
-                                ? currentOutput
-                                : "(Agent output will appear here)"}
+                            {currentOutput && currentOutput.length > 0 ? (
+                                <ReactMarkdown // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                    rehypePlugins={[rehypeRaw, rehypeSlug]}
+                                    className="prose"
+                                    components={{
+                                        code(props) {
+                                            const {children, className, ...rest} = props
+                                            const match = /language-(?<language>\w+)/u.exec(className || "")
+                                            return match ? (
+                                                <SyntaxHighlighter
+                                                    id="syntax-highlighter"
+                                                    {...rest}
+                                                    PreTag="div"
+                                                    language={match.groups.language}
+                                                    style={style}
+                                                >
+                                                    {String(children).replace(/\n$/u, "")}
+                                                </SyntaxHighlighter>
+                                            ) : (
+                                                <code
+                                                    {...rest}
+                                                    className={className}
+                                                >
+                                                    {children}
+                                                </code>
+                                            )
+                                        },
+                                    }}
+                                >
+                                    {currentOutput.filter((node) => typeof node === "string").join("")}
+                                </ReactMarkdown>
+                            ) : (
+                                "(Agent output will appear here)"
+                            )}
                         </div>
                         <Button
                             id="clear-chat-button"
