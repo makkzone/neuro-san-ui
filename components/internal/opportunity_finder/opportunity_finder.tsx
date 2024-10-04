@@ -5,17 +5,7 @@ import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
 import {Alert, Collapse, Tooltip} from "antd"
 import {jsonrepair} from "jsonrepair"
 import {capitalize} from "lodash"
-import {
-    ChangeEvent,
-    CSSProperties,
-    FormEvent,
-    ReactElement,
-    ReactNode,
-    useEffect,
-    useReducer,
-    useRef,
-    useState,
-} from "react"
+import {CSSProperties, FormEvent, ReactElement, ReactNode, useEffect, useReducer, useRef, useState} from "react"
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {BsDatabaseAdd, BsStopBtn, BsTrash} from "react-icons/bs"
 import {FaArrowRightLong} from "react-icons/fa6"
@@ -25,6 +15,7 @@ import {MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
 import {RiMenuSearchLine} from "react-icons/ri"
 import {TfiPencilAlt} from "react-icons/tfi"
 import ReactMarkdown from "react-markdown"
+import Select from "react-select"
 import ClipLoader from "react-spinners/ClipLoader"
 import SyntaxHighlighter from "react-syntax-highlighter"
 import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
@@ -74,7 +65,7 @@ const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
  */
 export function OpportunityFinder(): ReactElement {
     // Theme for syntax highlighter
-    const [selectedTheme, setSelectedTheme] = useState<string>("agate")
+    const [selectedTheme, setSelectedTheme] = useState<string>("a11yLight")
 
     // User LLM chat input
     const [chatInput, setChatInput] = useState<string>("")
@@ -375,7 +366,7 @@ export function OpportunityFinder(): ReactElement {
             setIsAwaitingLlm(true)
 
             // Always start output by echoing user query
-            updateOutput(`## Query:\n${userQuery}\n\n## Response:\n`)
+            updateOutput(`#### Query\n${userQuery}\n#### Response\n`)
 
             const abortController = new AbortController()
             controller.current = abortController
@@ -400,7 +391,7 @@ export function OpportunityFinder(): ReactElement {
                 )
             }
 
-            // Add a couple of blank lines after response
+            // Add a blank line after response
             updateOutput("\n")
 
             // Record bot answer in history.
@@ -466,7 +457,16 @@ export function OpportunityFinder(): ReactElement {
     // Width for the various buttons -- "regenerate", "stop" etc.
     const actionButtonWidth = 126
 
+    // Disable Clear Chat button if there is no chat history or if we are awaiting a response
     const disableClearChatButton = awaitingResponse || chatOutput.length === 0
+
+    // Define styles based on state
+    const markdownStyle: CSSProperties = {
+        whiteSpace: shouldWrapOutput ? "normal" : "nowrap",
+        overflow: shouldWrapOutput ? "visible" : "hidden",
+        textOverflow: shouldWrapOutput ? "clip" : "ellipsis",
+        overflowX: shouldWrapOutput ? "visible" : "auto",
+    }
 
     /**
      * Get the class name for the agent button.
@@ -658,34 +658,28 @@ export function OpportunityFinder(): ReactElement {
                 <Form.Group>
                     <div style={{margin: "10px", position: "relative"}}>
                         <Form.Label style={{marginRight: "1rem", marginBottom: "1rem"}}>Code/JSON theme:</Form.Label>
-                        <select
+                        <Select
                             id="syntax-highlighter-select"
-                            value={selectedTheme}
-                            onChange={(event: ChangeEvent<HTMLSelectElement>) => {
-                                setSelectedTheme(event.target.value)
+                            value={{label: selectedTheme, value: selectedTheme}}
+                            styles={{
+                                container: (provided) => ({
+                                    ...provided,
+                                    maxWidth: "350px",
+                                    marginBottom: "1rem",
+                                }),
                             }}
-                        >
-                            <optgroup label="HLJS Themes">
-                                {HLJS_THEMES.map((theme) => (
-                                    <option
-                                        key={theme}
-                                        value={theme}
-                                    >
-                                        {theme}
-                                    </option>
-                                ))}
-                            </optgroup>
-                            <optgroup label="Prism Themes">
-                                {PRISM_THEMES.map((theme) => (
-                                    <option
-                                        key={theme}
-                                        value={theme}
-                                    >
-                                        {theme}
-                                    </option>
-                                ))}
-                            </optgroup>
-                        </select>
+                            onChange={(option) => setSelectedTheme(option.value)}
+                            options={[
+                                {
+                                    label: "HLJS Themes",
+                                    options: HLJS_THEMES.map((theme) => ({label: theme, value: theme})),
+                                },
+                                {
+                                    label: "Prism Themes",
+                                    options: PRISM_THEMES.map((theme) => ({label: theme, value: theme})),
+                                },
+                            ]}
+                        />
                     </div>
                 </Form.Group>
                 {projectUrl && (
@@ -784,36 +778,36 @@ export function OpportunityFinder(): ReactElement {
                             tabIndex={-1}
                         >
                             {currentOutput && currentOutput.length > 0 ? (
-                                <ReactMarkdown // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                    rehypePlugins={[rehypeRaw, rehypeSlug]}
-                                    className="prose"
-                                    components={{
-                                        code(props) {
-                                            const {children, className, ...rest} = props
-                                            const match = /language-(?<language>\w+)/u.exec(className || "")
-                                            return match ? (
-                                                <SyntaxHighlighter
-                                                    id="syntax-highlighter"
-                                                    {...rest}
-                                                    PreTag="div"
-                                                    language={match.groups.language}
-                                                    style={style}
-                                                >
-                                                    {String(children).replace(/\n$/u, "")}
-                                                </SyntaxHighlighter>
-                                            ) : (
-                                                <code
-                                                    {...rest}
-                                                    className={className}
-                                                >
-                                                    {children}
-                                                </code>
-                                            )
-                                        },
-                                    }}
-                                >
-                                    {currentOutput.filter((node) => typeof node === "string").join("")}
-                                </ReactMarkdown>
+                                <div style={{...markdownStyle, fontSize: "1.2em"}}>
+                                    <ReactMarkdown // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                        rehypePlugins={[rehypeRaw, rehypeSlug]}
+                                        components={{
+                                            code(props) {
+                                                const {children, className, ...rest} = props
+                                                const match = /language-(?<language>\w+)/u.exec(className || "")
+                                                return match ? (
+                                                    <SyntaxHighlighter
+                                                        id="syntax-highlighter"
+                                                        PreTag="div"
+                                                        language={match.groups.language}
+                                                        style={style}
+                                                    >
+                                                        {String(children).replace(/\n$/u, "")}
+                                                    </SyntaxHighlighter>
+                                                ) : (
+                                                    <code
+                                                        {...rest}
+                                                        className={className}
+                                                    >
+                                                        {children}
+                                                    </code>
+                                                )
+                                            },
+                                        }}
+                                    >
+                                        {currentOutput.filter((node) => typeof node === "string").join("")}
+                                    </ReactMarkdown>
+                                </div>
                             ) : (
                                 "(Agent output will appear here)"
                             )}
