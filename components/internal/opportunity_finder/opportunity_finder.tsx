@@ -775,7 +775,6 @@ export function OpportunityFinder(): ReactElement {
                                 fontSize: "smaller",
                                 height: "100%",
                                 resize: "none",
-                                whiteSpace: shouldWrapOutput ? "pre-wrap" : "pre",
                                 overflowY: "scroll", // Enable vertical scrollbar
                                 paddingBottom: "7.5px",
                                 paddingTop: "7.5px",
