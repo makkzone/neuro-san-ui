@@ -23,7 +23,6 @@ import * as prismStyles from "react-syntax-highlighter/dist/cjs/styles/prism"
 import rehypeRaw from "rehype-raw"
 import rehypeSlug from "rehype-slug"
 
-import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
 import {MaximumBlue} from "../../../const"
 import {getLogs, sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
@@ -32,6 +31,8 @@ import {OpportunityFinderRequestType} from "../../../pages/api/gpt/opportunityFi
 import {useAuthentication} from "../../../utils/authentication"
 import {hasOnlyWhitespace} from "../../../utils/text"
 import BlankLines from "../../blanklines"
+
+import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
 
 const {Panel} = Collapse
 
@@ -56,6 +57,57 @@ const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
     ScopingAgent: "Scope the selected item",
     DataGenerator: "Generate 1500 rows",
     OrchestrationAgent: "Generate the experiment",
+}
+
+function nodesToString(currentOutput1) {
+    return currentOutput1.filter((node) => typeof node === "string").join("")
+}
+
+function getFormattedCurrentOutput(divStyle, highlighterTheme, currentOutput1) {
+    return (
+        <div style={{...divStyle}}>
+            <ReactMarkdown // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                rehypePlugins={[rehypeRaw, rehypeSlug]}
+                components={{
+                    code(props) {
+                        const {children, className, ...rest} = props
+                        const match = /language-(?<language>\w+)/u.exec(className || "")
+                        return match ? (
+                            <SyntaxHighlighter
+                                id="syntax-highlighter"
+                                PreTag="div"
+                                language={match.groups.language}
+                                style={highlighterTheme}
+                            >
+                                {String(children).replace(/\n$/u, "")}
+                            </SyntaxHighlighter>
+                        ) : (
+                            <code
+                                {...rest}
+                                className={className}
+                            >
+                                {children}
+                            </code>
+                        )
+                    },
+                    // links in new tab
+                    a({node, ...props}) {
+                        return (
+                            <a
+                                {...props}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {props.children}
+                            </a>
+                        )
+                    },
+                }}
+            >
+                {nodesToString(currentOutput1)}
+            </ReactMarkdown>
+        </div>
+    )
 }
 
 /**
@@ -91,11 +143,14 @@ export function OpportunityFinder(): ReactElement {
 
     // To accumulate current response, which will be different than the contents of the output window if there is a
     // chat session
-    const currentResponse = useRef<string>("")
+    const [currentResponse, setCurrentResponse] = useState<ReactNode[]>([])
+
+    // corresponding ref
+    const currentResponseRef = useRef<ReactNode[]>(currentResponse)
 
     // Previous responses from the agents. Necessary to save this since currentResponse gets cleared each time, and
     // when we call the experiment generator we need the data generator responses as input
-    const previousResponse = useRef<Record<OpportunityFinderRequestType, string | null>>({
+    const previousResponse = useRef<Record<OpportunityFinderRequestType, ReactNode[] | null>>({
         OpportunityFinder: null,
         ScopingAgent: null,
         DataGenerator: null,
@@ -145,7 +200,9 @@ export function OpportunityFinder(): ReactElement {
     const [, forceUpdate] = useReducer((x) => x + 1, 0)
 
     // dynamic import syntax highlighter style based on selected theme
-    const style = HLJS_THEMES.includes(selectedTheme) ? hljsStyles[selectedTheme] : prismStyles[selectedTheme]
+    const highlighterTheme = HLJS_THEMES.includes(selectedTheme)
+        ? hljsStyles[selectedTheme]
+        : prismStyles[selectedTheme]
 
     function clearInput() {
         setChatInput("")
@@ -160,6 +217,11 @@ export function OpportunityFinder(): ReactElement {
     useEffect(() => {
         autoScrollEnabledRef.current = autoScrollEnabled
     }, [autoScrollEnabled])
+
+    // sync response ref
+    useEffect(() => {
+        currentResponseRef.current = currentResponse
+    }, [currentResponse])
 
     useEffect(() => {
         // Delay for a second before focusing on the input area; gets around ChatBot stealing focus.
@@ -191,7 +253,7 @@ export function OpportunityFinder(): ReactElement {
                 pollingAttempts.current += 1
                 if (pollingAttempts.current > MAX_POLLING_ATTEMPTS) {
                     // Too many polling attempts; give up
-                    updateOutput("• Error occurred: polling for logs timed out\n\n")
+                    updateCurrentOutput("• Error occurred: polling for logs timed out\n\n")
                     endOrchestration()
                     return
                 }
@@ -240,42 +302,43 @@ export function OpportunityFinder(): ReactElement {
 
                             const section = (
                                 <>
+                                    {logLineDetails || "No further details"}
                                     {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                                    <Collapse>
-                                        <Panel
-                                            id={`${summarySentenceCase}-panel`}
-                                            header={summarySentenceCase}
-                                            key={summarySentenceCase}
-                                            style={{fontSize: "large"}}
-                                        >
-                                            <p id={`${summarySentenceCase}-details`}>
-                                                {repairedJson ? (
-                                                    <SyntaxHighlighter
-                                                        id="syntax-highlighter"
-                                                        language="json"
-                                                        style={style}
-                                                        showLineNumbers={false}
-                                                        wrapLines={true}
-                                                    >
-                                                        {JSON.stringify(repairedJson, null, 2)}
-                                                    </SyntaxHighlighter>
-                                                ) : (
-                                                    logLineDetails || "No further details"
-                                                )}
-                                            </p>
-                                        </Panel>
-                                    </Collapse>
+                                    {/*<Collapse>*/}
+                                    {/*    <Panel*/}
+                                    {/*        id={`${summarySentenceCase}-panel`}*/}
+                                    {/*        header={summarySentenceCase}*/}
+                                    {/*        key={summarySentenceCase}*/}
+                                    {/*        style={{fontSize: "large"}}*/}
+                                    {/*    >*/}
+                                    {/*        <p id={`${summarySentenceCase}-details`}>*/}
+                                    {/*            {repairedJson ? (*/}
+                                    {/*                <SyntaxHighlighter*/}
+                                    {/*                    id="syntax-highlighter"*/}
+                                    {/*                    language="json"*/}
+                                    {/*                    style={style}*/}
+                                    {/*                    showLineNumbers={false}*/}
+                                    {/*                    wrapLines={true}*/}
+                                    {/*                >*/}
+                                    {/*                    {JSON.stringify(repairedJson, null, 2)}*/}
+                                    {/*                </SyntaxHighlighter>*/}
+                                    {/*            ) : (*/}
+                                    {/*                logLineDetails || "No further details"*/}
+                                    {/*            )}*/}
+                                    {/*        </p>*/}
+                                    {/*    </Panel>*/}
+                                    {/*</Collapse>*/}
                                     <br id={`${summarySentenceCase}-br`} />
                                 </>
                             )
 
-                            updateOutput(section)
+                            updateCurrentOutput(section)
                         }
                     }
 
                     // Any status other than "FOUND" means something went wrong
                     if (response.status !== AgentStatus.FOUND) {
-                        updateOutput(
+                        updateCurrentOutput(
                             `Error occurred: session ${sessionId?.current} not found, status: ${response.status}\n\n`
                         )
                         endOrchestration()
@@ -284,7 +347,7 @@ export function OpportunityFinder(): ReactElement {
                         const errorMatches = AGENT_ERROR_REGEX.exec(response.chatResponse)
                         if (errorMatches) {
                             // We found an error message
-                            updateOutput(
+                            updateCurrentOutput(
                                 `Error occurred: ${errorMatches.groups.error}. ` +
                                     `Traceback: ${errorMatches.groups.traceback}\n\n`
                             )
@@ -296,7 +359,7 @@ export function OpportunityFinder(): ReactElement {
                         const matches = AGENT_RESULT_REGEX.exec(response.chatResponse)
                         if (matches) {
                             // We found the agent completion message
-                            updateOutput(
+                            updateCurrentOutput(
                                 <>
                                     {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
                                     <Collapse>
@@ -343,10 +406,12 @@ export function OpportunityFinder(): ReactElement {
      * Handles adding content to the output window.
      * @param node A ReactNode to add to the output window -- text, spinner, etc.
      */
-    function updateOutput(node: ReactNode) {
+    function updateCurrentOutput(node: ReactNode) {
+        console.debug("Adding to output:", node)
+
+        setCurrentResponse((tmpCurrentResponse) => [...tmpCurrentResponse, node])
+
         // Auto scroll as response is generated
-        currentResponse.current += node
-        setChatOutput((currentOutput) => [...currentOutput, node])
         if (autoScrollEnabledRef.current) {
             // Use setTimeout to ensure that the scroll happens after the new content is rendered
             setTimeout(() => {
@@ -366,7 +431,7 @@ export function OpportunityFinder(): ReactElement {
             setIsAwaitingLlm(true)
 
             // Always start output by echoing user query
-            updateOutput(`#### Query\n${userQuery}\n#### Response\n`)
+            updateCurrentOutput(`#### Query\n${userQuery}\n#### Response\n`)
 
             const abortController = new AbortController()
             controller.current = abortController
@@ -375,7 +440,9 @@ export function OpportunityFinder(): ReactElement {
             if (selectedAgent === "OrchestrationAgent") {
                 await handleOrchestration()
             } else {
-                // Record organization name if current agent is OpportunityFinder
+                // Record organization name if current agent is OpportunityFinder. This is risky as the user may
+                // have had a back-and-forth with the OpportunityFinder agent, but we'll assume that the last
+                // query was the organization name.
                 if (selectedAgent === "OpportunityFinder") {
                     inputOrganization.current = userQuery
                 }
@@ -385,25 +452,28 @@ export function OpportunityFinder(): ReactElement {
                 await sendOpportunityFinderRequest(
                     userQuery,
                     selectedAgent,
-                    updateOutput,
+                    updateCurrentOutput,
                     abortController.signal,
                     chatHistory.current
                 )
             }
 
             // Add a blank line after response
-            updateOutput("\n")
+            updateCurrentOutput("\n")
+
+            // Add current output to aggregated output
+            setChatOutput([...chatOutput, ...currentResponseRef.current])
 
             // Record bot answer in history.
-            if (currentResponse.current) {
-                chatHistory.current = [...chatHistory.current, new AIMessage(currentResponse.current)]
+            if (currentResponse && currentResponse.length > 0) {
+                chatHistory.current = [...chatHistory.current, new AIMessage(nodesToString(currentResponse))]
             }
         } catch (error) {
             if (error instanceof Error && error.name === "AbortError") {
-                updateOutput("\n\nRequest cancelled.\n\n")
+                updateCurrentOutput("\n\nRequest cancelled.\n\n")
             } else {
                 // Add error to output
-                updateOutput(`\n\nError occurred: ${error}\n\n`)
+                updateCurrentOutput(`\n\nError occurred: ${error}\n\n`)
 
                 // log error to console
                 console.error(error)
@@ -412,20 +482,10 @@ export function OpportunityFinder(): ReactElement {
             // Reset state, whatever happened during request
             setIsAwaitingLlm(false)
             clearInput()
-            previousResponse.current[selectedAgent] = currentResponse.current
-            currentResponse.current = ""
-        }
-    }
+            previousResponse.current[selectedAgent] = currentResponse
 
-    /**
-     * Handler for user query.
-     *
-     * @param event The event containing the user query
-     */
-    async function handleUserQuery(event: FormEvent<HTMLFormElement>) {
-        // Prevent submitting form
-        event.preventDefault()
-        await sendQuery(chatInput)
+            setCurrentResponse([])
+        }
     }
 
     function handleStop() {
@@ -434,8 +494,8 @@ export function OpportunityFinder(): ReactElement {
             controller.current = null
         } finally {
             clearInput()
-            previousResponse.current[selectedAgent] = currentResponse.current
-            currentResponse.current = ""
+            previousResponse.current[selectedAgent] = currentResponse
+            setCurrentResponse([])
             endOrchestration()
             forceUpdate()
         }
@@ -461,7 +521,7 @@ export function OpportunityFinder(): ReactElement {
     const disableClearChatButton = awaitingResponse || chatOutput.length === 0
 
     // Define styles based on state
-    const markdownStyle: CSSProperties = {
+    const divStyle: CSSProperties = {
         whiteSpace: shouldWrapOutput ? "normal" : "nowrap",
         overflow: shouldWrapOutput ? "visible" : "hidden",
         textOverflow: shouldWrapOutput ? "clip" : "ellipsis",
@@ -508,12 +568,12 @@ export function OpportunityFinder(): ReactElement {
 
             // We expect the response to have status CREATED and to contain the session ID
             if (response.status !== AgentStatus.CREATED || !response.sessionId) {
-                updateOutput(`\n\nError occurred: ${response.status}\n\n`)
+                updateCurrentOutput(`\n\nError occurred: ${response.status}\n\n`)
             } else {
                 sessionId.current = response.sessionId
             }
         } catch (e) {
-            updateOutput(`\n\nError occurred: ${e}\n\n`)
+            updateCurrentOutput(`\n\nError occurred: ${e}\n\n`)
         }
     }
 
@@ -621,38 +681,43 @@ export function OpportunityFinder(): ReactElement {
     }
 
     // Add a spinner if we're awaiting a response and there isn't one already
-    const currentOutput = [...chatOutput]
-    if (
-        awaitingResponse &&
-        !currentOutput.find((item) => typeof item === "object" && "id" in item && item.id === "awaitingOutputSpinner")
-    ) {
-        currentOutput.push([
-            <div
-                id="awaitingOutputContainer"
-                key="awaitingOutputContainer"
-                style={{display: "flex", alignItems: "center", fontSize: "smaller"}}
-            >
-                <span
-                    id="working-span"
-                    style={{marginRight: "1rem"}}
-                >
-                    Working...
-                </span>
-                <ClipLoader
-                    id="awaitingOutputSpinner"
-                    key="awaitingOutputSpinner"
-                    size="1rem"
-                />
-            </div>,
-        ])
-    }
+    // const currentOutputWithSpinner = [...currentResponse]
+    // if (
+    //     awaitingResponse &&
+    //     !currentOutput.find((item) => typeof item === "object" && "id" in item
+    //     && item.id === "awaitingOutputSpinner")
+    // ) {
+    //     currentOutput.push([
+    //         <div
+    //             id="awaitingOutputContainer"
+    //             key="awaitingOutputContainer"
+    //             style={{display: "flex", alignItems: "center", fontSize: "smaller"}}
+    //         >
+    //             <span
+    //                 id="working-span"
+    //                 style={{marginRight: "1rem"}}
+    //             >
+    //                 Working...
+    //             </span>
+    //             <ClipLoader
+    //                 id="awaitingOutputSpinner"
+    //                 key="awaitingOutputSpinner"
+    //                 size="1rem"
+    //             />
+    //         </div>,
+    //     ])
+    // }
 
     // Render the component
     return (
         <>
             <Form
                 id="user-query-form"
-                onSubmit={handleUserQuery}
+                onSubmit={async function (event: FormEvent<HTMLFormElement>) {
+                    // Prevent submitting form
+                    event.preventDefault()
+                    await sendQuery(chatInput)
+                }}
             >
                 {getAgentButtons()}
                 <Form.Group>
@@ -777,40 +842,20 @@ export function OpportunityFinder(): ReactElement {
                             }}
                             tabIndex={-1}
                         >
-                            {currentOutput && currentOutput.length > 0 ? (
-                                <div style={{...markdownStyle, fontSize: "1.2em"}}>
-                                    <ReactMarkdown // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                        rehypePlugins={[rehypeRaw, rehypeSlug]}
-                                        components={{
-                                            code(props) {
-                                                const {children, className, ...rest} = props
-                                                const match = /language-(?<language>\w+)/u.exec(className || "")
-                                                return match ? (
-                                                    <SyntaxHighlighter
-                                                        id="syntax-highlighter"
-                                                        PreTag="div"
-                                                        language={match.groups.language}
-                                                        style={style}
-                                                    >
-                                                        {String(children).replace(/\n$/u, "")}
-                                                    </SyntaxHighlighter>
-                                                ) : (
-                                                    <code
-                                                        {...rest}
-                                                        className={className}
-                                                    >
-                                                        {children}
-                                                    </code>
-                                                )
-                                            },
-                                        }}
-                                    >
-                                        {currentOutput.filter((node) => typeof node === "string").join("")}
-                                    </ReactMarkdown>
-                                </div>
-                            ) : (
-                                "(Agent output will appear here)"
-                            )}
+                            {/*Existing chat output*/}
+                            {chatOutput && chatOutput.length > 0
+                                ? getFormattedCurrentOutput(divStyle, highlighterTheme, chatOutput)
+                                : null}
+
+                            {/*Current output*/}
+                            {currentResponse && currentResponse.length > 0
+                                ? getFormattedCurrentOutput(divStyle, highlighterTheme, currentResponse)
+                                : null}
+
+                            {(!chatOutput || chatOutput.length === 0) &&
+                            (!currentResponse || currentResponse.length === 0)
+                                ? "(Agent output will appear here)"
+                                : null}
                         </div>
                         <Button
                             id="clear-chat-button"
@@ -872,7 +917,10 @@ export function OpportunityFinder(): ReactElement {
                         </Button>
                         <Button
                             id="regenerate-output-button"
-                            onClick={() => sendQuery(previousUserQuery)}
+                            onClick={async (event) => {
+                                event.preventDefault()
+                                await sendQuery(previousUserQuery)
+                            }}
                             disabled={shouldDisableRegenerateButton}
                             variant="secondary"
                             style={{
