@@ -5,7 +5,7 @@ import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
 import {Alert, Collapse, Tooltip} from "antd"
 import {jsonrepair} from "jsonrepair"
 import {capitalize} from "lodash"
-import {CSSProperties, FormEvent, ReactElement, ReactNode, useEffect, useReducer, useRef, useState} from "react"
+import {CSSProperties, FormEvent, ReactElement, ReactNode, useEffect, useRef, useState} from "react"
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {BsDatabaseAdd, BsStopBtn, BsTrash} from "react-icons/bs"
 import {FaArrowRightLong} from "react-icons/fa6"
@@ -23,6 +23,7 @@ import * as prismStyles from "react-syntax-highlighter/dist/cjs/styles/prism"
 import rehypeRaw from "rehype-raw"
 import rehypeSlug from "rehype-slug"
 
+import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
 import {MaximumBlue} from "../../../const"
 import {getLogs, sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
@@ -31,8 +32,6 @@ import {OpportunityFinderRequestType} from "../../../pages/api/gpt/opportunityFi
 import {useAuthentication} from "../../../utils/authentication"
 import {hasOnlyWhitespace} from "../../../utils/text"
 import BlankLines from "../../blanklines"
-
-import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
 
 const {Panel} = Collapse
 
@@ -57,88 +56,6 @@ const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
     ScopingAgent: "Scope the selected item",
     DataGenerator: "Generate 1500 rows",
     OrchestrationAgent: "Generate the experiment",
-}
-
-function nodesToString(currentOutput1) {
-    return currentOutput1.filter((node) => typeof node === "string").join("")
-}
-
-function getFormattedCurrentOutput(divStyle, highlighterTheme, currentOutput1) {
-    return (
-        <div style={{...divStyle}}>
-            <ReactMarkdown // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                rehypePlugins={[rehypeRaw, rehypeSlug]}
-                components={{
-                    code(props) {
-                        const {children, className, ...rest} = props
-                        const match = /language-(?<language>\w+)/u.exec(className || "")
-                        return match ? (
-                            <SyntaxHighlighter
-                                id="syntax-highlighter"
-                                PreTag="div"
-                                language={match.groups.language}
-                                style={highlighterTheme}
-                            >
-                                {String(children).replace(/\n$/u, "")}
-                            </SyntaxHighlighter>
-                        ) : (
-                            <code
-                                {...rest}
-                                className={className}
-                            >
-                                {children}
-                            </code>
-                        )
-                    },
-                    // links in new tab
-                    a({node, ...props}) {
-                        return (
-                            <a
-                                {...props}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                {props.children}
-                            </a>
-                        )
-                    },
-                }}
-            >
-                {nodesToString(currentOutput1)}
-            </ReactMarkdown>
-        </div>
-    )
-}
-
-function getFullResponse(
-    chatOutput: React.ReactNode[],
-    orchestrationInProgress: boolean,
-    currentResponse: React.ReactNode[],
-    divStyle: React.CSSProperties,
-    highlighterTheme
-) {
-    // dump all parameters to console
-    console.debug("chatOutput:", chatOutput)
-    console.debug("orchestrationInProgress:", orchestrationInProgress)
-    console.debug("currentResponse:", currentResponse)
-
-    return (
-        <div style={divStyle}>
-            {/*Previous aggregated chat output*/}
-            {chatOutput?.length > 0 && chatOutput}
-
-            {/*Current output*/}
-            {currentResponse?.length > 0
-                ? orchestrationInProgress
-                    ? currentResponse
-                    : getFormattedCurrentOutput(divStyle, highlighterTheme, currentResponse)
-                : null}
-
-            {(!chatOutput || chatOutput.length === 0) && (!currentResponse || currentResponse.length === 0)
-                ? "(Agent output will appear here)"
-                : null}
-        </div>
-    )
 }
 
 /**
@@ -176,7 +93,7 @@ export function OpportunityFinder(): ReactElement {
     // chat session
     const [currentResponse, setCurrentResponse] = useState<ReactNode[]>([])
 
-    // corresponding ref
+    // corresponding ref to allow us to access the current response in the timer
     const currentResponseRef = useRef<ReactNode[]>(currentResponse)
 
     // Previous responses from the agents. Necessary to save this since currentResponse gets cleared each time, and
@@ -227,9 +144,6 @@ export function OpportunityFinder(): ReactElement {
     // ID for log polling interval timer
     const logPollingIntervalId = useRef<number | null>(null)
 
-    // Kludge: allows us to force a re-render which we need to do when we stop the orchestration process
-    const [, forceUpdate] = useReducer((x) => x + 1, 0)
-
     // dynamic import syntax highlighter style based on selected theme
     const highlighterTheme = HLJS_THEMES.includes(selectedTheme)
         ? hljsStyles[selectedTheme]
@@ -259,6 +173,81 @@ export function OpportunityFinder(): ReactElement {
         setTimeout(() => chatInputRef?.current?.focus(), 1000)
     }, [])
 
+    function nodesToString(nodesList) {
+        return nodesList.filter((node) => typeof node === "string").join("")
+    }
+
+    function getFormattedCurrentOutput(outputToFormat) {
+        return (
+            <div style={{...divStyle}}>
+                <ReactMarkdown
+                    rehypePlugins={[rehypeRaw, rehypeSlug]}
+                    components={{
+                        code(props) {
+                            const {children, className, ...rest} = props
+                            const match = /language-(?<language>\w+)/u.exec(className || "")
+                            return match ? (
+                                <SyntaxHighlighter
+                                    PreTag="div"
+                                    language={match.groups.language}
+                                    style={highlighterTheme}
+                                >
+                                    {String(children).replace(/\n$/u, "")}
+                                </SyntaxHighlighter>
+                            ) : (
+                                <code
+                                    {...rest}
+                                    className={className}
+                                >
+                                    {children}
+                                </code>
+                            )
+                        },
+                        // links in new tab
+                        a({...props}) {
+                            return (
+                                <a
+                                    {...props}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {props.children}
+                                </a>
+                            )
+                        },
+                    }}
+                >
+                    {nodesToString(outputToFormat)}
+                </ReactMarkdown>
+            </div>
+        )
+    }
+
+    function getFullResponse() {
+        // dump all parameters to console
+        // console.debug("chatOutput:", chatOutput)
+        // console.debug("orchestrationInProgress:", orchestrationInProgress)
+        // console.debug("currentResponse:", currentResponse)
+
+        return (
+            <div style={divStyle}>
+                {/* Previous aggregated chat output. Already formatted as markdown. */}
+                {chatOutput?.length > 0 && chatOutput}
+
+                {/*Current output*/}
+                {currentResponse?.length > 0
+                    ? orchestrationInProgress
+                        ? currentResponse
+                        : getFormattedCurrentOutput(currentResponse)
+                    : null}
+
+                {(!chatOutput || chatOutput.length === 0) && (!currentResponse || currentResponse.length === 0)
+                    ? "(Agent output will appear here)"
+                    : null}
+            </div>
+        )
+    }
+
     /**
      * End the orchestration process. Resets state in preparation for next orchestration.
      */
@@ -284,7 +273,15 @@ export function OpportunityFinder(): ReactElement {
                 pollingAttempts.current += 1
                 if (pollingAttempts.current > MAX_POLLING_ATTEMPTS) {
                     // Too many polling attempts; give up
-                    updateCurrentOutput("• Error occurred: polling for logs timed out\n\n")
+                    updateCurrentOutput(
+                        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                        <Alert
+                            type="error"
+                            showIcon={true}
+                            message="Error occurred: polling for logs timed out"
+                            style={{fontSize: "large"}}
+                        />
+                    )
                     endOrchestration()
                     return
                 }
@@ -371,6 +368,7 @@ export function OpportunityFinder(): ReactElement {
                         updateCurrentOutput(
                             `Error occurred: session ${sessionId?.current} not found, status: ${response.status}\n\n`
                         )
+
                         endOrchestration()
                     } else if (response.chatResponse) {
                         // Check for error
@@ -381,6 +379,7 @@ export function OpportunityFinder(): ReactElement {
                                 `Error occurred: ${errorMatches.groups.error}. ` +
                                     `Traceback: ${errorMatches.groups.traceback}\n\n`
                             )
+
                             endOrchestration()
                             return
                         }
@@ -437,7 +436,7 @@ export function OpportunityFinder(): ReactElement {
      * @param node A ReactNode to add to the output window -- text, spinner, etc.
      */
     function updateCurrentOutput(node: ReactNode) {
-        console.debug("Adding to output:", node)
+        console.debug("Adding to output:'", node, "' type: ", typeof node)
 
         setCurrentResponse((tmpCurrentResponse) => [...tmpCurrentResponse, node])
 
@@ -450,6 +449,17 @@ export function OpportunityFinder(): ReactElement {
         }
     }
 
+    function resetState() {
+        // Reset state, whatever happened during request
+        setIsAwaitingLlm(false)
+        clearInput()
+
+        console.debug(`setting previous response for ${selectedAgent} to ${currentResponseRef.current}`)
+        previousResponse.current[selectedAgent] = currentResponse
+        currentResponseRef.current = []
+        setCurrentResponse([])
+    }
+
     // Sends user query to backend.
     async function sendQuery(userQuery: string) {
         try {
@@ -460,8 +470,8 @@ export function OpportunityFinder(): ReactElement {
 
             setIsAwaitingLlm(true)
 
-            // Always start output by echoing user query
-            updateCurrentOutput(`##### Query\n${userQuery}\n##### Response\n`)
+            // Always start output by echoing user query. Precede with a horizontal rule if there is already content.
+            updateCurrentOutput(`${chatOutput?.length > 0 ? "---\n" : ""}##### Query\n${userQuery}\n##### Response\n`)
 
             const abortController = new AbortController()
             controller.current = abortController
@@ -492,11 +502,7 @@ export function OpportunityFinder(): ReactElement {
             updateCurrentOutput("\n")
 
             // Add current output to aggregated output
-            const formattedCurrentOutput = getFormattedCurrentOutput(
-                divStyle,
-                highlighterTheme,
-                currentResponseRef.current
-            )
+            const formattedCurrentOutput = getFormattedCurrentOutput(currentResponseRef.current)
             setChatOutput([...chatOutput, formattedCurrentOutput])
 
             // Record bot answer in history.
@@ -514,12 +520,7 @@ export function OpportunityFinder(): ReactElement {
                 console.error(error)
             }
         } finally {
-            // Reset state, whatever happened during request
-            setIsAwaitingLlm(false)
-            clearInput()
-            previousResponse.current[selectedAgent] = currentResponse
-            currentResponseRef.current = []
-            setCurrentResponse([])
+            resetState()
         }
     }
 
@@ -528,11 +529,8 @@ export function OpportunityFinder(): ReactElement {
             controller?.current?.abort()
             controller.current = null
         } finally {
-            clearInput()
-            previousResponse.current[selectedAgent] = currentResponse
-            setCurrentResponse([])
+            resetState()
             endOrchestration()
-            forceUpdate()
         }
     }
 
@@ -604,11 +602,13 @@ export function OpportunityFinder(): ReactElement {
             // We expect the response to have status CREATED and to contain the session ID
             if (response.status !== AgentStatus.CREATED || !response.sessionId) {
                 updateCurrentOutput(`\n\nError occurred: ${response.status}\n\n`)
+                endOrchestration()
             } else {
                 sessionId.current = response.sessionId
             }
         } catch (e) {
             updateCurrentOutput(`\n\nError occurred: ${e}\n\n`)
+            endOrchestration()
         }
     }
 
@@ -617,7 +617,7 @@ export function OpportunityFinder(): ReactElement {
      * @returns A div containing the agent buttons
      */
     function getAgentButtons() {
-        const enableOrchestration = previousResponse.current.DataGenerator !== null && !awaitingResponse
+        const enableOrchestration = previousResponse.current.DataGenerator?.length > 0 && !awaitingResponse
 
         return (
             <div
@@ -743,331 +743,320 @@ export function OpportunityFinder(): ReactElement {
     //     ])
     // }
 
-    console.debug("***************************************")
-    console.debug("Current response:", currentResponse)
-    console.debug("***************************************")
+    // console.debug("***************************************")
+    // console.debug("Current response:", currentResponse)
+    // console.debug("***************************************")
 
     // Render the component
     return (
-        <>
-            <Form
-                id="user-query-form"
-                onSubmit={async function (event: FormEvent<HTMLFormElement>) {
-                    // Prevent submitting form
-                    event.preventDefault()
-                    await sendQuery(chatInput)
-                }}
-            >
-                {getAgentButtons()}
-                <Form.Group>
-                    <div style={{margin: "10px", position: "relative"}}>
-                        <Form.Label style={{marginRight: "1rem", marginBottom: "1rem"}}>Code/JSON theme:</Form.Label>
-                        <Select
-                            id="syntax-highlighter-select"
-                            value={{label: selectedTheme, value: selectedTheme}}
-                            styles={{
-                                container: (provided) => ({
-                                    ...provided,
-                                    maxWidth: "350px",
-                                    marginBottom: "1rem",
-                                }),
-                            }}
-                            onChange={(option) => setSelectedTheme(option.value)}
-                            options={[
-                                {
-                                    label: "HLJS Themes",
-                                    options: HLJS_THEMES.map((theme) => ({label: theme, value: theme})),
-                                },
-                                {
-                                    label: "Prism Themes",
-                                    options: PRISM_THEMES.map((theme) => ({label: theme, value: theme})),
-                                },
-                            ]}
-                        />
-                    </div>
-                </Form.Group>
-                {projectUrl && (
-                    // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-                    <Alert
-                        type="success"
-                        message={
-                            <>
-                                Your new experiment has been generated. Click{" "}
-                                <a
-                                    id="new-project-link"
-                                    target="_blank"
-                                    href={projectUrl}
-                                    rel="noreferrer"
-                                >
-                                    here
-                                </a>{" "}
-                                to view it
-                            </>
-                        }
-                        style={{fontSize: "large", margin: "10px", marginTop: "20px", marginBottom: "20px"}}
-                        showIcon={true}
-                        closable={true}
+        <Form
+            id="user-query-form"
+            onSubmit={async function (event: FormEvent<HTMLFormElement>) {
+                // Prevent submitting form
+                event.preventDefault()
+                await sendQuery(chatInput)
+            }}
+            style={{marginBottom: "6rem"}}
+        >
+            {getAgentButtons()}
+            <Form.Group>
+                <div style={{margin: "10px", position: "relative"}}>
+                    <Form.Label style={{marginRight: "1rem", marginBottom: "0.5rem"}}>Code/JSON theme:</Form.Label>
+                    <Select
+                        id="syntax-highlighter-select"
+                        value={{label: selectedTheme, value: selectedTheme}}
+                        styles={{
+                            container: (provided) => ({
+                                ...provided,
+                                maxWidth: "350px",
+                                marginBottom: "1rem",
+                            }),
+                        }}
+                        onChange={(option) => setSelectedTheme(option.value)}
+                        options={[
+                            {
+                                label: "HLJS Themes",
+                                options: HLJS_THEMES.map((theme) => ({label: theme, value: theme})),
+                            },
+                            {
+                                label: "Prism Themes",
+                                options: PRISM_THEMES.map((theme) => ({label: theme, value: theme})),
+                            },
+                        ]}
                     />
-                )}
-                <Form.Group id="llm-chat-group">
-                    <div
-                        id="llm-response-div"
-                        style={{height: "50vh", margin: "10px", position: "relative"}}
+                </div>
+            </Form.Group>
+            {projectUrl && (
+                // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                <Alert
+                    type="success"
+                    message={
+                        <>
+                            Your new experiment has been generated. Click{" "}
+                            <a
+                                id="new-project-link"
+                                target="_blank"
+                                href={projectUrl}
+                                rel="noreferrer"
+                            >
+                                here
+                            </a>{" "}
+                            to view it
+                        </>
+                    }
+                    style={{fontSize: "large", margin: "10px", marginTop: "20px", marginBottom: "20px"}}
+                    showIcon={true}
+                    closable={true}
+                />
+            )}
+            <Form.Group id="llm-chat-group">
+                <div
+                    id="llm-response-div"
+                    style={{height: "50vh", margin: "10px", position: "relative"}}
+                >
+                    <Tooltip
+                        id="enable-autoscroll"
+                        title={autoScrollEnabled ? "Autoscroll enabled" : "Autoscroll disabled"}
                     >
-                        <Tooltip
-                            id="enable-autoscroll"
-                            title={autoScrollEnabled ? "Autoscroll enabled" : "Autoscroll disabled"}
-                        >
-                            <Button
-                                id="autoscroll-button"
-                                style={{
-                                    position: "absolute",
-                                    right: 65,
-                                    top: 10,
-                                    zIndex: 99999,
-                                    background: autoScrollEnabled ? MaximumBlue : "darkgray",
-                                    borderColor: autoScrollEnabled ? MaximumBlue : "darkgray",
-                                    color: "white",
-                                }}
-                                onClick={() => setAutoScrollEnabled(!autoScrollEnabled)}
-                            >
-                                <MdVerticalAlignBottom
-                                    id="autoscroll-icon"
-                                    size="15px"
-                                    style={{color: "white"}}
-                                />
-                            </Button>
-                        </Tooltip>
-                        <Tooltip
-                            id="wrap-tooltip"
-                            title={shouldWrapOutput ? "Text wrapping enabled" : "Text wrapping disabled"}
-                        >
-                            <Button
-                                id="wrap-button"
-                                style={{
-                                    position: "absolute",
-                                    right: 10,
-                                    top: 10,
-                                    zIndex: 99999,
-                                    background: shouldWrapOutput ? MaximumBlue : "darkgray",
-                                    borderColor: shouldWrapOutput ? MaximumBlue : "darkgray",
-                                    color: "white",
-                                }}
-                                onClick={() => setShouldWrapOutput(!shouldWrapOutput)}
-                            >
-                                <MdOutlineWrapText
-                                    id="wrap-icon"
-                                    size="15px"
-                                    style={{color: "white"}}
-                                />
-                            </Button>
-                        </Tooltip>
-                        <div
-                            id="llm-responses"
-                            ref={chatOutputRef}
+                        <Button
+                            id="autoscroll-button"
                             style={{
-                                background: "ghostwhite",
-                                borderColor: MaximumBlue,
-                                borderWidth: "1px",
-                                borderRadius: "0.5rem",
-                                fontSize: "smaller",
-                                height: "100%",
-                                resize: "none",
-                                overflowY: "scroll", // Enable vertical scrollbar
-                                paddingBottom: "7.5px",
-                                paddingTop: "7.5px",
-                                paddingLeft: "15px",
-                                paddingRight: "15px",
+                                position: "absolute",
+                                right: 65,
+                                top: 10,
+                                zIndex: 99999,
+                                background: autoScrollEnabled ? MaximumBlue : "darkgray",
+                                borderColor: autoScrollEnabled ? MaximumBlue : "darkgray",
+                                color: "white",
                             }}
+                            onClick={() => setAutoScrollEnabled(!autoScrollEnabled)}
+                        >
+                            <MdVerticalAlignBottom
+                                id="autoscroll-icon"
+                                size="15px"
+                                style={{color: "white"}}
+                            />
+                        </Button>
+                    </Tooltip>
+                    <Tooltip
+                        id="wrap-tooltip"
+                        title={shouldWrapOutput ? "Text wrapping enabled" : "Text wrapping disabled"}
+                    >
+                        <Button
+                            id="wrap-button"
+                            style={{
+                                position: "absolute",
+                                right: 10,
+                                top: 10,
+                                zIndex: 99999,
+                                background: shouldWrapOutput ? MaximumBlue : "darkgray",
+                                borderColor: shouldWrapOutput ? MaximumBlue : "darkgray",
+                                color: "white",
+                            }}
+                            onClick={() => setShouldWrapOutput(!shouldWrapOutput)}
+                        >
+                            <MdOutlineWrapText
+                                id="wrap-icon"
+                                size="15px"
+                                style={{color: "white"}}
+                            />
+                        </Button>
+                    </Tooltip>
+                    <div
+                        id="llm-responses"
+                        ref={chatOutputRef}
+                        style={{
+                            background: "ghostwhite",
+                            borderColor: MaximumBlue,
+                            borderWidth: "1px",
+                            borderRadius: "0.5rem",
+                            fontSize: "smaller",
+                            height: "100%",
+                            resize: "none",
+                            overflowY: "scroll", // Enable vertical scrollbar
+                            paddingBottom: "7.5px",
+                            paddingTop: "7.5px",
+                            paddingLeft: "15px",
+                            paddingRight: "15px",
+                        }}
+                        tabIndex={-1}
+                    >
+                        {getFullResponse()}
+                    </div>
+                    <Button
+                        id="clear-chat-button"
+                        onClick={() => {
+                            setChatOutput([])
+                            chatHistory.current = []
+                            setPreviousUserQuery("")
+                            setProjectUrl(null)
+                        }}
+                        variant="secondary"
+                        style={{
+                            background: MaximumBlue,
+                            borderColor: MaximumBlue,
+                            bottom: 10,
+                            color: "white",
+                            display: awaitingResponse ? "none" : "inline",
+                            fontSize: "13.3px",
+                            opacity: disableClearChatButton ? "50%" : "70%",
+                            position: "absolute",
+                            right: 145,
+                            width: actionButtonWidth,
+                            zIndex: 99999,
+                        }}
+                        disabled={disableClearChatButton}
+                    >
+                        <BsTrash
+                            id="stop-button-icon"
+                            size={15}
+                            className="mr-2"
+                            style={{display: "inline"}}
+                        />
+                        Clear chat
+                    </Button>
+                    <Button
+                        id="stop-output-button"
+                        onClick={() => handleStop()}
+                        variant="secondary"
+                        style={{
+                            background: MaximumBlue,
+                            borderColor: MaximumBlue,
+                            bottom: 10,
+                            color: "white",
+                            display: awaitingResponse ? "inline" : "none",
+                            fontSize: "13.3px",
+                            opacity: "70%",
+                            position: "absolute",
+                            right: 10,
+                            width: actionButtonWidth,
+                            zIndex: 99999,
+                        }}
+                    >
+                        <BsStopBtn
+                            id="stop-button-icon"
+                            size={15}
+                            className="mr-2"
+                            style={{display: "inline"}}
+                        />
+                        Stop
+                    </Button>
+                    <Button
+                        id="regenerate-output-button"
+                        onClick={async (event) => {
+                            event.preventDefault()
+                            await sendQuery(previousUserQuery)
+                        }}
+                        disabled={shouldDisableRegenerateButton}
+                        variant="secondary"
+                        style={{
+                            background: MaximumBlue,
+                            borderColor: MaximumBlue,
+                            bottom: 10,
+                            color: "white",
+                            display: awaitingResponse ? "none" : "inline",
+                            fontSize: "13.3px",
+                            opacity: shouldDisableRegenerateButton ? "50%" : "70%",
+                            position: "absolute",
+                            right: 10,
+                            width: actionButtonWidth,
+                            zIndex: 99999,
+                        }}
+                    >
+                        <FiRefreshCcw
+                            id="generate-icon"
+                            size={15}
+                            className="mr-2"
+                            style={{display: "inline"}}
+                        />
+                        Regenerate
+                    </Button>
+                </div>
+                <div
+                    id="agent-select-div"
+                    style={{
+                        fontSize: "90%",
+                        marginTop: "15px",
+                        marginBottom: "15px",
+                        paddingLeft: "10px",
+                        paddingRight: "10px",
+                    }}
+                />
+                <div
+                    id="user-input-div"
+                    style={{display: "flex"}}
+                >
+                    <InputGroup id="user-input-group">
+                        <Form.Control
+                            id="user-input"
+                            as="textarea"
+                            type="text"
+                            placeholder={AGENT_PLACEHOLDERS[selectedAgent]}
+                            ref={chatInputRef}
+                            style={{
+                                fontSize: "90%",
+                                marginLeft: "7px",
+                            }}
+                            onChange={(event) => {
+                                setChatInput(event.target.value)
+                            }}
+                            value={chatInput}
+                        />
+                        <Button
+                            id="clear-input-button"
+                            onClick={() => {
+                                clearInput()
+                            }}
+                            style={{
+                                backgroundColor: "transparent",
+                                color: "var(--bs-primary)",
+                                border: "none",
+                                fontWeight: 550,
+                                left: "calc(100% - 45px)",
+                                lineHeight: "35px",
+                                opacity: userInputEmpty ? "25%" : "100%",
+                                position: "absolute",
+                                width: "10px",
+                                zIndex: 99999,
+                            }}
+                            disabled={userInputEmpty}
                             tabIndex={-1}
                         >
-                            {getFullResponse(
-                                chatOutput,
-                                orchestrationInProgress,
-                                currentResponse,
-                                divStyle,
-                                highlighterTheme
-                            )}
-                        </div>
-                        <Button
-                            id="clear-chat-button"
-                            onClick={() => {
-                                setChatOutput([])
-                                chatHistory.current = []
-                                setPreviousUserQuery("")
-                                setProjectUrl(null)
-                            }}
-                            variant="secondary"
-                            style={{
-                                background: MaximumBlue,
-                                borderColor: MaximumBlue,
-                                bottom: 10,
-                                color: "white",
-                                display: awaitingResponse ? "none" : "inline",
-                                fontSize: "13.3px",
-                                opacity: disableClearChatButton ? "50%" : "70%",
-                                position: "absolute",
-                                right: 145,
-                                width: actionButtonWidth,
-                                zIndex: 99999,
-                            }}
-                            disabled={disableClearChatButton}
-                        >
-                            <BsTrash
-                                id="stop-button-icon"
-                                size={15}
-                                className="mr-2"
-                                style={{display: "inline"}}
-                            />
-                            Clear chat
+                            X
                         </Button>
-                        <Button
-                            id="stop-output-button"
-                            onClick={() => handleStop()}
-                            variant="secondary"
-                            style={{
-                                background: MaximumBlue,
-                                borderColor: MaximumBlue,
-                                bottom: 10,
-                                color: "white",
-                                display: awaitingResponse ? "inline" : "none",
-                                fontSize: "13.3px",
-                                opacity: "70%",
-                                position: "absolute",
-                                right: 10,
-                                width: actionButtonWidth,
-                                zIndex: 99999,
-                            }}
-                        >
-                            <BsStopBtn
-                                id="stop-button-icon"
-                                size={15}
-                                className="mr-2"
-                                style={{display: "inline"}}
-                            />
-                            Stop
-                        </Button>
-                        <Button
-                            id="regenerate-output-button"
-                            onClick={async (event) => {
-                                event.preventDefault()
-                                await sendQuery(previousUserQuery)
-                            }}
-                            disabled={shouldDisableRegenerateButton}
-                            variant="secondary"
-                            style={{
-                                background: MaximumBlue,
-                                borderColor: MaximumBlue,
-                                bottom: 10,
-                                color: "white",
-                                display: awaitingResponse ? "none" : "inline",
-                                fontSize: "13.3px",
-                                opacity: shouldDisableRegenerateButton ? "50%" : "70%",
-                                position: "absolute",
-                                right: 10,
-                                width: actionButtonWidth,
-                                zIndex: 99999,
-                            }}
-                        >
-                            <FiRefreshCcw
-                                id="generate-icon"
-                                size={15}
-                                className="mr-2"
-                                style={{display: "inline"}}
-                            />
-                            Regenerate
-                        </Button>
-                    </div>
+                    </InputGroup>
                     <div
-                        id="agent-select-div"
-                        style={{
-                            fontSize: "90%",
-                            marginTop: "15px",
-                            marginBottom: "15px",
-                            paddingLeft: "10px",
-                            paddingRight: "10px",
-                        }}
-                    />
-                    <div
-                        id="user-input-div"
-                        style={{display: "flex"}}
+                        id="send-div"
+                        style={{display: "flex", width: "100px", justifyContent: "center"}}
                     >
-                        <InputGroup id="user-input-group">
-                            <Form.Control
-                                id="user-input"
-                                as="textarea"
-                                type="text"
-                                placeholder={AGENT_PLACEHOLDERS[selectedAgent]}
-                                ref={chatInputRef}
-                                style={{
-                                    fontSize: "90%",
-                                    marginLeft: "7px",
-                                }}
-                                onChange={(event) => {
-                                    setChatInput(event.target.value)
-                                }}
-                                value={chatInput}
+                        {awaitingResponse ? (
+                            <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                // ClipLoader does not have an id property
+                                color={MaximumBlue}
+                                loading={true}
+                                size={45}
                             />
+                        ) : (
                             <Button
-                                id="clear-input-button"
-                                onClick={() => {
-                                    clearInput()
-                                }}
+                                id="submit-query-button"
+                                variant="primary"
+                                type="submit"
+                                disabled={shouldDisableSendButton}
                                 style={{
-                                    backgroundColor: "transparent",
-                                    color: "var(--bs-primary)",
-                                    border: "none",
-                                    fontWeight: 550,
-                                    left: "calc(100% - 45px)",
-                                    lineHeight: "35px",
-                                    opacity: userInputEmpty ? "25%" : "100%",
-                                    position: "absolute",
-                                    width: "10px",
-                                    zIndex: 99999,
+                                    background: MaximumBlue,
+                                    borderColor: MaximumBlue,
+                                    color: "white",
+                                    opacity: shouldDisableSendButton ? "50%" : "100%",
+                                    marginLeft: "10px",
+                                    marginRight: "10px",
                                 }}
-                                disabled={userInputEmpty}
-                                tabIndex={-1}
                             >
-                                X
+                                Send
                             </Button>
-                        </InputGroup>
-                        <div
-                            id="send-div"
-                            style={{display: "flex", width: "100px", justifyContent: "center"}}
-                        >
-                            {awaitingResponse ? (
-                                <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                    // ClipLoader does not have an id property
-                                    color={MaximumBlue}
-                                    loading={true}
-                                    size={45}
-                                />
-                            ) : (
-                                <Button
-                                    id="submit-query-button"
-                                    variant="primary"
-                                    type="submit"
-                                    disabled={shouldDisableSendButton}
-                                    style={{
-                                        background: MaximumBlue,
-                                        borderColor: MaximumBlue,
-                                        color: "white",
-                                        opacity: shouldDisableSendButton ? "50%" : "100%",
-                                        marginLeft: "10px",
-                                        marginRight: "10px",
-                                    }}
-                                >
-                                    Send
-                                </Button>
-                            )}
-                        </div>
+                        )}
                     </div>
-                </Form.Group>
-            </Form>
-            <BlankLines
-                id="blank-lines"
-                numLines={8}
-            />
-        </>
+                </div>
+            </Form.Group>
+        </Form>
     )
 }
