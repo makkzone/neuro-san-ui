@@ -175,50 +175,54 @@ export function OpportunityFinder(): ReactElement {
         setTimeout(() => chatInputRef?.current?.focus(), 1000)
     }, [])
 
-    function getFormattedMarkdown(nodesToFormat: string[]) {
-        return (
-            <ReactMarkdown
-                rehypePlugins={[rehypeRaw, rehypeSlug]}
-                components={{
-                    code(props) {
-                        const {children, className, ...rest} = props
-                        const match = /language-(?<language>\w+)/u.exec(className || "")
-                        return match ? (
-                            <SyntaxHighlighter
-                                PreTag="div"
-                                language={match.groups.language}
-                                style={highlighterTheme}
-                            >
-                                {String(children).replace(/\n$/u, "")}
-                            </SyntaxHighlighter>
-                        ) : (
-                            <code
-                                {...rest}
-                                className={className}
-                            >
-                                {children}
-                            </code>
-                        )
-                    },
-                    a({...props}) {
-                        return (
-                            <a
-                                {...props}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                {props.children}
-                            </a>
-                        )
-                    },
-                }}
-            >
-                {nodesToFormat.join("")}
-            </ReactMarkdown>
-        )
-    }
+    const getFormattedMarkdown = (nodesToFormat: string[]) => (
+        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+        <ReactMarkdown
+            rehypePlugins={[rehypeRaw, rehypeSlug]}
+            components={{
+                code(props) {
+                    const {children, className, ...rest} = props
+                    const match = /language-(?<language>\w+)/u.exec(className || "")
+                    return match ? (
+                        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                        <SyntaxHighlighter
+                            id={`syntax-highlighter-${match.groups.language}`}
+                            PreTag="div"
+                            language={match.groups.language}
+                            style={highlighterTheme}
+                        >
+                            {String(children).replace(/\n$/u, "")}
+                        </SyntaxHighlighter>
+                    ) : (
+                        <code
+                            id={`code-${className}`}
+                            {...rest}
+                            className={className}
+                        >
+                            {children}
+                        </code>
+                    )
+                },
+                a({...props}) {
+                    return (
+                        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                        <a
+                            {...props}
+                            id={`link-${props.href}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {props.children}
+                        </a>
+                    )
+                },
+            }}
+        >
+            {nodesToFormat.join("")}
+        </ReactMarkdown>
+    )
 
-    function formatOutput(nodesList: ReactNode[]): ReactNode[] {
+    const formatOutput = (nodesList: ReactNode[]): ReactNode[] => {
         const formattedOutput: ReactNode[] = []
         let currentTextNodes: string[] = []
         for (const node of nodesList) {
@@ -244,7 +248,7 @@ export function OpportunityFinder(): ReactElement {
     /**
      * End the orchestration process. Resets state in preparation for next orchestration.
      */
-    function endOrchestration() {
+    const endOrchestration = () => {
         clearInterval(logPollingIntervalId.current)
         setIsAwaitingLlm(false)
         sessionId.current = null
@@ -259,7 +263,7 @@ export function OpportunityFinder(): ReactElement {
      * @param retryMessage The message to display to the user when retrying
      * @param failureMessage The message to display to the user when giving up
      */
-    function retry(retryMessage: string, failureMessage: string) {
+    const retry = (retryMessage: string, failureMessage: string) => {
         if (orchestrationAttemptNumber.current < MAX_ORCHESTRATION_ATTEMPTS) {
             updateOutput(
                 <>
@@ -294,6 +298,9 @@ export function OpportunityFinder(): ReactElement {
         }
     }
 
+    /**
+     * Generate the message to display to the user when the experiment has been generated.
+     */
     const experimentGeneratedMessage = () => (
         <>
             Your new experiment has been generated. Click{" "}
@@ -563,14 +570,24 @@ export function OpportunityFinder(): ReactElement {
                 chatHistory.current = [...chatHistory.current, new AIMessage(currentResponse.current)]
             }
         } catch (error) {
-            if (error instanceof Error && error.name === "AbortError") {
-                updateOutput("\n\nRequest cancelled.\n\n")
-            } else {
-                // Add error to output
-                updateOutput(`\n\nError occurred: ${error}\n\n`)
+            const isAbortError = error instanceof Error && error.name === "AbortError"
 
-                // log error to console
-                console.error(error)
+            if (error instanceof Error) {
+                // AbortErrors are handled elsewhere
+                if (!isAbortError) {
+                    updateOutput(
+                        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                        <Alert
+                            type="error"
+                            showIcon={true}
+                            closable={false}
+                            message={`Error occurred: ${error}`}
+                        />
+                    )
+
+                    // log error to console
+                    console.error(error)
+                }
             }
         } finally {
             resetState()
@@ -581,6 +598,16 @@ export function OpportunityFinder(): ReactElement {
         try {
             controller?.current?.abort()
             controller.current = null
+            updateOutput(
+                // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                <Alert
+                    type="warning"
+                    showIcon={true}
+                    closable={false}
+                    message="Request cancelled."
+                    style={{marginBottom: "1rem"}}
+                />
+            )
         } finally {
             resetState()
             endOrchestration()
@@ -653,13 +680,30 @@ export function OpportunityFinder(): ReactElement {
 
             // We expect the response to have status CREATED and to contain the session ID
             if (response.status !== AgentStatus.CREATED || !response.sessionId) {
-                updateOutput(`\n\nError occurred: ${response.status}\n\n`)
+                updateOutput(
+                    // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                    <Alert
+                        type="error"
+                        showIcon={true}
+                        closable={false}
+                        message={`Error occurred: session not created. Status: ${response.status}`}
+                    />
+                )
+
                 endOrchestration()
             } else {
                 sessionId.current = response.sessionId
             }
         } catch (e) {
-            updateOutput(`\n\nError occurred: ${e}\n\n`)
+            updateOutput(
+                // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                <Alert
+                    type="error"
+                    showIcon={true}
+                    closable={false}
+                    message={`Internal Error occurred: session not created. Exception: ${e}`}
+                />
+            )
             endOrchestration()
         }
     }
@@ -767,38 +811,6 @@ export function OpportunityFinder(): ReactElement {
         )
     }
 
-    // Add a spinner if we're awaiting a response and there isn't one already
-    // const currentOutput = [...chatOutput]
-    // if (
-    //     awaitingResponse &&
-    //     !currentOutput.find((item) => typeof item === "object" && "id" in item
-    //     && item.id === "awaitingOutputSpinner")
-    // ) {
-    //     currentOutput.push([
-    //         <div
-    //             id="awaitingOutputContainer"
-    //             key="awaitingOutputContainer"
-    //             style={{display: "flex", alignItems: "center", fontSize: "smaller"}}
-    //         >
-    //             <span
-    //                 id="working-span"
-    //                 style={{marginRight: "1rem"}}
-    //             >
-    //                 Working...
-    //             </span>
-    //             <ClipLoader
-    //                 id="awaitingOutputSpinner"
-    //                 key="awaitingOutputSpinner"
-    //                 size="1rem"
-    //             />
-    //         </div>,
-    //     ])
-    // }
-
-    // console.debug("***************************************")
-    // console.debug("Current response:", currentResponse)
-    // console.debug("***************************************")
-
     // Render the component
     return (
         <Form
@@ -811,32 +823,38 @@ export function OpportunityFinder(): ReactElement {
             style={{marginBottom: "6rem"}}
         >
             {getAgentButtons()}
-            <Form.Group>
-                <div style={{margin: "10px", position: "relative"}}>
-                    <Form.Label style={{marginRight: "1rem", marginBottom: "0.5rem"}}>Code/JSON theme:</Form.Label>
-                    <Select
-                        id="syntax-highlighter-select"
-                        value={{label: selectedTheme, value: selectedTheme}}
-                        styles={{
-                            container: (provided) => ({
-                                ...provided,
-                                maxWidth: "350px",
-                                marginBottom: "1rem",
-                            }),
-                        }}
-                        onChange={(option) => setSelectedTheme(option.value)}
-                        options={[
-                            {
-                                label: "HLJS Themes",
-                                options: HLJS_THEMES.map((theme) => ({label: theme, value: theme})),
-                            },
-                            {
-                                label: "Prism Themes",
-                                options: PRISM_THEMES.map((theme) => ({label: theme, value: theme})),
-                            },
-                        ]}
-                    />
-                </div>
+            <Form.Group
+                id="select-theme-group"
+                style={{margin: "10px", position: "relative"}}
+            >
+                <Form.Label
+                    id="select-theme-label"
+                    style={{marginRight: "1rem", marginBottom: "0.5rem"}}
+                >
+                    Code/JSON theme:
+                </Form.Label>
+                <Select
+                    id="syntax-highlighter-select"
+                    value={{label: selectedTheme, value: selectedTheme}}
+                    styles={{
+                        container: (provided) => ({
+                            ...provided,
+                            maxWidth: "350px",
+                            marginBottom: "1rem",
+                        }),
+                    }}
+                    onChange={(option) => setSelectedTheme(option.value)}
+                    options={[
+                        {
+                            label: "HLJS Themes",
+                            options: HLJS_THEMES.map((theme) => ({label: theme, value: theme})),
+                        },
+                        {
+                            label: "Prism Themes",
+                            options: PRISM_THEMES.map((theme) => ({label: theme, value: theme})),
+                        },
+                    ]}
+                />
             </Form.Group>
             {projectUrl.current && (
                 // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
@@ -923,6 +941,23 @@ export function OpportunityFinder(): ReactElement {
                         {chatOutput && chatOutput.length > 0
                             ? formatOutput(chatOutput)
                             : "(Agent output will appear here)"}
+                        {awaitingResponse && (
+                            <div
+                                id="awaitingOutputContainer"
+                                style={{display: "flex", alignItems: "center", fontSize: "smaller"}}
+                            >
+                                <span
+                                    id="working-span"
+                                    style={{marginRight: "1rem"}}
+                                >
+                                    Working...
+                                </span>
+                                <ClipLoader
+                                    id="awaitingOutputSpinner"
+                                    size="1rem"
+                                />
+                            </div>
+                        )}
                     </div>
                     <Button
                         id="clear-chat-button"
@@ -1070,31 +1105,22 @@ export function OpportunityFinder(): ReactElement {
                         id="send-div"
                         style={{display: "flex", width: "100px", justifyContent: "center"}}
                     >
-                        {awaitingResponse ? (
-                            <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                // ClipLoader does not have an id property
-                                color={MaximumBlue}
-                                loading={true}
-                                size={45}
-                            />
-                        ) : (
-                            <Button
-                                id="submit-query-button"
-                                variant="primary"
-                                type="submit"
-                                disabled={shouldDisableSendButton}
-                                style={{
-                                    background: MaximumBlue,
-                                    borderColor: MaximumBlue,
-                                    color: "white",
-                                    opacity: shouldDisableSendButton ? "50%" : "100%",
-                                    marginLeft: "10px",
-                                    marginRight: "10px",
-                                }}
-                            >
-                                Send
-                            </Button>
-                        )}
+                        <Button
+                            id="submit-query-button"
+                            variant="primary"
+                            type="submit"
+                            disabled={shouldDisableSendButton}
+                            style={{
+                                background: MaximumBlue,
+                                borderColor: MaximumBlue,
+                                color: "white",
+                                opacity: shouldDisableSendButton ? "50%" : "100%",
+                                marginLeft: "10px",
+                                marginRight: "10px",
+                            }}
+                        >
+                            Send
+                        </Button>
                     </div>
                 </div>
             </Form.Group>
