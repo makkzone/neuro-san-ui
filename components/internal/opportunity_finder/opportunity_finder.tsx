@@ -598,7 +598,7 @@ export function OpportunityFinder(): ReactElement {
      * @returns A div containing the agent buttons
      */
     function getAgentButtons() {
-        const enableOrchestration = true
+        const enableOrchestration = previousResponse.current.DataGenerator !== null && !awaitingResponse
 
         return (
             <div
