@@ -67,7 +67,7 @@ const LOGS_DELIMITER = ">>>"
  */
 export function OpportunityFinder(): ReactElement {
     // Theme for syntax highlighter
-    const [selectedTheme, setSelectedTheme] = useState<string>("a11yLight")
+    const [selectedTheme, setSelectedTheme] = useState<string>("vs")
 
     // User LLM chat input
     const [chatInput, setChatInput] = useState<string>("")
@@ -171,9 +171,112 @@ export function OpportunityFinder(): ReactElement {
         setTimeout(() => chatInputRef?.current?.focus(), 1000)
     }, [])
 
-    function nodesToString(nodesList) {
-        return nodesList.filter((node) => typeof node === "string").join("")
+    function formatOutput(nodesList: ReactNode[]): ReactNode[] {
+        const formattedOutput: ReactNode[] = []
+        let currentTextNodes: string[] = []
+        for (const node of nodesList) {
+            if (typeof node === "string") {
+                currentTextNodes.push(node)
+            } else {
+                if (currentTextNodes.length > 0) {
+                    formattedOutput.push(
+                        <ReactMarkdown
+                            key={formattedOutput.length}
+                            rehypePlugins={[rehypeRaw, rehypeSlug]}
+                            components={{
+                                code(props) {
+                                    const {children, className, ...rest} = props
+                                    const match = /language-(?<language>\w+)/u.exec(className || "")
+                                    return match ? (
+                                        <SyntaxHighlighter
+                                            PreTag="div"
+                                            language={match.groups.language}
+                                            style={highlighterTheme}
+                                        >
+                                            {String(children).replace(/\n$/u, "")}
+                                        </SyntaxHighlighter>
+                                    ) : (
+                                        <code
+                                            {...rest}
+                                            className={className}
+                                        >
+                                            {children}
+                                        </code>
+                                    )
+                                },
+                                a({...props}) {
+                                    return (
+                                        <a
+                                            {...props}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {props.children}
+                                        </a>
+                                    )
+                                },
+                            }}
+                        >
+                            {currentTextNodes.join("")}
+                        </ReactMarkdown>
+                    )
+                    currentTextNodes = []
+                }
+                formattedOutput.push(node)
+            }
+        }
+
+        // Process any remaining text nodes
+        if (currentTextNodes.length > 0) {
+            formattedOutput.push(
+                <ReactMarkdown
+                    key={formattedOutput.length}
+                    rehypePlugins={[rehypeRaw, rehypeSlug]}
+                    components={{
+                        code(props) {
+                            const {children, className, ...rest} = props
+                            const match = /language-(?<language>\w+)/u.exec(className || "")
+                            return match ? (
+                                <SyntaxHighlighter
+                                    PreTag="div"
+                                    language={match.groups.language}
+                                    style={highlighterTheme}
+                                >
+                                    {String(children).replace(/\n$/u, "")}
+                                </SyntaxHighlighter>
+                            ) : (
+                                <code
+                                    {...rest}
+                                    className={className}
+                                >
+                                    {children}
+                                </code>
+                            )
+                        },
+                        a({...props}) {
+                            return (
+                                <a
+                                    {...props}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {props.children}
+                                </a>
+                            )
+                        },
+                    }}
+                >
+                    {currentTextNodes.join("")}
+                </ReactMarkdown>
+            )
+        }
+
+        return formattedOutput
     }
+
+    // function nodesToString(nodesList) {
+    //     return nodesList.filter((node) => typeof node === "string").join("")
+    // }
 
     // function getFormattedCurrentOutput(outputToFormat) {
     //     return (
@@ -777,7 +880,7 @@ export function OpportunityFinder(): ReactElement {
     }
 
     // Add a spinner if we're awaiting a response and there isn't one already
-    const currentOutput = [...chatOutput]
+    // const currentOutput = [...chatOutput]
     // if (
     //     awaitingResponse &&
     //     !currentOutput.find((item) => typeof item === "object" && "id" in item
@@ -929,7 +1032,9 @@ export function OpportunityFinder(): ReactElement {
                         }}
                         tabIndex={-1}
                     >
-                        {currentOutput && currentOutput.length > 0 ? currentOutput : "(Agent output will appear here)"}
+                        {chatOutput && chatOutput.length > 0
+                            ? formatOutput(chatOutput)
+                            : "(Agent output will appear here)"}
                     </div>
                     <Button
                         id="clear-chat-button"
