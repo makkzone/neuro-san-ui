@@ -44,8 +44,14 @@ const debug = debugModule("app")
 // ts-prune-ignore-next
 export default function LEAF({Component, pageProps: {session, ...pageProps}}): ReactElement {
     const {isGeneric, setEnableProjectSharing} = useFeaturesStore()
-    const {backendApiUrl, setBackendApiUrl, setAuth0ClientId, setAuth0Domain, setEnableAuthorizeAPI} =
-        useEnvironmentStore()
+    const {
+        backendApiUrl,
+        setBackendApiUrl,
+        setAuth0ClientId,
+        setAuth0Domain,
+        setEnableAuthorizeAPI,
+        setSupportEmailAddress,
+    } = useEnvironmentStore()
 
     // access user info store
     const {currentUser, setCurrentUser, picture, setPicture} = useUserInfoStore()
@@ -108,6 +114,15 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
                 // Cache auth0 domain in feature store
                 debug(`Received Auth0 domain from NodeJS server. Setting to ${data.auth0Domain}`)
                 setAuth0Domain(data.auth0Domain)
+            }
+
+            if (!data.supportEmailAddress) {
+                throw new Error("No Neuro AI support email address in response")
+            } else {
+                debug(
+                    `Received Neuro AI support email address from NodeJS server. Setting to ${data.supportEmailAddress}`
+                )
+                setSupportEmailAddress(data.supportEmailAddress)
             }
 
             // get enableAuthorizeAPI flag

@@ -33,13 +33,22 @@ export default async function handler(_req, res) {
         return
     }
 
+    const supportEmailAddress = process.env.SUPPORT_EMAIL_ADDRESS
+    if (!supportEmailAddress) {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            error: "SUPPORT_EMAIL_ADDRESS not set in environment",
+        })
+        return
+    }
+
     const enableProjectSharing = process.env.ENABLE_PROJECT_SHARING || false
 
     res.status(httpStatus.OK).json({
-        backendApiUrl: backendApiUrl,
-        auth0ClientId: auth0ClientId,
-        auth0Domain: auth0Domain,
-        enableAuthorizeAPI: Boolean(process.env.ENABLE_AUTHORIZE_API),
+        backendApiUrl,
+        auth0ClientId,
+        auth0Domain,
         enableProjectSharing,
+        supportEmailAddress,
+        enableAuthorizeAPI: Boolean(process.env.ENABLE_AUTHORIZE_API),
     })
 }

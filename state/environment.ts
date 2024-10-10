@@ -23,6 +23,10 @@ interface EnvironmentStore {
     // enableAuthorizeAPI flag
     enableAuthorizeAPI: boolean
     setEnableAuthorizeAPI: (useAuthorizeAPI: boolean) => void
+
+    // team support email address
+    supportEmailAddress: string
+    setSupportEmailAddress: (supportEmailAddress: string) => void
 }
 
 /**
@@ -40,6 +44,9 @@ const useEnvironmentStore = create<EnvironmentStore>((set) => ({
 
     enableAuthorizeAPI: false,
     setEnableAuthorizeAPI: (enableAuthorizeAPI: boolean) => set(() => ({enableAuthorizeAPI})),
+
+    supportEmailAddress: null,
+    setSupportEmailAddress: (supportEmailAddress: string) => set(() => ({supportEmailAddress})),
 }))
 
 export default useEnvironmentStore

@@ -57,7 +57,7 @@ function Navbar(props: NavbarProps): ReactElement {
     const {currentUser, setCurrentUser, setPicture} = useUserInfoStore()
 
     // Access environment info
-    const {auth0ClientId, auth0Domain} = useEnvironmentStore()
+    const {auth0ClientId, auth0Domain, supportEmailAddress} = useEnvironmentStore()
 
     const authenticationType = `(Authentication: ${currentUser ? "ALB" : "NextAuth"})`
 
@@ -180,7 +180,7 @@ function Navbar(props: NavbarProps): ReactElement {
                                         setEmailDialogOpen(false)
                                     }}
                                     handleOk={() => {
-                                        window.location.href = "mailto:NeuroAiSupport@cognizant.com"
+                                        window.location.href = `mailto:${supportEmailAddress}`
                                         setEmailDialogOpen(false)
                                     }}
                                 />

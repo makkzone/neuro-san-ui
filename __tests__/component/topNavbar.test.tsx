@@ -8,6 +8,8 @@ import {fireEvent, render, screen, waitFor} from "@testing-library/react"
 import Navbar from "../../components/navbar"
 import {CONTACT_US_CONFIRMATION_DIALOG_TEXT} from "../../const"
 
+const MOCK_EMAIL_ADDRESS = "helloWorld@mock.com"
+
 // Mock dependencies
 jest.mock("next/router", () => ({
     useRouter() {
@@ -31,6 +33,12 @@ jest.mock("next-auth/react", () => {
         useSession: jest.fn(() => ({data: {user: {name: "MOCK_USER"}}})),
     }
 })
+
+jest.mock("../../state/environment", () => ({
+    ...jest.requireActual("../../state/environment"),
+    __esModule: true,
+    default: jest.fn(() => ({supportEmailAddress: MOCK_EMAIL_ADDRESS})),
+}))
 
 describe("navbar", () => {
     it("should open a confirmation dialog when the contact us link is clicked", () => {
@@ -69,7 +77,7 @@ describe("navbar", () => {
         fireEvent.click(screen.getByText("Confirm"))
 
         await waitFor(() => {
-            expect(window.location.href).toEqual("mailto:NeuroAiSupport@cognizant.com")
+            expect(window.location.href).toEqual(`mailto:${MOCK_EMAIL_ADDRESS}`)
         })
     })
 })

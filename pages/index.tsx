@@ -6,6 +6,7 @@ import {styled} from "styled-components"
 
 import {ConfirmationModal} from "../components/confirmationModal"
 import {CONTACT_US_CONFIRMATION_DIALOG_TEXT, CONTACT_US_CONFIRMATION_DIALOG_TITLE, GENERIC_LOGO, LOGO} from "../const"
+import useEnvironmentStore from "../state/environment"
 import useFeaturesStore from "../state/features"
 import {getTitleBase} from "../utils/title"
 
@@ -70,6 +71,9 @@ export default function Index(): ReactElement {
 
     const router = useRouter()
 
+    // Access environment info
+    const {supportEmailAddress} = useEnvironmentStore()
+
     // Keeps track of which button the user is hovering over. Either a button id or null
     const [hoveredId, setHoveredId] = useState<string>(null)
 
@@ -116,7 +120,7 @@ export default function Index(): ReactElement {
                         setEmailDialogOpen(false)
                     }}
                     handleOk={() => {
-                        window.location.href = "mailto:NeuroAiSupport@cognizant.com"
+                        window.location.href = `mailto:${supportEmailAddress}`
                         setEmailDialogOpen(false)
                     }}
                 />
