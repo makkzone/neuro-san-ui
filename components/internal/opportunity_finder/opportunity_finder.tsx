@@ -228,7 +228,6 @@ export function OpportunityFinder(): ReactElement {
                 // Handle links specially since we want them to open in a new tab
                 a({...props}) {
                     return (
-                        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
                         <a
                             {...props}
                             id="reference-link"
