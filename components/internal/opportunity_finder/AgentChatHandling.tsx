@@ -8,6 +8,7 @@ import {experimentGeneratedMessage} from "./common"
 import {INLINE_ALERT_PROPERTIES} from "./const"
 import {getLogs} from "../../../controller/agent/agent"
 import {AgentStatus, LogsResponse} from "../../../generated/agent"
+import useEnvironmentStore from "../../../state/environment"
 
 const {Panel} = Collapse
 
@@ -33,10 +34,10 @@ interface LogHandling {
     setLastLogTime: (newTime: number) => void
 }
 
-interface Orchestrationhandling {
+interface OrchestrationHandling {
     orchestrationAttemptNumber: number
-    initiateOrchestration
-    endOrchestration
+    initiateOrchestration: (isRetry: boolean) => Promise<void>
+    endOrchestration: () => void
 }
 
 interface LlmInteraction {
@@ -48,6 +49,7 @@ interface LlmInteraction {
 /**
  * Retry the orchestration process. If we haven't exceeded the maximum number of retries, we'll try again.
  * Issue an appropriate warning or error to the user depending on whether we're retrying or giving up.
+ *
  * @param retryMessage The message to display to the user when retrying
  * @param failureMessage The message to display to the user when giving up
  * @param orchestrationHandling Items related to the orchestration process
@@ -57,7 +59,7 @@ interface LlmInteraction {
 export const retry = async (
     retryMessage: string,
     failureMessage: string,
-    orchestrationHandling: Orchestrationhandling,
+    orchestrationHandling: OrchestrationHandling,
     updateOutput: (newOutput: ReactNode) => void
 ): Promise<void> => {
     if (orchestrationHandling.orchestrationAttemptNumber < MAX_ORCHESTRATION_ATTEMPTS) {
@@ -90,7 +92,11 @@ export const retry = async (
     }
 }
 
-export async function checkAgentTimeout(lastLogTime, orchestrationHandling, updateOutput) {
+export async function checkAgentTimeout(
+    lastLogTime: number,
+    orchestrationHandling: OrchestrationHandling,
+    updateOutput: (node: ReactNode) => void
+) {
     // No new logs, check if it's been too long since last log
     const timeSinceLastLog = Date.now() - lastLogTime
     const isTimeout = lastLogTime && timeSinceLastLog > MAX_AGENT_INACTIVITY_SECS * 1000
@@ -107,14 +113,14 @@ export async function checkAgentTimeout(lastLogTime, orchestrationHandling, upda
     return isTimeout
 }
 
-async function processChatResponse(
-    response,
-    orchestrationHandling,
-    setProjectUrl: (url: string) => void,
-    updateOutput
-) {
+const processChatResponse = async (
+    chatResponse: string,
+    orchestrationHandling: OrchestrationHandling,
+    setProjectUrl: (url: URL) => void,
+    updateOutput: (node: ReactNode) => void
+) => {
     // Check for error
-    const errorMatches = AGENT_ERROR_REGEX.exec(response.chatResponse)
+    const errorMatches = AGENT_ERROR_REGEX.exec(chatResponse)
     if (errorMatches) {
         const baseMessage = `Error occurred: ${errorMatches.groups.error}. Traceback: ${errorMatches.groups.traceback}`
         await retry(
@@ -128,17 +134,25 @@ async function processChatResponse(
     }
 
     // Check for completion of orchestration by checking if response contains project info
-    const matches = AGENT_RESULT_REGEX.exec(response.chatResponse)
+    const matches = AGENT_RESULT_REGEX.exec(chatResponse)
 
     if (matches) {
+        // We found the agent completion message
+
         // Build the URl and set it in state so the notification will be displayed
         const projectId = matches.groups.projectId
         const experimentId = matches.groups.experimentId
 
-        const projectUrl = `/projects/${projectId}/experiments/${experimentId}/?generated=true`
+        // Get backend API URL from environment store
+        const baseUrl = useEnvironmentStore.getState().backendApiUrl
+
+        // Construct the URL for the new project
+        const projectUrl: URL = new URL(`/projects/${projectId}/experiments/${experimentId}/?generated=true`, baseUrl)
+
+        // Set the URL in state
         setProjectUrl(projectUrl)
 
-        // We found the agent completion message
+        // Generate the "experiment complete" item in the agent dialog
         updateOutput(
             <>
                 {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
@@ -159,10 +173,31 @@ async function processChatResponse(
     }
 }
 
+/**
+ * Split a log line into its summary and details parts, using `LOGS_DELIMITER` as the separator.
+ * @param logLine The log line to split
+ * @returns An object containing the summary and details parts of the log line
+ */
+function splitLogLine(logLine: string) {
+    const logLineElements = logLine.split(LOGS_DELIMITER)
+
+    const logLineSummary = logLineElements[0]
+    const summarySentenceCase = logLineSummary.replace(/\w+/gu, capitalize)
+
+    const logLineDetails = logLineElements[1]
+    return {summarySentenceCase, logLineDetails}
+}
+
+/**
+ * Process new logs from the agent and format them nicely using the syntax highlighter and antd Collapse component.
+ * @param response The response from the agent network containing potentially new-to-us logs
+ * @param logHandling Items related to the log handling process
+ * @param highlighterTheme The theme to use for the syntax highlighter
+ * @returns An array of React components representing the new logs (agent messages)
+ */
 export const processNewLogs = (
     response: LogsResponse,
     logHandling: LogHandling,
-    updateOutput,
     highlighterTheme: {[p: string]: CSSProperties}
 ) => {
     // Get new logs
@@ -174,17 +209,14 @@ export const processNewLogs = (
     // Update last log index
     logHandling.setLastLogIndex(response.logs.length - 1)
 
+    const newOutputItems = []
+
     // Process new logs and display summaries to user
     for (const logLine of newLogs) {
-        // extract the part of the line only up to LOGS_DELIMITER
-        const logLineElements = logLine.split(LOGS_DELIMITER)
+        // extract the parts of the line
+        const {summarySentenceCase, logLineDetails} = splitLogLine(logLine)
 
-        const logLineSummary = logLineElements[0]
-        const summarySentenceCase = logLineSummary.replace(/\w+/gu, capitalize)
-
-        const logLineDetails = logLineElements[1]
-
-        let repairedJson: string | object = null
+        let repairedJson: string = null
 
         try {
             // Attempt to parse as JSON
@@ -192,57 +224,61 @@ export const processNewLogs = (
             // First, repair it
             repairedJson = jsonrepair(logLineDetails)
 
-            // Now try to parse it
-            repairedJson = JSON.parse(repairedJson)
+            // Now try to parse it. We don't care about the result, only if it throws on parsing.
+            JSON.parse(repairedJson)
         } catch (e) {
             // Not valid JSON
             repairedJson = null
         }
 
-        updateOutput(
-            <>
-                {/*eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                <Collapse>
-                    <Panel
-                        id={`${summarySentenceCase}-panel`}
-                        header={summarySentenceCase}
-                        key={summarySentenceCase}
-                        style={{fontSize: "large"}}
-                    >
-                        <p id={`${summarySentenceCase}-details`}>
-                            {/*If we managed to parse it as JSON, pretty print it*/}
-                            {repairedJson ? (
-                                <SyntaxHighlighter
-                                    id="syntax-highlighter"
-                                    language="json"
-                                    style={highlighterTheme}
-                                    showLineNumbers={false}
-                                    wrapLines={true}
-                                >
-                                    {JSON.stringify(repairedJson, null, 2)}
-                                </SyntaxHighlighter>
-                            ) : (
-                                logLineDetails || "No further details"
-                            )}
-                        </p>
-                    </Panel>
-                </Collapse>
-                <br id={`${summarySentenceCase}-br`} />
-            </>
+        newOutputItems.push(
+            // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+            <Collapse
+                style={{marginBottom: "1rem"}}
+                items={[
+                    {
+                        id: `${summarySentenceCase}-panel`,
+                        label: summarySentenceCase,
+                        key: summarySentenceCase,
+                        style: {fontSize: "large"},
+                        children: (
+                            <div id={`${summarySentenceCase}-details`}>
+                                {/* If we managed to parse it as JSON, pretty print it */}
+                                {repairedJson ? (
+                                    <SyntaxHighlighter
+                                        id="syntax-highlighter"
+                                        language="json"
+                                        style={highlighterTheme}
+                                        showLineNumbers={false}
+                                        wrapLines={true}
+                                    >
+                                        {repairedJson}
+                                    </SyntaxHighlighter>
+                                ) : (
+                                    logLineDetails || "No further details"
+                                )}
+                            </div>
+                        ),
+                    },
+                ]}
+            />
         )
     }
+
+    return newOutputItems
 }
 
-export async function pollForLogs(
+export const pollForLogs = async (
     currentUser: string,
     sessionId: string,
     logHandling: LogHandling,
-    orchestrationHandling: Orchestrationhandling,
+    orchestrationHandling: OrchestrationHandling,
     llmInteraction: LlmInteraction,
-    setProjectUrl: (url: string) => void,
-    updateOutput: (newOutput: React.ReactNode) => void,
-    highlighterTheme: {[p: string]: React.CSSProperties}
-) {
+    setProjectUrl: (url: URL) => void,
+    updateOutput: (node: ReactNode) => void,
+    highlighterTheme: {[p: string]: CSSProperties}
+) => {
+    console.debug("Polling for logs")
     if (llmInteraction.isAwaitingLlm) {
         // Already a request in progress
         return
@@ -272,7 +308,8 @@ export async function pollForLogs(
         // Check for new logs
         const hasNewLogs = response?.logs?.length > 0 && response.logs.length > logHandling.lastLogIndex + 1
         if (hasNewLogs) {
-            processNewLogs(response, logHandling, updateOutput, highlighterTheme)
+            const newOutputItems = processNewLogs(response, logHandling, highlighterTheme)
+            updateOutput(newOutputItems)
         } else {
             const timedOut = await checkAgentTimeout(logHandling.lastLogTime, orchestrationHandling, updateOutput)
             if (timedOut) {
@@ -281,7 +318,7 @@ export async function pollForLogs(
         }
 
         if (response.chatResponse) {
-            await processChatResponse(response, orchestrationHandling, setProjectUrl, updateOutput)
+            await processChatResponse(response.chatResponse, orchestrationHandling, setProjectUrl, updateOutput)
         }
     } finally {
         llmInteraction.setIsAwaitingLlm(false)
