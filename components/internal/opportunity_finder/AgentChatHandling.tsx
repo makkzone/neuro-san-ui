@@ -189,6 +189,65 @@ function splitLogLine(logLine: string) {
 }
 
 /**
+ * Process a log line from the agent and format it nicely using the syntax highlighter and antd Collapse component.
+ * @param logLine The log line to process
+ * @param highlighterTheme The theme to use for the syntax highlighter
+ * @returns A React component representing the log line (agent message)
+ */
+function processLogLine(logLine: string, highlighterTheme: {[p: string]: CSSProperties}) {
+    // extract the parts of the line
+    const {summarySentenceCase, logLineDetails} = splitLogLine(logLine)
+
+    let repairedJson: string = null
+
+    try {
+        // Attempt to parse as JSON
+
+        // First, repair it
+        repairedJson = jsonrepair(logLineDetails)
+
+        // Now try to parse it. We don't care about the result, only if it throws on parsing.
+        JSON.parse(repairedJson)
+    } catch (e) {
+        // Not valid JSON
+        repairedJson = null
+    }
+
+    return (
+        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+        <Collapse
+            style={{marginBottom: "1rem"}}
+            items={[
+                {
+                    id: `${summarySentenceCase}-panel`,
+                    label: summarySentenceCase,
+                    key: summarySentenceCase,
+                    style: {fontSize: "large"},
+                    children: (
+                        <div id={`${summarySentenceCase}-details`}>
+                            {/* If we managed to parse it as JSON, pretty print it */}
+                            {repairedJson ? (
+                                <SyntaxHighlighter
+                                    id="syntax-highlighter"
+                                    language="json"
+                                    style={highlighterTheme}
+                                    showLineNumbers={false}
+                                    wrapLines={true}
+                                >
+                                    {repairedJson}
+                                </SyntaxHighlighter>
+                            ) : (
+                                logLineDetails || "No further details"
+                            )}
+                        </div>
+                    ),
+                },
+            ]}
+        />
+    )
+}
+
+/**
  * Process new logs from the agent and format them nicely using the syntax highlighter and antd Collapse component.
  * @param response The response from the agent network containing potentially new-to-us logs
  * @param logHandling Items related to the log handling process
@@ -213,56 +272,8 @@ export const processNewLogs = (
 
     // Process new logs and display summaries to user
     for (const logLine of newLogs) {
-        // extract the parts of the line
-        const {summarySentenceCase, logLineDetails} = splitLogLine(logLine)
-
-        let repairedJson: string = null
-
-        try {
-            // Attempt to parse as JSON
-
-            // First, repair it
-            repairedJson = jsonrepair(logLineDetails)
-
-            // Now try to parse it. We don't care about the result, only if it throws on parsing.
-            JSON.parse(repairedJson)
-        } catch (e) {
-            // Not valid JSON
-            repairedJson = null
-        }
-
-        newOutputItems.push(
-            // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-            <Collapse
-                style={{marginBottom: "1rem"}}
-                items={[
-                    {
-                        id: `${summarySentenceCase}-panel`,
-                        label: summarySentenceCase,
-                        key: summarySentenceCase,
-                        style: {fontSize: "large"},
-                        children: (
-                            <div id={`${summarySentenceCase}-details`}>
-                                {/* If we managed to parse it as JSON, pretty print it */}
-                                {repairedJson ? (
-                                    <SyntaxHighlighter
-                                        id="syntax-highlighter"
-                                        language="json"
-                                        style={highlighterTheme}
-                                        showLineNumbers={false}
-                                        wrapLines={true}
-                                    >
-                                        {repairedJson}
-                                    </SyntaxHighlighter>
-                                ) : (
-                                    logLineDetails || "No further details"
-                                )}
-                            </div>
-                        ),
-                    },
-                ]}
-            />
-        )
+        const outputItem = processLogLine(logLine, highlighterTheme)
+        newOutputItems.push(outputItem)
     }
 
     return newOutputItems
@@ -278,7 +289,6 @@ export const pollForLogs = async (
     updateOutput: (node: ReactNode) => void,
     highlighterTheme: {[p: string]: CSSProperties}
 ) => {
-    console.debug("Polling for logs")
     if (llmInteraction.isAwaitingLlm) {
         // Already a request in progress
         return

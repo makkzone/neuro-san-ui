@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-shadow
 import {fireEvent, render, screen} from "@testing-library/react"
 
-import {processNewLogs} from "../../components/internal/opportunity_finder/AgentChatHandling"
+import {pollForLogs, processNewLogs} from "../../components/internal/opportunity_finder/AgentChatHandling"
 import {LogsResponse} from "../../generated/agent"
 
 const mockSyntaxHighlighter = jest.fn(({children}) => <div>{children}</div>)
@@ -115,5 +115,34 @@ describe("processNewLogs", () => {
 
         const newOutputItems = processNewLogs(response, logHandling, {})
         expect(newOutputItems.length).toBe(0)
+    })
+})
+
+describe("pollForLogs", () => {
+    it("Should bail if LLM interaction is already in progress", async () => {
+        // Mock getLogs call from AgentChatHandling.tsx
+        const getLogsMock = jest.fn()
+        jest.mock("../../controller/agent/agent", () => ({
+            __esModule: true,
+            ...jest.requireActual("../../controller/agent/agent"),
+            getLogs: getLogsMock,
+        }))
+
+        await pollForLogs(
+            null,
+            null,
+            null,
+            null,
+            {
+                isAwaitingLlm: true,
+                setIsAwaitingLlm: null,
+                signal: null,
+            },
+            null,
+            null,
+            null
+        )
+
+        expect(getLogsMock).not.toHaveBeenCalled()
     })
 })
