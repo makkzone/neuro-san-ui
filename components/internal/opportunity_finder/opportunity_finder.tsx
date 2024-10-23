@@ -22,6 +22,7 @@ import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import * as prismStyles from "react-syntax-highlighter/dist/cjs/styles/prism"
 import rehypeRaw from "rehype-raw"
 import rehypeSlug from "rehype-slug"
+import {styled} from "styled-components"
 
 import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
 import {MaximumBlue} from "../../../const"
@@ -51,7 +52,7 @@ const MAX_ORCHESTRATION_ATTEMPTS = 3
 
 // Input text placeholders for each agent type
 const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
-    OpportunityFinder: "Business name such as Acme Corporation",
+    OpportunityFinder: "Enter a business name such as Acme Corporation",
     ScopingAgent: "Scope the selected item",
     DataGenerator: "Generate 1500 rows",
     OrchestrationAgent: "Generate the experiment",
@@ -69,6 +70,21 @@ const INLINE_ALERT_PROPERTIES = {
     showIcon: true,
     closable: false,
 }
+
+const AGENT_ICON_SIZE = 70;
+const ARROW_SIZE = 65;
+
+const AgentIconDiv = styled.div`
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    font-size: 16px;
+    height: 100%;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    margin-left: 6rem;
+    margin-right: 6rem;
+`;
 
 /**
  * This is the main module for the opportunity finder. It implements a page that allows the user to interact with
@@ -763,18 +779,8 @@ export function OpportunityFinder(): ReactElement {
         const enableOrchestration = previousResponse?.current?.DataGenerator?.length > 0 && !awaitingResponse
 
         return (
-            <div
+            <AgentIconDiv
                 id="agent-icons-div"
-                style={{
-                    display: "flex",
-                    justifyContent: "space-evenly",
-                    alignItems: "center",
-                    height: "100%",
-                    marginTop: "2rem",
-                    marginBottom: "2rem",
-                    marginLeft: "6rem",
-                    marginRight: "6rem",
-                }}
             >
                 <div
                     id="opp-finder-agent-div"
@@ -783,15 +789,15 @@ export function OpportunityFinder(): ReactElement {
                     className={getClassName("OpportunityFinder")}
                 >
                     <RiMenuSearchLine
+                        className="agent-icon"
                         id="opp-finder-agent-icon"
-                        size={100}
-                        style={{marginBottom: "10px"}}
+                        size={AGENT_ICON_SIZE}
                     />
                     Opportunity Finder
                 </div>
                 <FaArrowRightLong
                     id="arrow1"
-                    size={100}
+                    size={ARROW_SIZE}
                     color="var(--bs-secondary)"
                 />
                 <div
@@ -801,15 +807,15 @@ export function OpportunityFinder(): ReactElement {
                     className={getClassName("ScopingAgent")}
                 >
                     <TfiPencilAlt
+                        className="agent-icon"
                         id="scoping-agent-icon"
-                        size={100}
-                        style={{marginBottom: "10px"}}
+                        size={AGENT_ICON_SIZE}
                     />
                     Scoping Agent
                 </div>
                 <FaArrowRightLong
                     id="arrow2"
-                    size={100}
+                    size={ARROW_SIZE}
                     color="var(--bs-secondary)"
                 />
                 <div
@@ -819,15 +825,15 @@ export function OpportunityFinder(): ReactElement {
                     className={getClassName("DataGenerator")}
                 >
                     <BsDatabaseAdd
+                        className="agent-icon"
                         id="db-agent-icon"
-                        size={100}
-                        style={{marginBottom: "10px"}}
+                        size={AGENT_ICON_SIZE}
                     />
                     Data Generator
                 </div>
                 <FaArrowRightLong
                     id="arrow3"
-                    size={100}
+                    size={ARROW_SIZE}
                     color="var(--bs-secondary)"
                 />
                 <Tooltip
@@ -843,7 +849,7 @@ export function OpportunityFinder(): ReactElement {
                     >
                         <LuBrainCircuit
                             id="db-agent-icon"
-                            size={100}
+                            size={AGENT_ICON_SIZE}
                             style={{marginBottom: "10px"}}
                         />
                         <div
@@ -854,7 +860,7 @@ export function OpportunityFinder(): ReactElement {
                         </div>
                     </div>
                 </Tooltip>
-            </div>
+            </AgentIconDiv>
         )
     }
 
@@ -867,7 +873,7 @@ export function OpportunityFinder(): ReactElement {
                 event.preventDefault()
                 await sendQuery(chatInput)
             }}
-            style={{marginBottom: "6rem"}}
+            style={{marginBottom: "6rem", paddingBottom: "15px"}}
         >
             {getAgentButtons()}
             <Form.Group
@@ -1118,6 +1124,7 @@ export function OpportunityFinder(): ReactElement {
                             ref={chatInputRef}
                             style={{
                                 fontSize: "90%",
+                                height: "47px",
                                 marginLeft: "7px",
                             }}
                             onChange={(event) => {
