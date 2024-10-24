@@ -194,10 +194,11 @@ function Navbar(props: NavbarProps): ReactElement {
                                         <NextImage
                                             id="user-image"
                                             src={userInfo.image || "https://www.gravatar.com/avatar/?d=mp"}
-                                            width="30"
-                                            height="30"
+                                            width={30}
+                                            height={30}
                                             title={userName}
                                             alt=""
+                                            unoptimized={true}
                                         />
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu
