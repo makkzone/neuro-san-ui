@@ -1371,7 +1371,7 @@ export default function Flow(props: FlowProps) {
                         </Controls>
                         {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
                         <Background
-                            color="#000048"
+                            color="var(--bs-primary)"
                             gap={5}
                         />
                     </ReactFlow>

@@ -22,7 +22,7 @@ import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import * as prismStyles from "react-syntax-highlighter/dist/cjs/styles/prism"
 import rehypeRaw from "rehype-raw"
 import rehypeSlug from "rehype-slug"
-import {styled} from "styled-components"
+import { styled } from "@mui/material";
 
 import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
 import {MaximumBlue} from "../../../const"
@@ -35,6 +35,7 @@ import {hasOnlyWhitespace} from "../../../utils/text"
 
 const {Panel} = Collapse
 
+// #region: Constants
 // Regex to extract project and experiment IDs from agent response
 const AGENT_RESULT_REGEX = /assistant: \{'project_id': '(?<projectId>\d+)', 'experiment_id': '(?<experimentId>\d+)'\}/u
 
@@ -71,20 +72,28 @@ const INLINE_ALERT_PROPERTIES = {
     closable: false,
 }
 
-const AGENT_ICON_SIZE = 70;
-const ARROW_SIZE = 65;
+// Icon sizes
+const AGENT_ICON_SIZE = 60
+const ARROW_SIZE = 65
+// #endregion: Constants
 
-const AgentIconDiv = styled.div`
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    font-size: 16px;
-    height: 100%;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-    margin-left: 6rem;
-    margin-right: 6rem;
-`;
+// #region: Styled Components
+const AgentIconDiv = styled('div')({
+    alignItems: "center",
+    display: "flex",
+    fontSize: "0.85rem",
+    height: "100%",
+    justifyContent: "space-evenly",
+    marginTop: "2rem",
+    marginBottom: "2rem",
+    marginLeft: "6rem",
+    marginRight: "6rem",
+})
+
+const AgentDiv = styled('div')({
+    cursor: "pointer",
+})
+// #endregion: Styled Components
 
 /**
  * This is the main module for the opportunity finder. It implements a page that allows the user to interact with
@@ -782,7 +791,7 @@ export function OpportunityFinder(): ReactElement {
             <AgentIconDiv
                 id="agent-icons-div"
             >
-                <div
+                <AgentDiv
                     id="opp-finder-agent-div"
                     style={getAgentButtonStyle(!awaitingResponse)}
                     onClick={() => !awaitingResponse && setSelectedAgent("OpportunityFinder")}
@@ -794,13 +803,13 @@ export function OpportunityFinder(): ReactElement {
                         size={AGENT_ICON_SIZE}
                     />
                     Opportunity Finder
-                </div>
+                </AgentDiv>
                 <FaArrowRightLong
                     id="arrow1"
                     size={ARROW_SIZE}
-                    color="var(--bs-secondary)"
+                    color="var(--bs-primary)"
                 />
-                <div
+                <AgentDiv
                     id="scoping-agent-div"
                     style={getAgentButtonStyle(!awaitingResponse)}
                     onClick={() => !awaitingResponse && setSelectedAgent("ScopingAgent")}
@@ -812,13 +821,13 @@ export function OpportunityFinder(): ReactElement {
                         size={AGENT_ICON_SIZE}
                     />
                     Scoping Agent
-                </div>
+                </AgentDiv>
                 <FaArrowRightLong
                     id="arrow2"
                     size={ARROW_SIZE}
-                    color="var(--bs-secondary)"
+                    color="var(--bs-primary)"
                 />
-                <div
+                <AgentDiv
                     id="opp-finder-agent-div"
                     style={getAgentButtonStyle(!awaitingResponse)}
                     onClick={() => !awaitingResponse && setSelectedAgent("DataGenerator")}
@@ -830,11 +839,11 @@ export function OpportunityFinder(): ReactElement {
                         size={AGENT_ICON_SIZE}
                     />
                     Data Generator
-                </div>
+                </AgentDiv>
                 <FaArrowRightLong
                     id="arrow3"
                     size={ARROW_SIZE}
-                    color="var(--bs-secondary)"
+                    color="var(--bs-primary)"
                 />
                 <Tooltip
                     id="orchestration-tooltip"

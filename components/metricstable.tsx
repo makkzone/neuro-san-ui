@@ -132,7 +132,7 @@ export default function MetricsTable(props: MetricstableProps) {
                                         >
                                             <InfoSignIcon
                                                 id={`${predictorMetricsId}-tooltip-info-sign-icon`}
-                                                color="#002261"
+                                                color="var(--bs-primary)"
                                                 size={10}
                                             />
                                         </div>
@@ -162,7 +162,7 @@ export default function MetricsTable(props: MetricstableProps) {
                                         >
                                             <InfoSignIcon
                                                 id={`${predictorMetricsId}-tooltip-info-sign-icon`}
-                                                color="#002261"
+                                                color="var(--bs-primary)"
                                                 size={10}
                                             />
                                         </div>
