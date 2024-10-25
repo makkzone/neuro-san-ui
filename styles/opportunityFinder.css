@@ -9,11 +9,11 @@
 
 .opp-finder-agent-div.selected {
     background: linear-gradient(to bottom, #cad1d7, #f0f0f0);
-    border-color: var(--bs-red);
+    border-color: var(--bs-primary);
 }
 
 .opp-finder-agent-div:hover {
-    border-color: var(--bs-red);
+    border-color: var(--bs-primary);
 }
 
 .agent-icon {
