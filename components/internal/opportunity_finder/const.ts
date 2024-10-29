@@ -7,3 +7,6 @@ export const INLINE_ALERT_PROPERTIES = {
     showIcon: true,
     closable: false,
 }
+
+// How many times to retry the entire orchestration process
+export const MAX_ORCHESTRATION_ATTEMPTS = 3

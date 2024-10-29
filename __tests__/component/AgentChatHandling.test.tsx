@@ -2,7 +2,9 @@
 import {fireEvent, render, screen} from "@testing-library/react"
 
 import {pollForLogs, processNewLogs} from "../../components/internal/opportunity_finder/AgentChatHandling"
-import {LogsResponse} from "../../generated/agent"
+import {retry} from "../../components/internal/opportunity_finder/common"
+import {getLogs} from "../../controller/agent/agent"
+import {AgentStatus, LogsResponse} from "../../generated/agent"
 
 const mockSyntaxHighlighter = jest.fn(({children}) => <div>{children}</div>)
 
@@ -14,6 +16,18 @@ jest.mock("react-syntax-highlighter", () => {
         default: (children) => mockSyntaxHighlighter(children),
     }
 })
+
+jest.mock("../../controller/agent/agent", () => ({
+    __esModule: true,
+    ...jest.requireActual("../../controller/agent/agent"),
+    getLogs: jest.fn(),
+}))
+
+jest.mock("../../components/internal/opportunity_finder/common", () => ({
+    __esModule: true,
+    ...jest.requireActual("../../components/internal/opportunity_finder/common"),
+    retry: jest.fn(),
+}))
 
 describe("processNewLogs", () => {
     const mockSetLastLogIndex = jest.fn()
@@ -120,14 +134,6 @@ describe("processNewLogs", () => {
 
 describe("pollForLogs", () => {
     it("Should bail if LLM interaction is already in progress", async () => {
-        // Mock getLogs call from AgentChatHandling.tsx
-        const getLogsMock = jest.fn()
-        jest.mock("../../controller/agent/agent", () => ({
-            __esModule: true,
-            ...jest.requireActual("../../controller/agent/agent"),
-            getLogs: getLogsMock,
-        }))
-
         await pollForLogs(
             null,
             null,
@@ -143,6 +149,31 @@ describe("pollForLogs", () => {
             null
         )
 
-        expect(getLogsMock).not.toHaveBeenCalled()
+        expect(getLogs).not.toHaveBeenCalled()
+    })
+
+    it("Should call retry if agents return error", async () => {
+        const mockLogsResponse: LogsResponse = LogsResponse.fromPartial({
+            status: AgentStatus.NOT_FOUND,
+        })
+
+        ;(getLogs as jest.Mock).mockResolvedValue(mockLogsResponse)
+
+        await pollForLogs(
+            null,
+            null,
+            null,
+            null,
+            {
+                isAwaitingLlm: false,
+                setIsAwaitingLlm: jest.fn(),
+                signal: null,
+            },
+            null,
+            null,
+            null
+        )
+
+        expect(retry).toHaveBeenCalled()
     })
 })

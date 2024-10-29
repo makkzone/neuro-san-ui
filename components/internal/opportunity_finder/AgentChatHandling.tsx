@@ -1,19 +1,16 @@
-import {Alert, Collapse} from "antd"
+import {Collapse} from "antd"
 import {jsonrepair} from "jsonrepair"
 import {capitalize} from "lodash"
 import {CSSProperties, ReactNode} from "react"
 import SyntaxHighlighter from "react-syntax-highlighter"
 
-import {experimentGeneratedMessage} from "./common"
-import {INLINE_ALERT_PROPERTIES} from "./const"
+import {experimentGeneratedMessage, OrchestrationHandling, retry} from "./common"
+import {MAX_ORCHESTRATION_ATTEMPTS} from "./const"
 import {getLogs} from "../../../controller/agent/agent"
 import {AgentStatus, LogsResponse} from "../../../generated/agent"
 import useEnvironmentStore from "../../../state/environment"
 
 const {Panel} = Collapse
-
-// How many times to retry the entire orchestration process
-const MAX_ORCHESTRATION_ATTEMPTS = 3
 
 // Regex to extract project and experiment IDs from agent response
 const AGENT_RESULT_REGEX = /assistant: \{'project_id': '(?<projectId>\d+)', 'experiment_id': '(?<experimentId>\d+)'\}/u
@@ -34,62 +31,10 @@ interface LogHandling {
     setLastLogTime: (newTime: number) => void
 }
 
-interface OrchestrationHandling {
-    orchestrationAttemptNumber: number
-    initiateOrchestration: (isRetry: boolean) => Promise<void>
-    endOrchestration: () => void
-}
-
 interface LlmInteraction {
     isAwaitingLlm: boolean
     setIsAwaitingLlm: (newVal: boolean) => void
     signal: AbortSignal
-}
-
-/**
- * Retry the orchestration process. If we haven't exceeded the maximum number of retries, we'll try again.
- * Issue an appropriate warning or error to the user depending on whether we're retrying or giving up.
- *
- * @param retryMessage The message to display to the user when retrying
- * @param failureMessage The message to display to the user when giving up
- * @param orchestrationHandling Items related to the orchestration process
- * @param updateOutput Function to update the output window
- * @returns Nothing, but updates the output window and ends the orchestration process if we've exceeded the maximum
- */
-export const retry = async (
-    retryMessage: string,
-    failureMessage: string,
-    orchestrationHandling: OrchestrationHandling,
-    updateOutput: (newOutput: ReactNode) => void
-): Promise<void> => {
-    if (orchestrationHandling.orchestrationAttemptNumber < MAX_ORCHESTRATION_ATTEMPTS) {
-        updateOutput(
-            <>
-                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                <Alert
-                    {...INLINE_ALERT_PROPERTIES}
-                    type="warning"
-                    description={retryMessage}
-                />
-            </>
-        )
-
-        // try again
-        orchestrationHandling.endOrchestration()
-        await orchestrationHandling.initiateOrchestration(true)
-    } else {
-        updateOutput(
-            <>
-                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                <Alert
-                    {...INLINE_ALERT_PROPERTIES}
-                    type="error"
-                    description={failureMessage}
-                />
-            </>
-        )
-        orchestrationHandling.endOrchestration()
-    }
 }
 
 export async function checkAgentTimeout(
