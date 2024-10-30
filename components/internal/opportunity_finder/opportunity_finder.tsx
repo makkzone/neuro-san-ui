@@ -5,6 +5,7 @@ import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
 import {Alert, Collapse, Tooltip} from "antd"
 import {jsonrepair} from "jsonrepair"
 import {capitalize} from "lodash"
+import NextImage from "next/image"
 import {CSSProperties, FormEvent, ReactElement, ReactNode, useEffect, useRef, useState} from "react"
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {BsDatabaseAdd, BsStopBtn, BsTrash} from "react-icons/bs"
@@ -25,7 +26,7 @@ import rehypeSlug from "rehype-slug"
 import { styled } from "@mui/material";
 
 import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
-import {MaximumBlue} from "../../../const"
+import {DEFAULT_USER_IMAGE, MaximumBlue} from "../../../const"
 import {getLogs, sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
 import {AgentStatus, ChatResponse, LogsResponse} from "../../../generated/agent"
@@ -163,7 +164,10 @@ export function OpportunityFinder(): ReactElement {
 
     // For access to logged in session and current user name
     const {
-        user: {name: currentUser},
+        user: {
+            image: userImage,
+            name: currentUser,
+        },
     } = useAuthentication().data
 
     // Session ID for orchestration. We also use this as an overall "orchestration is in process" flag. If we have a
@@ -575,6 +579,37 @@ export function OpportunityFinder(): ReactElement {
         currentResponse.current = ""
     }
 
+    const renderUserImageAndQuery = (userQuery: string): ReactElement => {
+        const UserImage = (
+            <div className="inline-flex">
+                <NextImage
+                    id="user-image"
+                    src={userImage || DEFAULT_USER_IMAGE}
+                    width={30}
+                    height={30}
+                    title={currentUser}
+                    alt=""
+                    unoptimized={true}
+                />
+            </div>
+        )
+
+        const UserQuery = (
+            <div className="user-query">
+                {userQuery}
+            </div>
+        )
+
+        const UserImageAndQuery = (
+            <div className='mb-4'>
+                {UserImage}
+                {UserQuery}
+            </div>
+        )
+
+        return UserImageAndQuery
+    }
+
     // Sends user query to backend.
     async function sendQuery(userQuery: string) {
         try {
@@ -586,7 +621,9 @@ export function OpportunityFinder(): ReactElement {
             setIsAwaitingLlm(true)
 
             // Always start output by echoing user query. Precede with a horizontal rule if there is already content.
-            updateOutput(`${chatOutput?.length > 0 ? "\n---\n" : ""}##### Query\n${userQuery}\n##### Response\n`)
+            updateOutput(`${chatOutput?.length > 0 ? "\n---\n" : ""}##### Query\n`)
+            updateOutput(renderUserImageAndQuery(userQuery))
+            updateOutput(`\n\n##### Response\n`)
 
             const abortController = new AbortController()
             controller.current = abortController

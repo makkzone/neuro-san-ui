@@ -19,3 +19,13 @@
 .agent-icon {
     margin-bottom: 10px;
 }
+
+/* Use tailwind instead? */
+.user-query {
+    display: inline-flex;
+    border-radius: 10px;
+    background-color: #FFF;
+    padding: 10px;
+    margin-left: 10px;
+    vertical-align: bottom;
+}
