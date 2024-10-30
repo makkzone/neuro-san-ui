@@ -29,7 +29,6 @@ const ARROW_SIZE = 65
 const AgentIconDiv = styled("div")({
     alignItems: "center",
     display: "flex",
-    fontSize: "0.9rem",
     height: "100%",
     justifyContent: "space-evenly",
     marginTop: "2rem",
@@ -47,12 +46,12 @@ const AgentDiv = styled("div")(({enabled, selected}) => ({
     cursor: "pointer",
     display: "flex",
     flexDirection: "column",
-    minHeight: "163px",
+    minHeight: "165px",
     opacity: enabled ? 1 : 0.5,
     padding: "13px 0",
     textAlign: "center",
     transition: "all 0.3s ease",
-    width: "180px",
+    width: "190px",
 
     "&:hover": {
         borderColor: MaximumBlue,
