@@ -78,7 +78,7 @@ function Navbar(props: NavbarProps): ReactElement {
                     id={propsId}
                     collapseOnSelect
                     expand="lg"
-                    style={{background: MaximumBlue, borderBottomColor: MaximumBlue, fontSize: "18px"}}
+                    style={{background: MaximumBlue, borderBottomColor: MaximumBlue, fontSize: "0.9rem"}}
                     variant="dark"
                     className="border-b-2"
                 >
@@ -92,7 +92,7 @@ function Navbar(props: NavbarProps): ReactElement {
                     >
                         <BootstrapNavbar.Brand
                             id="nav-bar-brand"
-                            style={{color: LOGO_COLOR, fontSize: "18px"}}
+                            style={{color: LOGO_COLOR, fontSize: "0.9rem"}}
                             className="font-bold ml-2"
                         >
                             {props.Logo}
