@@ -15,8 +15,8 @@ const {Panel} = Collapse
 // Regex to extract project and experiment IDs from agent response
 const AGENT_RESULT_REGEX = /assistant: \{'project_id': '(?<projectId>\d+)', 'experiment_id': '(?<experimentId>\d+)'\}/u
 
-// Regex to extract error and traceback from agent response
-const AGENT_ERROR_REGEX = /assistant:\s*\{\s*"error": "(?<error>[^"]+)",\s*"traceback":\s*"(?<traceback>[^"]+)"\}/u
+// Regex to extract error in agent response
+const AGENT_ERROR_REGEX = /assistant:[\s\n]*(?<errorBlock>\{[\s\n]*"error": "[^}]+"\})/u
 
 // Delimiter for separating logs from agents
 const LOGS_DELIMITER = ">>>"
@@ -67,13 +67,32 @@ const processChatResponse = async (
     // Check for error
     const errorMatches = AGENT_ERROR_REGEX.exec(chatResponse)
     if (errorMatches) {
-        const baseMessage = `Error occurred: ${errorMatches.groups.error}. Traceback: ${errorMatches.groups.traceback}`
-        await retry(
-            `${baseMessage} Retrying...`,
-            `${baseMessage} Gave up after ${MAX_ORCHESTRATION_ATTEMPTS} attempts.`,
-            orchestrationHandling,
-            updateOutput
-        )
+        try {
+            // We got an error. Parse the error block and display it to the user
+            const errorBlock = JSON.parse(errorMatches.groups.errorBlock)
+
+            const baseMessage =
+                `Error occurred. Error: "${errorBlock.error}", ` +
+                `traceback: "${errorBlock.traceback}", ` +
+                `tool: "${errorBlock.tool}".`
+            await retry(
+                `${baseMessage} Retrying...`,
+                `${baseMessage} Gave up after ${MAX_ORCHESTRATION_ATTEMPTS} attempts.`,
+                orchestrationHandling,
+                updateOutput
+            )
+        } catch (e) {
+            // We couldn't parse the error block. Display a generic error message to the user
+            const baseMessage =
+                "Error occurred and was unable to parse error block. " +
+                `Error block: "${errorMatches.groups.errorBlock}, parsing error: ${e}".`
+            await retry(
+                `${baseMessage} Retrying...`,
+                `${baseMessage} Gave up after ${MAX_ORCHESTRATION_ATTEMPTS} attempts.`,
+                orchestrationHandling,
+                updateOutput
+            )
+        }
 
         return
     }

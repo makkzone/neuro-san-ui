@@ -52,7 +52,7 @@ export const retry = async (
                 <Alert
                     {...INLINE_ALERT_PROPERTIES}
                     type="warning"
-                    description={retryMessage}
+                    message={retryMessage}
                 />
             </>
         )
@@ -67,7 +67,7 @@ export const retry = async (
                 <Alert
                     {...INLINE_ALERT_PROPERTIES}
                     type="error"
-                    description={failureMessage}
+                    message={failureMessage}
                 />
             </>
         )
