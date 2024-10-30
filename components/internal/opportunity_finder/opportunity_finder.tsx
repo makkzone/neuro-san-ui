@@ -2,6 +2,7 @@
  * See main function description.
  */
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
+import { styled } from "@mui/material"
 import {Alert, Collapse, Tooltip} from "antd"
 import {jsonrepair} from "jsonrepair"
 import {capitalize} from "lodash"
@@ -23,7 +24,6 @@ import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import * as prismStyles from "react-syntax-highlighter/dist/cjs/styles/prism"
 import rehypeRaw from "rehype-raw"
 import rehypeSlug from "rehype-slug"
-import { styled } from "@mui/material";
 
 import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
 import {DEFAULT_USER_IMAGE, MaximumBlue} from "../../../const"
@@ -79,7 +79,7 @@ const ARROW_SIZE = 65
 // #endregion: Constants
 
 // #region: Styled Components
-const AgentIconDiv = styled('div')({
+const AgentIconDiv = styled("div")({
     alignItems: "center",
     display: "flex",
     fontSize: "0.85rem",
@@ -91,7 +91,7 @@ const AgentIconDiv = styled('div')({
     marginRight: "6rem",
 })
 
-const AgentDiv = styled('div')({
+const AgentDiv = styled("div")({
     cursor: "pointer",
 })
 // #endregion: Styled Components
@@ -581,6 +581,7 @@ export function OpportunityFinder(): ReactElement {
 
     const renderUserImageAndQuery = (userQuery: string): ReactElement => {
         const UserImage = (
+            // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
             <div className="inline-flex">
                 <NextImage
                     id="user-image"
@@ -595,12 +596,14 @@ export function OpportunityFinder(): ReactElement {
         )
 
         const UserQuery = (
+            // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
             <div className="user-query">
                 {userQuery}
             </div>
         )
 
         const UserImageAndQuery = (
+            // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
             <div className='mb-4'>
                 {UserImage}
                 {UserQuery}
@@ -623,7 +626,7 @@ export function OpportunityFinder(): ReactElement {
             // Always start output by echoing user query. Precede with a horizontal rule if there is already content.
             updateOutput(`${chatOutput?.length > 0 ? "\n---\n" : ""}##### Query\n`)
             updateOutput(renderUserImageAndQuery(userQuery))
-            updateOutput(`\n\n##### Response\n`)
+            updateOutput("\n\n##### Response\n")
 
             const abortController = new AbortController()
             controller.current = abortController

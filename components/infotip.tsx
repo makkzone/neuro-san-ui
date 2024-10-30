@@ -1,5 +1,6 @@
 import {Tooltip} from "antd"
 import {InfoSignIcon} from "evergreen-ui"
+
 import {MaximumBlue} from "../const";
 
 interface InfoTipParams {
