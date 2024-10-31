@@ -7,6 +7,7 @@ import {AgentButtons} from "../../components/internal/opportunity_finder/Agentbu
 
 describe("AgentButtons", () => {
     const setSelectedAgentMock = jest.fn()
+    const orchestratorTooltipText = "Please complete the previous steps first"
 
     it("should render agent buttons", async () => {
         render(
@@ -19,7 +20,6 @@ describe("AgentButtons", () => {
             />
         )
 
-        // For "Opportunity Finder", there's also a title with that text, but it's not returned here
         expect(screen.getByText("Opportunity Finder")).toBeInTheDocument()
         expect(screen.getByText("Scoping Agent")).toBeInTheDocument()
         expect(screen.getByText("Data Generator")).toBeInTheDocument()
@@ -37,10 +37,10 @@ describe("AgentButtons", () => {
             />
         )
 
-        expect(screen.queryByText("Please complete the previous steps first")).not.toBeInTheDocument()
+        expect(screen.queryByText(orchestratorTooltipText)).not.toBeInTheDocument()
         await userEvent.hover(screen.getByText("Orchestrator"))
         await waitFor(() => {
-            expect(screen.getByText("Please complete the previous steps first")).toBeInTheDocument()
+            expect(screen.getByText(orchestratorTooltipText)).toBeInTheDocument()
         })
     })
 
@@ -55,10 +55,10 @@ describe("AgentButtons", () => {
             />
         )
 
-        expect(screen.queryByText("Please complete the previous steps first")).not.toBeInTheDocument()
+        expect(screen.queryByText(orchestratorTooltipText)).not.toBeInTheDocument()
         await userEvent.hover(screen.getByText("Orchestrator"))
         await waitFor(() => {
-            expect(screen.queryByText("Please complete the previous steps first")).not.toBeInTheDocument()
+            expect(screen.queryByText(orchestratorTooltipText)).not.toBeInTheDocument()
         })
     })
 })
