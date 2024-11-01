@@ -172,7 +172,7 @@ export function OpportunityFinder(): ReactElement {
         overflowX: shouldWrapOutput ? "visible" : "auto",
     }
 
-    const isDataGenerator = selectedAgent === "DataGenerator";
+    const isDataGenerator = selectedAgent === "DataGenerator"
 
     // Sync ref with state variable for use within timer etc.
     useEffect(() => {
@@ -293,9 +293,7 @@ export function OpportunityFinder(): ReactElement {
                     unoptimized={true}
                 />
                 {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                <UserQuery>
-                    {userQuery}
-                </UserQuery>
+                <UserQuery>{userQuery}</UserQuery>
             </UserQueryContainer>
         </div>
     )
@@ -509,7 +507,7 @@ export function OpportunityFinder(): ReactElement {
                 selectedAgent={selectedAgent}
                 setSelectedAgent={setSelectedAgent}
             />
-            { isDataGenerator && codeJsonThemeEnabled && (
+            {isDataGenerator && codeJsonThemeEnabled && (
                 <Form.Group
                     id="select-theme-group"
                     style={{fontSize: "0.9rem", margin: "10px", position: "relative"}}
@@ -559,11 +557,14 @@ export function OpportunityFinder(): ReactElement {
                     id="llm-response-div"
                     style={{...divStyle, height: "50vh", margin: "10px", position: "relative"}}
                 >
-                    { isDataGenerator && (
+                    {isDataGenerator && (
                         <Tooltip
                             id="enable-code-json-theme-dropdown"
-                            title={codeJsonThemeEnabled ?
-                                "Customize code/JSON theme enabled" : "Customize code/JSON theme disabled"}
+                            title={
+                                codeJsonThemeEnabled
+                                    ? "Customize code/JSON theme enabled"
+                                    : "Customize code/JSON theme disabled"
+                            }
                         >
                             <LLMChatGroupConfigBtn
                                 enabled={codeJsonThemeEnabled}
