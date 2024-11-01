@@ -9,7 +9,7 @@ import {CSSProperties, FormEvent, ReactElement, ReactNode, useEffect, useRef, us
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {BsStopBtn, BsTrash} from "react-icons/bs"
 import {FiRefreshCcw} from "react-icons/fi"
-import {MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
+import {MdCode, MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
 import Select from "react-select"
 import ClipLoader from "react-spinners/ClipLoader"
 import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
@@ -57,6 +57,16 @@ const UserQueryContainer = styled("div")({
 const UserQuery = styled("span")({
     marginLeft: "13px",
 })
+
+const LLMChatGroupConfigBtn = styled(Button)(({enabled, posRight}) => ({
+    position: "absolute",
+    right: posRight || null,
+    top: 10,
+    zIndex: 99999,
+    background: enabled ? MaximumBlue : "darkgray",
+    borderColor: enabled ? MaximumBlue : "darkgray",
+    color: "white",
+}))
 // #endregion: Styled Components
 
 /**
@@ -116,6 +126,9 @@ export function OpportunityFinder(): ReactElement {
     // Controller for cancelling fetch request
     const controller = useRef<AbortController>(null)
 
+    // A button allows the user to enable or disable the "Code/JSON theme" dropdown.
+    const [codeJsonThemeEnabled, setCodeJsonThemeEnabled] = useState<boolean>(false)
+
     // For tracking if we're autoscrolling. A button allows the user to enable or disable autoscrolling.
     const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true)
 
@@ -158,6 +171,8 @@ export function OpportunityFinder(): ReactElement {
         textOverflow: shouldWrapOutput ? "clip" : "ellipsis",
         overflowX: shouldWrapOutput ? "visible" : "auto",
     }
+
+    const isDataGenerator = selectedAgent === "DataGenerator";
 
     // Sync ref with state variable for use within timer etc.
     useEffect(() => {
@@ -494,39 +509,41 @@ export function OpportunityFinder(): ReactElement {
                 selectedAgent={selectedAgent}
                 setSelectedAgent={setSelectedAgent}
             />
-            <Form.Group
-                id="select-theme-group"
-                style={{fontSize: "0.9rem", margin: "10px", position: "relative"}}
-            >
-                <Form.Label
-                    id="select-theme-label"
-                    style={{marginRight: "1rem", marginBottom: "0.5rem"}}
+            { isDataGenerator && codeJsonThemeEnabled && (
+                <Form.Group
+                    id="select-theme-group"
+                    style={{fontSize: "0.9rem", margin: "10px", position: "relative"}}
                 >
-                    Code/JSON theme:
-                </Form.Label>
-                <Select
-                    id="syntax-highlighter-select"
-                    value={{label: selectedTheme, value: selectedTheme}}
-                    styles={{
-                        container: (provided) => ({
-                            ...provided,
-                            maxWidth: "350px",
-                            marginBottom: "1rem",
-                        }),
-                    }}
-                    onChange={(option) => setSelectedTheme(option.value)}
-                    options={[
-                        {
-                            label: "HLJS Themes",
-                            options: HLJS_THEMES.map((theme) => ({label: theme, value: theme})),
-                        },
-                        {
-                            label: "Prism Themes",
-                            options: PRISM_THEMES.map((theme) => ({label: theme, value: theme})),
-                        },
-                    ]}
-                />
-            </Form.Group>
+                    <Form.Label
+                        id="select-theme-label"
+                        style={{marginRight: "1rem", marginBottom: "0.5rem"}}
+                    >
+                        Code/JSON theme:
+                    </Form.Label>
+                    <Select
+                        id="syntax-highlighter-select"
+                        value={{label: selectedTheme, value: selectedTheme}}
+                        styles={{
+                            container: (provided) => ({
+                                ...provided,
+                                maxWidth: "350px",
+                                marginBottom: "1rem",
+                            }),
+                        }}
+                        onChange={(option) => setSelectedTheme(option.value)}
+                        options={[
+                            {
+                                label: "HLJS Themes",
+                                options: HLJS_THEMES.map((theme) => ({label: theme, value: theme})),
+                            },
+                            {
+                                label: "Prism Themes",
+                                options: PRISM_THEMES.map((theme) => ({label: theme, value: theme})),
+                            },
+                        ]}
+                    />
+                </Form.Group>
+            )}
             {projectUrl.current && (
                 // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
                 <Alert
@@ -542,53 +559,58 @@ export function OpportunityFinder(): ReactElement {
                     id="llm-response-div"
                     style={{...divStyle, height: "50vh", margin: "10px", position: "relative"}}
                 >
+                    { isDataGenerator && (
+                        <Tooltip
+                            id="enable-code-json-theme-dropdown"
+                            title={codeJsonThemeEnabled ? "Customize code/JSON theme enabled" : "Customize code/JSON theme disabled"}
+                        >
+                            <LLMChatGroupConfigBtn
+                                enabled={codeJsonThemeEnabled}
+                                id="autoscroll-button"
+                                onClick={() => setCodeJsonThemeEnabled(!codeJsonThemeEnabled)}
+                                posRight={120}
+                            >
+                                <MdCode
+                                    id="code-icon"
+                                    size="15px"
+                                    style={{color: "white"}}
+                                />
+                            </LLMChatGroupConfigBtn>
+                        </Tooltip>
+                    )}
                     <Tooltip
                         id="enable-autoscroll"
                         title={autoScrollEnabled ? "Autoscroll enabled" : "Autoscroll disabled"}
                     >
-                        <Button
+                        <LLMChatGroupConfigBtn
+                            enabled={autoScrollEnabled}
                             id="autoscroll-button"
-                            style={{
-                                position: "absolute",
-                                right: 65,
-                                top: 10,
-                                zIndex: 99999,
-                                background: autoScrollEnabled ? MaximumBlue : "darkgray",
-                                borderColor: autoScrollEnabled ? MaximumBlue : "darkgray",
-                                color: "white",
-                            }}
                             onClick={() => setAutoScrollEnabled(!autoScrollEnabled)}
+                            posRight={65}
                         >
                             <MdVerticalAlignBottom
                                 id="autoscroll-icon"
                                 size="15px"
                                 style={{color: "white"}}
                             />
-                        </Button>
+                        </LLMChatGroupConfigBtn>
                     </Tooltip>
                     <Tooltip
                         id="wrap-tooltip"
                         title={shouldWrapOutput ? "Text wrapping enabled" : "Text wrapping disabled"}
                     >
-                        <Button
+                        <LLMChatGroupConfigBtn
+                            enabled={shouldWrapOutput}
                             id="wrap-button"
-                            style={{
-                                position: "absolute",
-                                right: 10,
-                                top: 10,
-                                zIndex: 99999,
-                                background: shouldWrapOutput ? MaximumBlue : "darkgray",
-                                borderColor: shouldWrapOutput ? MaximumBlue : "darkgray",
-                                color: "white",
-                            }}
                             onClick={() => setShouldWrapOutput(!shouldWrapOutput)}
+                            posRight={10}
                         >
                             <MdOutlineWrapText
                                 id="wrap-icon"
                                 size="15px"
                                 style={{color: "white"}}
                             />
-                        </Button>
+                        </LLMChatGroupConfigBtn>
                     </Tooltip>
                     <div
                         id="llm-responses"
