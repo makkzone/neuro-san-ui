@@ -21,7 +21,7 @@ import {experimentGeneratedMessage} from "./common"
 import {INLINE_ALERT_PROPERTIES} from "./const"
 import {FormattedMarkdown} from "./FormattedMarkdown"
 import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
-import {DEFAULT_USER_IMAGE, MaximumBlue} from "../../../const"
+import {DEFAULT_USER_IMAGE, MaximumBlue, SecondaryBlue} from "../../../const"
 import {sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
 import {AgentStatus, ChatResponse} from "../../../generated/agent"
@@ -46,16 +46,11 @@ const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
 
 // #region: Styled Components
 const UserQueryContainer = styled("div")({
-    backgroundColor: "#fff",
+    backgroundColor: "#FFF",
     borderRadius: "8px",
-    boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.15)",
+    boxShadow: "0 0px 2px 0 rgba(0, 0, 0, 0.15)",
     display: "inline-flex",
     padding: "10px",
-    verticalAlign: "bottom",
-})
-
-const UserQuery = styled("span")({
-    marginLeft: "13px",
 })
 
 const LLMChatGroupConfigBtn = styled(Button)(({enabled, posRight}) => ({
@@ -76,7 +71,7 @@ const LLMChatGroupConfigBtn = styled(Button)(({enabled, posRight}) => ({
  */
 export function OpportunityFinder(): ReactElement {
     // Theme for syntax highlighter
-    const [selectedTheme, setSelectedTheme] = useState<string>("vs")
+    const [selectedTheme, setSelectedTheme] = useState<string>("a11yDark")
 
     // User LLM chat input
     const [chatInput, setChatInput] = useState<string>("")
@@ -292,8 +287,7 @@ export function OpportunityFinder(): ReactElement {
                     alt=""
                     unoptimized={true}
                 />
-                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                <UserQuery>{userQuery}</UserQuery>
+                <span id="user-query" className="ml-2.5 mt-0.5">{userQuery}</span>
             </UserQueryContainer>
         </div>
     )
@@ -618,8 +612,7 @@ export function OpportunityFinder(): ReactElement {
                         id="llm-responses"
                         ref={chatOutputRef}
                         style={{
-                            background: "ghostwhite",
-                            borderColor: MaximumBlue,
+                            backgroundColor: SecondaryBlue,
                             borderWidth: "1px",
                             borderRadius: "0.5rem",
                             fontSize: "smaller",
