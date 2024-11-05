@@ -2,12 +2,14 @@
  * See main function description.
  */
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
+import {styled} from "@mui/material"
 import {Alert, Collapse, Tooltip} from "antd"
+import NextImage from "next/image"
 import {CSSProperties, FormEvent, ReactElement, ReactNode, useEffect, useRef, useState} from "react"
 import {Button, Form, InputGroup} from "react-bootstrap"
 import {BsStopBtn, BsTrash} from "react-icons/bs"
 import {FiRefreshCcw} from "react-icons/fi"
-import {MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
+import {MdCode, MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
 import Select from "react-select"
 import ClipLoader from "react-spinners/ClipLoader"
 import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
@@ -19,7 +21,7 @@ import {experimentGeneratedMessage} from "./common"
 import {INLINE_ALERT_PROPERTIES} from "./const"
 import {FormattedMarkdown} from "./FormattedMarkdown"
 import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
-import {MaximumBlue} from "../../../const"
+import {DEFAULT_USER_IMAGE, MaximumBlue, SecondaryBlue} from "../../../const"
 import {sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
 import {AgentStatus, ChatResponse} from "../../../generated/agent"
@@ -29,16 +31,38 @@ import {hasOnlyWhitespace} from "../../../utils/text"
 
 const {Panel} = Collapse
 
+// #region: Constants
 // Interval for polling the agents for logs
 const AGENT_POLL_INTERVAL_MS = 5_000
 
 // Input text placeholders for each agent type
 const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
-    OpportunityFinder: "Business name such as Acme Corporation",
+    OpportunityFinder: "Enter a business name such as Acme Corporation",
     ScopingAgent: "Scope the selected item",
     DataGenerator: "Generate 1500 rows",
     OrchestrationAgent: "Generate the experiment",
 }
+// #endregion: Constants
+
+// #region: Styled Components
+const UserQueryContainer = styled("div")({
+    backgroundColor: "#FFF",
+    borderRadius: "8px",
+    boxShadow: "0 0px 2px 0 rgba(0, 0, 0, 0.15)",
+    display: "inline-flex",
+    padding: "10px",
+})
+
+const LLMChatGroupConfigBtn = styled(Button)(({enabled, posRight}) => ({
+    position: "absolute",
+    right: posRight || null,
+    top: 10,
+    zIndex: 99999,
+    background: enabled ? MaximumBlue : "darkgray",
+    borderColor: enabled ? MaximumBlue : "darkgray",
+    color: "white",
+}))
+// #endregion: Styled Components
 
 /**
  * This is the main module for the opportunity finder. It implements a page that allows the user to interact with
@@ -47,7 +71,7 @@ const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
  */
 export function OpportunityFinder(): ReactElement {
     // Theme for syntax highlighter
-    const [selectedTheme, setSelectedTheme] = useState<string>("vs")
+    const [selectedTheme, setSelectedTheme] = useState<string>("a11yDark")
 
     // User LLM chat input
     const [chatInput, setChatInput] = useState<string>("")
@@ -97,6 +121,9 @@ export function OpportunityFinder(): ReactElement {
     // Controller for cancelling fetch request
     const controller = useRef<AbortController>(null)
 
+    // A button allows the user to enable or disable the "Code/JSON theme" dropdown.
+    const [codeJsonThemeEnabled, setCodeJsonThemeEnabled] = useState<boolean>(true)
+
     // For tracking if we're autoscrolling. A button allows the user to enable or disable autoscrolling.
     const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true)
 
@@ -108,7 +135,7 @@ export function OpportunityFinder(): ReactElement {
 
     // For access to logged in session and current user name
     const {
-        user: {name: currentUser},
+        user: {image: userImage, name: currentUser},
     } = useAuthentication().data
 
     // Session ID for orchestration. We also use this as an overall "orchestration is in process" flag. If we have a
@@ -139,6 +166,8 @@ export function OpportunityFinder(): ReactElement {
         textOverflow: shouldWrapOutput ? "clip" : "ellipsis",
         overflowX: shouldWrapOutput ? "visible" : "auto",
     }
+
+    const isDataGenerator = selectedAgent === "DataGenerator"
 
     // Sync ref with state variable for use within timer etc.
     useEffect(() => {
@@ -244,6 +273,30 @@ export function OpportunityFinder(): ReactElement {
         currentResponse.current = ""
     }
 
+    const getUserImageAndUserQuery = (userQuery: string): ReactElement => (
+        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+        <div className="mb-3">
+            {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
+            <UserQueryContainer>
+                <NextImage
+                    id="user-query-image"
+                    src={userImage || DEFAULT_USER_IMAGE}
+                    width={30}
+                    height={30}
+                    title={currentUser}
+                    alt=""
+                    unoptimized={true}
+                />
+                <span
+                    id="user-query"
+                    className="ml-2.5 mt-0.5"
+                >
+                    {userQuery}
+                </span>
+            </UserQueryContainer>
+        </div>
+    )
+
     // Sends user query to backend.
     async function sendQuery(userQuery: string) {
         try {
@@ -255,7 +308,9 @@ export function OpportunityFinder(): ReactElement {
             setIsAwaitingLlm(true)
 
             // Always start output by echoing user query. Precede with a horizontal rule if there is already content.
-            updateOutput(`${chatOutput?.length > 0 ? "\n---\n" : ""}##### Query\n${userQuery}\n##### Response\n`)
+            updateOutput(`${chatOutput?.length > 0 ? "\n---\n" : ""}##### Query\n`)
+            updateOutput(getUserImageAndUserQuery(userQuery))
+            updateOutput("\n\n##### Response\n")
 
             const abortController = new AbortController()
             controller.current = abortController
@@ -442,7 +497,7 @@ export function OpportunityFinder(): ReactElement {
                 event.preventDefault()
                 await sendQuery(chatInput)
             }}
-            style={{marginBottom: "6rem"}}
+            style={{marginBottom: "6rem", paddingBottom: "15px"}}
         >
             <AgentButtons
                 id="opp-finder-agent-buttons"
@@ -451,39 +506,41 @@ export function OpportunityFinder(): ReactElement {
                 selectedAgent={selectedAgent}
                 setSelectedAgent={setSelectedAgent}
             />
-            <Form.Group
-                id="select-theme-group"
-                style={{margin: "10px", position: "relative"}}
-            >
-                <Form.Label
-                    id="select-theme-label"
-                    style={{marginRight: "1rem", marginBottom: "0.5rem"}}
+            {isDataGenerator && codeJsonThemeEnabled && (
+                <Form.Group
+                    id="select-theme-group"
+                    style={{fontSize: "0.9rem", margin: "10px", position: "relative"}}
                 >
-                    Code/JSON theme:
-                </Form.Label>
-                <Select
-                    id="syntax-highlighter-select"
-                    value={{label: selectedTheme, value: selectedTheme}}
-                    styles={{
-                        container: (provided) => ({
-                            ...provided,
-                            maxWidth: "350px",
-                            marginBottom: "1rem",
-                        }),
-                    }}
-                    onChange={(option) => setSelectedTheme(option.value)}
-                    options={[
-                        {
-                            label: "HLJS Themes",
-                            options: HLJS_THEMES.map((theme) => ({label: theme, value: theme})),
-                        },
-                        {
-                            label: "Prism Themes",
-                            options: PRISM_THEMES.map((theme) => ({label: theme, value: theme})),
-                        },
-                    ]}
-                />
-            </Form.Group>
+                    <Form.Label
+                        id="select-theme-label"
+                        style={{marginRight: "1rem", marginBottom: "0.5rem"}}
+                    >
+                        Code/JSON theme:
+                    </Form.Label>
+                    <Select
+                        id="syntax-highlighter-select"
+                        value={{label: selectedTheme, value: selectedTheme}}
+                        styles={{
+                            container: (provided) => ({
+                                ...provided,
+                                maxWidth: "350px",
+                                marginBottom: "1rem",
+                            }),
+                        }}
+                        onChange={(option) => setSelectedTheme(option.value)}
+                        options={[
+                            {
+                                label: "HLJS Themes",
+                                options: HLJS_THEMES.map((theme) => ({label: theme, value: theme})),
+                            },
+                            {
+                                label: "Prism Themes",
+                                options: PRISM_THEMES.map((theme) => ({label: theme, value: theme})),
+                            },
+                        ]}
+                    />
+                </Form.Group>
+            )}
             {projectUrl.current && (
                 // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
                 <Alert
@@ -499,60 +556,68 @@ export function OpportunityFinder(): ReactElement {
                     id="llm-response-div"
                     style={{...divStyle, height: "50vh", margin: "10px", position: "relative"}}
                 >
+                    {isDataGenerator && (
+                        <Tooltip
+                            id="enable-code-json-theme-dropdown"
+                            title={
+                                codeJsonThemeEnabled
+                                    ? "Customize code/JSON theme enabled"
+                                    : "Customize code/JSON theme disabled"
+                            }
+                        >
+                            <LLMChatGroupConfigBtn
+                                enabled={codeJsonThemeEnabled}
+                                id="autoscroll-button"
+                                onClick={() => setCodeJsonThemeEnabled(!codeJsonThemeEnabled)}
+                                posRight={120}
+                            >
+                                <MdCode
+                                    id="code-icon"
+                                    size="15px"
+                                    style={{color: "white"}}
+                                />
+                            </LLMChatGroupConfigBtn>
+                        </Tooltip>
+                    )}
                     <Tooltip
                         id="enable-autoscroll"
                         title={autoScrollEnabled ? "Autoscroll enabled" : "Autoscroll disabled"}
                     >
-                        <Button
+                        <LLMChatGroupConfigBtn
+                            enabled={autoScrollEnabled}
                             id="autoscroll-button"
-                            style={{
-                                position: "absolute",
-                                right: 65,
-                                top: 10,
-                                zIndex: 99999,
-                                background: autoScrollEnabled ? MaximumBlue : "darkgray",
-                                borderColor: autoScrollEnabled ? MaximumBlue : "darkgray",
-                                color: "white",
-                            }}
                             onClick={() => setAutoScrollEnabled(!autoScrollEnabled)}
+                            posRight={65}
                         >
                             <MdVerticalAlignBottom
                                 id="autoscroll-icon"
                                 size="15px"
                                 style={{color: "white"}}
                             />
-                        </Button>
+                        </LLMChatGroupConfigBtn>
                     </Tooltip>
                     <Tooltip
                         id="wrap-tooltip"
                         title={shouldWrapOutput ? "Text wrapping enabled" : "Text wrapping disabled"}
                     >
-                        <Button
+                        <LLMChatGroupConfigBtn
+                            enabled={shouldWrapOutput}
                             id="wrap-button"
-                            style={{
-                                position: "absolute",
-                                right: 10,
-                                top: 10,
-                                zIndex: 99999,
-                                background: shouldWrapOutput ? MaximumBlue : "darkgray",
-                                borderColor: shouldWrapOutput ? MaximumBlue : "darkgray",
-                                color: "white",
-                            }}
                             onClick={() => setShouldWrapOutput(!shouldWrapOutput)}
+                            posRight={10}
                         >
                             <MdOutlineWrapText
                                 id="wrap-icon"
                                 size="15px"
                                 style={{color: "white"}}
                             />
-                        </Button>
+                        </LLMChatGroupConfigBtn>
                     </Tooltip>
                     <div
                         id="llm-responses"
                         ref={chatOutputRef}
                         style={{
-                            background: "ghostwhite",
-                            borderColor: MaximumBlue,
+                            backgroundColor: SecondaryBlue,
                             borderWidth: "1px",
                             borderRadius: "0.5rem",
                             fontSize: "smaller",
@@ -705,7 +770,8 @@ export function OpportunityFinder(): ReactElement {
                             ref={chatInputRef}
                             style={{
                                 fontSize: "90%",
-                                marginLeft: "7px",
+                                height: "47px",
+                                marginLeft: "10px",
                             }}
                             onChange={(event) => {
                                 setChatInput(event.target.value)

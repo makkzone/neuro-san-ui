@@ -16,7 +16,6 @@ import "../styles/updatenode.css"
 import "../styles/globals.css"
 import "../styles/llmDropdown.css"
 import "../styles/splashpage.css"
-import "../styles/opportunityFinder.css"
 
 import debugModule from "debug"
 import Head from "next/head"
@@ -266,10 +265,7 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
 
                     <Container id="body-container">
                         {getAppContainer()}
-                        <div
-                            id="fixed-pos-div"
-                            style={{position: "fixed", right: "20px", bottom: "0"}}
-                        >
+                        <div id="fixed-pos-div">
                             <NeuroAIChatbot
                                 id="chatbot"
                                 userAvatar={picture || undefined}

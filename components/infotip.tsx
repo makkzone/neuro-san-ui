@@ -1,6 +1,8 @@
 import {Tooltip} from "antd"
 import {InfoSignIcon} from "evergreen-ui"
 
+import {MaximumBlue} from "../const"
+
 interface InfoTipParams {
     // Prefix to be used for nested component IDs
     id: string
@@ -27,7 +29,7 @@ export function InfoTip(props: InfoTipParams): React.ReactElement {
     const supId = `${props.id}-info-bubble-sup`
     const iconId = `${props.id}-info-bubble-icon`
     const size = props.size || 10
-    const color = props.color || "blue"
+    const color = props.color || MaximumBlue
 
     return (
         <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
