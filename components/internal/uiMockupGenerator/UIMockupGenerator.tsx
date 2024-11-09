@@ -1,17 +1,24 @@
-import {useRef, useState} from "react"
+import {FC, SetStateAction, useRef, useState} from "react"
 import {sendDalleQuery} from "../../../controller/dall-e/dall-e"
 import NewBar from "../../newbar"
 import {Button, Container} from "react-bootstrap"
 import {MaximumBlue} from "../../../const"
 import CircularProgress from '@mui/material/CircularProgress';
+import { MUIDialog } from '../../dialog'
 
 // #region: Types
 interface UIMockupGeneratorProps {
+    onClose: (value: SetStateAction<boolean>) => void
+    open: boolean
     userQuery: string
 }
 // #endregion: Types
 
-export const UIMockupGenerator: React.FC<UIMockupGeneratorProps> = ({userQuery}) => {
+export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
+    onClose,
+    open,
+    userQuery,
+}) => {
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [mockupURL, setMockupURL] = useState<string>("")
 
@@ -39,19 +46,13 @@ export const UIMockupGenerator: React.FC<UIMockupGeneratorProps> = ({userQuery})
 
     return (
         <>
-            <NewBar
-                id="dms-mockup-bar"
-                InstanceId="dms-mockup"
-                Title="User Interface"
-                DisplayNewLink={false}
-            />
-            <Container
-                key="mockup-container"
-                id="mockup-container"
-                style={{justifyContent: "left"}}
+            <MUIDialog
+                onClose={onClose}
+                open={open}
+                title="User Interface"
             >
                 { isLoading
-                    ? <CircularProgress className="mt-4" />
+                    ? <CircularProgress sx={{ display: "flex", margin: "0 auto" }}/>
                     : (
                         <img
                             alt="ui-mockup"
@@ -63,16 +64,16 @@ export const UIMockupGenerator: React.FC<UIMockupGeneratorProps> = ({userQuery})
                         />
                     )
                 }
-            </Container>
-            <Button
-                className="mt-4 mb-4"
-                id="dms-mockup"
-                onClick={sendUserQueryToDalle}
-                size="lg"
-                style={{background: MaximumBlue, borderColor: MaximumBlue, width: "100%"}}
-            >
-                Generate User Interface
-            </Button>
+                <Button
+                    className="mt-4 mb-4"
+                    id="dms-mockup"
+                    onClick={sendUserQueryToDalle}
+                    size="lg"
+                    style={{background: MaximumBlue, borderColor: MaximumBlue, width: "100%"}}
+                >
+                    Generate User Interface
+                </Button>
+            </MUIDialog>
         </>
     )
 }
