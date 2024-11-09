@@ -4,19 +4,18 @@ import DialogContent from '@mui/material/DialogContent';
 import { SxProps } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
-import { FC, SetStateAction } from 'react';
 
 // #region: Types
 interface DialogProps {
     children: React.ReactNode
-    onClose: (value: SetStateAction<boolean>) => void
+    onClose: () => void
     open: boolean
     sx?: SxProps,
     title?: string
 }
 // #endregion: Types
 
-export const MUIDialog: FC<DialogProps> = ({
+export const MUIDialog: React.FC<DialogProps> = ({
     children,
     onClose,
     open,
@@ -31,7 +30,7 @@ export const MUIDialog: FC<DialogProps> = ({
         <DialogTitle>{title}</DialogTitle>
         <IconButton
             aria-label="close"
-            onClick={() => onClose}
+            onClick={onClose}
             sx={(theme) => ({
             position: 'absolute',
             right: 8,

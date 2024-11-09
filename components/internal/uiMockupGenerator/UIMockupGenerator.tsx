@@ -1,14 +1,13 @@
-import {FC, SetStateAction, useRef, useState} from "react"
+import {FC, useRef, useState} from "react"
 import {sendDalleQuery} from "../../../controller/dall-e/dall-e"
-import NewBar from "../../newbar"
-import {Button, Container} from "react-bootstrap"
+import {Button} from "react-bootstrap"
 import {MaximumBlue} from "../../../const"
 import CircularProgress from '@mui/material/CircularProgress';
 import { MUIDialog } from '../../dialog'
 
 // #region: Types
 interface UIMockupGeneratorProps {
-    onClose: (value: SetStateAction<boolean>) => void
+    onClose: () => void
     open: boolean
     userQuery: string
 }
