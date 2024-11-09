@@ -1,23 +1,23 @@
+// TODO: Switch to MUI button, thing is the react-bootstrap button matches all the other buttons
+//import Button from "@mui/material/Button"
+import CircularProgress from "@mui/material/CircularProgress"
+import NextImage from "next/image"
 import {FC, useRef, useState} from "react"
-import {sendDalleQuery} from "../../../controller/dall-e/dall-e"
 import {Button} from "react-bootstrap"
+
 import {MaximumBlue} from "../../../const"
-import CircularProgress from '@mui/material/CircularProgress';
-import { MUIDialog } from '../../dialog'
+import {sendDalleQuery} from "../../../controller/dall-e/dall-e"
+import {MUIDialog} from "../../dialog"
 
 // #region: Types
 interface UIMockupGeneratorProps {
     onClose: () => void
-    open: boolean
+    isOpen: boolean
     userQuery: string
 }
 // #endregion: Types
 
-export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
-    onClose,
-    open,
-    userQuery,
-}) => {
+export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({onClose, isOpen, userQuery}) => {
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [mockupURL, setMockupURL] = useState<string>("")
 
@@ -32,7 +32,9 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
             const abortController = new AbortController()
             controller.current = abortController
 
-            const {response: {imageURL}} = await sendDalleQuery(userQuery)
+            const {
+                response: {imageURL},
+            } = await sendDalleQuery(userQuery)
             setIsLoading(false)
             setMockupURL(imageURL)
         } catch (error) {
@@ -44,35 +46,35 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
     }
 
     return (
-        <>
-            <MUIDialog
-                onClose={onClose}
-                open={open}
-                title="User Interface"
+        <MUIDialog
+            id="ui-mockup-dialog"
+            onClose={onClose}
+            isOpen={isOpen}
+            title="User Interface"
+        >
+            {isLoading ? (
+                <CircularProgress
+                    id="ui-mockup-loader"
+                    sx={{display: "flex", margin: "0 auto"}}
+                />
+            ) : (
+                <NextImage
+                    alt="ui-mockup-img"
+                    className={!mockupURL ? "hidden" : null}
+                    height={500}
+                    id="ui-mockup"
+                    src={mockupURL}
+                    width={1000}
+                />
+            )}
+            <Button
+                className="mt-4 mb-4"
+                id="ui-mockup-btn"
+                onClick={sendUserQueryToDalle}
+                style={{background: MaximumBlue, borderColor: MaximumBlue, width: "100%"}}
             >
-                { isLoading
-                    ? <CircularProgress sx={{ display: "flex", margin: "0 auto" }}/>
-                    : (
-                        <img
-                            alt="ui-mockup"
-                            className={!mockupURL ? "hidden" : null}
-                            height={500}
-                            id="ui-mockup"
-                            src={mockupURL}
-                            width={1000}
-                        />
-                    )
-                }
-                <Button
-                    className="mt-4 mb-4"
-                    id="dms-mockup"
-                    onClick={sendUserQueryToDalle}
-                    size="lg"
-                    style={{background: MaximumBlue, borderColor: MaximumBlue, width: "100%"}}
-                >
-                    Generate User Interface
-                </Button>
-            </MUIDialog>
-        </>
+                Generate User Interface
+            </Button>
+        </MUIDialog>
     )
 }

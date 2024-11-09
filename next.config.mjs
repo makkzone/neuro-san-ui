@@ -71,6 +71,11 @@ const nextConfig = {
                 hostname: "**gravatar.com",
                 port: "",
             },
+            {
+                protocol: "https",
+                hostname: "oaidalleapiprodscus.blob.core.windows.net",
+                port: "",
+            },
         ],
     },
 

@@ -1,47 +1,42 @@
-import DialogTitle from '@mui/material/DialogTitle';
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import { SxProps } from '@mui/material';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from "@mui/icons-material/Close"
+import {SxProps} from "@mui/material"
+import Dialog from "@mui/material/Dialog"
+import DialogContent from "@mui/material/DialogContent"
+import DialogTitle from "@mui/material/DialogTitle"
+import IconButton from "@mui/material/IconButton"
 
 // #region: Types
 interface DialogProps {
     children: React.ReactNode
+    id: string
     onClose: () => void
-    open: boolean
-    sx?: SxProps,
+    isOpen: boolean
+    sx?: SxProps
     title?: string
 }
 // #endregion: Types
 
-export const MUIDialog: React.FC<DialogProps> = ({
-    children,
-    onClose,
-    open,
-    sx,
-    title,
-}) => (
+export const MUIDialog: React.FC<DialogProps> = ({children, id, onClose, isOpen, sx, title}) => (
     <Dialog
+        id={id}
         onClose={onClose}
-        open={open}
+        open={isOpen}
         sx={sx}
     >
-        <DialogTitle>{title}</DialogTitle>
+        <DialogTitle id={`${id}-title`}>{title}</DialogTitle>
         <IconButton
             aria-label="close"
+            id={`${id}-close-icon-btn`}
             onClick={onClose}
             sx={(theme) => ({
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            color: theme.palette.grey[500],
+                position: "absolute",
+                right: 8,
+                top: 8,
+                color: theme.palette.grey[500],
             })}
-            >
-            <CloseIcon />
+        >
+            <CloseIcon id={`${id}-close-icon`} />
         </IconButton>
-        <DialogContent>
-            {children}
-        </DialogContent>
+        <DialogContent id={`${id}-content`}>{children}</DialogContent>
     </Dialog>
 )
