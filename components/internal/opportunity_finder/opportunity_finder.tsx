@@ -62,8 +62,8 @@ const UserQueryContainer = styled("div")({
 })
 
 const LLMChatGroupConfigBtn = styled(Button, {
-    shouldForwardProp: (prop) => prop !== "enabled" && prop !== "posRight"
-  })<LLMChatGroupConfigBtnProps>(({enabled, posRight}) => ({
+    shouldForwardProp: (prop) => prop !== "enabled" && prop !== "posRight",
+})<LLMChatGroupConfigBtnProps>(({enabled, posRight}) => ({
     position: "absolute",
     right: posRight || null,
     top: 10,
