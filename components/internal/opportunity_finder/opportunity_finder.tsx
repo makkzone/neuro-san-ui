@@ -579,7 +579,7 @@ export function OpportunityFinder(): ReactElement {
                         >
                             <LLMChatGroupConfigBtn
                                 enabled={codeJsonThemeEnabled}
-                                id="autoscroll-button"
+                                id="autoscroll-code-json-theme"
                                 onClick={() => setCodeJsonThemeEnabled(!codeJsonThemeEnabled)}
                                 posRight={120}
                             >
