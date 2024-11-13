@@ -63,14 +63,16 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({onClose, isOpen, 
                         sx={{display: "flex", margin: "0 auto"}}
                     />
                 ) : (
-                    <NextImage
-                        alt="ui-mockup-img"
-                        className={!mockupURL ? "hidden" : null}
-                        height={500}
-                        id="ui-mockup"
-                        src={mockupURL}
-                        width={1000}
-                    />
+                    mockupURL && (
+                        <NextImage
+                            alt="UI Mockup Image from Dall-e"
+                            className={!mockupURL ? "hidden" : null}
+                            height={500}
+                            id="ui-mockup"
+                            src={mockupURL}
+                            width={1000}
+                        />
+                    )
                 )}
             </Box>
             <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
