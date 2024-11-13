@@ -9,8 +9,8 @@ import IconButton from "@mui/material/IconButton"
 interface DialogProps {
     children: React.ReactNode
     id: string
-    onClose: () => void
     isOpen: boolean
+    onClose: () => void
     sx?: SxProps
     title?: string
 }
@@ -21,7 +21,6 @@ export const MUIDialog: React.FC<DialogProps> = ({children, id, onClose, isOpen,
         id={id}
         onClose={onClose}
         open={isOpen}
-        sx={sx}
     >
         <DialogTitle id={`${id}-title`}>{title}</DialogTitle>
         <IconButton
@@ -37,6 +36,6 @@ export const MUIDialog: React.FC<DialogProps> = ({children, id, onClose, isOpen,
         >
             <CloseIcon id={`${id}-close-icon`} />
         </IconButton>
-        <DialogContent id={`${id}-content`}>{children}</DialogContent>
+        <DialogContent id={`${id}-content`} sx={sx}>{children}</DialogContent>
     </Dialog>
 )

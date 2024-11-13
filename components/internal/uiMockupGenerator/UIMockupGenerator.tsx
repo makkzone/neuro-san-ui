@@ -1,3 +1,4 @@
+import Box from "@mui/material/Box"
 // TODO: Switch to MUI button, thing is the react-bootstrap button matches all the other buttons
 //import Button from "@mui/material/Button"
 import CircularProgress from "@mui/material/CircularProgress"
@@ -48,33 +49,43 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({onClose, isOpen, 
     return (
         <MUIDialog
             id="ui-mockup-dialog"
-            onClose={onClose}
             isOpen={isOpen}
+            onClose={onClose}
+            sx={{display: "flex", flexDirection: "column", minHeight: "400px", minWidth: "500px"}}
             title="User Interface"
         >
-            {isLoading ? (
-                <CircularProgress
-                    id="ui-mockup-loader"
-                    sx={{display: "flex", margin: "0 auto"}}
-                />
-            ) : (
-                <NextImage
-                    alt="ui-mockup-img"
-                    className={!mockupURL ? "hidden" : null}
-                    height={500}
-                    id="ui-mockup"
-                    src={mockupURL}
-                    width={1000}
-                />
-            )}
-            <Button
-                className="mt-4 mb-4"
-                id="ui-mockup-btn"
-                onClick={sendUserQueryToDalle}
-                style={{background: MaximumBlue, borderColor: MaximumBlue, width: "100%"}}
-            >
-                Generate User Interface
-            </Button>
+            <Box sx={{alignItems: "center", display: "flex", flexGrow: "1"}}>
+                {isLoading ? (
+                    <CircularProgress
+                        id="ui-mockup-loader"
+                        sx={{display: "flex", margin: "0 auto"}}
+                    />
+                ) : (
+                    <NextImage
+                        alt="ui-mockup-img"
+                        className={!mockupURL ? "hidden" : null}
+                        height={500}
+                        id="ui-mockup"
+                        src={mockupURL}
+                        width={1000}
+                    />
+                )}
+            </Box>
+            <Box sx={{alignSelf: "flex-end", width: "100%"}}>
+                <Button
+                    id="ui-mockup-btn"
+                    onClick={sendUserQueryToDalle}
+                    style={{
+                        background: MaximumBlue,
+                        borderColor: MaximumBlue,
+                        marginBottom: "1rem",
+                        marginTop: "1rem",
+                        width: "100%",
+                    }}
+                >
+                    Generate
+                </Button>
+            </Box>
         </MUIDialog>
     )
 }
