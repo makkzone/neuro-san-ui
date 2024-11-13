@@ -60,7 +60,7 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({onClose, isOpen, 
                 {isLoading ? (
                     <CircularProgress
                         id="ui-mockup-loader"
-                        sx={{display: "flex", margin: "0 auto"}}
+                        sx={{display: "flex", margin: "0 auto 60px auto"}}
                     />
                 ) : (
                     mockupURL && (
