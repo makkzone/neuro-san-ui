@@ -24,7 +24,7 @@ describe("UIMockupGenerator", () => {
     const onClose = jest.fn()
     const userQuery = "Test user query"
 
-    it("should render blank component", async () => {
+    it("should initially render component with Generate button but no mockup image", async () => {
         render(
             <UIMockupGenerator
                 isOpen={true}
