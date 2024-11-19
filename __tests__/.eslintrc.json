@@ -17,6 +17,7 @@
 
         // Don't care about these rules in tests
         "react/no-array-index-key": "off",
-        "react/display-name": "off"
+        "react/display-name": "off",
+        "@next/next/no-img-element": "off"
     }
 }
