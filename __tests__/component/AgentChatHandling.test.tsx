@@ -4,7 +4,7 @@ import {fireEvent, render, screen} from "@testing-library/react"
 import {pollForLogs, processNewLogs} from "../../components/internal/opportunity_finder/AgentChatHandling"
 import {retry} from "../../components/internal/opportunity_finder/common"
 import {getLogs} from "../../controller/agent/agent"
-import {AgentStatus, LogsResponse} from "../../generated/agent"
+import {AgentStatus, LogsResponse} from "../../generated/unileaf_agent"
 
 const mockSyntaxHighlighter = jest.fn(({children}) => <div>{children}</div>)
 
