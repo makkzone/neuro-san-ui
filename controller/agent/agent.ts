@@ -2,7 +2,7 @@
  * Controller module for interacting with the Agent LLM API.
  */
 
-import {ChatRequest, ChatResponse, LogsRequest, LogsResponse} from "../../generated/agent"
+import {ChatRequest, ChatResponse, LogsRequest, LogsResponse} from "../../generated/unileaf_agent"
 import {AgentChatRequest, AgentLogsRequest, AgentType} from "../../generated/metadata"
 import useEnvironmentStore from "../../state/environment"
 import {sendLlmRequest} from "../llm/llm_chat"
