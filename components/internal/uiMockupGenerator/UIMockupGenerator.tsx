@@ -1,3 +1,4 @@
+import {Typography} from "@mui/material"
 import Box from "@mui/material/Box"
 // TODO: Switch to MUI button, thing is the react-bootstrap button matches all the other buttons
 //import Button from "@mui/material/Button"
@@ -46,7 +47,7 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
     `
 
     // Sends query to backend to send to Dall-e via Langchain.
-    async function sendUserQueryToDalle() {
+    async function sendUserQueryToLlm() {
         setIsLoading(true)
 
         try {
@@ -69,10 +70,26 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
             isOpen={isOpen}
             onClose={onClose}
             sx={{display: "flex", flexDirection: "column", minWidth: "2000px", minHeight: "800px"}}
-            title="User Interface"
+            paperProps={{
+                sx: {
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "100%",
+                    minWidth: "100%",
+                },
+            }}
+            title={`Sample user interface for "${projectName}"`}
         >
             <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                sx={{alignItems: "center", display: "flex", flexGrow: "1"}}
+                sx={{
+                    alignItems: "center",
+                    display: "flex",
+                    flexGrow: "1",
+                    border: "1px solid lightgray",
+                    borderRadius: "10px",
+                    padding: "1rem",
+                }}
             >
                 {isLoading ? (
                     <CircularProgress
@@ -80,34 +97,37 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
                         sx={{display: "flex", margin: "0 auto 60px auto"}}
                         size={200}
                     />
+                ) : generatedCode ? (
+                    <div
+                        id="generated-code"
+                        style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            width: "100%",
+                        }}
+                        // The warning is valid -- the LLM could in theory generate dangerous code. Need to
+                        // think through how to mitigate this.
+                        // eslint-disable-next-line react/no-danger
+                        dangerouslySetInnerHTML={{__html: generatedCode}}
+                    />
                 ) : (
-                    generatedCode && (
-                        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-                        <Box
-                            sx={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                width: "100%",
-                                height: "100%",
-                                overflow: "auto",
-                            }}
-                        >
-                            <div
-                                id="generated-code"
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    width: "100%",
-                                }}
-                                // The warning is valid -- the LLM could in theory generate dangerous code. Need to
-                                // think through how to mitigate this.
-                                // eslint-disable-next-line react/no-danger
-                                dangerouslySetInnerHTML={{__html: generatedCode}}
-                            />
-                        </Box>
-                    )
+                    <Typography
+                        id="ui-mockup-placeholder"
+                        sx={{
+                            color: "var(--bs-primary)",
+                            fontFamily: "var(--bs-font-sans-serif)",
+                            fontSize: "75px",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            width: "100%",
+                            height: "100%",
+                            textAlign: "center",
+                        }}
+                    >
+                        Click &quot;Generate&quot; to render a sample user interface.
+                    </Typography>
                 )}
             </Box>
             <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
@@ -115,7 +135,7 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
             >
                 <Button
                     id="ui-mockup-btn"
-                    onClick={sendUserQueryToDalle}
+                    onClick={sendUserQueryToLlm}
                     style={{
                         background: MaximumBlue,
                         borderColor: MaximumBlue,

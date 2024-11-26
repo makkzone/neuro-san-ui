@@ -4,34 +4,28 @@ import Dialog from "@mui/material/Dialog"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import IconButton from "@mui/material/IconButton"
+import {FC, ReactNode} from "react"
 
 // #region: Types
 interface DialogProps {
-    children: React.ReactNode
+    children: ReactNode
     className?: string
     id: string
     isOpen: boolean
     onClose: () => void
     sx?: SxProps
+    paperProps?: SxProps
     title?: string
 }
 // #endregion: Types
 
-export const MUIDialog: React.FC<DialogProps> = ({children, className, id, onClose, isOpen, sx, title}) => (
+export const MUIDialog: FC<DialogProps> = ({children, className, id, onClose, isOpen, sx, paperProps, title}) => (
     <Dialog
         id={id}
         onClose={onClose}
         open={isOpen}
         className={className}
-        PaperProps={{
-            sx: {
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: "100%",
-                minWidth: "100%",
-            },
-        }}
+        PaperProps={paperProps}
     >
         <DialogTitle id={`${id}-title`}>{title}</DialogTitle>
         <IconButton
