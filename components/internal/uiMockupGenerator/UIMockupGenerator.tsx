@@ -3,6 +3,8 @@ import Box from "@mui/material/Box"
 // TODO: Switch to MUI button, thing is the react-bootstrap button matches all the other buttons
 //import Button from "@mui/material/Button"
 import CircularProgress from "@mui/material/CircularProgress"
+// eslint-disable-next-line import/no-named-as-default
+import DOMPurify from "dompurify"
 import {FC, useRef, useState} from "react"
 import {Button} from "react-bootstrap"
 
@@ -55,12 +57,14 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
             controller.current = new AbortController()
 
             const response: CodeUiResponse = await sendCodeUIQuery(codeGenerationQuery)
-            setGeneratedCode(response.response.generatedCode)
+            const generatedCodeTmp = response.response.generatedCode
+
+            setGeneratedCode(DOMPurify.sanitize(generatedCodeTmp))
         } catch (error) {
             if (error instanceof Error) {
                 sendNotification(
                     NotificationType.error,
-                    "An error occurrect while generating the UI",
+                    "An error occurred while generating the UI",
                     `Description: ${error.message}`
                 )
             } else {
@@ -117,9 +121,7 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
                             alignItems: "center",
                             width: "100%",
                         }}
-                        // The warning is valid -- the LLM could in theory generate dangerous code. Need to
-                        // think through how to mitigate this.
-                        // eslint-disable-next-line react/no-danger
+                        // It is safe to do this because the generated code has been sanitized by DOMPurify
                         dangerouslySetInnerHTML={{__html: generatedCode}}
                     />
                 ) : (
