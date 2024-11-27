@@ -7,9 +7,10 @@ import {FC, useRef, useState} from "react"
 import {Button} from "react-bootstrap"
 
 import {MaximumBlue} from "../../../const"
-import {sendDalleQuery} from "../../../controller/dall-e/dall-e"
+import {sendCodeUIQuery} from "../../../controller/code-ui/code-ui"
 import {CodeUiResponse} from "../../../pages/api/gpt/code-ui/types"
 import {MUIDialog} from "../../dialog"
+import {NotificationType, sendNotification} from "../../notification"
 
 // #region: Types
 interface UIMockupGeneratorProps {
@@ -38,7 +39,7 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
     // Controller for cancelling fetch request
     const controller = useRef<AbortController>(null)
 
-    const userQuery = `
+    const codeGenerationQuery = `
         Project name: ${projectName}.
         Project description: ${projectDescription}.
         Action fields: ${actionFields.join(", ")}.
@@ -46,19 +47,29 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
         Outcome fields: ${outcomeFields.join(", ")}.
     `
 
-    // Sends query to backend to send to Dall-e via Langchain.
+    // Sends query to backend to send to the LLM
     async function sendUserQueryToLlm() {
         setIsLoading(true)
 
         try {
             controller.current = new AbortController()
 
-            const response: CodeUiResponse = await sendDalleQuery(userQuery)
+            const response: CodeUiResponse = await sendCodeUIQuery(codeGenerationQuery)
             setGeneratedCode(response.response.generatedCode)
         } catch (error) {
-            // log error to console
-            // TODO: Check that error handling is working and surface error to user
-            console.error(error)
+            if (error instanceof Error) {
+                sendNotification(
+                    NotificationType.error,
+                    "An error occurrect while generating the UI",
+                    `Description: ${error.message}`
+                )
+            } else {
+                sendNotification(
+                    NotificationType.error,
+                    "An unknown error occurred while generating the UI",
+                    `Description: ${error}`
+                )
+            }
         } finally {
             setIsLoading(false)
         }
@@ -116,30 +127,30 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
                         <Box
                             id="ui-mockup-background-image"
                             sx={{
-                                width: "80vw",
-                                height: "75vh",
-                                display: "flex",
-                                justifyContent: "center",
                                 alignItems: "center",
                                 backgroundImage: "url('/ui_background.png')",
-                                backgroundSize: "100% 100%", // Stretch the image to fit the box
                                 backgroundPosition: "center",
-                                opacity: 0.2,
+                                backgroundSize: "100% 100%",
+                                display: "flex",
+                                height: "75vh",
+                                justifyContent: "center",
+                                opacity: 0.4,
+                                width: "80vw",
                             }}
                         />
                         <Typography
                             id="ui-mockup-placeholder"
                             sx={{
+                                // transform: "translate(-50%, -50%)",
+                                color: "var(--bs-primary)",
+                                fontFamily: "var(--bs-font-sans-serif)",
+                                fontSize: "50px",
+                                padding: "10px",
                                 position: "absolute",
                                 top: "50%",
                                 left: "50%",
                                 transform: "translate(-50%, -50%)",
-                                color: "var(--bs-primary)",
-                                fontFamily: "var(--bs-font-sans-serif)",
-                                fontSize: "50px",
-                                textAlign: "center",
-                                padding: "10px",
-                                borderRadius: "10px",
+                                backgroundColor: "rgba(255, 255, 255, 0.75)",
                             }}
                         >
                             Click &quot;Generate&quot; to render a sample user interface.
