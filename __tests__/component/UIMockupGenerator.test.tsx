@@ -44,18 +44,19 @@ describe("UIMockupGenerator", () => {
         render(UIMockupGeneratorComponent)
 
         expect(screen.getByText("Generate")).toBeInTheDocument()
-        expect(screen.queryByAltText(/UI Mockup Image from Dall-e.*?/iu)).not.toBeInTheDocument()
+        expect(screen.getByText(/Click "Generate" to render a sample user interface./iu)).toBeInTheDocument()
     })
 
-    it("should render mockup image on click of Generate button", async () => {
+    it("should render mockup UI on click of Generate button", async () => {
         const user = userEvent.setup()
         const oldFetch = window.fetch
-        window.fetch = mockFetch({response: {imageURL: "1234"}})
+        window.fetch = mockFetch({response: {generatedCode: "<h1>Hello, world</h1>"}})
 
         render(UIMockupGeneratorComponent)
 
         await user.click(screen.getByText("Generate"))
-        expect(await screen.findByAltText(/UI Mockup Image from Dall-e.*?/iu)).toBeInTheDocument()
+        expect(await screen.findByText(/Sample user interface for "Project name"/iu)).toBeInTheDocument()
+        expect(screen.queryByText(/Click "Generate" to render a sample user interface./iu)).not.toBeInTheDocument()
 
         // eslint-disable-next-line require-atomic-updates
         window.fetch = oldFetch
