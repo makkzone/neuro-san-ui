@@ -92,7 +92,8 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
             }}
             title={`Sample user interface for "${projectName}"`}
         >
-            <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
+            <Box
+                id="ui-mockup-container"
                 sx={{
                     alignItems: "center",
                     display: "flex",
@@ -100,6 +101,7 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
                     border: "1px solid lightgray",
                     borderRadius: "10px",
                     padding: "1rem",
+                    height: "100%",
                 }}
             >
                 {isLoading ? (
@@ -109,16 +111,18 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
                         size={200}
                     />
                 ) : generatedCode ? (
-                    <Box
+                    <iframe
                         id="generated-code"
-                        sx={{
+                        srcDoc={generatedCode}
+                        style={{
                             display: "flex",
                             justifyContent: "center",
                             alignItems: "center",
                             width: "100%",
+                            height: "80vh",
+                            border: "none",
                         }}
-                        // It is safe to do this because the generated code has been sanitized by DOMPurify
-                        dangerouslySetInnerHTML={{__html: generatedCode}}
+                        sandbox="allow-scripts"
                     />
                 ) : (
                     <Box id="ui-mockup-placeholder-container">
@@ -139,7 +143,6 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
                         <Typography
                             id="ui-mockup-placeholder"
                             sx={{
-                                // transform: "translate(-50%, -50%)",
                                 color: "var(--bs-primary)",
                                 fontFamily: "var(--bs-font-sans-serif)",
                                 fontSize: "50px",
