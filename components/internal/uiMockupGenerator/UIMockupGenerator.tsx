@@ -3,8 +3,6 @@ import Box from "@mui/material/Box"
 // TODO: Switch to MUI button, thing is the react-bootstrap button matches all the other buttons
 //import Button from "@mui/material/Button"
 import CircularProgress from "@mui/material/CircularProgress"
-// eslint-disable-next-line import/no-named-as-default
-import DOMPurify from "dompurify"
 import {FC, useRef, useState} from "react"
 import {Button} from "react-bootstrap"
 
@@ -57,9 +55,7 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
             controller.current = new AbortController()
 
             const response: CodeUiResponse = await sendCodeUIQuery(codeGenerationQuery)
-            const generatedCodeTmp = response.response.generatedCode
-
-            setGeneratedCode(DOMPurify.sanitize(generatedCodeTmp))
+            setGeneratedCode(response.response.generatedCode)
         } catch (error) {
             if (error instanceof Error) {
                 sendNotification(
