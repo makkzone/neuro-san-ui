@@ -33,7 +33,7 @@ PROTOS_DIR=./proto
 NEURO_SAN_PROTO_DIR="${PROTOS_DIR}/neuro-san"
 
 # Define agent protocol version to use
-NEURO_SAN_BRANCH="0.1.9"
+NEURO_SAN_VERSION="0.1.8"
 
 # Create directories if necessary
 mkdir -p "${PROTOS_DIR}/internal" "$NEURO_SAN_PROTO_DIR" "${GENERATED_DIR}"
@@ -56,7 +56,7 @@ curl --header "Authorization: token $LEAF_PRIVATE_SOURCE_CREDENTIALS" \
   --location \
   --show-error \
   --silent \
-  "https://api.github.com/repos/leaf-ai/neuro-san/contents/neuro_san/api/grpc/agent.proto?ref=${NEURO_SAN_BRANCH}"
+  "https://api.github.com/repos/leaf-ai/neuro-san/contents/neuro_san/api/grpc/agent.proto?ref=${NEURO_SAN_VERSION}"
 
 # Hack: google proto files expect to be in a certain hardcoded location, so we copy them there
 cp -r "node_modules/protobufjs/google" "${PROTOS_DIR}/internal"
