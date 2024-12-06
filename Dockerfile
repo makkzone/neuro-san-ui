@@ -41,11 +41,7 @@ RUN apt-get update && \
 # which is part of the do_typescript_generate script called below
 RUN --mount=type=secret,id=github_pat \
     LEAF_PRIVATE_SOURCE_CREDENTIALS=$(cat /run/secrets/github_pat) \
-    && echo $LEAF_PRIVATE_SOURCE_CREDENTIALS
-    
-
-# Generate probotobuf files and run yarn
-RUN /bin/bash -c "./grpc/do_typescript_generate.sh" \
+    && /bin/bash -c "./grpc/do_typescript_generate.sh" \
     && yarn build
 
 # Production image, copy all the files and run next
