@@ -8,6 +8,8 @@ import * as projectFetch from "../../controller/projects/fetch"
 import {Projects} from "../../controller/projects/types"
 import {AuthQuery} from "../../generated/auth"
 import ProjectsPage from "../../pages/projects"
+import useEnvironmentStore from "../../state/environment"
+import {useLocalStorage} from "../../utils/use_local_storage"
 import {mockFetch} from "../testUtils"
 const MOCK_USER = "mock-user"
 
@@ -25,7 +27,7 @@ const MOCK_PROJECT = {
 const DEMO_PROJECT = {
     created_at: "2024-08-23T10:38:59.676337Z",
     updated_at: "2024-08-26T08:12:16.627869Z",
-    id: Math.floor(Math.random() * 1000),
+    id: MOCK_PROJECT.id + 1, // make sure order is predictable
     name: "demo project",
     description: "demo project description",
     hidden: false,
@@ -132,7 +134,19 @@ jest.spyOn(listFetch, "fetchResourceList").mockImplementation(
         ] as unknown as Promise<AuthQuery[]>
 )
 
+jest.mock("../../utils/use_local_storage", () => ({
+    useLocalStorage: jest.fn(() => {
+        return [{}, jest.fn()]
+    }),
+}))
+
 describe("Projects Page", () => {
+    beforeAll(() => {
+        // Enable the authorize API for testing. The "fetchResourceList" function, called by the authorize API logic,
+        // will still be mocked.
+        useEnvironmentStore.getState().setEnableAuthorizeAPI(true)
+    })
+
     beforeEach(() => {
         jest.clearAllMocks()
         jest.spyOn(projectFetch, "fetchProjects").mockImplementation(
@@ -149,8 +163,8 @@ describe("Projects Page", () => {
         render(<ProjectsPage />)
 
         // UI truncates description and adds an ellipsis
-        const mockProject = await screen.findByText(`${MOCK_PROJECT.description}...`)
-        const demoProject = await screen.findByText(`${DEMO_PROJECT.description}...`)
+        const mockProject = await screen.findByText(MOCK_PROJECT.description)
+        const demoProject = await screen.findByText(DEMO_PROJECT.description)
 
         expect(mockProject).toBeInTheDocument()
         expect(demoProject).toBeInTheDocument()
@@ -178,7 +192,7 @@ describe("Projects Page", () => {
         await waitForElementToBeRemoved(() => screen.queryByText("Delete"))
 
         // Check if the second element exists before waiting for its removal
-        const descriptionElement = screen.queryByText(`${MOCK_PROJECT.description}...`)
+        const descriptionElement = screen.queryByText(MOCK_PROJECT.description)
 
         if (descriptionElement) {
             await waitForElementToBeRemoved(() => descriptionElement)
@@ -197,8 +211,8 @@ describe("Projects Page", () => {
 
     it("should be able to toggle view between personal or other projects", async () => {
         render(<ProjectsPage />)
-        const mockProject = await screen.findByText(`${MOCK_PROJECT.description}...`)
-        const demoProject = await screen.findByText(`${DEMO_PROJECT.description}...`)
+        const mockProject = await screen.findByText(MOCK_PROJECT.description)
+        const demoProject = await screen.findByText(DEMO_PROJECT.description)
 
         const myProjectsToggle = await screen.findByText("My projects")
         const demoProjectsToggle = await screen.findByText("Demo projects")
@@ -209,7 +223,7 @@ describe("Projects Page", () => {
 
         fireEvent.click(demoProjectsToggle)
         expect(mockProject).not.toBeInTheDocument()
-        expect(screen.getByText("demo project description...")).toBeInTheDocument()
+        expect(screen.getByText("demo project description")).toBeInTheDocument()
     })
 
     it("should display share dialog when sharing icon clicked", async () => {
@@ -241,7 +255,7 @@ describe("Projects Page", () => {
     test.each(clickPoints)("should allow users to click at %s on the project card", async (clickPoint) => {
         render(<ProjectsPage />)
 
-        const mockProject = await screen.findByText(`${MOCK_PROJECT.description}...`)
+        const mockProject = await screen.findByText(MOCK_PROJECT.description)
         expect(mockProject).toBeInTheDocument()
 
         fireEvent.click(mockProject, clickPoint)
@@ -252,6 +266,57 @@ describe("Projects Page", () => {
                 pathname: "/projects/[projectID]",
                 query: {projectID: MOCK_PROJECT.id},
             })
+        })
+    })
+
+    it("Should correctly sort projects by ID when header clicked in List view", async () => {
+        // Force "list" view
+        ;(useLocalStorage as jest.Mock).mockImplementation(() => [{showAsOption: "LIST"}, jest.fn()])
+
+        // We get antd errors in the console. We're migrating away from antd so we don't care about these
+        jest.spyOn(console, "error").mockImplementation()
+
+        render(<ProjectsPage />)
+
+        // Sanity check
+        const mockProject = await screen.findByText(MOCK_PROJECT.name)
+        expect(mockProject).toBeInTheDocument()
+
+        // Default sort is by last updated, so DEMO_PROJECT should come before MOCK_PROJECT
+        const mockProjectBeforeClick = screen.getByText(MOCK_PROJECT.name)
+        const demoProjectBeforeClick = screen.getByText(DEMO_PROJECT.name)
+        expect(mockProjectBeforeClick.compareDocumentPosition(demoProjectBeforeClick)).toBe(
+            Node.DOCUMENT_POSITION_PRECEDING
+        )
+
+        // Click on "ID" to sort by ID
+        const idHeader = await screen.findByText("ID")
+        expect(idHeader).toBeInTheDocument()
+        fireEvent.click(idHeader)
+
+        // Now we sorted by ID, MOCK_PROJECT should come before DEMO_PROJECT
+        const mockProjectfterClick = screen.getByText(MOCK_PROJECT.name)
+        const demoProjectAfterClick = screen.getByText(DEMO_PROJECT.name)
+
+        // Assert that `first` appears in the document before `second`
+        expect(mockProjectfterClick.compareDocumentPosition(demoProjectAfterClick)).toBe(
+            Node.DOCUMENT_POSITION_FOLLOWING
+        )
+
+        // Deal with console errors. Once we migrate away from antd, we can remove all this junk
+        // expect console.error to have been called n times with a string containing "antd"
+        expect(console.error).toHaveBeenCalledTimes(10)
+
+        // Flatten the array of console output messages and grab the first one (the "header" line)
+        const allElements = (console.error as jest.Mock).mock.calls.flatMap((arr) => arr[0])
+
+        // Check every element contains "antd" or "warning-keys".
+        allElements.forEach((element) => {
+            try {
+                expect(element.includes("antd") || element.includes("warning-keys")).toBe(true)
+            } catch (error) {
+                throw `Expected element to contain "antd" or "warning-keys", but received: ${element}`
+            }
         })
     })
 })

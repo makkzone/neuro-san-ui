@@ -94,5 +94,31 @@ jest.mock("next/config", () => () => ({
 // See: https://github.com/jsdom/jsdom/issues/3363
 global.structuredClone = (val) => JSON.parse(JSON.stringify(val))
 
+// Mock matchMedia to make certain antd tests pass. Can be removed once we migrated away from antd.
+window.matchMedia =
+    window.matchMedia ||
+    function (query: string): MediaQueryList {
+        return {
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: function () {
+                /* empty */
+            },
+            removeListener: function () {
+                /* empty */
+            },
+            addEventListener: function () {
+                /* empty */
+            },
+            removeEventListener: function () {
+                /* empty */
+            },
+            dispatchEvent: function () {
+                return false
+            },
+        }
+    }
+
 // Make tests fail if any output is sent to the console
 failOnConsole({shouldFailOnAssert: true, shouldFailOnDebug: true})
