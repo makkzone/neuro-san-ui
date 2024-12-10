@@ -1,7 +1,11 @@
 // eslint-disable-next-line no-shadow
 import {fireEvent, render, screen} from "@testing-library/react"
 
-import {pollForLogs, processNewLogs} from "../../components/internal/opportunity_finder/AgentChatHandling"
+import {
+    pollForLogs,
+    processChatResponse,
+    processNewLogs,
+} from "../../components/internal/opportunity_finder/AgentChatHandling"
 import {retry} from "../../components/internal/opportunity_finder/common"
 import {getLogs} from "../../controller/agent/agent"
 import {AgentStatus, LogsResponse} from "../../generated/unileaf_agent"
@@ -175,5 +179,24 @@ describe("pollForLogs", () => {
         )
 
         expect(retry).toHaveBeenCalled()
+    })
+})
+
+describe("processChatResponse", () => {
+    it("Should detect and handle an error block in the chatResponse", async () => {
+        // This is how errors come back from the agents, complete with ```json, newlines and whitespace. Our regex
+        // should be able to detect this and call retry with the error message.
+        const errorText = "Expected error for testing"
+        const chatResponse =
+            `user: generate an error\nassistant: \`\`\`json\n{\n    "error": "Error: ${errorText}.",` +
+            '\n    "tool": "opportunity_finder_process_manager"\n}\n```\n'
+
+        await processChatResponse(chatResponse, null, null, null)
+        expect(retry).toHaveBeenCalledWith(
+            expect.stringContaining(errorText),
+            expect.stringContaining(errorText),
+            null,
+            null
+        )
     })
 })

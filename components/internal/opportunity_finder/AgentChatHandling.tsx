@@ -16,7 +16,7 @@ const {Panel} = Collapse
 const AGENT_RESULT_REGEX = /assistant: \{'project_id': '(?<projectId>\d+)', 'experiment_id': '(?<experimentId>\d+)'\}/u
 
 // Regex to extract error in agent response
-const AGENT_ERROR_REGEX = /assistant:[\s\n]*(?<errorBlock>\{[\s\n]*"error": "[^}]+"\})/u
+const AGENT_ERROR_REGEX = /```json(?<errorBlock>[\s\S]*?)```/u
 
 // Delimiter for separating logs from agents
 const LOGS_DELIMITER = ">>>"
@@ -58,7 +58,7 @@ async function checkAgentTimeout(
     return isTimeout
 }
 
-const processChatResponse = async (
+export const processChatResponse = async (
     chatResponse: string,
     orchestrationHandling: OrchestrationHandling,
     setProjectUrl: (url: URL) => void,
