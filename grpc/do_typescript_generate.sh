@@ -62,6 +62,10 @@ curl --header "Authorization: token $LEAF_PRIVATE_SOURCE_CREDENTIALS" \
   --silent \
   "https://api.github.com/repos/leaf-ai/neuro-san/contents/neuro_san/api/grpc/agent.proto?ref=${NEURO_SAN_VERSION}"
 
+echo "******** see what got downloaded ************"
+cat neuro_san/api/grpc/agent.proto
+echo "**** end of cat *********"
+
 # Hack: google proto files expect to be in a certain hardcoded location, so we copy them there
 cp -r "node_modules/protobufjs/google" "${PROTOS_DIR}/internal"
 
