@@ -53,6 +53,10 @@ LOCAL_PATH="$NEURO_SAN_PROTO_DIR/neuro_san/api/grpc"
 # Create the directory structure
 mkdir -p "$LOCAL_PATH"
 
+echo "******* check the pat *********
+echo $LEAF_PRIVATE_SOURCE_CREDENTIALS
+echo "******* end pat check *********
+
 # Get the agent.proto file from the neuro-san repository. Initially just this one file.
 curl --header "Authorization: token $LEAF_PRIVATE_SOURCE_CREDENTIALS" \
   --header "Accept: application/vnd.github.raw+json" \
