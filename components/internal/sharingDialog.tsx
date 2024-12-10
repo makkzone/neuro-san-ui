@@ -2,17 +2,39 @@
  * See class comment.
  */
 
-import {Alert, Button, Modal, Tooltip} from "antd"
+import CloseIcon from "@mui/icons-material/Close"
+import {styled} from "@mui/material"
+import Alert from "@mui/material/Alert"
+import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
+import Tooltip from "@mui/material/Tooltip"
 import {camelCase, startCase} from "lodash"
 import {ChangeEvent, ReactNode, useEffect, useState} from "react"
 import {Col, Form, Row} from "react-bootstrap"
-import {IoMdClose} from "react-icons/io"
 
+import {MaximumBlue} from "../../const"
 import {getShares, share} from "../../controller/authorize/share"
 import {Project} from "../../controller/projects/types"
 import {RoleType} from "../../generated/auth"
+import {ConfirmationModal} from "../confirmationModal"
+import {MUIDialog} from "../dialog"
 import {NotificationType, sendNotification} from "../notification"
 
+// #region: Styled Components
+const StyledButton = styled(Button)({
+    fontSize: "0.8em",
+    padding: "0px 7px",
+    textTransform: "none",
+})
+
+const StyledOKButton = styled(StyledButton)(({disabled}) => ({
+    backgroundColor: disabled ? "rgba(0, 0, 0, 0.12) !important" : `${MaximumBlue} !important`,
+    marginBottom: "2px",
+    paddingBottom: "1px",
+}))
+// #endregion: Styled Components
+
+// #region: Types
 interface SharingDialogProps {
     readonly title: ReactNode
     readonly visible: boolean
@@ -20,6 +42,7 @@ interface SharingDialogProps {
     readonly currentUser: string
     readonly project: Project
 }
+// #endregion: Types
 
 /**
  * Dialog for sharing a project with another user.
@@ -36,10 +59,13 @@ export default function SharingDialog({
     currentUser,
     project,
 }: SharingDialogProps): JSX.Element | null {
-    const [targetUser, setTargetUser] = useState<string>(null)
-    const [loading, setLoading] = useState<boolean>(false)
-    const [operationComplete, setOperationComplete] = useState<boolean>(false)
     const [currentShares, setCurrentShares] = useState<[string, RoleType][]>([])
+    const [operationComplete, setOperationComplete] = useState<boolean>(false)
+    const [targetUser, setTargetUser] = useState<string | null>(null)
+    const [targetUserToRemove, setTargetUserToRemove] = useState<string | null>(null)
+
+    // For remove share dialog
+    const [removeShareDialogOpen, setRemoveShareDialogOpen] = useState<boolean>(false)
 
     // Retrieve current list of shares
     useEffect(() => {
@@ -63,13 +89,14 @@ export default function SharingDialog({
     // Close the dialog and clear the state
     function closeAndClear() {
         closeModal()
+        setRemoveShareDialogOpen(false)
         setTargetUser(null)
+        setTargetUserToRemove(null)
         setOperationComplete(false)
     }
 
     // Share the project with the target user
     async function handleOk() {
-        setLoading(true)
         try {
             // Call sharing API
             await share(project.id, currentUser, targetUser)
@@ -79,8 +106,6 @@ export default function SharingDialog({
             setOperationComplete(true)
         } catch (e) {
             sendNotification(NotificationType.error, "Failed to share project", `Due to: ${e}`)
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -108,212 +133,228 @@ export default function SharingDialog({
 
     const reasonOkButtonDisabled = enableOkButton ? undefined : getReasonOkButtonDisabled()
 
-    const opacity = enableOkButton ? 1.0 : 0.5
-
-    return (
-        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-        <Modal
-            title={title}
-            open={visible}
-            centered={true}
-            destroyOnClose={true}
-            okText={operationComplete ? "Close" : "Ok"}
-            footer={[
-                <Button
-                    id="sharing-dialog-cancel-button"
-                    key="cancel_button"
-                    onClick={closeAndClear}
-                    style={{display: operationComplete ? "none" : "inline-block"}}
-                >
-                    Cancel
-                </Button>,
-                <Tooltip
-                    id="ok_button_tooltip"
-                    key="ok_button_tooltip"
-                    title={reasonOkButtonDisabled}
-                >
-                    <Button
+    const Footer: JSX.Element = (
+        <>
+            <StyledButton
+                id="sharing-dialog-cancel-button"
+                key="cancel_button"
+                onClick={closeAndClear}
+                sx={{display: operationComplete ? "none" : "inline-block"}}
+                variant="outlined"
+            >
+                Cancel
+            </StyledButton>
+            <Tooltip
+                id="ok_button_tooltip"
+                key="ok_button_tooltip"
+                title={reasonOkButtonDisabled}
+            >
+                <span id="ok_button_span">
+                    <StyledOKButton
                         id="sharing-dialog-ok-button"
                         key="ok_button"
-                        type="primary"
                         onClick={operationComplete ? closeAndClear : handleOk}
                         disabled={!enableOkButton}
-                        loading={loading}
-                        style={{opacity: opacity}}
+                        variant="contained"
                     >
                         {operationComplete ? "Close" : "Ok"}
-                    </Button>
-                </Tooltip>,
-            ]}
-        >
-            <Form id="sharing-form">
-                <Form.Group
-                    id="sharing-form-group-target-user"
-                    as={Row}
-                    style={{marginTop: "16px", paddingRight: "0", paddingLeft: "0"}}
-                >
-                    <Col
-                        id="sharing-form-col-target-user"
-                        md={8}
-                        style={{margin: "0", padding: "0 4px"}}
-                    >
-                        <Form.Control
-                            id="sharing-form-target-user"
-                            placeholder="User to share with"
-                            type="text"
-                            value={targetUser || ""}
-                            onChange={handleInputChange}
-                            disabled={operationComplete}
-                            ref={(input) => input?.focus()}
-                        />
-                    </Col>
-                    <Col
-                        id="sharing-form-col-role"
-                        md={4}
-                        style={{margin: "0", padding: "0 8px"}}
-                    >
-                        <Form.Select
-                            id="sharing-form-role-select"
-                            defaultValue={1}
-                            disabled={operationComplete}
-                        >
-                            <option
-                                id="sharing-form-role-viewer"
-                                value="1"
-                            >
-                                Tourist
-                            </option>
-                            <option
-                                id="sharing-form-role-collaborator"
-                                value="2"
-                                disabled={true}
-                            >
-                                Collaborator (Future)
-                            </option>
-                        </Form.Select>
-                    </Col>
-                </Form.Group>
-                <Form.Group
-                    id="sharing-form-group-checkbox"
-                    as={Row}
-                    style={{marginTop: "16px"}}
-                >
-                    <Col id="sharing-form-col-checkbox">
-                        <Tooltip
-                            id="sharing-form-checkbox-tooltip"
-                            title={
-                                "This feature is not yet implemented. " +
-                                "For now, only entire project hierarchies can be shared."
-                            }
-                        >
-                            <span id="sharing-form-checkbox-tooltip-span">
-                                <Form.Check
-                                    id="sharing-form-checkbox"
-                                    type="checkbox"
-                                    label="Also share related items such as Experiments and Runs"
-                                    style={{fontSize: "large"}}
-                                    checked={true}
-                                    disabled={true}
-                                />
-                            </span>
-                        </Tooltip>
-                    </Col>
-                </Form.Group>
-                <Form.Group
-                    id="sharing-form-group-current-shares"
-                    style={{marginTop: "16px"}}
-                >
-                    <div
-                        id="sharing-form-current-shares-text"
-                        style={{fontSize: "large"}}
-                    >
-                        People with access
-                    </div>
-                    <hr id="sharing-form-current-shares-hr" />
+                    </StyledOKButton>
+                </span>
+            </Tooltip>
+        </>
+    )
 
-                    {currentShares && currentShares.length > 0 ? (
-                        <>
-                            <div id="current-shares-container">
-                                {currentShares.map(([user, relation], index) => (
-                                    <div
-                                        key={user}
-                                        id={`current-share-${index}`}
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            marginTop: "4px",
-                                            marginBottom: "4px",
-                                            width: "100%",
-                                        }}
-                                    >
-                                        <Tooltip
-                                            id={`remove-share-tooltip-${index}`}
-                                            title={relation === RoleType.OWNER ? "Cannot remove owner" : "Remove share"}
-                                        >
-                                            <IoMdClose
-                                                id={`close-icon-${index}`}
-                                                style={{
-                                                    marginRight: "10px",
-                                                    cursor: relation !== RoleType.OWNER ? "pointer" : "not-allowed",
-                                                    transition: "color 0.3s ease",
-                                                    color: "black",
-                                                }}
-                                                onMouseEnter={(e) =>
-                                                    relation !== RoleType.OWNER && (e.currentTarget.style.color = "red")
-                                                }
-                                                onMouseLeave={(e) => (e.currentTarget.style.color = "black")}
-                                                onClick={async () => {
-                                                    if (relation !== RoleType.OWNER) {
-                                                        Modal.confirm({
-                                                            title: "Remove share",
-                                                            content:
-                                                                "You are about to revoke access to project " +
-                                                                `"${project.name}" for "${user}". Are you sure?`,
-                                                            centered: true,
-                                                            okButtonProps: {
-                                                                id: "remove-share-ok-button",
-                                                            },
-                                                            okText: "Remove",
-                                                            onOk: async () => {
-                                                                await share(project.id, currentUser, user, false)
-                                                                setCurrentShares((prevShares) =>
-                                                                    prevShares.filter(([u]) => u !== user)
-                                                                )
-                                                                setOperationComplete(false)
-                                                                setTargetUser(null)
-                                                            },
-                                                            cancelButtonProps: {
-                                                                id: "unshare-cancel-button",
-                                                            },
-                                                        })
-                                                    }
-                                                }}
-                                            />
-                                        </Tooltip>
-                                        {user} - {startCase(camelCase(relation))}
-                                    </div>
-                                ))}
-                            </div>
-                            <hr id="sharing-form-current-shares-hr-bottom" />
-                        </>
-                    ) : (
-                        <div
-                            id="sharing-form-no-shares"
-                            style={{marginTop: "16px"}}
+    return (
+        <>
+            <MUIDialog
+                contentSx={{fontSize: "0.8rem", minWidth: "600px", paddingTop: "0"}}
+                footer={Footer}
+                id="ui-mockup-dialog"
+                isOpen={visible}
+                onClose={closeModal}
+                title={title}
+            >
+                <Form id="sharing-form">
+                    <Form.Group
+                        id="sharing-form-group-target-user"
+                        as={Row}
+                        style={{marginTop: "16px", paddingRight: "0", paddingLeft: "0"}}
+                    >
+                        <Col
+                            id="sharing-form-col-target-user"
+                            md={8}
+                            style={{margin: "0", padding: "0 4px"}}
                         >
-                            Not currently shared with anyone.
+                            <Form.Control
+                                id="sharing-form-target-user"
+                                placeholder="User to share with"
+                                type="text"
+                                value={targetUser || ""}
+                                onChange={handleInputChange}
+                                disabled={operationComplete}
+                                ref={(input) => input?.focus()}
+                                style={{fontSize: "0.8rem"}}
+                            />
+                        </Col>
+                        <Col
+                            id="sharing-form-col-role"
+                            md={4}
+                            style={{margin: "0", padding: "0 8px"}}
+                        >
+                            <Form.Select
+                                id="sharing-form-role-select"
+                                defaultValue={1}
+                                disabled={operationComplete}
+                                style={{fontSize: "0.8rem"}}
+                            >
+                                <option
+                                    id="sharing-form-role-viewer"
+                                    value="1"
+                                >
+                                    Tourist
+                                </option>
+                                <option
+                                    id="sharing-form-role-collaborator"
+                                    value="2"
+                                    disabled={true}
+                                >
+                                    Collaborator (Future)
+                                </option>
+                            </Form.Select>
+                        </Col>
+                    </Form.Group>
+                    <Box
+                        id="sharing-form-group-checkbox"
+                        sx={{marginTop: "15px"}}
+                    >
+                        <Col id="sharing-form-col-checkbox">
+                            <Tooltip
+                                id="sharing-form-checkbox-tooltip"
+                                title={
+                                    "This feature is not yet implemented. " +
+                                    "For now, only entire project hierarchies can be shared."
+                                }
+                            >
+                                <span id="sharing-form-checkbox-tooltip-span">
+                                    <Form.Check
+                                        id="sharing-form-checkbox"
+                                        type="checkbox"
+                                        label="Also share related items such as Experiments and Runs"
+                                        checked={true}
+                                        disabled={true}
+                                        style={{lineHeight: "30px"}}
+                                    />
+                                </span>
+                            </Tooltip>
+                        </Col>
+                    </Box>
+                    <Box
+                        id="sharing-form-group-current-shares"
+                        sx={{marginTop: "15px"}}
+                    >
+                        <div
+                            id="sharing-form-current-shares-text"
+                            style={{fontSize: "large"}}
+                        >
+                            People with access
                         </div>
-                    )}
-                </Form.Group>
-            </Form>
-            {operationComplete ? (
-                // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-                <Alert
-                    message={`Project shared with "${targetUser}"`}
-                    type="success"
-                    style={{marginTop: "20px", marginBottom: "20px"}}
+                        <hr id="sharing-form-current-shares-hr" />
+
+                        {currentShares && currentShares.length > 0 ? (
+                            <>
+                                <div id="current-shares-container">
+                                    {currentShares.map(([user, relation], index) => (
+                                        <div
+                                            key={user}
+                                            id={`current-share-${index}`}
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                marginTop: "4px",
+                                                marginBottom: "4px",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Tooltip
+                                                id={`remove-share-tooltip-${index}`}
+                                                title={
+                                                    relation === RoleType.OWNER ? "Cannot remove owner" : "Remove share"
+                                                }
+                                            >
+                                                <CloseIcon
+                                                    id={`close-icon-${index}`}
+                                                    style={{
+                                                        color: "var(--bs-black)",
+                                                        cursor: relation !== RoleType.OWNER ? "pointer" : "not-allowed",
+                                                        fontSize: "0.9em",
+                                                        marginRight: "10px",
+                                                        transition: "color 0.3s ease",
+                                                    }}
+                                                    onMouseEnter={(e) =>
+                                                        relation !== RoleType.OWNER &&
+                                                        (e.currentTarget.style.color = "var(--bs-red)")
+                                                    }
+                                                    onMouseLeave={(e) =>
+                                                        (e.currentTarget.style.color = "var(--bs-black)")
+                                                    }
+                                                    onClick={async () => {
+                                                        if (relation !== RoleType.OWNER) {
+                                                            setTargetUserToRemove(user)
+                                                            setRemoveShareDialogOpen(true)
+                                                        }
+                                                    }}
+                                                />
+                                            </Tooltip>
+                                            {user} - {startCase(camelCase(relation))}
+                                        </div>
+                                    ))}
+                                </div>
+                                <hr id="sharing-form-current-shares-hr-bottom" />
+                            </>
+                        ) : (
+                            <div
+                                id="sharing-form-no-shares"
+                                style={{marginTop: "16px"}}
+                            >
+                                Not currently shared with anyone.
+                            </div>
+                        )}
+                    </Box>
+                </Form>
+                {operationComplete ? (
+                    // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                    <Alert
+                        severity="success"
+                        style={{marginTop: "20px"}}
+                    >
+                        {`Project shared with "${targetUser}"`}
+                    </Alert>
+                ) : null}
+            </MUIDialog>
+            {removeShareDialogOpen ? (
+                <ConfirmationModal
+                    content={
+                        "You are about to revoke access to project " +
+                        `${project.name}" for "${targetUserToRemove}". Are you sure?`
+                    }
+                    handleCancel={() => {
+                        setRemoveShareDialogOpen(false)
+                        setTargetUserToRemove(null)
+                    }}
+                    handleOk={async () => {
+                        await share(project.id, currentUser, targetUserToRemove, false)
+                        setCurrentShares((prevShares) => prevShares.filter(([u]) => u !== targetUserToRemove))
+                        setOperationComplete(false)
+                        setTargetUser(null)
+                        setTargetUserToRemove(null)
+                        setRemoveShareDialogOpen(false)
+                    }}
+                    id="remove-share-dialog"
+                    maskCloseable={true}
+                    okBtnLabel="Remove"
+                    title="Remove share"
                 />
             ) : null}
-        </Modal>
+        </>
     )
 }

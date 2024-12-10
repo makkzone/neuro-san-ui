@@ -1,77 +1,113 @@
-import {Button, Modal} from "antd"
-import {useState} from "react"
+import {styled} from "@mui/material"
+import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
+import {FC, ReactNode, useState} from "react"
 
-// Will be used in https://github.com/leaf-ai/unileaf/pull/1764
-// ts-prune-ignore-next
-export const ConfirmationModal = ({
-    title = "",
-    text = "",
-    handleOk = null,
-    handleCancel = null,
-}: {
-    title: string
-    text: string
-    handleOk?: () => void
+import {MUIDialog} from "./dialog"
+import {MaximumBlue} from "../const"
+
+// #region: Styled Components
+const StyledButton = styled(Button)({
+    fontSize: "0.8em",
+    padding: "0px 7px",
+    textTransform: "none",
+})
+
+const StyledOKButton = styled(StyledButton)(({disabled}) => ({
+    backgroundColor: disabled ? "rgba(0, 0, 0, 0.12) !important" : `${MaximumBlue} !important`,
+}))
+// #endregion: Styled Components
+
+// #region: Types
+interface ConfirmationModalProps {
+    cancelBtnLabel?: string
+    content: ReactNode
     handleCancel?: () => void
-}) => {
-    const [modalOpen, setModalOpen] = useState(true)
-    const [isLoading, setIsLoading] = useState(false)
-    const footerBtns = [
-        <Button
-            id="confirmation-ok-btn"
-            key="confirmation-ok"
-            type="primary"
-            disabled={isLoading}
-            onClick={async () => {
-                try {
-                    if (handleOk) {
-                        setIsLoading(true)
-                        await handleOk()
-                    }
-                } finally {
-                    setModalOpen(false)
-                    setIsLoading(false)
-                }
-            }}
-        >
-            Confirm
-        </Button>,
-    ]
+    handleOk?: () => void
+    id: string
+    maskCloseable?: boolean
+    okBtnLabel?: string
+    title: ReactNode
+}
+// #endregion: Types
 
-    if (handleCancel) {
-        footerBtns.unshift(
-            <Button
-                id="confirmation-cancel-btn"
-                key="confirmation-cancel"
-                onClick={() => {
-                    if (handleCancel) handleCancel()
-                    setModalOpen(false)
-                }}
-                disabled={isLoading}
-            >
-                Cancel
-            </Button>
-        )
+export const ConfirmationModal: FC<ConfirmationModalProps> = ({
+    cancelBtnLabel,
+    content = "",
+    handleCancel = null,
+    handleOk = null,
+    id = "",
+    maskCloseable = false,
+    okBtnLabel,
+    title = "",
+}) => {
+    const [modalOpen, setModalOpen] = useState<boolean>(true)
+    const [isLoading, setIsLoading] = useState<boolean>(false)
+
+    const handleCloseWrapper = (_event?: object, reason?: string) => {
+        // Prevent closing on click of gray background mask
+        if (!maskCloseable && reason === "backdropClick") {
+            return
+        }
+        handleCancel?.() // call handleCancel if it's not null
+        setModalOpen(false)
     }
 
+    const handleOKWrapper = async () => {
+        try {
+            if (handleOk) {
+                setIsLoading(true)
+                await handleOk()
+            }
+        } finally {
+            setModalOpen(false)
+            setIsLoading(false)
+        }
+    }
+
+    const Footer: JSX.Element = (
+        <>
+            {handleCancel && (
+                <StyledButton
+                    // This ID needs to be dynamic because there can be several instances of this on the page
+                    id={`${id}-confirm-cancel-btn`}
+                    key="confirm-cancel"
+                    onClick={() => handleCloseWrapper()}
+                    disabled={isLoading}
+                    variant="outlined"
+                >
+                    {cancelBtnLabel ?? "Cancel"}
+                </StyledButton>
+            )}
+            <StyledOKButton
+                // This ID needs to be dynamic because there can be several instances of this on the page
+                id={`${id}-confirm-ok-btn`}
+                key="confirm-ok"
+                disabled={isLoading}
+                onClick={() => handleOKWrapper()}
+                variant="contained"
+            >
+                {okBtnLabel ?? "Confirm"}
+            </StyledOKButton>
+        </>
+    )
+
     return (
-        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-        <Modal
+        <MUIDialog
+            contentSx={{fontSize: "0.8rem", minWidth: "600px", paddingTop: "0"}}
+            footer={Footer}
+            id={`${id}-confirm-main`}
+            isOpen={modalOpen}
+            onClose={(_event?: object, reason?: string) => handleCloseWrapper(_event, reason)}
             title={title}
-            open={modalOpen}
-            destroyOnClose={true}
-            closable={false}
-            okButtonProps={{
-                id: "confirmation-modal-ok-btn",
-            }}
-            cancelButtonProps={{
-                id: "confirmation-modal-cancel-btn",
-            }}
-            okType="default"
-            footer={footerBtns}
-            maskClosable={false}
         >
-            <p id="confirmation-modal-text">{text}</p>
-        </Modal>
+            {/* This ID needs to be dynamic because there can be several instances of this on the page */}
+            <Box
+                id={`${id}-confirm-content`}
+                sx={{marginTop: "15px"}}
+            >
+                {content}
+            </Box>
+        </MUIDialog>
     )
 }

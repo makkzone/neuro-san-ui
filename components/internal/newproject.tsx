@@ -1,5 +1,5 @@
 import InfoIcon from "@mui/icons-material/Info"
-import {Button, Checkbox, Collapse, Modal, Radio, RadioChangeEvent, Space, Tooltip} from "antd"
+import {Button, Checkbox, Collapse, Radio, RadioChangeEvent, Space, Tooltip} from "antd"
 import {CheckboxChangeEvent} from "antd/es/checkbox"
 // eslint-disable-next-line import/no-named-as-default
 import Debug from "debug"
@@ -25,6 +25,7 @@ import {useAuthentication} from "../../utils/authentication"
 import {getFileName, splitFilename, toSafeFilename} from "../../utils/file"
 import {empty} from "../../utils/objects"
 import BlankLines from "../blanklines"
+import {ConfirmationModal} from "../confirmationModal"
 import {NotificationType, sendNotification} from "../notification"
 
 const debug = Debug("new_project")
@@ -92,6 +93,9 @@ export default function NewProject(props: NewProps) {
     const [selectedFile, setSelectedFile] = useState(null)
     const [isUploading, setIsUploading] = useState(false)
     const [fileUploadAcknowledged, setFileUploadAcknowledged] = useState<boolean>(false)
+
+    // For CSV Confirm dialog
+    const [csvConfirmDialogOpen, setCsvConfirmDialogOpen] = useState<boolean>(false)
 
     function getCreateDataProfilePanel() {
         return (
@@ -828,28 +832,7 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`
 
         // Prompt user if not CSV file
         if (selectedFile.type !== EXPECTED_FILE_TYPE) {
-            Modal.confirm({
-                title: <span id="csv-confirm-title">Is &quot;{fileName}&quot; a CSV file?</span>,
-                content: (
-                    <span id="csv-confirm-message">
-                        Only CSV files are supported, but the file you have selected of type &quot;${selectedFile.type}
-                        &quot; does not appear to be a CSV file.
-                        <br id="csv-confirm-message-1" />
-                        <br id="csv-confirm-message-1" />
-                        Are you sure you wish to proceed?
-                    </span>
-                ),
-                okButtonProps: {
-                    id: "csv-confirm-ok-button",
-                },
-                okText: "Confirm",
-                onOk: async () => {
-                    await proceedWithFileUpload(fileName)
-                },
-                cancelButtonProps: {
-                    id: "csv-confirm-cancel-button",
-                },
-            })
+            setCsvConfirmDialogOpen(true)
         } else {
             // File known to be a CSV. No need for a dialog.
             await proceedWithFileUpload(fileName)
@@ -962,32 +945,57 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`
     const propsId = props.id
 
     return (
-        <Container id={propsId}>
-            <Form
-                id="create-data-profile"
-                onSubmit={(event) => void createDataSourceAndDataTag(event, getS3Key())}
-                target="_blank"
-                // We set noValidate to turn off the intrinsic HTML 5 validation since we'll be using Bootstrap's
-                // validation instead.
-                noValidate
-                // Setting this next property to "true" causes the "invalid feedback" to appear immediately.
-                // Normally one would only set this after the user attempts to submit the form, but we have a complex
-                // form here with multiple "submit"-type steps so that doesn't work for us.
-                validated={true}
-            >
-                <Collapse // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                    // 2/6/23 DEF - Collapse does not have an id property when compiling
-                    accordion
-                    expandIconPosition="end"
-                    defaultActiveKey={isNewProject ? projectDetailsPanelKey : dataSourcePanelKey}
+        <>
+            <Container id={propsId}>
+                <Form
+                    id="create-data-profile"
+                    onSubmit={(event) => void createDataSourceAndDataTag(event, getS3Key())}
+                    target="_blank"
+                    // We set noValidate to turn off the intrinsic HTML 5 validation since we'll be using Bootstrap's
+                    // validation instead.
+                    noValidate
+                    // Setting this next property to "true" causes the "invalid feedback" to appear immediately.
+                    // Normally one would only set this after the user attempts to submit the form, but we have
+                    // a complex form here with multiple "submit"-type steps so that doesn't work for us.
+                    validated={true}
                 >
-                    {isNewProject && getProjectDetailsPanel()}
-                    {getDataSourcePanel()}
-                    {getProfileTablePanel()}
-                </Collapse>
+                    <Collapse // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                        // 2/6/23 DEF - Collapse does not have an id property when compiling
+                        accordion
+                        expandIconPosition="end"
+                        defaultActiveKey={isNewProject ? projectDetailsPanelKey : dataSourcePanelKey}
+                    >
+                        {isNewProject && getProjectDetailsPanel()}
+                        {getDataSourcePanel()}
+                        {getProfileTablePanel()}
+                    </Collapse>
 
-                {getCreateDataProfilePanel()}
-            </Form>
-        </Container>
+                    {getCreateDataProfilePanel()}
+                </Form>
+            </Container>
+            {csvConfirmDialogOpen && (
+                <ConfirmationModal
+                    content={
+                        <span id="csv-confirm-message">
+                            Only CSV files are supported, but the file you have selected of type &quot;$
+                            {selectedFile.type}
+                            &quot; does not appear to be a CSV file.
+                            <br id="csv-confirm-message-1" />
+                            <br id="csv-confirm-message-2" />
+                            Are you sure you wish to proceed?
+                        </span>
+                    }
+                    handleCancel={() => {
+                        setCsvConfirmDialogOpen(false)
+                    }}
+                    handleOk={async () => {
+                        await proceedWithFileUpload(selectedFile.name)
+                        setCsvConfirmDialogOpen(false)
+                    }}
+                    id="csv-confirm-dialog"
+                    title={<span id="csv-confirm-title">Is &quot;{selectedFile.name}&quot; a CSV file?</span>}
+                />
+            )}
+        </>
     )
 }

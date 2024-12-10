@@ -1,6 +1,6 @@
 import {Card as BlueprintCard, Elevation} from "@blueprintjs/core"
 import {Tab, Tabs} from "@mui/material"
-import {Tooltip as AntdTooltip, Modal} from "antd"
+import Tooltip from "@mui/material/Tooltip"
 import Slider from "rc-slider"
 import {FC, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
 import {Card, Col, Container, Row} from "react-bootstrap"
@@ -11,6 +11,7 @@ import {MdDelete} from "react-icons/md"
 import {Handle, Position as HandlePosition, NodeProps, Node as RFNode} from "reactflow"
 
 import {DataTag} from "../../../../generated/metadata"
+import {ConfirmationModal} from "../../../confirmationModal"
 import NodePopper from "../../../nodepopper"
 import {NotificationType, sendNotification} from "../../../notification"
 
@@ -80,41 +81,16 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
     }
 
     // Allows the trash icon to change color when hovered over
-    const [trashHover, setTrashHover] = useState(false)
-    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [trashHover, setTrashHover] = useState<boolean>(false)
     const trashColor = trashHover ? "var(--bs-red)" : null
+
+    // For delete node modal
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false)
 
     // Called when a user clicks the trash can to delete the node
     const handleDelete = (event: ReactMouseEvent<HTMLElement>) => {
         event.preventDefault()
         setShowDeleteModal(true)
-        Modal.confirm({
-            title: <span id={`delete-confirm-${flowPrefix}-title`}>Delete this Prescriptor node?</span>,
-            content: (
-                <span id={`delete-confirm-${flowPrefix}-message`}>
-                    The node will be removed permanently{" "}
-                    <b id={`bold-tag-${flowPrefix}`}>along with any associated downstream nodes.</b>
-                    This cannot be undone.
-                </span>
-            ),
-            centered: true,
-            closable: true,
-            okButtonProps: {
-                id: `delete-confirm-${flowPrefix}-ok-button`,
-            },
-            okText: "Delete",
-            onOk: async () => {
-                DeleteNode(NodeID)
-                setShowDeleteModal(false)
-            },
-            onCancel: () => {
-                setShowDeleteModal(false)
-            },
-            cancelText: "Keep",
-            cancelButtonProps: {
-                id: `delete-confirm-${flowPrefix}-cancel-button`,
-            },
-        })
     }
 
     useEffect(() => {
@@ -387,12 +363,12 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         }}
                         handleRender={(node) => {
                             return (
-                                <AntdTooltip
+                                <Tooltip
                                     id={`${flowPrefix}-max-exponent-tooltip`}
                                     title={`${representationConfig.max_exponent}`}
                                 >
                                     {node}
-                                </AntdTooltip>
+                                </Tooltip>
                             )
                         }}
                         onChange={(event) => {
@@ -430,12 +406,12 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         }}
                         handleRender={(node) => {
                             return (
-                                <AntdTooltip
+                                <Tooltip
                                     id={`${flowPrefix}-number-of-building-block-conditions-tooltip`}
                                     title={`${representationConfig.number_of_building_block_conditions}`}
                                 >
                                     {node}
-                                </AntdTooltip>
+                                </Tooltip>
                             )
                         }}
                         onChange={(event) => {
@@ -473,12 +449,12 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         }}
                         handleRender={(node) => {
                             return (
-                                <AntdTooltip
+                                <Tooltip
                                     id={`${flowPrefix}-number-of-building-block-rules-tooltip`}
                                     title={`${representationConfig.number_of_building_block_rules}`}
                                 >
                                     {node}
-                                </AntdTooltip>
+                                </Tooltip>
                             )
                         }}
                         onChange={(event) => {
@@ -947,216 +923,240 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
 
     // Create the Component structure
     return (
-        <BlueprintCard
-            id={flowPrefix}
-            interactive={true}
-            elevation={Elevation.TWO}
-            style={{padding: 0, width: "10rem", height: "4rem"}}
-        >
-            <Card
-                id={`${flowPrefix}-card-1`}
-                border="warning"
-                style={{height: "100%"}}
-                onScroll={(event) => {
-                    event.stopPropagation()
-                }}
-                onWheel={(event) => {
-                    event.stopPropagation()
-                }}
+        <>
+            <BlueprintCard
+                id={flowPrefix}
+                interactive={true}
+                elevation={Elevation.TWO}
+                style={{padding: 0, width: "10rem", height: "4rem"}}
             >
-                <Card.Body
-                    id={`${flowPrefix}-card-2`}
-                    className="flex justify-center content-center"
+                <Card
+                    id={`${flowPrefix}-card-1`}
+                    border="warning"
+                    style={{height: "100%"}}
+                    onScroll={(event) => {
+                        event.stopPropagation()
+                    }}
+                    onWheel={(event) => {
+                        event.stopPropagation()
+                    }}
                 >
-                    <span
-                        id={`${flowPrefix}-text`}
-                        className="mr-2 text-xs"
+                    <Card.Body
+                        id={`${flowPrefix}-card-2`}
+                        className="flex justify-center content-center"
                     >
-                        {ParentPrescriptorState.selectedPredictor || "Prescriptor"}
-                    </span>
-                    <div
-                        id={`${flowPrefix}-settings-div`}
-                        onMouseDown={(event) => {
-                            event.stopPropagation()
-                        }}
-                    >
-                        <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                            buttonProps={{
-                                id: `${flowPrefix}-gr-settings-button`,
-                                className: "mt-1",
-                                style: {height: 0},
-                                btnContent: <GrSettingsOption id={`${flowPrefix}-gr-settings-option`} />,
-                            }}
-                            popperProps={{
-                                id: `${flowPrefix}-gr-settings-popper`,
-                                className: "rounded-sm shadow-2xl",
-                                style: {backgroundColor: "ghostwhite"},
+                        <span
+                            id={`${flowPrefix}-text`}
+                            className="mr-2 text-xs"
+                        >
+                            {ParentPrescriptorState.selectedPredictor || "Prescriptor"}
+                        </span>
+                        <div
+                            id={`${flowPrefix}-settings-div`}
+                            onMouseDown={(event) => {
+                                event.stopPropagation()
                             }}
                         >
-                            <>
-                                <Tabs
-                                    id={`${flowPrefix}-settings-tablist`}
-                                    value={selectedIndex}
-                                    onChange={(_, val) => setSelectedIndex(val)}
-                                    sx={{
-                                        marginBottom: "16px",
-                                        flexBasis: "240px",
-                                        marginRight: "24px",
-                                    }}
+                            <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                buttonProps={{
+                                    id: `${flowPrefix}-gr-settings-button`,
+                                    className: "mt-1",
+                                    style: {height: 0},
+                                    btnContent: <GrSettingsOption id={`${flowPrefix}-gr-settings-option`} />,
+                                }}
+                                popperProps={{
+                                    id: `${flowPrefix}-gr-settings-popper`,
+                                    className: "rounded-sm shadow-2xl",
+                                    style: {backgroundColor: "ghostwhite"},
+                                }}
+                            >
+                                <>
+                                    <Tabs
+                                        id={`${flowPrefix}-settings-tablist`}
+                                        value={selectedIndex}
+                                        onChange={(_, val) => setSelectedIndex(val)}
+                                        sx={{
+                                            marginBottom: "16px",
+                                            flexBasis: "240px",
+                                            marginRight: "24px",
+                                        }}
+                                    >
+                                        {tabs.map((tab) => (
+                                            <Tab
+                                                id={`${flowPrefix}-settings-${tab}`}
+                                                key={tab}
+                                                label={tab}
+                                                aria-controls={`panel-${tab}`}
+                                            />
+                                        ))}
+                                    </Tabs>
+                                    {selectedIndex === 0 && prescriptorRepresentationPanel}
+                                    {selectedIndex === 1 && evolutionConfigurationPanel}
+                                    {selectedIndex === 2 && objectiveConfigurationPanel}
+                                </>
+                            </NodePopper>
+                            <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                buttonProps={{
+                                    btnContent: "C",
+                                    id: `${flowPrefix}-context-button`,
+                                    className: "absolute top-5 -left-4",
+                                    style: {height: 0},
+                                }}
+                                popperProps={{
+                                    id: `${flowPrefix}-context-popper`,
+                                    placement: "left",
+                                    className: "rounded-sm shadow-2xl",
+                                }}
+                            >
+                                <Card
+                                    id={`${flowPrefix}-context-card`}
+                                    border="warning"
+                                    className="overflow-y-auto h-40 text-xs"
                                 >
-                                    {tabs.map((tab) => (
-                                        <Tab
-                                            id={`${flowPrefix}-settings-${tab}`}
-                                            key={tab}
-                                            label={tab}
-                                            aria-controls={`panel-${tab}`}
-                                        />
+                                    <span
+                                        id={`${flowPrefix}-context-text`}
+                                        className="mb-2"
+                                    >
+                                        Context
+                                    </span>
+                                    {Object.keys(ParentPrescriptorState.caoState.context).map((element) => (
+                                        <div
+                                            id={`${flowPrefix}-context-div`}
+                                            key={element}
+                                            className="grid grid-cols-2 gap-4 mb-2"
+                                        >
+                                            <label
+                                                id={`${flowPrefix}-context-label-${element}`}
+                                                className="capitalize"
+                                            >
+                                                {" "}
+                                                {element}{" "}
+                                            </label>
+                                            <input
+                                                id={`${flowPrefix}-context-input-${element}`}
+                                                name={element}
+                                                type="checkbox"
+                                                defaultChecked={true}
+                                                disabled={readOnlyNode}
+                                                checked={ParentPrescriptorState.caoState.context[element]}
+                                                onChange={(event) => updateCAOState(event, "context")}
+                                            />
+                                        </div>
                                     ))}
-                                </Tabs>
-                                {selectedIndex === 0 && prescriptorRepresentationPanel}
-                                {selectedIndex === 1 && evolutionConfigurationPanel}
-                                {selectedIndex === 2 && objectiveConfigurationPanel}
-                            </>
-                        </NodePopper>
-                        <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                            buttonProps={{
-                                btnContent: "C",
-                                id: `${flowPrefix}-context-button`,
-                                className: "absolute top-5 -left-4",
-                                style: {height: 0},
-                            }}
-                            popperProps={{
-                                id: `${flowPrefix}-context-popper`,
-                                placement: "left",
-                                className: "rounded-sm shadow-2xl",
-                            }}
-                        >
-                            <Card
-                                id={`${flowPrefix}-context-card`}
-                                border="warning"
-                                className="overflow-y-auto h-40 text-xs"
+                                </Card>
+                            </NodePopper>
+                            <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                buttonProps={{
+                                    id: `${flowPrefix}-action-button`,
+                                    className: "absolute top-5 -right-4",
+                                    style: {height: 0},
+                                    btnContent: "A",
+                                }}
+                                popperProps={{
+                                    id: `${flowPrefix}-action-popper`,
+                                    placement: "right",
+                                    className: "rounded-sm shadow-2xl",
+                                }}
                             >
-                                <span
-                                    id={`${flowPrefix}-context-text`}
-                                    className="mb-2"
+                                <Card
+                                    id={`${flowPrefix}-actions-card`}
+                                    className="overflow-y-auto h-40 text-xs"
                                 >
-                                    Context
-                                </span>
-                                {Object.keys(ParentPrescriptorState.caoState.context).map((element) => (
-                                    <div
-                                        id={`${flowPrefix}-context-div`}
-                                        key={element}
-                                        className="grid grid-cols-2 gap-4 mb-2"
+                                    <span
+                                        id={`${flowPrefix}-actions-text`}
+                                        className="mb-2"
                                     >
-                                        <label
-                                            id={`${flowPrefix}-context-label-${element}`}
-                                            className="capitalize"
+                                        Actions
+                                    </span>
+                                    {Object.keys(ParentPrescriptorState.caoState.action).map((element) => (
+                                        <div
+                                            id={`${flowPrefix}-actions-div-${element}`}
+                                            key={element}
+                                            className="grid grid-cols-2 gap-4 mb-2"
                                         >
-                                            {" "}
-                                            {element}{" "}
-                                        </label>
-                                        <input
-                                            id={`${flowPrefix}-context-input-${element}`}
-                                            name={element}
-                                            type="checkbox"
-                                            defaultChecked={true}
-                                            disabled={readOnlyNode}
-                                            checked={ParentPrescriptorState.caoState.context[element]}
-                                            onChange={(event) => updateCAOState(event, "context")}
-                                        />
-                                    </div>
-                                ))}
-                            </Card>
-                        </NodePopper>
-                        <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                            buttonProps={{
-                                id: `${flowPrefix}-action-button`,
-                                className: "absolute top-5 -right-4",
-                                style: {height: 0},
-                                btnContent: "A",
-                            }}
-                            popperProps={{
-                                id: `${flowPrefix}-action-popper`,
-                                placement: "right",
-                                className: "rounded-sm shadow-2xl",
-                            }}
+                                            <label
+                                                id={`${flowPrefix}-actions-label-${element}`}
+                                                className="capitalize"
+                                            >
+                                                {" "}
+                                                {element}{" "}
+                                            </label>
+                                            <input
+                                                id={`${flowPrefix}-actions-input-${element}`}
+                                                name={element}
+                                                type="checkbox"
+                                                defaultChecked={true}
+                                                disabled={readOnlyNode}
+                                                checked={ParentPrescriptorState.caoState.action[element]}
+                                                onChange={(event) => updateCAOState(event, "action")}
+                                            />
+                                        </div>
+                                    ))}
+                                </Card>
+                            </NodePopper>
+                        </div>
+                    </Card.Body>
+                    {!readOnlyNode ? (
+                        <div
+                            id={`${flowPrefix}-delete-div`}
+                            className="px-1 my-1"
+                            style={{position: "absolute", bottom: "0px", right: "1px"}}
                         >
-                            <Card
-                                id={`${flowPrefix}-actions-card`}
-                                className="overflow-y-auto h-40 text-xs"
+                            <button
+                                id={`${flowPrefix}-delete-button`}
+                                type="button"
+                                onClick={(event) => {
+                                    if (!showDeleteModal) {
+                                        handleDelete(event)
+                                    }
+                                }}
                             >
-                                <span
-                                    id={`${flowPrefix}-actions-text`}
-                                    className="mb-2"
-                                >
-                                    Actions
-                                </span>
-                                {Object.keys(ParentPrescriptorState.caoState.action).map((element) => (
-                                    <div
-                                        id={`${flowPrefix}-actions-div-${element}`}
-                                        key={element}
-                                        className="grid grid-cols-2 gap-4 mb-2"
-                                    >
-                                        <label
-                                            id={`${flowPrefix}-actions-label-${element}`}
-                                            className="capitalize"
-                                        >
-                                            {" "}
-                                            {element}{" "}
-                                        </label>
-                                        <input
-                                            id={`${flowPrefix}-actions-input-${element}`}
-                                            name={element}
-                                            type="checkbox"
-                                            defaultChecked={true}
-                                            disabled={readOnlyNode}
-                                            checked={ParentPrescriptorState.caoState.action[element]}
-                                            onChange={(event) => updateCAOState(event, "action")}
-                                        />
-                                    </div>
-                                ))}
-                            </Card>
-                        </NodePopper>
-                    </div>
-                </Card.Body>
-                {!readOnlyNode ? (
-                    <div
-                        id={`${flowPrefix}-delete-div`}
-                        className="px-1 my-1"
-                        style={{position: "absolute", bottom: "0px", right: "1px"}}
-                    >
-                        <button
-                            id={`${flowPrefix}-delete-button`}
-                            type="button"
-                            onClick={(event) => {
-                                if (!showDeleteModal) {
-                                    handleDelete(event)
-                                }
-                            }}
-                        >
-                            <AiFillDelete
-                                id={`${flowPrefix}-delete-button-fill`}
-                                size="15"
-                                color={trashColor}
-                                onMouseEnter={() => setTrashHover(true)}
-                                onMouseLeave={() => setTrashHover(false)}
-                            />
-                        </button>
-                    </div>
-                ) : null}
-            </Card>
+                                <AiFillDelete
+                                    id={`${flowPrefix}-delete-button-fill`}
+                                    size="15"
+                                    color={trashColor}
+                                    onMouseEnter={() => setTrashHover(true)}
+                                    onMouseLeave={() => setTrashHover(false)}
+                                />
+                            </button>
+                        </div>
+                    ) : null}
+                </Card>
 
-            <Handle
-                id={`${flowPrefix}-source-handle`}
-                type="source"
-                position={HandlePosition.Right}
-            />
-            <Handle
-                id={`${flowPrefix}-target-handle`}
-                type="target"
-                position={HandlePosition.Left}
-            />
-        </BlueprintCard>
+                <Handle
+                    id={`${flowPrefix}-source-handle`}
+                    type="source"
+                    position={HandlePosition.Right}
+                />
+                <Handle
+                    id={`${flowPrefix}-target-handle`}
+                    type="target"
+                    position={HandlePosition.Left}
+                />
+            </BlueprintCard>
+            {showDeleteModal && (
+                <ConfirmationModal
+                    cancelBtnLabel="Keep"
+                    content={
+                        <span id={`delete-confirm-${flowPrefix}-message`}>
+                            The node will be removed permanently{" "}
+                            <b id={`bold-tag-${flowPrefix}`}>along with any associated downstream nodes.</b>
+                            This cannot be undone.
+                        </span>
+                    }
+                    handleCancel={() => {
+                        setShowDeleteModal(false)
+                    }}
+                    handleOk={async () => {
+                        DeleteNode(NodeID)
+                        setShowDeleteModal(false)
+                    }}
+                    id={`terminate-confirm-${flowPrefix}-dialog`}
+                    okBtnLabel="Delete"
+                    title={<span id={`delete-confirm-${flowPrefix}-title`}>Delete this Prescriptor node?</span>}
+                />
+            )}
+        </>
     )
 }
 

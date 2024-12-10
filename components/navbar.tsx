@@ -61,6 +61,7 @@ function Navbar(props: NavbarProps): ReactElement {
 
     const authenticationType = currentUser ? `ALB using ${oidcProvider}` : "NextAuth"
 
+    // For email dialog
     const [emailDialogOpen, setEmailDialogOpen] = useState(false)
 
     async function handleSignOut() {
@@ -164,11 +165,9 @@ function Navbar(props: NavbarProps): ReactElement {
                                     </Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown>
-                            {emailDialogOpen ? (
-                                // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                            {emailDialogOpen && (
                                 <ConfirmationModal
-                                    title={CONTACT_US_CONFIRMATION_DIALOG_TITLE}
-                                    text={CONTACT_US_CONFIRMATION_DIALOG_TEXT}
+                                    content={CONTACT_US_CONFIRMATION_DIALOG_TEXT}
                                     handleCancel={() => {
                                         setEmailDialogOpen(false)
                                     }}
@@ -176,8 +175,10 @@ function Navbar(props: NavbarProps): ReactElement {
                                         window.location.href = `mailto:${supportEmailAddress}`
                                         setEmailDialogOpen(false)
                                     }}
+                                    id="email-dialog"
+                                    title={CONTACT_US_CONFIRMATION_DIALOG_TITLE}
                                 />
-                            ) : null}
+                            )}
                             {userInfo && (
                                 <Dropdown
                                     id="user-dropdown"

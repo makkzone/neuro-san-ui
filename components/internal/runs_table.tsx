@@ -3,13 +3,10 @@
  */
 
 import Tooltip from "@mui/material/Tooltip"
-import {Tooltip as AntdTooltip, Modal} from "antd"
-import debounce from "lodash/debounce"
 import {
     ReactElement,
     KeyboardEvent as ReactKeyboardEvent,
     MouseEvent as ReactMouseEvent,
-    useCallback,
     useEffect,
     useState,
 } from "react"
@@ -36,6 +33,7 @@ import {toFriendlyDateTime} from "../../utils/dateTime"
 import {downloadFile} from "../../utils/file"
 import {useExtendedState} from "../../utils/state"
 import {removeItemOnce} from "../../utils/transformation"
+import {ConfirmationModal} from "../confirmationModal"
 import {InfoTip} from "../infotip"
 import {NotificationType, sendNotification} from "../notification"
 
@@ -57,12 +55,24 @@ interface RunTableProps {
 }
 
 export default function RunsTable(props: RunTableProps): ReactElement {
-    // State for runs that are being deleted. In general there would be only one unless the user is clicking like mad
+    // State for runs that are being deleted.
     const [runsBeingDeleted, setRunsBeingDeleted, getRunsBeingDeleted] = useExtendedState<number[]>([])
+
+    // Delete run modal
+    const [deleteRunModalOpen, setDeleteRunModalOpen] = useState<boolean>(false)
+    const [selectedDeleteIdx, setSelectedDeleteIdx] = useState<number | null>(null)
+    const [selectedDeleteRun, setSelectedDeleteRun] = useState<Run | null>(null)
+    const [selectedDeleteRunName, setSelectedDeleteRunName] = useState<string | number>("")
+
+    // Terminate run modal
+    const [selectedTerminateIdx, setSelectedTerminateIdx] = useState<number | null>(null)
+    const [selectedTerminateRun, setSelectedTerminateRun] = useState<Run | null>(null)
+    const [selectedTerminateRunName, setSelectedTerminateRunName] = useState<string | number>("")
+    const [terminateRunModalOpen, setTerminateRunModalOpen] = useState<boolean>(false)
 
     // Keeps track of which artifact user wants to download for each Run. Map of runId: artifact_name.
     // Can't initialize this to anything useful here because we don't yet know how many Runs there will be.
-    const [selectedArtifacts, setSelectedArtifacts] = useState({})
+    const [selectedArtifacts, setSelectedArtifacts] = useState<object>({})
 
     // Allows the trash icon to change color when user hovers over it.
     // It will be a map of run id to boolean since we can have multiple runs per page.
@@ -74,74 +84,34 @@ export default function RunsTable(props: RunTableProps): ReactElement {
     function handleTerminateRun(event: ReactMouseEvent<HTMLElement>, run: Run, idx: number) {
         const runName = run.name ?? run.id
         event.preventDefault()
-        Modal.confirm({
-            title: (
-                <span id={`terminate-confirm-${runName}-title`}>
-                    Terminate in-progress training run &quot;{runName}&quot;?
-                </span>
-            ),
-            content: (
-                <span id={`terminate-confirm-${runName}-message`}>
-                    This cannot be undone. All existing training progress will be lost.
-                </span>
-            ),
-            okButtonProps: {
-                id: `terminate-confirm-${runName}-ok-button`,
-            },
-            okText: "Terminate",
-            onOk: async () => {
-                await abortRun(idx, run)
-            },
-            cancelText: "Do not terminate",
-            cancelButtonProps: {
-                id: `terminate-confirm-${runName}-cancel-button`,
-            },
-        })
+        setSelectedTerminateIdx(idx)
+        setSelectedTerminateRun(run)
+        setSelectedTerminateRunName(runName)
+        setTerminateRunModalOpen(true)
     }
-
-    // Use lodash to debounce delete (in case user clicks delete multiple times)
-    const debouncedTerminateRun = useCallback(
-        debounce(
-            (event: ReactMouseEvent<HTMLElement>, run: Run, idx: number) => {
-                handleTerminateRun(event, run, idx)
-            },
-            1000,
-            {leading: true, trailing: false, maxWait: 1000}
-        ),
-        []
-    )
 
     function handleDelete(event, idx: number, run: Run) {
         event.preventDefault()
         const runName = run.name ?? run.id
-        Modal.confirm({
-            title: <span id={`delete-confirm-${runName}-title`}>Delete training run &quot;{runName}&quot;?</span>,
-            content: <span id={`delete-confirm-${runName}-message`}>This cannot be undone.</span>,
-            okButtonProps: {
-                id: `delete-confirm-${runName}-ok-button`,
-            },
-            okText: "Delete",
-            cancelText: "Keep",
-            onOk: async () => {
-                await deleteRun(idx, run)
-            },
-            cancelButtonProps: {
-                id: `delete-confirm-${runName}-cancel-button`,
-            },
-        })
+        setSelectedDeleteIdx(idx)
+        setSelectedDeleteRun(run)
+        setSelectedDeleteRunName(runName)
+        setDeleteRunModalOpen(true)
     }
 
-    // Use lodash to debounce delete (in case user clicks delete multiple times)
-    const debouncedDelete = useCallback(
-        debounce(
-            (event, idx: number, run: Run) => {
-                handleDelete(event, idx, run)
-            },
-            1000,
-            {leading: true, trailing: false, maxWait: 1000}
-        ),
-        [props.runs]
-    )
+    function closeAndResetTerminateRunModal() {
+        setTerminateRunModalOpen(false)
+        setSelectedDeleteIdx(null)
+        setSelectedDeleteRun(null)
+        setSelectedDeleteRunName(null)
+    }
+
+    function closeAndResetDeleteRunModal() {
+        setDeleteRunModalOpen(false)
+        setSelectedDeleteIdx(null)
+        setSelectedDeleteRun(null)
+        setSelectedDeleteRunName(null)
+    }
 
     function resetEditingLoading(idx: number) {
         // Reset the Editing Field
@@ -393,31 +363,33 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                             paddingRight: 0,
                         }}
                     >
-                        <AntdTooltip
+                        <Tooltip
                             id={`run-name-tooltip-${idx}`}
                             title={runTitle}
                         >
-                            <button
-                                id={`run-button-${runId}`}
-                                style={{
-                                    color: run.completed ? MaximumBlue : "gray",
-                                    pointerEvents: run.completed ? "auto" : "none",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                    overflow: "hidden",
-                                    width: "100%",
-                                    padding: 0,
-                                }}
-                                disabled={!run.completed}
-                                onClick={() => {
-                                    props.setSelectedRunID(run.id)
-                                    props.setSelectedRunName(runTitle)
-                                    props.setRunDrawer(true)
-                                }}
-                            >
-                                {runTitle}
-                            </button>
-                        </AntdTooltip>
+                            <span id="run_button_span">
+                                <button
+                                    id={`run-button-${runId}`}
+                                    style={{
+                                        color: run.completed ? MaximumBlue : "gray",
+                                        pointerEvents: run.completed ? "auto" : "none",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        width: "100%",
+                                        padding: 0,
+                                    }}
+                                    disabled={!run.completed}
+                                    onClick={() => {
+                                        props.setSelectedRunID(run.id)
+                                        props.setSelectedRunName(runTitle)
+                                        props.setRunDrawer(true)
+                                    }}
+                                >
+                                    {runTitle}
+                                </button>
+                            </span>
+                        </Tooltip>
                     </Col>
 
                     {props.projectPermissions?.update ? (
@@ -689,20 +661,23 @@ export default function RunsTable(props: RunTableProps): ReactElement {
             <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 title="Delete Run"
             >
-                <button
-                    id={`delete-training-run-${runId}-button`}
-                    className="align-center"
-                    onClick={(event: ReactMouseEvent<HTMLElement>) => debouncedDelete(event, idx, run)}
-                >
-                    <AiFillDelete
-                        id={`delete-training-run-${idx}-fill`}
-                        className="hover:text-red-700"
-                        size={25}
-                        color={trashHover[runId] ? "var(--bs-red)" : null}
-                        onMouseEnter={() => setTrashHover({...trashHover, [runId]: true})}
-                        onMouseLeave={() => setTrashHover({...trashHover, [runId]: false})}
-                    />
-                </button>
+                <span id="delete_button_span">
+                    <button
+                        className="align-center"
+                        disabled={deleteRunModalOpen}
+                        id={`delete-training-run-${runId}-button`}
+                        onClick={(event: ReactMouseEvent<HTMLElement>) => handleDelete(event, idx, run)}
+                    >
+                        <AiFillDelete
+                            id={`delete-training-run-${idx}-fill`}
+                            className="hover:text-red-700"
+                            size={25}
+                            color={trashHover[runId] ? "var(--bs-red)" : null}
+                            onMouseEnter={() => setTrashHover({...trashHover, [runId]: true})}
+                            onMouseLeave={() => setTrashHover({...trashHover, [runId]: false})}
+                        />
+                    </button>
+                </span>
             </Tooltip>
         )
     }
@@ -718,18 +693,20 @@ export default function RunsTable(props: RunTableProps): ReactElement {
             <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 title="Terminate Run"
             >
-                <button
-                    id={`terminate-training-run-${runId}-button`}
-                    disabled={run.completed}
-                    className="align-center"
-                    onClick={(event: ReactMouseEvent<HTMLElement>) => debouncedTerminateRun(event, run, idx)}
-                >
-                    <BiNoEntry
-                        id={`terminate-training-run-${runId}-fill`}
-                        className="hover:text-red-700"
-                        size={25}
-                    />
-                </button>
+                <span id="terminate_button_span">
+                    <button
+                        id={`terminate-training-run-${runId}-button`}
+                        disabled={run.completed || terminateRunModalOpen}
+                        className="align-center"
+                        onClick={(event: ReactMouseEvent<HTMLElement>) => handleTerminateRun(event, run, idx)}
+                    >
+                        <BiNoEntry
+                            id={`terminate-training-run-${runId}-fill`}
+                            className="hover:text-red-700"
+                            size={25}
+                        />
+                    </button>
+                </span>
             </Tooltip>
         )
     }
@@ -769,42 +746,88 @@ export default function RunsTable(props: RunTableProps): ReactElement {
     const runRows = createRunRows()
 
     return (
-        <div
-            id="run-table-div-1"
-            className="flex flex-col mt-4"
-        >
+        <>
             <div
-                id="run-table-div-2"
-                className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8"
+                id="run-table-div-1"
+                className="flex flex-col mt-4"
             >
                 <div
-                    id="run-table-div-3"
-                    className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8"
+                    id="run-table-div-2"
+                    className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8"
                 >
                     <div
-                        id="run-table-div-4"
-                        className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg"
+                        id="run-table-div-3"
+                        className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8"
                     >
-                        <table
-                            id="run-table"
-                            className="min-w-full divide-y divide-gray-200"
+                        <div
+                            id="run-table-div-4"
+                            className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg"
                         >
-                            <thead
-                                id="run-table-head"
-                                className="bg-gray-50"
+                            <table
+                                id="run-table"
+                                className="min-w-full divide-y divide-gray-200"
                             >
-                                <tr id="run-table-header-elements">{tableHeaderElements}</tr>
-                            </thead>
-                            <tbody
-                                id="run-table-body"
-                                className="bg-white divide-y divide-gray-200"
-                            >
-                                {runRows}
-                            </tbody>
-                        </table>
+                                <thead
+                                    id="run-table-head"
+                                    className="bg-gray-50"
+                                >
+                                    <tr id="run-table-header-elements">{tableHeaderElements}</tr>
+                                </thead>
+                                <tbody
+                                    id="run-table-body"
+                                    className="bg-white divide-y divide-gray-200"
+                                >
+                                    {runRows}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+            {terminateRunModalOpen && (
+                <ConfirmationModal
+                    cancelBtnLabel="Do not terminate"
+                    content={
+                        <span id={`terminate-confirm-${selectedTerminateRunName}-message`}>
+                            This cannot be undone. All existing training progress will be lost.
+                        </span>
+                    }
+                    handleCancel={() => {
+                        closeAndResetTerminateRunModal()
+                    }}
+                    handleOk={async () => {
+                        await abortRun(selectedTerminateIdx, selectedTerminateRun)
+                        closeAndResetTerminateRunModal()
+                    }}
+                    id={`terminate-confirm-${selectedTerminateRunName}-dialog`}
+                    okBtnLabel="Terminate"
+                    title={
+                        <span id={`terminate-confirm-${selectedTerminateRunName}-title`}>
+                            Terminate in-progress training run &quot;{selectedTerminateRunName}&quot;?
+                        </span>
+                    }
+                />
+            )}
+            {deleteRunModalOpen && (
+                <ConfirmationModal
+                    cancelBtnLabel="Keep"
+                    content={<span id={`delete-confirm-${selectedDeleteRunName}-message`}>This cannot be undone.</span>}
+                    handleCancel={() => {
+                        closeAndResetDeleteRunModal()
+                    }}
+                    handleOk={async () => {
+                        await deleteRun(selectedDeleteIdx, selectedDeleteRun)
+                        closeAndResetDeleteRunModal()
+                    }}
+                    id={`terminate-confirm-${selectedDeleteRunName}-dialog`}
+                    okBtnLabel="Delete"
+                    title={
+                        <span id={`delete-confirm-${selectedDeleteRunName}-title`}>
+                            Delete training run &quot;{selectedDeleteRunName}&quot;?
+                        </span>
+                    }
+                />
+            )}
+        </>
     )
 }

@@ -136,8 +136,8 @@ describe("Project sharing Component", () => {
 
         // handle confirmation modal
         await waitFor(() => {
-            const confirmationModal = document.getElementsByClassName("ant-modal-confirm-content")[0]
-            expect(confirmationModal).toBeInTheDocument()
+            const removeShareDialog = document.getElementById("remove-share-dialog-confirm-content")
+            expect(removeShareDialog).toBeInTheDocument()
         })
 
         let removeConfirmButton

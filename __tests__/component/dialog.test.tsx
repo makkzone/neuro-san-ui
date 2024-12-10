@@ -38,4 +38,20 @@ describe("Dialog", () => {
         expect(screen.queryByText("Dialog Test")).not.toBeInTheDocument()
         expect(screen.queryByText("Dialog Body")).not.toBeInTheDocument()
     })
+
+    it("should render Dialog footer when it is passed", async () => {
+        render(
+            <MUIDialog
+                footer={<>Dialog Footer</>}
+                id="dialog-test"
+                isOpen={true}
+                onClose={onClose}
+                title="Dialog Test"
+            >
+                Dialog Body
+            </MUIDialog>
+        )
+
+        expect(screen.getByText("Dialog Footer")).toBeInTheDocument()
+    })
 })

@@ -197,7 +197,7 @@ export const UIMockupGenerator: FC<UIMockupGeneratorProps> = ({
             id="ui-mockup-dialog"
             isOpen={isOpen}
             onClose={onClose}
-            contentProps={{display: "flex", flexDirection: "column", minWidth: "2000px", minHeight: "800px"}}
+            contentSx={{display: "flex", flexDirection: "column", minWidth: "2000px", minHeight: "800px"}}
             paperProps={{
                 sx: {
                     display: "flex",

@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom"
 // eslint-disable-next-line no-shadow
-import {act, render, screen} from "@testing-library/react"
+import {render, screen} from "@testing-library/react"
 import {userEvent} from "@testing-library/user-event"
 
 import {ConfirmationModal} from "../../components/confirmationModal"
@@ -11,50 +11,53 @@ describe("ConfirmationModal", () => {
 
     const confirmationModalComponent = (
         <ConfirmationModal
-            title="confirmation-title"
-            text="confirmation-text"
+            content="confirmation-text"
             handleCancel={handleCancelMock}
             handleOk={handleConfirmMock}
+            id="test-confirmation-modal"
+            title="confirmation-title"
         />
     )
-    it("should render a confirmation modal with two options", async () => {
+
+    it("should render a confirmation modal", async () => {
         render(confirmationModalComponent)
 
         const modalTitle = screen.getByText("confirmation-title")
         const modalText = screen.getByText("confirmation-text")
-        const confirmBtn = screen.getByText("Confirm")
         const cancelBtn = screen.getByText("Cancel")
+        const confirmBtn = screen.getByText("Confirm")
 
         expect(modalTitle).toBeInTheDocument()
         expect(modalText).toBeInTheDocument()
-        expect(confirmBtn).toBeInTheDocument()
         expect(cancelBtn).toBeInTheDocument()
+        expect(confirmBtn).toBeInTheDocument()
     })
 
-    it("should close modal when confirm button is clicked", async () => {
-        render(confirmationModalComponent)
-
-        const modalTitle = screen.getByText("confirmation-title")
-        const confirmBtn = screen.getByText("Confirm").closest("button") as HTMLElement
-
-        await act(async () => {
-            confirmBtn.click()
-        })
-
-        expect(handleConfirmMock).toHaveBeenCalled()
-        expect(modalTitle).not.toBeInTheDocument()
-    })
-
-    it("should close modal when cancel button is clicked", async () => {
+    it("should close modal when Cancel button is clicked", async () => {
         const user = userEvent.setup()
         render(confirmationModalComponent)
 
-        const modalTitle = screen.getByText("confirmation-title")
+        const modalText = screen.getByText("confirmation-text")
         const cancelBtn = screen.getByText("Cancel").closest("button") as HTMLElement
 
+        expect(modalText).toBeVisible()
         await user.click(cancelBtn)
 
         expect(handleCancelMock).toHaveBeenCalled()
-        expect(modalTitle).not.toBeInTheDocument()
+        expect(modalText).not.toBeVisible()
+    })
+
+    it("should close modal when Confirm button is clicked", async () => {
+        const user = userEvent.setup()
+        render(confirmationModalComponent)
+
+        const modalText = screen.getByText("confirmation-text")
+        const confirmBtn = screen.getByText("Confirm").closest("button") as HTMLElement
+
+        expect(modalText).toBeVisible()
+        await user.click(confirmBtn)
+
+        expect(handleConfirmMock).toHaveBeenCalled()
+        expect(modalText).not.toBeVisible()
     })
 })

@@ -10,6 +10,7 @@ import useEnvironmentStore from "../state/environment"
 import useFeaturesStore from "../state/features"
 import {getTitleBase} from "../utils/title"
 
+// #region: Styled Components
 const OuterContainer = styled.div`
     width: 100%;
     min-height: 75vh;
@@ -61,6 +62,7 @@ const HeaderLineFive = styled.h5`
     color: white;
     font-weight: bold;
 `
+// #endregion: Styled Components
 
 // Main function.
 // Has to be export default for NextJS so tell ts-prune to ignore
@@ -75,8 +77,9 @@ export default function Index(): ReactElement {
     const {supportEmailAddress} = useEnvironmentStore()
 
     // Keeps track of which button the user is hovering over. Either a button id or null
-    const [hoveredId, setHoveredId] = useState<string>(null)
+    const [hoveredId, setHoveredId] = useState<string | null>(null)
 
+    // For email dialog
     const [emailDialogOpen, setEmailDialogOpen] = useState<boolean>(false)
 
     const handleMouseEnter = (event: ReactMouseEvent) => {
@@ -111,11 +114,9 @@ export default function Index(): ReactElement {
 
     return (
         <div id="splash-page__container">
-            {emailDialogOpen ? (
-                // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+            {emailDialogOpen && (
                 <ConfirmationModal
-                    title={CONTACT_US_CONFIRMATION_DIALOG_TITLE}
-                    text={CONTACT_US_CONFIRMATION_DIALOG_TEXT}
+                    content={CONTACT_US_CONFIRMATION_DIALOG_TEXT}
                     handleCancel={() => {
                         setEmailDialogOpen(false)
                     }}
@@ -123,8 +124,10 @@ export default function Index(): ReactElement {
                         window.location.href = `mailto:${supportEmailAddress}`
                         setEmailDialogOpen(false)
                     }}
+                    id="email-dialog"
+                    title={CONTACT_US_CONFIRMATION_DIALOG_TITLE}
                 />
-            ) : null}
+            )}
             <OuterContainer id="outer-container">
                 <Marginer id="marginer">
                     <Navbar id="nav-bar">
