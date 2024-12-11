@@ -53,10 +53,6 @@ LOCAL_PATH="$NEURO_SAN_PROTO_DIR/neuro_san/api/grpc"
 # Create the directory structure
 mkdir -p "$LOCAL_PATH"
 
-echo "******* check the pat *********
-echo $LEAF_SOURCE_CREDENTIALS
-echo "******* end pat check *********
-
 # Get the agent.proto file from the neuro-san repository. Initially just this one file.
 curl --header "Authorization: token $LEAF_SOURCE_CREDENTIALS" \
   --header "Accept: application/vnd.github.raw+json" \
@@ -65,10 +61,6 @@ curl --header "Authorization: token $LEAF_SOURCE_CREDENTIALS" \
   --show-error \
   --silent \
   "https://api.github.com/repos/leaf-ai/neuro-san/contents/neuro_san/api/grpc/agent.proto?ref=${NEURO_SAN_VERSION}"
-
-echo "******** see what got downloaded ************"
-cat "$LOCAL_PATH/agent.proto"
-echo "**** end of cat *********"
 
 # Hack: google proto files expect to be in a certain hardcoded location, so we copy them there
 cp -r "node_modules/protobufjs/google" "${PROTOS_DIR}/internal"
