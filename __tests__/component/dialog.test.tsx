@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom"
 // eslint-disable-next-line no-shadow
 import {render, screen} from "@testing-library/react"
+import {userEvent} from "@testing-library/user-event"
 
 import {MUIDialog} from "../../components/dialog"
 
@@ -53,5 +54,26 @@ describe("Dialog", () => {
         )
 
         expect(screen.getByText("Dialog Footer")).toBeInTheDocument()
+    })
+
+    // It would be better if we actually tested if this closes. However, the `onClose` handler is designed
+    // to pass in a setter to update `isOpen`, which is not easy to test here, so we just need to check
+    // if `onClose` is called.
+    it("should call onClose when close icon is clicked", async () => {
+        const user = userEvent.setup()
+        render(
+            <MUIDialog
+                id="dialog-test"
+                isOpen={true}
+                onClose={onClose}
+                title="Dialog Test"
+            >
+                Dialog Body
+            </MUIDialog>
+        )
+
+        const closeBtn = await screen.findByTestId("dialog-test-close-icon")
+        await user.click(closeBtn)
+        expect(onClose).toHaveBeenCalledTimes(1)
     })
 })

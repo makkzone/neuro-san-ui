@@ -61,7 +61,10 @@ export const MUIDialog: FC<DialogProps> = ({
                 top: 8,
             }}
         >
-            <CloseIcon id={`${id}-close-icon`} />
+            <CloseIcon
+                data-testid={`${id}-close-icon`}
+                id={`${id}-close-icon`}
+            />
         </IconButton>
         <DialogContent
             id={`${id}-content`}

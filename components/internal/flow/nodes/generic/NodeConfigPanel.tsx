@@ -1,6 +1,5 @@
 import InfoIcon from "@mui/icons-material/Info"
 import Tooltip from "@mui/material/Tooltip"
-import {Tooltip as AntdTooltip} from "antd"
 import Slider from "rc-slider"
 import {Dispatch, SetStateAction} from "react"
 import {Card, Col, Container, Row} from "react-bootstrap"
@@ -133,12 +132,12 @@ const NodeConfigPanel = ({
                                 disabled={readOnlyNode}
                                 handleRender={(node) => {
                                     return (
-                                        <AntdTooltip
+                                        <Tooltip
                                             id={`${flowPrefix}-train-slider-tooltip${idExtension}`}
                                             title={`${parentNodeState.trainSliderValue}%`}
                                         >
                                             {node}
-                                        </AntdTooltip>
+                                        </Tooltip>
                                     )
                                 }}
                             />
@@ -172,12 +171,12 @@ const NodeConfigPanel = ({
                                 disabled={readOnlyNode}
                                 handleRender={(node) => {
                                     return (
-                                        <AntdTooltip
+                                        <Tooltip
                                             id={`${flowPrefix}-test-slider-tooltip${idExtension}`}
                                             title={`${parentNodeState.testSliderValue}%`}
                                         >
                                             {node}
-                                        </AntdTooltip>
+                                        </Tooltip>
                                     )
                                 }}
                             />
