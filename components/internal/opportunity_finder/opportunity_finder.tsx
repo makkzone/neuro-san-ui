@@ -2,13 +2,12 @@
  * See main function description.
  */
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
-import {styled} from "@mui/material"
+import {DeleteOutline, Loop} from "@mui/icons-material"
+import {Box, Button, FormGroup, FormLabel, Input, styled} from "@mui/material"
 import {Alert, Collapse, Tooltip} from "antd"
 import NextImage from "next/image"
-import {CSSProperties, FormEvent, ReactElement, ReactNode, useEffect, useRef, useState} from "react"
-import {Button, Form, InputGroup} from "react-bootstrap"
-import {BsStopBtn, BsTrash} from "react-icons/bs"
-import {FiRefreshCcw} from "react-icons/fi"
+import {CSSProperties, ReactElement, MouseEvent as ReactMouseEvent, ReactNode, useEffect, useRef, useState} from "react"
+import {BsStopBtn} from "react-icons/bs"
 import {MdCode, MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
 import Select from "react-select"
 import ClipLoader from "react-spinners/ClipLoader"
@@ -21,7 +20,7 @@ import {experimentGeneratedMessage} from "./common"
 import {INLINE_ALERT_PROPERTIES} from "./const"
 import {FormattedMarkdown} from "./FormattedMarkdown"
 import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
-import {DEFAULT_USER_IMAGE, MaximumBlue, SecondaryBlue} from "../../../const"
+import {DEFAULT_USER_IMAGE, SecondaryBlue} from "../../../const"
 import {sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
 import {AgentStatus, ChatResponse} from "../../../generated/unileaf_agent"
@@ -68,8 +67,8 @@ const LLMChatGroupConfigBtn = styled(Button, {
     right: posRight || null,
     top: 10,
     zIndex: 99999,
-    background: `${enabled ? MaximumBlue : "darkgray"} !important`,
-    borderColor: `${enabled ? MaximumBlue : "darkgray"} !important`,
+    background: `${enabled ? "var(--bs-primary)" : "darkgray"} !important`,
+    borderColor: `${enabled ? "var(--bs-primary)" : "darkgray"} !important`,
     color: "white",
 }))
 // #endregion: Styled Components
@@ -287,7 +286,7 @@ export function OpportunityFinder(): ReactElement {
 
     const getUserImageAndUserQuery = (userQuery: string): ReactElement => (
         // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-        <div className="mb-3">
+        <div style={{marginBottom: "1rem"}}>
             {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
             <UserQueryContainer>
                 <NextImage
@@ -301,7 +300,7 @@ export function OpportunityFinder(): ReactElement {
                 />
                 <span
                     id="user-query"
-                    className="ml-2.5 mt-0.5"
+                    style={{marginLeft: "0.625rem", marginTop: "0.125rem"}}
                 >
                     {userQuery}
                 </span>
@@ -502,14 +501,9 @@ export function OpportunityFinder(): ReactElement {
 
     // Render the component
     return (
-        <Form
+        <Box
             id="user-query-form"
-            onSubmit={async function (event: FormEvent<HTMLFormElement>) {
-                // Prevent submitting form
-                event.preventDefault()
-                await sendQuery(chatInput)
-            }}
-            style={{marginBottom: "6rem", paddingBottom: "15px"}}
+            sx={{marginBottom: "6rem", paddingBottom: "15px"}}
         >
             <AgentButtons
                 id="opp-finder-agent-buttons"
@@ -519,16 +513,16 @@ export function OpportunityFinder(): ReactElement {
                 setSelectedAgent={setSelectedAgent}
             />
             {isDataGenerator && codeJsonThemeEnabled && (
-                <Form.Group
+                <FormGroup
                     id="select-theme-group"
-                    style={{fontSize: "0.9rem", margin: "10px", position: "relative"}}
+                    sx={{fontSize: "0.9rem", margin: "10px", position: "relative"}}
                 >
-                    <Form.Label
+                    <FormLabel
                         id="select-theme-label"
                         style={{marginRight: "1rem", marginBottom: "0.5rem"}}
                     >
                         Code/JSON theme:
-                    </Form.Label>
+                    </FormLabel>
                     <Select
                         id="syntax-highlighter-select"
                         value={{label: selectedTheme, value: selectedTheme}}
@@ -551,7 +545,7 @@ export function OpportunityFinder(): ReactElement {
                             },
                         ]}
                     />
-                </Form.Group>
+                </FormGroup>
             )}
             {projectUrl.current && (
                 // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
@@ -563,10 +557,10 @@ export function OpportunityFinder(): ReactElement {
                     closable={true}
                 />
             )}
-            <Form.Group id="llm-chat-group">
-                <div
+            <Box id="llm-chat-group">
+                <Box
                     id="llm-response-div"
-                    style={{...divStyle, height: "50vh", margin: "10px", position: "relative"}}
+                    sx={{...divStyle, height: "50vh", margin: "10px", position: "relative"}}
                 >
                     {isDataGenerator && (
                         <Tooltip
@@ -599,7 +593,7 @@ export function OpportunityFinder(): ReactElement {
                             enabled={autoScrollEnabled}
                             id="autoscroll-button"
                             onClick={() => setAutoScrollEnabled(!autoScrollEnabled)}
-                            posRight={65}
+                            posRight={80}
                         >
                             <MdVerticalAlignBottom
                                 id="autoscroll-icon"
@@ -625,10 +619,10 @@ export function OpportunityFinder(): ReactElement {
                             />
                         </LLMChatGroupConfigBtn>
                     </Tooltip>
-                    <div
+                    <Box
                         id="llm-responses"
                         ref={chatOutputRef}
-                        style={{
+                        sx={{
                             backgroundColor: SecondaryBlue,
                             borderWidth: "1px",
                             borderRadius: "0.5rem",
@@ -653,9 +647,9 @@ export function OpportunityFinder(): ReactElement {
                             "(Agent output will appear here)"
                         )}
                         {awaitingResponse && (
-                            <div
+                            <Box
                                 id="awaitingOutputContainer"
-                                style={{display: "flex", alignItems: "center", fontSize: "smaller"}}
+                                sx={{display: "flex", alignItems: "center", fontSize: "smaller"}}
                             >
                                 <span
                                     id="working-span"
@@ -667,9 +661,9 @@ export function OpportunityFinder(): ReactElement {
                                     id="awaitingOutputSpinner"
                                     size="1rem"
                                 />
-                            </div>
+                            </Box>
                         )}
-                    </div>
+                    </Box>
                     <Button
                         id="clear-chat-button"
                         onClick={() => {
@@ -678,10 +672,9 @@ export function OpportunityFinder(): ReactElement {
                             setPreviousUserQuery("")
                             projectUrl.current = null
                         }}
-                        variant="secondary"
-                        style={{
-                            background: MaximumBlue,
-                            borderColor: MaximumBlue,
+                        sx={{
+                            background: "var(--bs-primary)",
+                            borderColor: "var(--bs-primary)",
                             bottom: 10,
                             color: "white",
                             display: awaitingResponse ? "none" : "inline",
@@ -694,21 +687,18 @@ export function OpportunityFinder(): ReactElement {
                         }}
                         disabled={disableClearChatButton}
                     >
-                        <BsTrash
+                        <DeleteOutline
                             id="stop-button-icon"
-                            size={15}
-                            className="mr-2"
-                            style={{display: "inline"}}
+                            sx={{marginRight: "0.5rem", display: "inline"}}
                         />
                         Clear chat
                     </Button>
                     <Button
                         id="stop-output-button"
                         onClick={() => handleStop()}
-                        variant="secondary"
-                        style={{
-                            background: MaximumBlue,
-                            borderColor: MaximumBlue,
+                        sx={{
+                            background: "var(--bs-primary)",
+                            borderColor: "var(--bs-primary)",
                             bottom: 10,
                             color: "white",
                             display: awaitingResponse ? "inline" : "none",
@@ -723,8 +713,7 @@ export function OpportunityFinder(): ReactElement {
                         <BsStopBtn
                             id="stop-button-icon"
                             size={15}
-                            className="mr-2"
-                            style={{display: "inline"}}
+                            style={{display: "inline", marginRight: "0.5rem"}}
                         />
                         Stop
                     </Button>
@@ -735,10 +724,9 @@ export function OpportunityFinder(): ReactElement {
                             await sendQuery(previousUserQuery)
                         }}
                         disabled={shouldDisableRegenerateButton}
-                        variant="secondary"
-                        style={{
-                            background: MaximumBlue,
-                            borderColor: MaximumBlue,
+                        sx={{
+                            background: "var(--bs-primary)",
+                            borderColor: "var(--bs-primary)",
                             bottom: 10,
                             color: "white",
                             display: awaitingResponse ? "none" : "inline",
@@ -750,40 +738,38 @@ export function OpportunityFinder(): ReactElement {
                             zIndex: 99999,
                         }}
                     >
-                        <FiRefreshCcw
+                        <Loop
                             id="generate-icon"
-                            size={15}
-                            className="mr-2"
-                            style={{display: "inline"}}
+                            style={{marginRight: "0.5rem"}}
+                            sx={{display: "inline"}}
                         />
                         Regenerate
                     </Button>
-                </div>
-                <div
-                    id="agent-select-div"
-                    style={{
-                        fontSize: "90%",
-                        marginTop: "15px",
-                        marginBottom: "15px",
-                        paddingLeft: "10px",
-                        paddingRight: "10px",
-                    }}
-                />
-                <div
+                </Box>
+                <Box
                     id="user-input-div"
-                    style={{display: "flex"}}
+                    sx={{display: "flex", gap: "10px"}}
                 >
-                    <InputGroup id="user-input-group">
-                        <Form.Control
+                    <FormGroup
+                        id="user-input-group"
+                        sx={{flex: "0 0 90%"}}
+                    >
+                        <Input
                             id="user-input"
-                            as="textarea"
-                            type="text"
                             placeholder={AGENT_PLACEHOLDERS[selectedAgent]}
                             ref={chatInputRef}
-                            style={{
+                            sx={{
+                                display: "flex",
                                 fontSize: "90%",
                                 height: "47px",
                                 marginLeft: "10px",
+                                paddingLeft: "10px",
+                                borderColor: "rgb(208, 208, 206)",
+                                borderWidth: "1.25px",
+                                borderStyle: "solid",
+                                borderTopLeftRadius: "var(--bs-border-radius)",
+                                borderBottomLeftRadius: "var(--bs-border-radius)",
+                                width: "100%",
                             }}
                             onChange={(event) => {
                                 setChatInput(event.target.value)
@@ -795,7 +781,7 @@ export function OpportunityFinder(): ReactElement {
                             onClick={() => {
                                 setChatInput("")
                             }}
-                            style={{
+                            sx={{
                                 backgroundColor: "transparent",
                                 color: "var(--bs-primary)",
                                 border: "none",
@@ -812,30 +798,26 @@ export function OpportunityFinder(): ReactElement {
                         >
                             X
                         </Button>
-                    </InputGroup>
-                    <div
-                        id="send-div"
-                        style={{display: "flex", width: "100px", justifyContent: "center"}}
+                    </FormGroup>
+                    <Button
+                        id="submit-query-button"
+                        type="submit"
+                        disabled={shouldDisableSendButton}
+                        sx={{
+                            flex: "0 0 10%",
+                            opacity: shouldDisableSendButton ? "50%" : "100%",
+                            borderStyle: "solid",
+                        }}
+                        onClick={async function (event: ReactMouseEvent<HTMLButtonElement>) {
+                            // Prevent submitting form
+                            event.preventDefault()
+                            await sendQuery(chatInput)
+                        }}
                     >
-                        <Button
-                            id="submit-query-button"
-                            variant="primary"
-                            type="submit"
-                            disabled={shouldDisableSendButton}
-                            style={{
-                                background: MaximumBlue,
-                                borderColor: MaximumBlue,
-                                color: "white",
-                                opacity: shouldDisableSendButton ? "50%" : "100%",
-                                marginLeft: "10px",
-                                marginRight: "10px",
-                            }}
-                        >
-                            Send
-                        </Button>
-                    </div>
-                </div>
-            </Form.Group>
-        </Form>
+                        Send
+                    </Button>
+                </Box>
+            </Box>
+        </Box>
     )
 }
