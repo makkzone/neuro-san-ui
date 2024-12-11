@@ -47,11 +47,16 @@ RUN --mount=type=secret,id=LEAF_SOURCE_CREDENTIALS \
     && /bin/bash -c "./grpc/do_typescript_generate.sh" \
     && yarn build
 
+# *************** debug ************
+RUN env
+#**********************************
 # Production image, copy all the files and run next
 FROM gcr.io/distroless/nodejs:$NODEJS_VERSION AS runner
 
 WORKDIR /app
-
+#**************** debug part two*****
+RUN env
+#***********************************
 ENV NODE_ENV production
 
 # You only need to copy next.config.js if you are NOT using the default configuration
