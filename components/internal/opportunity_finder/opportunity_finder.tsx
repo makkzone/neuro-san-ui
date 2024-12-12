@@ -34,7 +34,8 @@ const {Panel} = Collapse
 // #region: Types
 type LLMChatGroupConfigBtnProps = {
     enabled: boolean
-    posRight: number
+    posRight?: number
+    posBottom?: number
 }
 // #endregion: Types
 
@@ -50,6 +51,9 @@ const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
     OrchestrationAgent: "Generate the experiment",
 }
 // #endregion: Constants
+
+// Width for the various buttons -- "regenerate", "stop" etc.
+const actionButtonWidth = 126
 
 // #region: Styled Components
 const UserQueryContainer = styled("div")({
@@ -70,6 +74,27 @@ const LLMChatGroupConfigBtn = styled(Button, {
     background: `${enabled ? "var(--bs-primary)" : "darkgray"} !important`,
     borderColor: `${enabled ? "var(--bs-primary)" : "darkgray"} !important`,
     color: "white",
+}))
+
+const CommandButton = styled(Button, {
+    shouldForwardProp: (prop) => prop !== "enabled" && prop !== "posRight" && prop !== "posBottom",
+})<LLMChatGroupConfigBtnProps>(({enabled, posRight, posBottom}) => ({
+    background: "var(--bs-primary) !important",
+    borderColor: "var(--bs-primary) !important",
+    borderRadius: "var(--bs-border-radius)",
+    bottom: posBottom || null,
+    disabled: !enabled,
+    color: "white !important",
+    display: "inline",
+    fontSize: "12px",
+    fontWeight: "500",
+    right: posRight || null,
+    lineHeight: "38px",
+    width: actionButtonWidth,
+    zIndex: 99999,
+    "&:disabled": {
+        opacity: "50%",
+    },
 }))
 // #endregion: Styled Components
 
@@ -404,17 +429,14 @@ export function OpportunityFinder(): ReactElement {
     // Regex to check if user has typed anything besides whitespace
     const userInputEmpty = !chatInput || chatInput.length === 0 || hasOnlyWhitespace(chatInput)
 
-    // Disable Send when request is in progress
-    const shouldDisableSendButton = userInputEmpty || awaitingResponse
+    // Enable Send button when there is user input and not awaiting a response
+    const shouldEnableSendButton = !userInputEmpty && !awaitingResponse
 
-    // Disable Send when request is in progress
-    const shouldDisableRegenerateButton = !previousUserQuery || awaitingResponse
+    // Enable regenerate button when there is a previous query to resent, and we're not awaiting a response
+    const shouldEnableRegenerateButton = previousUserQuery && !awaitingResponse
 
-    // Width for the various buttons -- "regenerate", "stop" etc.
-    const actionButtonWidth = 126
-
-    // Disable Clear Chat button if there is no chat history or if we are awaiting a response
-    const disableClearChatButton = awaitingResponse || chatOutput.length === 0
+    // Enable Clear Chat button if not awaiting response and there is chat output to clear
+    const enableClearChatButton = !awaitingResponse && chatOutput.length > 0
 
     /**
      * Initiate the orchestration process. Sends the initial chat query to initiate the session, and saves the resulting
@@ -575,7 +597,7 @@ export function OpportunityFinder(): ReactElement {
                                 enabled={codeJsonThemeEnabled}
                                 id="autoscroll-code-json-theme"
                                 onClick={() => setCodeJsonThemeEnabled(!codeJsonThemeEnabled)}
-                                posRight={120}
+                                posRight={150}
                             >
                                 <MdCode
                                     id="code-icon"
@@ -664,7 +686,7 @@ export function OpportunityFinder(): ReactElement {
                             </Box>
                         )}
                     </Box>
-                    <Button
+                    <CommandButton
                         id="clear-chat-button"
                         onClick={() => {
                             setChatOutput([])
@@ -672,42 +694,31 @@ export function OpportunityFinder(): ReactElement {
                             setPreviousUserQuery("")
                             projectUrl.current = null
                         }}
+                        enabled={enableClearChatButton}
+                        posRight={145}
+                        posBottom={10}
                         sx={{
-                            background: "var(--bs-primary)",
-                            borderColor: "var(--bs-primary)",
-                            bottom: 10,
-                            color: "white",
                             display: awaitingResponse ? "none" : "inline",
-                            fontSize: "13.3px",
-                            opacity: disableClearChatButton ? "50%" : "70%",
+                            opacity: enableClearChatButton ? "70%" : "50%",
                             position: "absolute",
-                            right: 145,
-                            width: actionButtonWidth,
-                            zIndex: 99999,
                         }}
-                        disabled={disableClearChatButton}
                     >
                         <DeleteOutline
                             id="stop-button-icon"
                             sx={{marginRight: "0.5rem", display: "inline"}}
                         />
                         Clear chat
-                    </Button>
-                    <Button
+                    </CommandButton>
+                    <CommandButton
                         id="stop-output-button"
                         onClick={() => handleStop()}
+                        posRight={10}
+                        posBottom={10}
+                        enabled={awaitingResponse}
                         sx={{
-                            background: "var(--bs-primary)",
-                            borderColor: "var(--bs-primary)",
-                            bottom: 10,
-                            color: "white",
                             display: awaitingResponse ? "inline" : "none",
-                            fontSize: "13.3px",
                             opacity: "70%",
                             position: "absolute",
-                            right: 10,
-                            width: actionButtonWidth,
-                            zIndex: 99999,
                         }}
                     >
                         <BsStopBtn
@@ -716,26 +727,20 @@ export function OpportunityFinder(): ReactElement {
                             style={{display: "inline", marginRight: "0.5rem"}}
                         />
                         Stop
-                    </Button>
-                    <Button
+                    </CommandButton>
+                    <CommandButton
                         id="regenerate-output-button"
                         onClick={async (event) => {
                             event.preventDefault()
                             await sendQuery(previousUserQuery)
                         }}
-                        disabled={shouldDisableRegenerateButton}
+                        posRight={10}
+                        posBottom={10}
+                        enabled={shouldEnableRegenerateButton}
                         sx={{
-                            background: "var(--bs-primary)",
-                            borderColor: "var(--bs-primary)",
-                            bottom: 10,
-                            color: "white",
                             display: awaitingResponse ? "none" : "inline",
-                            fontSize: "13.3px",
-                            opacity: shouldDisableRegenerateButton ? "50%" : "70%",
+                            opacity: shouldEnableRegenerateButton ? "70%" : "50%",
                             position: "absolute",
-                            right: 10,
-                            width: actionButtonWidth,
-                            zIndex: 99999,
                         }}
                     >
                         <Loop
@@ -744,69 +749,62 @@ export function OpportunityFinder(): ReactElement {
                             sx={{display: "inline"}}
                         />
                         Regenerate
-                    </Button>
+                    </CommandButton>
                 </Box>
                 <Box
                     id="user-input-div"
-                    sx={{display: "flex", gap: "10px"}}
+                    style={{...divStyle, display: "flex", margin: "10px", alignItems: "center", position: "relative"}}
                 >
-                    <FormGroup
-                        id="user-input-group"
-                        sx={{flex: "0 0 90%"}}
-                    >
-                        <Input
-                            id="user-input"
-                            placeholder={AGENT_PLACEHOLDERS[selectedAgent]}
-                            ref={chatInputRef}
-                            sx={{
-                                display: "flex",
-                                fontSize: "90%",
-                                height: "47px",
-                                marginLeft: "10px",
-                                paddingLeft: "10px",
-                                borderColor: "rgb(208, 208, 206)",
-                                borderWidth: "1.25px",
-                                borderStyle: "solid",
-                                borderTopLeftRadius: "var(--bs-border-radius)",
-                                borderBottomLeftRadius: "var(--bs-border-radius)",
-                                width: "100%",
-                            }}
-                            onChange={(event) => {
-                                setChatInput(event.target.value)
-                            }}
-                            value={chatInput}
-                        />
-                        <Button
-                            id="clear-input-button"
-                            onClick={() => {
-                                setChatInput("")
-                            }}
-                            sx={{
-                                backgroundColor: "transparent",
-                                color: "var(--bs-primary)",
-                                border: "none",
-                                fontWeight: 550,
-                                left: "calc(100% - 45px)",
-                                lineHeight: "35px",
-                                opacity: userInputEmpty ? "25%" : "100%",
-                                position: "absolute",
-                                width: "10px",
-                                zIndex: 99999,
-                            }}
-                            disabled={userInputEmpty}
-                            tabIndex={-1}
-                        >
-                            X
-                        </Button>
-                    </FormGroup>
+                    <Input
+                        id="user-input"
+                        placeholder={AGENT_PLACEHOLDERS[selectedAgent]}
+                        ref={chatInputRef}
+                        sx={{
+                            display: "flex",
+                            flexGrow: 1,
+                            marginRight: "10px",
+                            borderWidth: "1px",
+                            borderColor: "var(--bs-border-color)",
+                            borderRadius: "0.5rem",
+                            fontSize: "smaller",
+                            paddingBottom: "7.5px",
+                            paddingTop: "7.5px",
+                            paddingLeft: "15px",
+                            paddingRight: "15px",
+                        }}
+                        onChange={(event) => {
+                            setChatInput(event.target.value)
+                        }}
+                        value={chatInput}
+                    />
                     <Button
+                        id="clear-input-button"
+                        onClick={() => {
+                            setChatInput("")
+                        }}
+                        style={{
+                            backgroundColor: "transparent",
+                            color: "var(--bs-primary)",
+                            border: "none",
+                            fontWeight: 550,
+                            left: "calc(100% - 180px)",
+                            lineHeight: "35px",
+                            opacity: userInputEmpty ? "25%" : "100%",
+                            position: "absolute",
+                            zIndex: 99999,
+                        }}
+                        disabled={userInputEmpty}
+                        tabIndex={-1}
+                    >
+                        X
+                    </Button>
+                    <CommandButton
                         id="submit-query-button"
                         type="submit"
-                        disabled={shouldDisableSendButton}
+                        posBottom={0}
+                        enabled={shouldEnableSendButton}
                         sx={{
-                            flex: "0 0 10%",
-                            opacity: shouldDisableSendButton ? "50%" : "100%",
-                            borderStyle: "solid",
+                            opacity: shouldEnableSendButton ? "100%" : "50%",
                         }}
                         onClick={async function (event: ReactMouseEvent<HTMLButtonElement>) {
                             // Prevent submitting form
@@ -815,7 +813,7 @@ export function OpportunityFinder(): ReactElement {
                         }}
                     >
                         Send
-                    </Button>
+                    </CommandButton>
                 </Box>
             </Box>
         </Box>
