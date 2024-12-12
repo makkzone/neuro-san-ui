@@ -548,8 +548,15 @@ export function OpportunityFinder(): ReactElement {
                             id="syntax-highlighter-select"
                             value={selectedTheme}
                             style={{
-                                maxWidth: "350px",
+                                width: "350px",
                                 marginBottom: "1rem",
+                            }}
+                            MenuProps={{
+                                PaperProps: {
+                                    style: {
+                                        maxHeight: "350px",
+                                    },
+                                },
                             }}
                             onChange={(event) => setSelectedTheme(event.target.value)}
                         >
@@ -557,7 +564,7 @@ export function OpportunityFinder(): ReactElement {
                                 Object.keys(theme).map((themeKey) => {
                                     if (themeKey === "label") {
                                         return (
-                                            <MenuItem
+                                            <MenuItem // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                                 id={`syntax-highlighter-select-${theme.label}`}
                                                 key={theme.label}
                                                 disabled

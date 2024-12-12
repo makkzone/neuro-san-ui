@@ -172,7 +172,7 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
                         }}
                     >
                         {playbackSpeedOptions.map((item) => (
-                            <MenuItem
+                            <MenuItem // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 id={`select-playback-speed-${item.value}`}
                                 key={item.value}
                                 value={item.value}

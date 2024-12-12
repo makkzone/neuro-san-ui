@@ -84,7 +84,7 @@ export function MultiPareto(props: ParetoPlotProps): ReactElement {
                 onChange={(event) => setSelectedChartType(event.target.value)}
             >
                 {options.map((item) => (
-                    <MenuItem
+                    <MenuItem // eslint-disable-line enforce-ids-in-jsx/missing-ids
                         disabled={item.isDisabled}
                         id={`pareto-chart-type-select-${item.value}`}
                         key={item.value}
