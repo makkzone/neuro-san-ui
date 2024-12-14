@@ -2,13 +2,12 @@
  * See main function description.
  */
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
-import {DeleteOutline, Loop} from "@mui/icons-material"
+import {DeleteOutline, Loop, StopCircle} from "@mui/icons-material"
 import {Box, Button, FormControl, FormGroup, FormLabel, Input, MenuItem, styled} from "@mui/material"
 import Select from "@mui/material/Select"
 import {Alert, Collapse, Tooltip} from "antd"
 import NextImage from "next/image"
-import {CSSProperties, ReactElement, MouseEvent as ReactMouseEvent, ReactNode, useEffect, useRef, useState} from "react"
-import {BsStopBtn} from "react-icons/bs"
+import {CSSProperties, ReactElement, ReactNode, useEffect, useRef, useState} from "react"
 import {MdCode, MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
 import ClipLoader from "react-spinners/ClipLoader"
 import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
@@ -33,7 +32,7 @@ const {Panel} = Collapse
 
 // #region: Types
 type LLMChatGroupConfigBtnProps = {
-    enabled: boolean
+    enabled?: boolean
     posRight?: number
     posBottom?: number
 }
@@ -77,24 +76,23 @@ const LLMChatGroupConfigBtn = styled(Button, {
 }))
 
 const CommandButton = styled(Button, {
-    shouldForwardProp: (prop) => prop !== "enabled" && prop !== "posRight" && prop !== "posBottom",
-})<LLMChatGroupConfigBtnProps>(({enabled, posRight, posBottom}) => ({
+    shouldForwardProp: (prop) => prop !== "posRight" && prop !== "posBottom",
+})<LLMChatGroupConfigBtnProps>(({disabled, posRight, posBottom}) => ({
     background: "var(--bs-primary) !important",
     borderColor: "var(--bs-primary) !important",
     borderRadius: "var(--bs-border-radius)",
     bottom: posBottom || null,
-    disabled: !enabled,
     color: "white !important",
     display: "inline",
-    fontSize: "12px",
+    fontSize: "15px",
     fontWeight: "500",
     right: posRight || null,
     lineHeight: "38px",
+    padding: "2px",
     width: 126,
     zIndex: 99999,
-    "&:disabled": {
-        opacity: "50%",
-    },
+    opacity: disabled ? "50%" : "70%",
+    cursor: disabled ? "pointer" : "default",
 }))
 // #endregion: Styled Components
 
@@ -721,70 +719,74 @@ export function OpportunityFinder(): ReactElement {
                             </Box>
                         )}
                     </Box>
-                    <CommandButton
-                        id="clear-chat-button"
-                        onClick={() => {
-                            setChatOutput([])
-                            chatHistory.current = []
-                            setPreviousUserQuery("")
-                            projectUrl.current = null
-                        }}
-                        enabled={enableClearChatButton}
-                        posRight={145}
-                        posBottom={10}
-                        sx={{
-                            display: awaitingResponse ? "none" : "inline",
-                            opacity: enableClearChatButton ? "70%" : "50%",
-                            position: "absolute",
-                        }}
-                    >
-                        <DeleteOutline
-                            id="stop-button-icon"
-                            sx={{marginRight: "0.5rem", display: "inline"}}
-                        />
-                        Clear chat
-                    </CommandButton>
-                    <CommandButton
-                        id="stop-output-button"
-                        onClick={() => handleStop()}
-                        posRight={10}
-                        posBottom={10}
-                        enabled={awaitingResponse}
-                        sx={{
-                            display: awaitingResponse ? "inline" : "none",
-                            opacity: "70%",
-                            position: "absolute",
-                        }}
-                    >
-                        <BsStopBtn
-                            id="stop-button-icon"
-                            size={15}
-                            style={{display: "inline", marginRight: "0.5rem"}}
-                        />
-                        Stop
-                    </CommandButton>
-                    <CommandButton
-                        id="regenerate-output-button"
-                        onClick={async (event) => {
-                            event.preventDefault()
-                            await sendQuery(previousUserQuery)
-                        }}
-                        posRight={10}
-                        posBottom={10}
-                        enabled={shouldEnableRegenerateButton}
-                        sx={{
-                            display: awaitingResponse ? "none" : "inline",
-                            opacity: shouldEnableRegenerateButton ? "70%" : "50%",
-                            position: "absolute",
-                        }}
-                    >
-                        <Loop
-                            id="generate-icon"
-                            style={{marginRight: "0.5rem"}}
-                            sx={{display: "inline"}}
-                        />
-                        Regenerate
-                    </CommandButton>
+
+                    {/*Clear Chat button*/}
+                    {!awaitingResponse && (
+                        <CommandButton
+                            id="clear-chat-button"
+                            onClick={() => {
+                                setChatOutput([])
+                                chatHistory.current = []
+                                setPreviousUserQuery("")
+                                projectUrl.current = null
+                            }}
+                            disabled={!enableClearChatButton}
+                            posRight={145}
+                            posBottom={10}
+                            sx={{
+                                position: "absolute",
+                            }}
+                        >
+                            <DeleteOutline
+                                id="stop-button-icon"
+                                sx={{marginRight: "0.25rem", display: "inline"}}
+                            />
+                            Clear Chat
+                        </CommandButton>
+                    )}
+
+                    {/*Stop Button*/}
+                    {awaitingResponse && (
+                        <CommandButton
+                            id="stop-output-button"
+                            onClick={() => handleStop()}
+                            posRight={10}
+                            posBottom={10}
+                            disabled={!awaitingResponse}
+                            sx={{
+                                position: "absolute",
+                            }}
+                        >
+                            <StopCircle
+                                id="stop-button-icon"
+                                sx={{display: "inline", marginRight: "0.5rem"}}
+                            />
+                            Stop
+                        </CommandButton>
+                    )}
+
+                    {/*Regenerate Button*/}
+                    {!awaitingResponse && (
+                        <CommandButton
+                            id="regenerate-output-button"
+                            onClick={async (event) => {
+                                event.preventDefault()
+                                await sendQuery(previousUserQuery)
+                            }}
+                            posRight={10}
+                            posBottom={10}
+                            disabled={!shouldEnableRegenerateButton}
+                            sx={{
+                                position: "absolute",
+                            }}
+                        >
+                            <Loop
+                                id="generate-icon"
+                                sx={{display: "inline", marginRight: "0.25rem"}}
+                            />
+                            Regenerate
+                        </CommandButton>
+                    )}
                 </Box>
                 <Box
                     id="user-input-div"
@@ -833,17 +835,17 @@ export function OpportunityFinder(): ReactElement {
                     >
                         X
                     </Button>
+
+                    {/*Send Button*/}
                     <CommandButton
                         id="submit-query-button"
                         type="submit"
                         posBottom={0}
-                        enabled={shouldEnableSendButton}
+                        disabled={!shouldEnableSendButton}
                         sx={{
                             opacity: shouldEnableSendButton ? "100%" : "50%",
                         }}
-                        onClick={async function (event: ReactMouseEvent<HTMLButtonElement>) {
-                            // Prevent submitting form
-                            event.preventDefault()
+                        onClick={async () => {
                             await sendQuery(chatInput)
                         }}
                     >
