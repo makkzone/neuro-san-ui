@@ -52,9 +52,6 @@ const AGENT_PLACEHOLDERS: Record<OpportunityFinderRequestType, string> = {
 }
 // #endregion: Constants
 
-// Width for the various buttons -- "regenerate", "stop" etc.
-const actionButtonWidth = 126
-
 // #region: Styled Components
 const UserQueryContainer = styled("div")({
     backgroundColor: "#FFF",
@@ -93,7 +90,7 @@ const CommandButton = styled(Button, {
     fontWeight: "500",
     right: posRight || null,
     lineHeight: "38px",
-    width: actionButtonWidth,
+    width: 126,
     zIndex: 99999,
     "&:disabled": {
         opacity: "50%",
