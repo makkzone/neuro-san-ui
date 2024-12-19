@@ -305,7 +305,8 @@
             "error",
             {
                 "code": 120,
-                "ignoreUrls": true
+                "ignoreUrls": true,
+                "ignorePattern": "^import .*"
             }
         ],
         "max-lines": "off",

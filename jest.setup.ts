@@ -3,16 +3,25 @@ import "@testing-library/jest-dom"
 import failOnConsole from "jest-fail-on-console"
 // Work around for crypto not being available in jsdom environment. See: https://github.com/jsdom/jsdom/issues/1612
 import {webcrypto} from "node:crypto"
-// eslint-disable-next-line no-undef
-Object.defineProperty(globalThis, "crypto", {
-    value: webcrypto,
-})
+// eslint-disable-next-line no-shadow
+import {ReadableStream} from "node:stream/web"
 /*
 This next part is a hack to get around "ReferenceError: TextEncoder is not defined" errors when running Jest.
 See: https://stackoverflow.com/questions/68468203/why-am-i-getting-textencoder-is-not-defined-in-jest
  */
 // eslint-disable-next-line no-shadow
 import {TextDecoder, TextEncoder} from "util"
+
+// eslint-disable-next-line no-undef
+Object.defineProperty(globalThis, "crypto", {
+    value: webcrypto,
+})
+
+// eslint-disable-next-line no-undef
+Object.defineProperties(globalThis, {
+    ReadableStream: {value: ReadableStream},
+})
+
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
 
