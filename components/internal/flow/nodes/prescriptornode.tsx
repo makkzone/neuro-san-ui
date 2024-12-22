@@ -1,4 +1,5 @@
-import {Card, CardContent, Tab, Tabs} from "@mui/material"
+import {Card, CardContent, CardHeader, FormControlLabel, Tab, Tabs, Typography} from "@mui/material"
+import Checkbox from "@mui/material/Checkbox"
 import Tooltip from "@mui/material/Tooltip"
 import Slider from "rc-slider"
 import {FC, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
@@ -960,11 +961,9 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                                 id: `${flowPrefix}-gr-settings-popper`,
                                 className: "rounded-sm shadow-2xl",
                                 style: {
-                                    backgroundColor: "var(--bs-white)",
                                     paddingBottom: "12px",
                                     overflowY: "scroll",
                                     margin: 0,
-                                    borderColor: "var(--bs-primary)",
                                     border: "4px solid var(--bs-border-color)",
                                     borderRadius: "0.5rem",
                                 },
@@ -999,49 +998,65 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                             buttonProps={{
                                 btnContent: "C",
                                 id: `${flowPrefix}-context-button`,
-                                className: "absolute top-5 -left-4",
-                                style: {height: 0},
+                                style: {height: 0, position: "absolute", top: "1.25rem", left: "-1rem"},
                             }}
                             popperProps={{
                                 id: `${flowPrefix}-context-popper`,
-                                placement: "left",
-                                className: "rounded-sm shadow-2xl",
                             }}
                         >
                             <Card
                                 id={`${flowPrefix}-context-card`}
-                                className="overflow-y-auto h-40 text-xs"
+                                sx={{
+                                    overflowY: "auto",
+                                    height: "10rem",
+                                    paddingBottom: "12px",
+                                    margin: 0,
+                                    border: "4px solid var(--bs-border-color)",
+                                    borderRadius: "0.5rem",
+                                }}
                             >
-                                <span
-                                    id={`${flowPrefix}-context-text`}
-                                    className="mb-2"
-                                >
-                                    Context
-                                </span>
-                                {Object.keys(ParentPrescriptorState.caoState.context).map((element) => (
-                                    <div
-                                        id={`${flowPrefix}-context-div`}
-                                        key={element}
-                                        className="grid grid-cols-2 gap-4 mb-2"
-                                    >
-                                        <label
-                                            id={`${flowPrefix}-context-label-${element}`}
-                                            className="capitalize"
-                                        >
-                                            {" "}
-                                            {element}{" "}
-                                        </label>
-                                        <input
-                                            id={`${flowPrefix}-context-input-${element}`}
-                                            name={element}
-                                            type="checkbox"
-                                            defaultChecked={true}
-                                            disabled={readOnlyNode}
-                                            checked={ParentPrescriptorState.caoState.context[element]}
-                                            onChange={(event) => updateCAOState(event, "context")}
+                                <CardHeader
+                                    id="context-card-header"
+                                    title="Context"
+                                    sx={{paddingBottom: 0, margin: 0}}
+                                    titleTypographyProps={{fontSize: "0.8rem", fontWeight: "bold"}}
+                                />
+                                <CardContent id={`${flowPrefix}-context-card-content`}>
+                                    {Object.keys(ParentPrescriptorState.caoState.context).map((element) => (
+                                        <FormControlLabel
+                                            id={`${flowPrefix}-context-input-${element}-label`}
+                                            key={element}
+                                            control={
+                                                <Checkbox
+                                                    id={`${flowPrefix}-context-input-${element}`}
+                                                    name={element}
+                                                    disabled={readOnlyNode}
+                                                    checked={ParentPrescriptorState.caoState.context[element]}
+                                                    onChange={(event) => updateCAOState(event, "context")}
+                                                    size={"small"}
+                                                    sx={{padding: "2px"}}
+                                                />
+                                            }
+                                            label={
+                                                <Typography
+                                                    id={`${flowPrefix}-context-input-${element}-text`}
+                                                    sx={{
+                                                        textTransform: "capitalize",
+                                                        fontSize: "0.7rem",
+                                                        marginTop: "0px",
+                                                        marginBottom: "0px",
+                                                    }}
+                                                >
+                                                    {element}
+                                                </Typography>
+                                            }
+                                            sx={{
+                                                display: "flex",
+                                                flexDirection: "row",
+                                            }}
                                         />
-                                    </div>
-                                ))}
+                                    ))}
+                                </CardContent>
                             </Card>
                         </NodePopper>
                         <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
