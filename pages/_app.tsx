@@ -10,7 +10,6 @@ import "react-bootstrap-typeahead/css/Typeahead.bs5.css"
 
 import "../styles/updatenode.css"
 import "../styles/globals.css"
-import "../styles/llmDropdown.css"
 import "../styles/splashpage.css"
 import "../styles/rundialog.css"
 

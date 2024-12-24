@@ -98,8 +98,6 @@ export default function Flow(props: FlowProps) {
     const [flowInstance, setFlowInstance] = useState<ReactFlowInstance>(null)
 
     const [taggedDataList, setTaggedDataList] = useState<TaggedDataInfo[]>([])
-    // for loading data tags
-    const [loadingDataTags, setLoadingDataTags] = useState<boolean>(true)
 
     const [selectedDataSourceId, setSelectedDataSourceId] = useState<number>(null)
 
@@ -108,29 +106,24 @@ export default function Flow(props: FlowProps) {
     // Fetch the Data Sources and the Data Tags
     useEffect(() => {
         async function loadDataTagList() {
-            try {
-                if (projectId != null) {
-                    setLoadingDataTags(true)
-                    const taggedDataListTmp: TaggedDataInfo[] = await loadDataTags(currentUser, projectId)
-                    if (taggedDataListTmp != null && taggedDataListTmp.length > 0) {
-                        setTaggedDataList(taggedDataListTmp)
-                        if (!selectedDataSourceId) {
-                            setSelectedDataSourceId(Number(taggedDataListTmp[0]?.DataSource?.id))
-                        }
-                    } else {
-                        // This is an internal error. Shouldn't have been able to create a project and an experiment
-                        // without having data tags!
-                        sendNotification(
-                            NotificationType.error,
-                            "Failed to load Data tags",
-                            `Unable to load data tags for project ${projectId} ` +
-                                "due to an internal error. Your experiment " +
-                                "may not behave as expected. Please report this to the development team"
-                        )
+            if (projectId != null) {
+                const taggedDataListTmp: TaggedDataInfo[] = await loadDataTags(currentUser, projectId)
+                if (taggedDataListTmp != null && taggedDataListTmp.length > 0) {
+                    setTaggedDataList(taggedDataListTmp)
+                    if (!selectedDataSourceId) {
+                        setSelectedDataSourceId(Number(taggedDataListTmp[0]?.DataSource?.id))
                     }
+                } else {
+                    // This is an internal error. Shouldn't have been able to create a project and an experiment
+                    // without having data tags!
+                    sendNotification(
+                        NotificationType.error,
+                        "Failed to load Data tags",
+                        `Unable to load data tags for project ${projectId} ` +
+                            "due to an internal error. Your experiment " +
+                            "may not behave as expected. Please report this to the development team"
+                    )
                 }
-            } finally {
-                setLoadingDataTags(false)
             }
         }
 
@@ -1306,7 +1299,6 @@ export default function Flow(props: FlowProps) {
                     getElementIndex={getElementIndex}
                     idExtension={idExtension}
                     readOnlyNode={readOnlyFlow}
-                    loadingDataTags={loadingDataTags}
                     edges={edges}
                     dataTagfields={selectedDataSource?.LatestDataTag?.fields}
                 />

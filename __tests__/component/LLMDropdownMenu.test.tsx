@@ -6,7 +6,7 @@ import LLMDropdownMenu from "../../components/internal/flow/LLMDropdownMenu"
 import {DataTagFieldValued} from "../../generated/metadata"
 
 describe("Add LLMDropdownMenu", () => {
-    const renderMockLLMDropdownMenu = ({isLoading, readOnly, dataTagFields}) => (
+    const renderMockLLMDropdownMenu = ({readOnly, dataTagFields}) => (
         <LLMDropdownMenu
             deleteNodeById={jest.fn()}
             getPrescriptorEdge={jest.fn()}
@@ -20,7 +20,6 @@ describe("Add LLMDropdownMenu", () => {
             getElementIndex={jest.fn()}
             idExtension="mockIdExtension"
             readOnlyNode={readOnly}
-            loadingDataTags={isLoading}
             edges={[]}
             dataTagfields={dataTagFields}
         />
@@ -28,7 +27,6 @@ describe("Add LLMDropdownMenu", () => {
 
     it("should render add llm drop down with all options", async () => {
         const view = renderMockLLMDropdownMenu({
-            isLoading: false,
             readOnly: false,
             // add categorical and has_nan field
             dataTagFields: {
@@ -57,7 +55,6 @@ describe("Add LLMDropdownMenu", () => {
 
     it("should render add llm drop down without category reducer", async () => {
         const view = renderMockLLMDropdownMenu({
-            isLoading: false,
             readOnly: false,
             dataTagFields: {hasNanField: {has_nan: true}},
         })
@@ -78,7 +75,6 @@ describe("Add LLMDropdownMenu", () => {
 
     it("should render add llm drop down without confabulator option", async () => {
         const view = renderMockLLMDropdownMenu({
-            isLoading: false,
             readOnly: false,
             dataTagFields: {hasCategoricalValueField: {valued: DataTagFieldValued.CATEGORICAL}},
         })
@@ -95,27 +91,5 @@ describe("Add LLMDropdownMenu", () => {
         expect(screen.getByText("Analytics")).toBeInTheDocument()
         expect(screen.getByText("Category reducer")).toBeInTheDocument()
         expect(screen.queryByText("Confabulator")).not.toBeInTheDocument()
-    })
-
-    it("should render skeletons if dropdown is loading options", async () => {
-        const view = renderMockLLMDropdownMenu({
-            isLoading: true, // set loading status to true
-            readOnly: false,
-            dataTagFields: {},
-        })
-
-        const {container} = render(view)
-
-        const addLLMButton = await screen.findByText("Add LLM")
-
-        fireEvent.click(addLLMButton)
-        const loadingSkeletons = [...container.getElementsByClassName("llm-dropdown-loading-skeleton")]
-        await waitFor(() => {
-            expect(loadingSkeletons.length).toEqual(4)
-        })
-
-        loadingSkeletons.forEach((skeleton) => {
-            expect(skeleton).toBeInTheDocument()
-        })
     })
 })

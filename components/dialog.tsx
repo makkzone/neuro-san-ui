@@ -46,6 +46,7 @@ export const MUIDialog: FC<DialogProps> = ({
     title,
 }) => (
     <Dialog
+        data-testid={id}
         id={id}
         onClose={onClose}
         open={isOpen}

@@ -1,6 +1,7 @@
-import {FormControl, MenuItem} from "@mui/material"
+import FormControl from "@mui/material/FormControl"
+import MenuItem from "@mui/material/MenuItem"
 import Select from "@mui/material/Select"
-import {Slider} from "antd"
+import Slider from "@mui/material/Slider"
 import {useEffect, useState} from "react"
 import {Button} from "react-bootstrap"
 import {FiPlay, FiStopCircle} from "react-icons/fi"
@@ -94,23 +95,25 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
         return undefined
     }, [])
 
-    // Allow user to show all generations at once, if permitted by plot type
-    const marks = {}
-    if (showAllGenerations) {
-        marks[numberOfGenerations + 1] = {
-            label: "All Gen",
-            style: {
-                marginTop: "-45px", // To move it above the slider to avoid clashing with generation label
-                textDecoration: "underline",
-            },
+    const marks = []
+    for (let i = 1; i <= numberOfGenerations; i += 1) {
+        // Add marks for ends of range of generations
+        if (i === 1 || i === numberOfGenerations) {
+            marks.push({label: i, value: i})
         }
+        // Add marks, without a label, for the rest (which are all the points between the start and the end)
+        marks.push({label: "", value: i})
     }
 
-    // Add marks for ends of range of generations
-    marks[1] = 1
-    marks[numberOfGenerations] = numberOfGenerations
-
     const maxGenerations = showAllGenerations ? numberOfGenerations + 1 : numberOfGenerations
+
+    // Allow user to show all generations at once, if permitted by plot type
+    if (showAllGenerations) {
+        marks.push({
+            value: maxGenerations,
+            label: "All Gen",
+        })
+    }
 
     return (
         <>
@@ -138,21 +141,25 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
                             }
                             setPlaying(true)
 
-                            // Just divide by the current scaling value to get how long we should pause between
-                            // frames. For example, if we would normally pause 100ms, and playback speed is 2x,
-                            // divide: 100ms / 2.0 = 50ms and that's how long we wait, resulting in 2x speed playback.
-                            const adjustedFrameDelay = frameDelayMs / parseFloat(playbackSpeed)
-                            const interval = setInterval(() => {
-                                setSelectedGen((generationNumber) => {
-                                    if (generationNumber === numberOfGenerations) {
-                                        clearInterval(interval)
-                                        setPlaying(false)
-                                        return generationNumber
-                                    }
-                                    return generationNumber + 1
-                                })
-                            }, adjustedFrameDelay)
-                            setPlayingInterval(interval)
+                            // Give the component some time to render otherwise we don't start back at selectedGen = 1
+                            setTimeout(() => {
+                                // Just divide by the current scaling value to get how long we should pause between
+                                // frames. For example, if we would normally pause 100ms, and playback speed is 2x,
+                                // divide: 100ms / 2.0 = 50ms and that's how long we wait, resulting in 2x speed
+                                // playback.
+                                const adjustedFrameDelay = frameDelayMs / parseFloat(playbackSpeed)
+                                const interval = setInterval(() => {
+                                    setSelectedGen((generationNumber) => {
+                                        if (generationNumber === numberOfGenerations) {
+                                            clearInterval(interval)
+                                            setPlaying(false)
+                                            return generationNumber
+                                        }
+                                        return generationNumber + 1
+                                    })
+                                }, adjustedFrameDelay)
+                                setPlayingInterval(interval)
+                            }, 150)
                         }
                     }}
                 >
@@ -189,19 +196,19 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
                     min={1}
                     max={maxGenerations}
                     value={selectedGen}
-                    dots={true}
                     disabled={playing}
-                    onChange={(value) => {
-                        setSelectedGen(value)
+                    onChange={(_event: Event, newValue: number | number[]) => {
+                        setSelectedGen(newValue)
                     }}
-                    handleStyle={{
-                        borderColor: MaximumBlue,
-                        color: MaximumBlue,
+                    sx={{
+                        marginRight: "1.5rem",
+                        width: "100%",
+                        // "All Gen" label styling
+                        "& .MuiSlider-markLabel:nth-last-child(2)": {
+                            marginTop: "-50px", // To move it above the slider to avoid clashing with generation label
+                            textDecoration: "underline",
+                        },
                     }}
-                    trackStyle={{
-                        backgroundColor: MaximumBlue,
-                    }}
-                    className="w-full mr-6"
                 />
             </div>
             {plot}

@@ -1,6 +1,5 @@
 import InfoIcon from "@mui/icons-material/Info"
 import Tooltip from "@mui/material/Tooltip"
-import {Skeleton} from "antd"
 import {Dispatch, SetStateAction} from "react"
 import {Dropdown} from "react-bootstrap"
 import {getOutgoers} from "reactflow"
@@ -27,14 +26,13 @@ type LLMDropDownPropsType = {
     getGeneralEdge: (sourceNodeID: string, targetNodeID: string) => PredictorEdge
     setNodes: Dispatch<SetStateAction<NodeType[]>>
     setEdges: Dispatch<SetStateAction<EdgeType[]>>
-    setParentState: React.Dispatch<SetStateAction<FlowElementsType>>
+    setParentState: Dispatch<SetStateAction<FlowElementsType>>
     addElementUuid: (elementType: string, elementId: string) => void
     ParentNodeSetStateHandler: (newState: object, NodeID: string) => void
     nodes: NodeType[]
     getElementIndex: (nodeID: string) => number
     idExtension: string
     readOnlyNode: boolean
-    loadingDataTags: boolean
     edges: EdgeType[]
     dataTagfields: {[key: string]: DataTagField}
 }
@@ -52,7 +50,6 @@ const LLMDropdownMenu = ({
     getElementIndex,
     idExtension,
     readOnlyNode,
-    loadingDataTags,
     edges,
     dataTagfields,
 }: LLMDropDownPropsType) => {
@@ -402,99 +399,70 @@ const LLMDropdownMenu = ({
     return (
         <Dropdown id="add-llm-dropdown">
             <Dropdown.Toggle
-                className="w-100"
                 variant="success"
                 id="dropdown-basic"
                 size="sm"
+                style={{width: "100%"}}
             >
                 Add LLM
             </Dropdown.Toggle>
 
             <Dropdown.Menu
                 id="llm-dropdown-menu"
-                className={`w-100 ${loadingDataTags && "pt-3"}`}
-                style={{cursor: "pointer"}}
+                style={{cursor: "pointer", width: "100%"}}
             >
-                <Skeleton // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                    className="llm-dropdown-loading-skeleton"
-                    active
-                    paragraph={false}
-                    loading={loadingDataTags}
+                <Dropdown.Item
+                    id="add-activation-llm-btn"
+                    as="div"
+                    onClick={() => addActivationLlm(nodes, edges)}
                 >
+                    {getLlmMenuItem(
+                        "activation",
+                        "Maps the intent of the prescriptor to front-end interactions and back-end and " +
+                            "model API calls",
+                        "Activation"
+                    )}
+                </Dropdown.Item>
+                <Dropdown.Item
+                    id="add-analytics-llm-btn"
+                    as="div"
+                    onClick={() => addAnalyticsLlm(nodes, edges)}
+                >
+                    {getLlmMenuItem(
+                        "analytics",
+                        "Helps data scientists analyze the data with smart, LLM-enabled queries",
+                        "Analytics"
+                    )}
+                </Dropdown.Item>
+                {dataTagFieldHasCategoricalValue(dataTagfields) ? (
                     <Dropdown.Item
-                        id="add-activation-llm-btn"
+                        id="add-category-reducer-llm-btn"
                         as="div"
-                        onClick={() => addActivationLlm(nodes, edges)}
+                        onClick={() => addCategoryReducerLLM(nodes, edges)}
                     >
                         {getLlmMenuItem(
-                            "activation",
-                            "Maps the intent of the prescriptor to front-end interactions and back-end and " +
-                                "model API calls",
-                            "Activation"
+                            "category-reducer",
+                            "Attempts to reduce the number of categories in categorical fields " +
+                                "intelligently by using an LLM. For example, a field that contains " +
+                                "categories 'carrot', 'onion', and 'pea' might be reduced to 'vegetable'",
+                            "Category reducer"
                         )}
                     </Dropdown.Item>
-                </Skeleton>
-                <Skeleton // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                    className="llm-dropdown-loading-skeleton"
-                    active
-                    paragraph={false}
-                    loading={loadingDataTags}
-                >
+                ) : null}
+                {dataTagFieldHasNaN(dataTagfields) ? (
                     <Dropdown.Item
-                        id="add-analytics-llm-btn"
+                        id="add-confabulator-llm-btn"
                         as="div"
-                        onClick={() => addAnalyticsLlm(nodes, edges)}
+                        onClick={() => addConfabulatorNode(nodes, edges)}
                     >
                         {getLlmMenuItem(
-                            "analytics",
-                            "Helps data scientists analyze the data with smart, LLM-enabled queries",
-                            "Analytics"
+                            "confabulator",
+                            "Confabulates (synthesizes) missing data using an LLM to provide " +
+                                "reasonable values, based on the values in the rest of your data set",
+                            "Confabulator"
                         )}
                     </Dropdown.Item>
-                </Skeleton>
-                <Skeleton // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                    className="llm-dropdown-loading-skeleton"
-                    active
-                    paragraph={false}
-                    loading={loadingDataTags}
-                >
-                    {dataTagFieldHasCategoricalValue(dataTagfields) ? (
-                        <Dropdown.Item
-                            id="add-category-reducer-llm-btn"
-                            as="div"
-                            onClick={() => addCategoryReducerLLM(nodes, edges)}
-                        >
-                            {getLlmMenuItem(
-                                "category-reducer",
-                                "Attempts to reduce the number of categories in categorical fields " +
-                                    "intelligently by using an LLM. For example, a field that contains " +
-                                    "categories 'carrot', 'onion', and 'pea' might be reduced to 'vegetable'",
-                                "Category reducer"
-                            )}
-                        </Dropdown.Item>
-                    ) : null}
-                </Skeleton>
-                <Skeleton // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                    className="llm-dropdown-loading-skeleton"
-                    active
-                    paragraph={false}
-                    loading={loadingDataTags}
-                >
-                    {dataTagFieldHasNaN(dataTagfields) ? (
-                        <Dropdown.Item
-                            id="add-confabulator-llm-btn"
-                            as="div"
-                            onClick={() => addConfabulatorNode(nodes, edges)}
-                        >
-                            {getLlmMenuItem(
-                                "confabulator",
-                                "Confabulates (synthesizes) missing data using an LLM to provide " +
-                                    "reasonable values, based on the values in the rest of your data set",
-                                "Confabulator"
-                            )}
-                        </Dropdown.Item>
-                    ) : null}
-                </Skeleton>
+                ) : null}
             </Dropdown.Menu>
         </Dropdown>
     )
