@@ -48,7 +48,7 @@ const DataSourceNodeComponent: FC<NodeProps<DataSourceNodeData>> = (props) => {
     // Return the data source node card
     return (
         <Card
-            id={`data-source-blueprint-card${idExtension}`}
+            id={`data-source-card${idExtension}`}
             style={{
                 padding: 0,
                 width: "8rem",

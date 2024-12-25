@@ -1,5 +1,3 @@
-import "@blueprintjs/core/lib/css/blueprint.css"
-import "@blueprintjs/icons/lib/css/blueprint-icons.css"
 import "antd/dist/reset.css"
 
 import "bootstrap/dist/css/bootstrap.css"
