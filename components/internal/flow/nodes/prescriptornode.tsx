@@ -60,13 +60,17 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
     /*
     This function is responsible for rendering the prescriptor node.
     */
-    const data = props.data
 
-    // unpack taggedData from props
-    const {taggedData = null} = data
-
-    // Unpack the mapping
-    const {NodeID, ParentPrescriptorState, SetParentPrescriptorState, DeleteNode, GetElementIndex, readOnlyNode} = data
+    // Unpack the props
+    const {
+        NodeID,
+        ParentPrescriptorState,
+        SetParentPrescriptorState,
+        DeleteNode,
+        GetElementIndex,
+        readOnlyNode,
+        taggedData = null,
+    } = props.data
 
     const flowIndex = GetElementIndex(NodeID) + 1
     const flowPrefix = `prescriptor-${flowIndex}`
@@ -102,22 +106,20 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
             // Build the CAO State for the data tag from the given data source id
             const CAOState = ParentPrescriptorState.caoState
 
-            if (taggedData) {
-                Object.keys(taggedData.fields).forEach((fieldName) => {
-                    const field = taggedData.fields[fieldName]
-                    switch (field.espType.toString()) {
-                        case "CONTEXT":
-                            CAOState.context[fieldName] = CAOState.context[fieldName] ?? true
-                            break
-                        case "ACTION":
-                            CAOState.action[fieldName] = CAOState.action[fieldName] ?? true
-                            break
-                        default:
-                            // Not interested in other CAO types here
-                            break
-                    }
-                })
-            }
+            Object.keys(taggedData.fields).forEach((fieldName) => {
+                const field = taggedData.fields[fieldName]
+                switch (field.espType.toString()) {
+                    case "CONTEXT":
+                        CAOState.context[fieldName] = CAOState.context[fieldName] ?? true
+                        break
+                    case "ACTION":
+                        CAOState.action[fieldName] = CAOState.action[fieldName] ?? true
+                        break
+                    default:
+                        // Not interested in other CAO types here
+                        break
+                }
+            })
 
             const initializedState = {...ParentPrescriptorState}
             initializedState.caoState = CAOState
