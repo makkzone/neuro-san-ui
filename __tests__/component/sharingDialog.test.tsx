@@ -70,18 +70,21 @@ describe("Project sharing Component", () => {
         })
     })
 
+    const closeFunction = jest.fn()
+    const sharingDialog = (
+        <SharingDialog
+            project={mockProject}
+            currentUser={mockCurrentUser}
+            closeModal={closeFunction}
+            title="Share Project"
+            visible={true}
+        />
+    )
+
     test("Handles sharing a project", async () => {
         ;(share as jest.Mock).mockResolvedValue(undefined)
 
-        render(
-            <SharingDialog
-                project={mockProject}
-                currentUser={mockCurrentUser}
-                closeModal={jest.fn()}
-                title="Share Project"
-                visible={true}
-            />
-        )
+        render(sharingDialog)
 
         let input
         await waitFor(() => {
@@ -114,15 +117,7 @@ describe("Project sharing Component", () => {
     })
 
     test("Handles removing a share", async () => {
-        render(
-            <SharingDialog
-                project={mockProject}
-                currentUser={mockCurrentUser}
-                closeModal={jest.fn()}
-                title="Share Project"
-                visible={true}
-            />
-        )
+        render(sharingDialog)
 
         await waitFor(() => {
             expect(screen.getByText("user1 - Tourist")).toBeInTheDocument()
@@ -158,15 +153,7 @@ describe("Project sharing Component", () => {
     })
 
     test("Requires a user to share with", async () => {
-        render(
-            <SharingDialog
-                project={mockProject}
-                currentUser={mockCurrentUser}
-                closeModal={jest.fn()}
-                title="Share Project"
-                visible={true}
-            />
-        )
+        render(sharingDialog)
 
         // Locate input for user to share with
         const userToShareWith = await screen.findByPlaceholderText("User to share with")
@@ -184,15 +171,7 @@ describe("Project sharing Component", () => {
     })
 
     test("Does not allow sharing with oneself", async () => {
-        render(
-            <SharingDialog
-                project={mockProject}
-                currentUser={mockCurrentUser}
-                closeModal={jest.fn()}
-                title="Share Project"
-                visible={true}
-            />
-        )
+        render(sharingDialog)
 
         // Locate input for user to share with
         const userToShareWith = await screen.findByPlaceholderText("User to share with")
@@ -215,15 +194,7 @@ describe("Project sharing Component", () => {
     })
 
     test("Does not allowing removing owner from shares", async () => {
-        render(
-            <SharingDialog
-                project={mockProject}
-                currentUser={mockCurrentUser}
-                closeModal={jest.fn()}
-                title="Share Project"
-                visible={true}
-            />
-        )
+        render(sharingDialog)
 
         // Get owner share
         const ownerShare = await screen.findByText("user2 - Owner")
@@ -249,15 +220,7 @@ describe("Project sharing Component", () => {
     })
 
     test("Does not allow sharing again with the same user", async () => {
-        render(
-            <SharingDialog
-                project={mockProject}
-                currentUser={mockCurrentUser}
-                closeModal={jest.fn()}
-                title="Share Project"
-                visible={true}
-            />
-        )
+        render(sharingDialog)
 
         // Locate input for user to share with
         const userToShareWith = await screen.findByPlaceholderText("User to share with")
@@ -273,15 +236,7 @@ describe("Project sharing Component", () => {
     })
 
     it("should render github user sharing info icon and tooltip", async () => {
-        render(
-            <SharingDialog
-                project={mockProject}
-                currentUser={mockCurrentUser}
-                closeModal={jest.fn()}
-                title="Share Project"
-                visible={true}
-            />
-        )
+        render(sharingDialog)
 
         expect(screen.queryByText(shareWithGithubUserTooltipText)).not.toBeInTheDocument()
 
@@ -290,5 +245,18 @@ describe("Project sharing Component", () => {
         await waitFor(() => {
             expect(screen.getByText(shareWithGithubUserTooltipText)).toBeInTheDocument()
         })
+    })
+
+    it("Should close the dialog when Cancel is pressed", async () => {
+        render(sharingDialog)
+
+        expect(screen.getByText("Share Project")).toBeInTheDocument()
+
+        const cancelButton = await screen.findByRole("button", {name: /Cancel/u})
+        expect(cancelButton).toBeInTheDocument()
+
+        fireEvent.click(cancelButton)
+
+        expect(closeFunction).toHaveBeenCalledTimes(1)
     })
 })
