@@ -2,7 +2,9 @@
  * Runs table module
  */
 
-import Tooltip from "@mui/material/Tooltip"
+import {Box, Table, TableBody, TableCell, TableHead, TableRow, Tooltip} from "@mui/material"
+import CircularProgress from "@mui/material/CircularProgress"
+import Grid from "@mui/material/Grid2"
 import {
     ReactElement,
     KeyboardEvent as ReactKeyboardEvent,
@@ -10,11 +12,9 @@ import {
     useEffect,
     useState,
 } from "react"
-import {Col, Container, Row} from "react-bootstrap"
 import {AiFillDelete, AiFillEdit} from "react-icons/ai"
 import {BiNoEntry} from "react-icons/bi"
 import {FiDownload} from "react-icons/fi"
-import ClipLoader from "react-spinners/ClipLoader"
 
 import {
     DEFAULT_DOWNLOAD_ARTIFACT,
@@ -341,13 +341,13 @@ export default function RunsTable(props: RunTableProps): ReactElement {
         const runId = run.id
         const runTitle = run.name || runId
         return (
-            <Container
+            <Box
                 id={`run-buttons-${idx}`}
                 style={{
                     cursor: run.completed ? "pointer" : "not-allowed",
                 }}
             >
-                <Row
+                <Grid
                     id={`run-buttons-${idx}`}
                     style={{
                         alignItems: "center",
@@ -355,10 +355,10 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                         flexWrap: "nowrap",
                     }}
                 >
-                    <Col
+                    <Grid
                         id={`run-button-col-${idx}`}
-                        md={0}
-                        style={{
+                        container
+                        sx={{
                             width: runTitle?.length > 25 ? "25ch" : "100%",
                             paddingRight: 0,
                         }}
@@ -390,41 +390,30 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                                 </button>
                             </span>
                         </Tooltip>
-                    </Col>
+                    </Grid>
 
                     {props.projectPermissions?.update ? (
-                        <Col
-                            id={`editing-loading-col-${runId}`}
-                            md={6}
-                            style={{
-                                width: 0,
+                        <AiFillEdit
+                            id={`edit-loading-copy-${runId}-fill-edit`}
+                            onClick={() => {
+                                const editingLoadingCopy = [...props.editingLoading]
+                                editingLoadingCopy[idx] = {
+                                    ...editingLoadingCopy[idx],
+                                    editing: true,
+                                }
+                                props.setEditingLoading(editingLoadingCopy)
                             }}
-                        >
-                            <AiFillEdit
-                                id={`edit-loading-copy-${runId}-fill-edit`}
-                                onClick={() => {
-                                    const editingLoadingCopy = [...props.editingLoading]
-                                    editingLoadingCopy[idx] = {
-                                        ...editingLoadingCopy[idx],
-                                        editing: true,
-                                    }
-                                    props.setEditingLoading(editingLoadingCopy)
-                                }}
-                            />
-                        </Col>
+                        />
                     ) : null}
-                </Row>
-            </Container>
+                </Grid>
+            </Box>
         )
     }
 
     function getRunNameRowEditing(run: Run, idx: number) {
         const runId = run.id
         return (
-            <td
-                id={`update-run-name-${runId}`}
-                className={tableCellClass}
-            >
+            <TableCell id={`update-run-name-${runId}`}>
                 <input
                     type="text"
                     id={`update-run-name-${runId}-input`}
@@ -440,12 +429,9 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                         }
                     }}
                 />
-            </td>
+            </TableCell>
         )
     }
-
-    // Common class/styling for table cells
-    const tableCellClass = "px-10 py-3 text-center text-xs font-medium tracking-wider"
 
     function getRunRow(run, runNameRow, idx) {
         const runId = run.id
@@ -457,54 +443,26 @@ export default function RunsTable(props: RunTableProps): ReactElement {
 
         // Return a table row for this particular Run in the Runs table
         return (
-            <tr
+            <TableRow
                 id={`run-row-${idx}`}
                 key={run.id}
             >
                 {runNameRow}
 
-                <td
-                    id={`run-created-at-${runId}`}
-                    className="px-10 py-3 text-center text-xs font-medium text-gray-900 tracking-wider"
-                >
-                    <span
-                        id={`run-created-at-${runId}-text`}
-                        className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    >
-                        {toFriendlyDateTime(run.created_at)}
-                    </span>
-                </td>
+                <TableCell id={`run-created-at-${runId}`}>
+                    <span id={`run-created-at-${runId}-text`}>{toFriendlyDateTime(run.created_at)}</span>
+                </TableCell>
 
-                <td
-                    id={`run-updated-at-${runId}`}
-                    className={tableCellClass}
-                >
-                    {toFriendlyDateTime(run.updated_at)}
-                </td>
+                <TableCell id={`run-updated-at-${runId}`}>{toFriendlyDateTime(run.updated_at)}</TableCell>
 
-                <td
-                    id={`run-launched-by-${runId}`}
-                    className={tableCellClass}
-                >
-                    {run.launchedBy}
-                </td>
+                <TableCell id={`run-launched-by-${runId}`}>{run.launchedBy}</TableCell>
 
-                <td
-                    id={`run-status-${runId}`}
-                    className={tableCellClass}
-                >
-                    {getStatus(run)}
-                </td>
+                <TableCell id={`run-status-${runId}`}>{getStatus(run)}</TableCell>
 
-                <td
-                    id={`download-artifacts-${runId}`}
-                    className={tableCellClass}
-                >
+                <TableCell id={`download-artifacts-${runId}`}>
                     {runsBeingDeleted.includes(idx) ? (
-                        <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                            // 2/6/23 DEF - ClipLoader does not have an id property when compiling
-                            color={MaximumBlue}
-                            loading={true}
+                        <CircularProgress
+                            id={`delete-run-${runId}-download-loading`}
                             size={25}
                         />
                     ) : (
@@ -570,26 +528,18 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                             </div>
                         )
                     )}
-                </td>
+                </TableCell>
 
                 {props.projectPermissions?.delete ? (
-                    <td
-                        id={`delete-training-run-${runId}`}
-                        className={tableCellClass}
-                    >
-                        {getActionsColumn(idx, runId, run)}
-                    </td>
+                    <TableCell id={`delete-training-run-${runId}`}>{getActionsColumn(idx, runId, run)}</TableCell>
                 ) : null}
-            </tr>
+            </TableRow>
         )
     }
 
     function getRunNameColumn(run: Run, runButton: JSX.Element) {
         return (
-            <td
-                id="run-name-column"
-                className={tableCellClass}
-            >
+            <TableCell id="run-name-column">
                 {run.completed ? (
                     runButton
                 ) : (
@@ -602,7 +552,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                         {runButton}
                     </Tooltip>
                 )}
-            </td>
+            </TableCell>
         )
     }
 
@@ -638,14 +588,12 @@ export default function RunsTable(props: RunTableProps): ReactElement {
     const tableHeaderElements: ReactElement[] = []
     tableHeaders.forEach((header) => {
         tableHeaderElements.push(
-            <th
+            <TableHead
                 id={`header-${header}`}
                 key={crypto.randomUUID()}
-                scope="col"
-                className="px-10 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
                 {header}
-            </th>
+            </TableHead>
         )
     })
 
@@ -725,10 +673,8 @@ export default function RunsTable(props: RunTableProps): ReactElement {
         return (
             <>
                 {runsBeingDeleted.includes(idx) ? (
-                    <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                        // 2/6/23 DEF - ClipLoader does not have an id property when compiling
-                        color={MaximumBlue}
-                        loading={true}
+                    <CircularProgress
+                        id={`delete-run-${runId}-actions-loading`}
                         size={25}
                     />
                 ) : (
@@ -747,43 +693,31 @@ export default function RunsTable(props: RunTableProps): ReactElement {
 
     return (
         <>
-            <div
-                id="run-table-div-1"
-                className="flex flex-col mt-4"
+            <Box
+                id="run-table-box"
+                sx={{
+                    alignItems: "center",
+                    borderBottom: 1,
+                    borderColor: "var(--bs-border-color)",
+                    borderRadius: "16px",
+                    boxShadow: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    minWidth: "100%",
+                    marginTop: 0,
+                    mx: {sm: -6, lg: -8},
+                    overflowX: "auto",
+                    px: {sm: 6, lg: 8},
+                    py: 2,
+                }}
             >
-                <div
-                    id="run-table-div-2"
-                    className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8"
-                >
-                    <div
-                        id="run-table-div-3"
-                        className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8"
-                    >
-                        <div
-                            id="run-table-div-4"
-                            className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg"
-                        >
-                            <table
-                                id="run-table"
-                                className="min-w-full divide-y divide-gray-200"
-                            >
-                                <thead
-                                    id="run-table-head"
-                                    className="bg-gray-50"
-                                >
-                                    <tr id="run-table-header-elements">{tableHeaderElements}</tr>
-                                </thead>
-                                <tbody
-                                    id="run-table-body"
-                                    className="bg-white divide-y divide-gray-200"
-                                >
-                                    {runRows}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <Table id="run-table">
+                    <TableHead id="run-table-head">
+                        <tr id="run-table-header-elements">{tableHeaderElements}</tr>
+                    </TableHead>
+                    <TableBody id="run-table-body">{runRows}</TableBody>
+                </Table>
+            </Box>
             {terminateRunModalOpen && (
                 <ConfirmationModal
                     cancelBtnLabel="Do not terminate"
