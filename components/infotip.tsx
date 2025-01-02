@@ -31,8 +31,8 @@ export function InfoTip(props: InfoTipParams): ReactElement {
     const color = props.color || "var(--bs-primary)"
 
     return (
-        <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
-            // Tooltip has no id property
+        <Tooltip
+            id={`${props.id}-info-bubble-tooltip`}
             title={props.info}
         >
             <div

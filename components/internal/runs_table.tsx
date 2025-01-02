@@ -2,6 +2,8 @@
  * Runs table module
  */
 
+import DeleteIcon from "@mui/icons-material/Delete"
+import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline"
 import {Box, styled, Table, TableBody, TableCell, TableHead, TableRow, Tooltip, Typography} from "@mui/material"
 import CircularProgress from "@mui/material/CircularProgress"
 import Grid from "@mui/material/Grid2"
@@ -12,8 +14,7 @@ import {
     useEffect,
     useState,
 } from "react"
-import {AiFillDelete, AiFillEdit} from "react-icons/ai"
-import {BiNoEntry} from "react-icons/bi"
+import {AiFillEdit} from "react-icons/ai"
 import {FiDownload} from "react-icons/fi"
 
 import {
@@ -54,10 +55,38 @@ interface RunTableProps {
     readonly setRuns: (runs: Runs) => void
 }
 
+// #region: Styled Components
+
+// HACK: MUI table cells with text don't default to the same height as those with buttons/icons. This is a hack to
+// ensure that all cells are the same height. This is the "observed organic height" of text cells. There must be a
+// better way to do this.
+const MUI_TABLE_ROW_HEIGHT = "73.85px"
+
+// Create a styled component for TableCell
 const RunsTableCell = styled(TableCell)({
     textAlign: "center",
     borderBottom: "1px solid var(--bs-gray-light)",
+    fontSize: "15px",
 })
+
+// Create a styled component for TableHead
+const CustomTableHead = styled(TableHead)(() => ({
+    "& .MuiTableCell-root": {
+        fontWeight: "bold",
+        backgroundColor: "var(--bs-secondary)",
+        borderBottom: "4px solid black",
+        color: "var(--bs-white)",
+
+        "&:first-of-type": {
+            borderTopLeftRadius: "0.5rem",
+        },
+        "&:last-of-type": {
+            borderTopRightRadius: "0.5rem",
+        },
+    },
+}))
+
+// #endregion: Styled Components
 
 export default function RunsTable(props: RunTableProps): ReactElement {
     // State for runs that are being deleted.
@@ -78,10 +107,6 @@ export default function RunsTable(props: RunTableProps): ReactElement {
     // Keeps track of which artifact user wants to download for each Run. Map of runId: artifact_name.
     // Can't initialize this to anything useful here because we don't yet know how many Runs there will be.
     const [selectedArtifacts, setSelectedArtifacts] = useState<object>({})
-
-    // Allows the trash icon to change color when user hovers over it.
-    // It will be a map of run id to boolean since we can have multiple runs per page.
-    const [trashHover, setTrashHover] = useState<Record<string, boolean>>({})
 
     // List of all artifacts we know about
     const downloadableArtifacts = getDownloadableArtifacts()
@@ -144,7 +169,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
 
     async function updateRunStatuses(experimentIdTmp) {
         if (props.runDrawer) {
-            // No need to udpate if Run drawer is open since user can't see runs list
+            // No need to update if Run drawer is open since user can't see runs list
             return
         }
 
@@ -231,15 +256,22 @@ export default function RunsTable(props: RunTableProps): ReactElement {
         // Aborted?
         if (phase === "Run Aborted") {
             return (
-                <div
-                    id="run-status-phase"
-                    style={{display: "flex"}}
-                >
-                    Aborted
-                    <InfoTip // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                        info="Run aborted by user request"
-                        id={props.experimentId.toString()}
-                    />
+                <div id="run-status-phase">
+                    <span // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                        id={`run-status-aborted-${run.id}`}
+                        style={{display: "inline-block"}}
+                    >
+                        Aborted
+                    </span>
+                    <span // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                        style={{display: "inline-block"}}
+                        id={`run-status-tip-${run.id}`}
+                    >
+                        <InfoTip // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                            info="Run aborted by user request"
+                            id={props.experimentId.toString()}
+                        />
+                    </span>
                 </div>
             )
         }
@@ -290,8 +322,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                 style={{display: "flex"}}
             >
                 {phase}
-                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                <InfoTip
+                <InfoTip // eslint-disable-line enforce-ids-in-jsx/missing-ids
                     info={detailedProgress}
                     id={props.experimentId.toString()}
                 />
@@ -370,28 +401,26 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                             id={`run-name-tooltip-${idx}`}
                             title={runTitle}
                         >
-                            <span id="run_button_span">
-                                <button
-                                    id={`run-button-${runId}`}
-                                    style={{
-                                        color: run.completed ? MaximumBlue : "gray",
-                                        pointerEvents: run.completed ? "auto" : "none",
-                                        textOverflow: "ellipsis",
-                                        whiteSpace: "nowrap",
-                                        overflow: "hidden",
-                                        width: "100%",
-                                        padding: 0,
-                                    }}
-                                    disabled={!run.completed}
-                                    onClick={() => {
-                                        props.setSelectedRunID(run.id)
-                                        props.setSelectedRunName(runTitle)
-                                        props.setRunDrawer(true)
-                                    }}
-                                >
-                                    {runTitle}
-                                </button>
-                            </span>
+                            <button
+                                id={`run-button-${runId}`}
+                                style={{
+                                    color: run.completed ? MaximumBlue : "gray",
+                                    pointerEvents: run.completed ? "auto" : "none",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    width: "100%",
+                                    padding: 0,
+                                }}
+                                disabled={!run.completed}
+                                onClick={() => {
+                                    props.setSelectedRunID(run.id)
+                                    props.setSelectedRunName(runTitle)
+                                    props.setRunDrawer(true)
+                                }}
+                            >
+                                {runTitle}
+                            </button>
                         </Tooltip>
                     </Grid>
 
@@ -530,7 +559,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
 
                 <RunsTableCell id={`run-launched-by-${runId}`}>{run.launchedBy}</RunsTableCell>
 
-                <TableCell id={`run-status-${runId}`}>{getStatus(run)}</TableCell>
+                <RunsTableCell id={`run-status-${runId}`}>{getStatus(run)}</RunsTableCell>
 
                 <RunsTableCell id={`download-artifacts-${runId}`}>
                     {runsBeingDeleted.includes(idx) ? (
@@ -547,29 +576,27 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                 </RunsTableCell>
 
                 {props.projectPermissions?.delete ? (
-                    <TableCell
+                    <RunsTableCell
                         id={`delete-training-run-${runId}`}
                         sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
+                            height: MUI_TABLE_ROW_HEIGHT,
                         }}
                     >
                         {getActionsColumn(idx, runId, run)}
-                    </TableCell>
+                    </RunsTableCell>
                 ) : null}
             </TableRow>
         )
     }
 
-    function getRunNameColumn(run: Run, runButton: JSX.Element) {
+    function getRunNameColumn(run: Run) {
+        const runButton = getRunButton(run, run.id)
         return (
-            <TableCell
+            <RunsTableCell
                 id="run-name-column"
                 sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
+                    textAlign: "center",
+                    height: MUI_TABLE_ROW_HEIGHT,
                 }}
             >
                 {run.completed ? (
@@ -584,7 +611,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                         {runButton}
                     </Tooltip>
                 )}
-            </TableCell>
+            </RunsTableCell>
         )
     }
 
@@ -597,9 +624,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                 if (props.editingLoading[idx] && props.editingLoading[idx].editing) {
                     runNameColumn = getRunNameRowEditing(run, idx)
                 } else {
-                    const runButton = getRunButton(run, idx)
-
-                    runNameColumn = getRunNameColumn(run, runButton)
+                    runNameColumn = getRunNameColumn(run)
                 }
 
                 const row = getRunRow(run, runNameColumn, idx)
@@ -610,31 +635,34 @@ export default function RunsTable(props: RunTableProps): ReactElement {
         return runRows
     }
 
-    // Declare table headers
-    const tableHeaders = ["Training Run Name", "Created At", "Last Modified", "Launched By", "Status", "Download"]
+    function getTableHeader() {
+        // Basic list of headers that all users see
+        const tableHeaders = ["Training Run Name", "Created At", "Last Modified", "Launched By", "Status", "Download"]
 
-    if (props.projectPermissions?.delete) {
-        tableHeaders.push("Actions")
-    }
+        // Add Actions column if user has delete permissions
+        if (props.projectPermissions?.delete) {
+            tableHeaders.push("Actions")
+        }
 
-    // Create Table header
-    const tableHeader = tableHeaders.map((header) => (
-        <TableCell
-            id={`header-${header}`}
-            key={crypto.randomUUID()}
-            sx={{
-                textAlign: "center",
-                borderBottom: "1px solid var(--bs-black)",
-            }}
-        >
-            <Typography
-                id={`header-${header}-text`}
-                sx={{fontSize: "0.75rem", fontWeight: "bold"}}
+        // Create Table header
+        return tableHeaders.map((header) => (
+            <TableCell
+                id={`header-${header}`}
+                key={crypto.randomUUID()}
+                sx={{
+                    textAlign: "center",
+                    borderBottom: "1px solid var(--bs-black)",
+                }}
             >
-                {header}
-            </Typography>
-        </TableCell>
-    ))
+                <Typography
+                    id={`header-${header}-text`}
+                    sx={{fontSize: "0.75rem", fontWeight: "bold"}}
+                >
+                    {header}
+                </Typography>
+            </TableCell>
+        ))
+    }
 
     /**
      * Returns the button the user can click to delete an existing, completed (or errored) run.
@@ -645,26 +673,25 @@ export default function RunsTable(props: RunTableProps): ReactElement {
      */
     function getDeleteRunButton(runId: string, run: Run, idx: number) {
         return (
-            <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
+            <Tooltip
+                id={`delete-training-run-${runId}-tooltip`}
                 title="Delete Run"
             >
-                <span id="delete_button_span">
-                    <button
-                        className="align-center"
-                        disabled={deleteRunModalOpen}
-                        id={`delete-training-run-${runId}-button`}
-                        onClick={(event: ReactMouseEvent<HTMLElement>) => handleDelete(event, idx, run)}
-                    >
-                        <AiFillDelete
-                            id={`delete-training-run-${idx}-fill`}
-                            className="hover:text-red-700"
-                            size={25}
-                            color={trashHover[runId] ? "var(--bs-red)" : null}
-                            onMouseEnter={() => setTrashHover({...trashHover, [runId]: true})}
-                            onMouseLeave={() => setTrashHover({...trashHover, [runId]: false})}
-                        />
-                    </button>
-                </span>
+                <button
+                    id={`delete-training-run-${runId}-button`}
+                    disabled={deleteRunModalOpen}
+                    onClick={(event: ReactMouseEvent<HTMLElement>) => handleDelete(event, idx, run)}
+                >
+                    <DeleteIcon
+                        id={`delete-training-run-${idx}-fill`}
+                        sx={{
+                            "&:hover": {
+                                color: "red",
+                            },
+                        }}
+                        fontSize="small"
+                    />
+                </button>
             </Tooltip>
         )
     }
@@ -677,23 +704,25 @@ export default function RunsTable(props: RunTableProps): ReactElement {
      */
     function getTerminateRunButton(runId: string, run: Run, idx: number) {
         return (
-            <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
+            <Tooltip
+                id={`terminate-training-run-${runId}-tooltip`}
                 title="Terminate Run"
             >
-                <span id="terminate_button_span">
-                    <button
-                        id={`terminate-training-run-${runId}-button`}
-                        disabled={run.completed || terminateRunModalOpen}
-                        className="align-center"
-                        onClick={(event: ReactMouseEvent<HTMLElement>) => handleTerminateRun(event, run, idx)}
-                    >
-                        <BiNoEntry
-                            id={`terminate-training-run-${runId}-fill`}
-                            className="hover:text-red-700"
-                            size={25}
-                        />
-                    </button>
-                </span>
+                <button
+                    id={`terminate-training-run-${runId}-button`}
+                    disabled={run.completed || terminateRunModalOpen}
+                    onClick={(event: ReactMouseEvent<HTMLElement>) => handleTerminateRun(event, run, idx)}
+                >
+                    <RemoveCircleOutlineIcon
+                        id={`terminate-training-run-${runId}-fill`}
+                        sx={{
+                            "&:hover": {
+                                color: "red",
+                            },
+                        }}
+                        fontSize="small"
+                    />
+                </button>
             </Tooltip>
         )
     }
@@ -716,13 +745,10 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                         id={`delete-run-${runId}-actions-loading`}
                         size={25}
                     />
+                ) : run.completed ? (
+                    getDeleteRunButton(runId, run, idx)
                 ) : (
-                    <div
-                        id={`action-buttons-div-${idx}`}
-                        style={{display: "flex"}}
-                    >
-                        {run.completed ? getDeleteRunButton(runId, run, idx) : getTerminateRunButton(runId, run, idx)}
-                    </div>
+                    getTerminateRunButton(runId, run, idx)
                 )}
             </>
         )
@@ -792,23 +818,18 @@ export default function RunsTable(props: RunTableProps): ReactElement {
             >
                 <Table
                     id="run-table"
-                    sx={{
-                        boxShadow: 10,
-                    }}
+                    sx={{boxShadow: 10}}
                 >
-                    <TableHead
-                        id="run-table-head"
-                        sx={{
-                            "& th:first-of-type": {
-                                borderTopLeftRadius: "1rem",
-                            },
-                            "& th:last-of-type": {
-                                borderTopRightRadius: "1rem",
-                            },
-                        }}
-                    >
-                        <TableRow id="run-table-header-elements">{tableHeader}</TableRow>
-                    </TableHead>
+                    <CustomTableHead id="run-table-head">
+                        <TableRow
+                            id="run-table-header-elements"
+                            sx={{
+                                height: "4rem",
+                            }}
+                        >
+                            {getTableHeader()}
+                        </TableRow>
+                    </CustomTableHead>
                     <TableBody id="run-table-body">{runRows}</TableBody>
                 </Table>
             </Box>
