@@ -401,26 +401,28 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                             id={`run-name-tooltip-${idx}`}
                             title={runTitle}
                         >
-                            <button
-                                id={`run-button-${runId}`}
-                                style={{
-                                    color: run.completed ? MaximumBlue : "gray",
-                                    pointerEvents: run.completed ? "auto" : "none",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                    overflow: "hidden",
-                                    width: "100%",
-                                    padding: 0,
-                                }}
-                                disabled={!run.completed}
-                                onClick={() => {
-                                    props.setSelectedRunID(run.id)
-                                    props.setSelectedRunName(runTitle)
-                                    props.setRunDrawer(true)
-                                }}
-                            >
-                                {runTitle}
-                            </button>
+                            <span id="run_button_span">
+                                <button
+                                    id={`run-button-${runId}`}
+                                    style={{
+                                        color: run.completed ? MaximumBlue : "gray",
+                                        pointerEvents: run.completed ? "auto" : "none",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        width: "100%",
+                                        padding: 0,
+                                    }}
+                                    disabled={!run.completed}
+                                    onClick={() => {
+                                        props.setSelectedRunID(run.id)
+                                        props.setSelectedRunName(runTitle)
+                                        props.setRunDrawer(true)
+                                    }}
+                                >
+                                    {runTitle}
+                                </button>
+                            </span>
                         </Tooltip>
                     </Grid>
 
