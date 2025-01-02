@@ -589,8 +589,8 @@ export default function RunsTable(props: RunTableProps): ReactElement {
         )
     }
 
-    function getRunNameColumn(run: Run) {
-        const runButton = getRunButton(run, run.id)
+    function getRunNameColumn(run: Run, idx: number) {
+        const runButton = getRunButton(run, idx)
         return (
             <RunsTableCell
                 id="run-name-column"
@@ -624,7 +624,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                 if (props.editingLoading[idx] && props.editingLoading[idx].editing) {
                     runNameColumn = getRunNameRowEditing(run, idx)
                 } else {
-                    runNameColumn = getRunNameColumn(run)
+                    runNameColumn = getRunNameColumn(run, idx)
                 }
 
                 const row = getRunRow(run, runNameColumn, idx)
