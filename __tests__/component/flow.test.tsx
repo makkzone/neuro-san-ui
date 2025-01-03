@@ -264,6 +264,7 @@ describe("Flow Test", () => {
     })
     afterEach(() => {
         jest.resetModules()
+        cleanup()
     })
 
     it("Renders without errors", async () => {
