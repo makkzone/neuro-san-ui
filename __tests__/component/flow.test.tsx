@@ -211,8 +211,12 @@ describe("Flow Test", () => {
         const calls = setParentState.mock.calls
         expect(calls.length).toBeGreaterThan(0)
 
-        // Find the call that added the node. `setParentState` gets called a bunch of times so we have to search
-        const nodeAddCall = calls.find((call) => call.map((callItems) => callItems[0].type === newNodeType))[0]
+        // Find the call that added the node. `setParentState` gets called a bunch of times so we have to search for
+        // any call that attempted to add the new node type.
+        const nodeAddCall = calls.find((call) =>
+            call.some((nodeList) => nodeList.some((node) => node.type === newNodeType))
+        )?.[0]
+
         expect(nodeAddCall).toBeTruthy()
 
         // Make sure call to setParentState() has the correct elements
@@ -260,7 +264,6 @@ describe("Flow Test", () => {
     })
     afterEach(() => {
         jest.resetModules()
-        cleanup()
     })
 
     it("Renders without errors", async () => {

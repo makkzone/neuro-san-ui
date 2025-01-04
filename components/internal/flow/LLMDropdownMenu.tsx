@@ -54,8 +54,11 @@ const LLMDropdownMenu = ({
     edges,
     dataTagfields,
 }: LLMDropDownPropsType) => {
+    // For setting the position of the MUI popup menu for the LLMs
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-    const menuOpen = Boolean(anchorEl)
+
+    // For determining if the menu is open. If anchorEl is not null, the menu is open.
+    const menuOpen = anchorEl != null
 
     /**
      * Adds any node after the specified node, and rewires the graph accordingly.

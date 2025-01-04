@@ -211,6 +211,8 @@ export function GenerationsAnimation(props: GenerationsAnimationParams) {
                     value={selectedGen}
                     disabled={playing}
                     onChange={(_event: Event, newValue: number | number[]) => {
+                        // We can safely cast to number here because we know it's a single value. Only range sliders
+                        // would return an array, which is not what we have here.
                         setSelectedGen(newValue as number)
                     }}
                     sx={{
