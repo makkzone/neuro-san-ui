@@ -92,7 +92,7 @@ echo "Generating gRPC code in ${GENERATED_DIR}..."
 # Clean existing
 rm -rf "${GENERATED_DIR:?}"/*
 
-ALL_PROTO_FILES=$(< "${PROTOS_DIR}"/mdserver_proto.txt)
+ALL_PROTO_FILES=$(< "${PROTOS_DIR}"/mdserver_proto.txt | grep -v "^#")
 
 # Generate the Typepscript types for the services
 for PROTO_FILE in ${ALL_PROTO_FILES}
