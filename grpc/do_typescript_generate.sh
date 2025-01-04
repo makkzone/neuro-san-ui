@@ -33,7 +33,7 @@ PROTOS_DIR=./proto
 NEURO_SAN_PROTO_DIR="${PROTOS_DIR}/neuro-san"
 
 # Define agent protocol version to use
-NEURO_SAN_VERSION="0.1.8"
+NEURO_SAN_VERSION="0.2.0"
 
 # Create directories if necessary
 mkdir -p "${PROTOS_DIR}/internal" "$NEURO_SAN_PROTO_DIR" "${GENERATED_DIR}"
@@ -53,14 +53,19 @@ LOCAL_PATH="$NEURO_SAN_PROTO_DIR/neuro_san/api/grpc"
 # Create the directory structure
 mkdir -p "$LOCAL_PATH"
 
-# Get the agent.proto file from the neuro-san repository. Initially just this one file.
-curl --header "Authorization: token $LEAF_SOURCE_CREDENTIALS" \
-  --header "Accept: application/vnd.github.raw+json" \
-  --output "$LOCAL_PATH/agent.proto" \
-  --location \
-  --show-error \
-  --silent \
-  "https://api.github.com/repos/leaf-ai/neuro-san/contents/neuro_san/api/grpc/agent.proto?ref=${NEURO_SAN_VERSION}"
+NEURO_SAN_PROTOS="agent.proto chat.proto mime_data.proto"
+
+# Get any necessary proto files from the neuro-san repository.
+for ONE_PROTO in ${NEURO_SAN_PROTOS}
+do
+    curl --header "Authorization: token $LEAF_SOURCE_CREDENTIALS" \
+        --header "Accept: application/vnd.github.raw+json" \
+        --output "${LOCAL_PATH}/${ONE_PROTO}" \
+        --location \
+        --show-error \
+        --silent \
+        "https://api.github.com/repos/leaf-ai/neuro-san/contents/neuro_san/api/grpc/${ONE_PROTO}?ref=${NEURO_SAN_VERSION}"
+done
 
 # Hack: google proto files expect to be in a certain hardcoded location, so we copy them there
 cp -r "node_modules/protobufjs/google" "${PROTOS_DIR}/internal"
