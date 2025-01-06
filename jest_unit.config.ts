@@ -9,6 +9,9 @@ const config: Config.InitialOptions = {
     // Pull in shared config
     ...sharedConfig,
 
+    // Keep unit test coverage in separate directory
+    coverageDirectory: "coverage/unit",
+
     // For details on these settings: https://jestjs.io/docs/configuration
     coverageThreshold: {
         global: {

@@ -35,7 +35,7 @@ const config: Config.InitialOptions = {
         "!postcss.config.js",
         "!tailwind.config.js",
     ],
-    coverageReporters: ["text-summary"],
+    coverageReporters: ["json", "text-summary"],
 }
 
 // Required for Jest to function so tell ts-prune to ignore it

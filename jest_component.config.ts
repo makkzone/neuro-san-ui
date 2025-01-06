@@ -17,6 +17,9 @@ const config: Config.InitialOptions = {
     // Pull in shared config
     ...sharedConfig,
 
+    // Keep component test coverage in separate directory
+    coverageDirectory: "coverage/component",
+
     // For details on these settings: https://jestjs.io/docs/configuration
     coverageThreshold: {
         global: {
