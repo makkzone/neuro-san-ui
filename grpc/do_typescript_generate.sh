@@ -31,6 +31,7 @@ fi
 GENERATED_DIR=./generated
 PROTOS_DIR=./proto
 NEURO_SAN_PROTO_DIR="${PROTOS_DIR}/neuro-san"
+PROTO_MANIFEST="${PROTOS_DIR}/mdserver_proto.txt"
 
 # Define agent protocol version to use
 NEURO_SAN_VERSION="0.2.0"
@@ -53,7 +54,7 @@ LOCAL_PATH="$NEURO_SAN_PROTO_DIR/neuro_san/api/grpc"
 # Create the directory structure
 mkdir -p "$LOCAL_PATH"
 
-NEURO_SAN_PROTOS="agent.proto chat.proto mime_data.proto"
+NEURO_SAN_PROTOS=$(cat "${PROTO_MANIFEST}" | grep -v "^#" | grep neuro_san | awk -F"/" '{print $4}')
 
 # Get any necessary proto files from the neuro-san repository.
 for ONE_PROTO in ${NEURO_SAN_PROTOS}
@@ -92,7 +93,7 @@ echo "Generating gRPC code in ${GENERATED_DIR}..."
 # Clean existing
 rm -rf "${GENERATED_DIR:?}"/*
 
-ALL_PROTO_FILES=$(< "${PROTOS_DIR}"/mdserver_proto.txt grep -v "^#")
+ALL_PROTO_FILES=$(< "${PROTO_MANIFEST}" grep -v "^#")
 
 # Generate the Typepscript types for the services
 for PROTO_FILE in ${ALL_PROTO_FILES}
