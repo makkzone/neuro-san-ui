@@ -37,7 +37,7 @@ export function MultiPareto(props: ParetoPlotProps): ReactElement {
 
         // 3D plots can handle exactly 3 dimensions
         {
-            label: `3D Surface (Beta)${objectivesCount === 3 ? "" : " (only available for 3 objectives)"}`,
+            label: `3D Surface ${objectivesCount === 3 ? "" : " (only available for 3 objectives)"}`,
             value: "surface",
             isDisabled: objectivesCount !== 3,
         },
