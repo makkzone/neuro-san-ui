@@ -124,6 +124,15 @@ const NodeConfigPanel = ({
                                 marks={marks}
                                 disabled={readOnlyNode}
                                 valueLabelDisplay="auto"
+                                size="small"
+                                sx={{
+                                    "& .MuiSlider-rail": {
+                                        backgroundColor: "var(--bs-gray-medium)",
+                                    },
+                                    "& .MuiSlider-track": {
+                                        backgroundColor: "#abe2fb",
+                                    },
+                                }}
                             />
                         </Grid>
                     </Grid>
@@ -142,9 +151,18 @@ const NodeConfigPanel = ({
                                 min={0}
                                 max={100}
                                 value={parentNodeState.testSliderValue}
-                                marks={true}
+                                marks={marks}
                                 disabled={readOnlyNode}
                                 valueLabelDisplay="auto"
+                                size="small"
+                                sx={{
+                                    "& .MuiSlider-rail": {
+                                        backgroundColor: "var(--bs-gray-medium)",
+                                    },
+                                    "& .MuiSlider-track": {
+                                        backgroundColor: "#abe2fb",
+                                    },
+                                }}
                             />
                         </Grid>
                     </Grid>

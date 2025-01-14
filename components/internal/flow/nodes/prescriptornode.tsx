@@ -361,6 +361,15 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                             modifiedRulesState.representation_config.max_exponent = newValue
                             SetParentPrescriptorState(modifiedRulesState)
                         }}
+                        size="small"
+                        sx={{
+                            "& .MuiSlider-rail": {
+                                backgroundColor: "var(--bs-gray-medium)",
+                            },
+                            "& .MuiSlider-track": {
+                                backgroundColor: "#abe2fb",
+                            },
+                        }}
                     />
                 </Grid>
             </Grid>
@@ -387,6 +396,15 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                             modifiedRulesState.representation_config.number_of_building_block_conditions = newValue
                             SetParentPrescriptorState(modifiedRulesState)
                         }}
+                        size="small"
+                        sx={{
+                            "& .MuiSlider-rail": {
+                                backgroundColor: "var(--bs-gray-medium)",
+                            },
+                            "& .MuiSlider-track": {
+                                backgroundColor: "#abe2fb",
+                            },
+                        }}
                     />
                 </Grid>
             </Grid>
@@ -412,6 +430,15 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                             const modifiedRulesState = {...ParentPrescriptorState}
                             modifiedRulesState.representation_config.number_of_building_block_rules = newValue
                             SetParentPrescriptorState(modifiedRulesState)
+                        }}
+                        size="small"
+                        sx={{
+                            "& .MuiSlider-rail": {
+                                backgroundColor: "var(--bs-gray-medium)",
+                            },
+                            "& .MuiSlider-track": {
+                                backgroundColor: "#abe2fb",
+                            },
                         }}
                     />
                 </Grid>
