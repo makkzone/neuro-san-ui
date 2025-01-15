@@ -271,6 +271,7 @@ export default function NewProject(props: NewProps) {
     }
 
     function getS3DataForm() {
+        const shouldDisableS3Create = getS3CreateButtonTooltip() !== null || chosenDataSource === localFileOption
         return (
             <>
                 <Box
@@ -318,22 +319,28 @@ export default function NewProject(props: NewProps) {
                 >
                     <Tooltip
                         id="create-data-source-button-tooltip"
-                        title={getCreateButtonTooltip()}
+                        title={getS3CreateButtonTooltip()}
                     >
-                        <Button
-                            id="create-data-source-button"
-                            style={{
-                                background: "var(--bs-primary)",
-                                borderColor: "var(--bs-primary)",
-                                borderRadius: "var(--bs-border-radius)",
-                                color: "var(--bs-white)",
-                                opacity: getCreateButtonTooltip() === null ? OPAQUE : SEMI_OPAQUE,
-                            }}
-                            onClick={async () => generateDataProfile(getS3Key())}
-                            disabled={getCreateButtonTooltip() !== null}
-                        >
-                            Create
-                        </Button>
+                        <span id="create-data-source-button-span">
+                            <Button
+                                id="create-data-source-button"
+                                sx={{
+                                    background: "var(--bs-primary) !important",
+                                    borderColor: "var(--bs-primary)  !important",
+                                    borderRadius: "var(--bs-border-radius)",
+                                    color: "var(--bs-white)  !important",
+                                    opacity: shouldDisableS3Create ? SEMI_OPAQUE : OPAQUE,
+                                    "&:disabled": {
+                                        cursor: "default",
+                                        pointerEvents: "all !important",
+                                    },
+                                }}
+                                onClick={async () => generateDataProfile(getS3Key())}
+                                disabled={shouldDisableS3Create}
+                            >
+                                Create
+                            </Button>
+                        </span>
                     </Tooltip>
                 </Box>
             </>
@@ -342,6 +349,7 @@ export default function NewProject(props: NewProps) {
 
     function getFileUploadForm() {
         const uploadButtonTooltip = getUploadButtonTooltip()
+        const shouldDisableFileUpload = uploadButtonTooltip !== null
 
         return (
             <Space
@@ -362,8 +370,8 @@ export default function NewProject(props: NewProps) {
                 </div>
                 <div id="upload-file-info-div">
                     <input
-                        disabled={!isUsingLocalFile}
                         id="new-project-local-file"
+                        disabled={!isUsingLocalFile}
                         name="file"
                         onChange={changeHandler}
                         ref={fileInputRef}
@@ -438,13 +446,18 @@ export default function NewProject(props: NewProps) {
                                     <span id="upload-file-button-span">
                                         <Button
                                             id="upload-file-button"
-                                            disabled={uploadButtonTooltip !== null}
-                                            style={{
-                                                background: "var(--bs-primary)",
-                                                borderColor: "var(--bs-primary)",
+                                            disabled={shouldDisableFileUpload}
+                                            sx={{
+                                                marginTop: "1rem",
+                                                background: "var(--bs-primary) !important",
+                                                borderColor: "var(--bs-primary) !important",
                                                 borderRadius: "var(--bs-border-radius)",
-                                                color: "var(--bs-white)",
-                                                opacity: uploadButtonTooltip ? SEMI_OPAQUE : OPAQUE,
+                                                color: "var(--bs-white) !important",
+                                                opacity: shouldDisableFileUpload ? SEMI_OPAQUE : OPAQUE,
+                                                "&:disabled": {
+                                                    cursor: "default",
+                                                    pointerEvents: "all !important",
+                                                },
                                             }}
                                             onClick={handleFileUpload}
                                         >
@@ -833,13 +846,13 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`
     }
 
     // Tell user why button is disabled
-    function getCreateButtonTooltip() {
+    function getS3CreateButtonTooltip() {
         if (isUploading) {
             return "Please wait until upload is complete"
         } else if (isUsingS3Source && !inputFields.s3Key) {
             return "Please enter an S3 key for your data source or choose a local file"
-        } else if (isUsingLocalFile && !inputFields.uploadedFileS3Key) {
-            return "Please upload a file for your data source"
+        } else if (isUsingLocalFile) {
+            return "Only available when using the S3 data source option"
         } else {
             // returning null means no tooltip shown, meaning the button should be enabled
             return null

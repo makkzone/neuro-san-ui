@@ -28,5 +28,5 @@ export const LlmChatButton = styled(Button, {
     width: 126,
     zIndex: 99999,
     opacity: disabled ? "50%" : "70%",
-    cursor: disabled ? "pointer" : "default",
+    cursor: disabled ? "default" : "pointer",
 }))
