@@ -221,8 +221,10 @@ export default function NewProject(props: NewProps) {
                 header={<span id="project-details-header">1. Project Details</span>}
                 key={projectDetailsPanelKey}
             >
-                <Box id="project-name-box"
-                    display="block">
+                <Box
+                    id="project-name-box"
+                    display="block"
+                >
                     <TextField
                         id="project-name-input"
                         name="name"
