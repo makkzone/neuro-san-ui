@@ -1,14 +1,17 @@
 import InfoIcon from "@mui/icons-material/Info"
+import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
+import CircularProgress from "@mui/material/CircularProgress"
+import Container from "@mui/material/Container"
+import Grid from "@mui/material/Grid2"
+import Tab from "@mui/material/Tab"
+import Tabs from "@mui/material/Tabs"
 import Tooltip from "@mui/material/Tooltip"
 import {Radio, RadioChangeEvent, Space} from "antd"
 import Link from "next/link"
 import {NextRouter, useRouter} from "next/router"
 import {useEffect, useState} from "react"
-import {Button, Col, Container, Row} from "react-bootstrap"
-import Tab from "react-bootstrap/Tab"
-import Tabs from "react-bootstrap/Tabs"
 import ReactMarkdown from "react-markdown"
-import ClipLoader from "react-spinners/ClipLoader"
 import SyntaxHighlighter from "react-syntax-highlighter"
 import {docco} from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import {ReactFlowProvider} from "reactflow"
@@ -20,7 +23,6 @@ import {FlowQueries} from "./flow/flowqueries"
 import {PrescriptorNode} from "./flow/nodes/prescriptornode"
 import {NodeType} from "./flow/nodes/types"
 import {FlowElementsType} from "./flow/types"
-import {MaximumBlue} from "../../const"
 import {fetchProjects} from "../../controller/projects/fetch"
 import {Project, Projects} from "../../controller/projects/types"
 import {fetchLlmRules} from "../../controller/rules/rules"
@@ -33,13 +35,33 @@ import decode from "../../utils/conversion"
 import {empty} from "../../utils/objects"
 import {consolidateFlow} from "../../utils/transformation"
 import {useLocalStorage} from "../../utils/use_local_storage"
-import BlankLines from "../blanklines"
 import ESPRunPlot from "../esprunplot"
 import MetricsTable from "../metricstable"
 import NewBar from "../newbar"
 import {NotificationType, sendNotification} from "../notification"
 import {PageLoader} from "../pageLoader"
 import {MultiPareto} from "../pareto/multi_pareto"
+
+interface TabPanelProps {
+    children?: React.ReactNode
+    index: number
+    value: number
+}
+
+function CustomTabPanel(myProps: TabPanelProps) {
+    const {children, value, index, ...other} = myProps
+
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            {...other}
+        >
+            {value === index && <Box>{children}</Box>}
+        </div>
+    )
+}
 
 interface RunProps {
     /* 
@@ -85,6 +107,7 @@ export default function RunPage(props: RunProps): React.ReactElement {
     const [rulesInterpretationLoading, setRulesInterpretationLoading] = useState(false)
     const [insightsLoading, setInsightsLoading] = useState(false)
     const [project, setProject] = useState<Project>(null)
+    const [selectedTab, setSelectedTab] = useState(0)
 
     const [runLoading, setRunLoading] = useState<boolean>(false)
 
@@ -554,11 +577,9 @@ export default function RunPage(props: RunProps): React.ReactElement {
                 className="container"
                 key="plot-data-div"
             >
-                {/* 2/6/23 DEF - ClipLoader does not have an id property when compiling */}
-                <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                <CircularProgress
                     key="plot-data-clip-loader"
-                    color={MaximumBlue}
-                    loading={true}
+                    sx={{color: "var(--bs-primary)"}}
                     size={50}
                 />
             </div>
@@ -575,12 +596,9 @@ export default function RunPage(props: RunProps): React.ReactElement {
             >
                 <Button
                     id="dms-button"
-                    size="lg"
-                    className="mt-4 mb-4"
-                    type="button"
                     style={{
-                        background: MaximumBlue,
-                        borderColor: MaximumBlue,
+                        background: "var(--color-primary)",
+                        borderColor: "var(--color-primary)",
                         width: "100%",
                     }}
                     disabled={!shouldEnableDMS()}
@@ -617,11 +635,178 @@ export default function RunPage(props: RunProps): React.ReactElement {
         )
     }
 
+    function getInsightsPanel() {
+        return (
+            <CustomTabPanel
+                value={selectedTab}
+                index={1}
+            >
+                <div
+                    id="insights-div"
+                    style={{whiteSpace: "pre-wrap"}}
+                >
+                    {insightsLoading ? (
+                        <>
+                            <CircularProgress
+                                sx={{color: "var(--bs-primary)"}}
+                                size={50}
+                            />
+                            Accessing LLM...
+                        </>
+                    ) : (
+                        <div id="insights-inner-div">
+                            <h1 id="insights-h1">Insights</h1>
+                            <h2 id="project-name">{project.name}</h2>
+                            {project.description}
+                            <ReactMarkdown // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                // ReactMarkdown doesn't have (or need) an id property.
+                                remarkPlugins={[remarkGfm]}
+                            >
+                                {insights}
+                            </ReactMarkdown>
+                            <h5 id="powered-by">Powered by OpenAI™ GPT-3.5™ technology</h5>
+                        </div>
+                    )}
+                </div>
+            </CustomTabPanel>
+        )
+    }
+
+    function getDetailsPanel() {
+        return (
+            <CustomTabPanel
+                value={selectedTab}
+                index={0}
+            >
+                <Container id="rules-decoded-container">
+                    <Grid
+                        id="rules-decoded-Grid"
+                        style={{marginTop: 10}}
+                    >
+                        <Grid id="rules-decoded-column">
+                            {selectedRulesFormat === "raw" ? (
+                                getRawRulesDiv()
+                            ) : rulesInterpretationLoading ? (
+                                <>
+                                    <CircularProgress
+                                        sx={{color: "var(--bs-primary)"}}
+                                        size={50}
+                                    />
+                                    Accessing LLM...
+                                </>
+                            ) : (
+                                <div id="markdown-div">
+                                    <ReactMarkdown // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                    // ReactMarkdown doesn"t have (or need) an id property.
+                                    // The items it generates each have their own referenceable id.
+                                    >
+                                        {interpretedRules}
+                                    </ReactMarkdown>
+                                    <h5 id="powered-by">Powered by OpenAI™ GPT-3.5™ technology</h5>
+                                </div>
+                            )}
+                        </Grid>
+                        <Grid id="radio-column">
+                            <Radio.Group
+                                id="radio-group"
+                                value={selectedRulesFormat}
+                                onChange={(e: RadioChangeEvent) => {
+                                    setSelectedRulesFormat(e.target.value)
+                                }}
+                            >
+                                <Space
+                                    id="radio-space"
+                                    direction="vertical"
+                                    size="middle"
+                                >
+                                    <div
+                                        id="radio-raw-help"
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Radio
+                                            id="radio-raw"
+                                            value="raw"
+                                        >
+                                            Raw
+                                        </Radio>
+                                        <Tooltip
+                                            id="raw-tooltip"
+                                            title="View rules exactly as they were generated during the
+                                                        evolutionary search."
+                                        >
+                                            <InfoIcon
+                                                id="raw-info-icon"
+                                                sx={{height: "21px", width: "21px"}}
+                                            />
+                                        </Tooltip>
+                                    </div>
+                                    <div
+                                        id="radio-raw-help"
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Radio
+                                            id="radio-interpreted"
+                                            value="interpreted"
+                                        >
+                                            Interpreted
+                                        </Radio>
+                                        <Tooltip
+                                            id="raw-tooltip"
+                                            title="View rules as interpreted by using an LLM
+                                                        (large language model) to express them in a more human-readable
+                                                        format."
+                                        >
+                                            <InfoIcon
+                                                id="raw-info-icon"
+                                                sx={{height: "21px", width: "21px"}}
+                                            />
+                                        </Tooltip>
+                                    </div>
+                                </Space>
+                            </Radio.Group>
+                        </Grid>
+                    </Grid>
+                </Container>
+            </CustomTabPanel>
+        )
+    }
+
+    function getRulesTabs() {
+        return (
+            <Tabs
+                id="rules-tabs"
+                value={selectedTab}
+                onChange={(_e, newTabIndex: number) => setSelectedTab(newTabIndex)}
+            >
+                <Box sx={{borderBottom: 1, borderColor: "divider"}}>
+                    <Tab
+                        id="rules-decoded-tab"
+                        label="Details"
+                    />
+                    <Tab
+                        id="insights-tab"
+                        label="Insights"
+                    />
+                </Box>
+                {getDetailsPanel()}
+                {getInsightsPanel()}
+            </Tabs>
+        )
+    }
+
     if (rules) {
         // Add rules. We use a syntax highlighter to pretty-print the rules and lie about the language
         // the rules are in to get a decent coloring scheme
         plotDiv.push(
-            <div
+            <Box
                 id="rules-div"
                 style={{marginBottom: "600px"}}
             >
@@ -631,169 +816,8 @@ export default function RunPage(props: RunProps): React.ReactElement {
                     Title="Rules"
                     DisplayNewLink={false}
                 />
-                {
-                    <Tabs
-                        defaultActiveKey="decoded"
-                        id="rules-tabs"
-                        className="my-10"
-                        justify
-                    >
-                        <Tab
-                            id="rules-decoded-tab"
-                            eventKey="decoded"
-                            title="Details"
-                        >
-                            <Container id="rules-decoded-container">
-                                <Row
-                                    id="rules-decoded-row"
-                                    style={{marginTop: 10}}
-                                >
-                                    <Col
-                                        id="rules-decoded-column"
-                                        md={10}
-                                    >
-                                        {selectedRulesFormat === "raw" ? (
-                                            getRawRulesDiv()
-                                        ) : rulesInterpretationLoading ? (
-                                            <>
-                                                <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                                    color={MaximumBlue}
-                                                    loading={true}
-                                                    size={50}
-                                                />
-                                                Accessing LLM...
-                                            </>
-                                        ) : (
-                                            <div id="markdown-div">
-                                                <ReactMarkdown // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                                // ReactMarkdown doesn"t have (or need) an id property.
-                                                // The items it generates each have their own referenceable id.
-                                                >
-                                                    {interpretedRules}
-                                                </ReactMarkdown>
-                                                <BlankLines
-                                                    id="bl1"
-                                                    count={3}
-                                                />
-                                                <h5 id="powered-by">Powered by OpenAI™ GPT-3.5™ technology</h5>
-                                            </div>
-                                        )}
-                                    </Col>
-                                    <Col
-                                        id="radio-column"
-                                        md={2}
-                                    >
-                                        <Radio.Group
-                                            id="radio-group"
-                                            value={selectedRulesFormat}
-                                            onChange={(e: RadioChangeEvent) => {
-                                                setSelectedRulesFormat(e.target.value)
-                                            }}
-                                        >
-                                            <Space
-                                                id="radio-space"
-                                                direction="vertical"
-                                                size="middle"
-                                            >
-                                                <div
-                                                    id="radio-raw-help"
-                                                    style={{
-                                                        display: "flex",
-                                                        justifyContent: "space-between",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
-                                                    <Radio
-                                                        id="radio-raw"
-                                                        value="raw"
-                                                    >
-                                                        Raw
-                                                    </Radio>
-                                                    <Tooltip
-                                                        id="raw-tooltip"
-                                                        title="View rules exactly as they were generated during the
-                                                        evolutionary search."
-                                                    >
-                                                        <InfoIcon
-                                                            id="raw-info-icon"
-                                                            sx={{height: "21px", width: "21px"}}
-                                                        />
-                                                    </Tooltip>
-                                                </div>
-                                                <div
-                                                    id="radio-raw-help"
-                                                    style={{
-                                                        display: "flex",
-                                                        justifyContent: "space-between",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
-                                                    <Radio
-                                                        id="radio-interpreted"
-                                                        value="interpreted"
-                                                    >
-                                                        Interpreted
-                                                    </Radio>
-                                                    <Tooltip
-                                                        id="raw-tooltip"
-                                                        title="View rules as interpreted by using an LLM
-                                                        (large language model) to express them in a more human-readable
-                                                        format."
-                                                    >
-                                                        <InfoIcon
-                                                            id="raw-info-icon"
-                                                            sx={{height: "21px", width: "21px"}}
-                                                        />
-                                                    </Tooltip>
-                                                </div>
-                                            </Space>
-                                        </Radio.Group>
-                                    </Col>
-                                </Row>
-                            </Container>
-                        </Tab>
-                        <Tab
-                            id="insights-tab"
-                            eventKey="insights"
-                            title="Insights"
-                        >
-                            <div
-                                id="insights-div"
-                                className="my-2 py-2"
-                                style={{whiteSpace: "pre-wrap"}}
-                            >
-                                {insightsLoading ? (
-                                    <>
-                                        <ClipLoader // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                            color={MaximumBlue}
-                                            loading={true}
-                                            size={50}
-                                        />
-                                        Accessing LLM...
-                                    </>
-                                ) : (
-                                    <div id="insights-inner-div">
-                                        <h1 id="insights-h1">Insights</h1>
-                                        <h2 id="project-name">{project.name}</h2>
-                                        {project.description}
-                                        <ReactMarkdown // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                            // ReactMarkdown doesn't have (or need) an id property.
-                                            remarkPlugins={[remarkGfm]}
-                                        >
-                                            {insights}
-                                        </ReactMarkdown>
-                                        <BlankLines
-                                            id="bl2"
-                                            count={3}
-                                        />
-                                        <h5 id="powered-by">Powered by OpenAI™ GPT-3.5™ technology</h5>
-                                    </div>
-                                )}
-                            </div>
-                        </Tab>
-                    </Tabs>
-                }
-            </div>
+                {getRulesTabs()}
+            </Box>
         )
     }
 
