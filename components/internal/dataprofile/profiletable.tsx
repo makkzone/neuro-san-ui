@@ -2,10 +2,10 @@ import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Container from "@mui/material/Container"
 import Grid from "@mui/material/Grid2"
+import Input from "@mui/material/Input"
 import List from "@mui/material/List"
 import ListItem from "@mui/material/ListItem"
-import TextField from "@mui/material/TextField"
-import {Alert, Input, Space} from "antd"
+import {Alert, Space} from "antd"
 import {ReactElement, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd"
 import {AiFillDelete, AiFillEdit, AiFillWarning} from "react-icons/ai"
@@ -98,7 +98,7 @@ export default function ProfileTable(props: ProfileTableProps) {
         <tr
             id={field}
             key={field}
-            style={{backgroundColor: caoColorCoding[fields[field].espType]}}
+            style={{backgroundColor: caoColorCoding[fields[field].espType], height: "1rem", padding: 0, margin: 0}}
         >
             {/*Field name*/}
             <td
@@ -293,10 +293,10 @@ export default function ProfileTable(props: ProfileTableProps) {
             >
                 {isContinuous(field) ? (
                     <Box id={`${field}-min-range-data`}>
-                        <TextField
+                        <Input
                             id={`${field}-min-range-control`}
                             className="m-0 p-0 mx-auto"
-                            style={{width: "16ch"}}
+                            sx={{width: "16ch", backgroundColor: "var(--bs-white)"}}
                             name={`${field}-min-range`}
                             type="number"
                             value={fields[field].range[0]}
@@ -320,10 +320,10 @@ export default function ProfileTable(props: ProfileTableProps) {
             >
                 {isContinuous(field) ? (
                     <Box id={`${field}-max-range-group`}>
-                        <TextField
+                        <Input
                             id={`${field}-max-range-control`}
                             className="m-0 p-0 mx-auto"
-                            style={{width: "16ch"}}
+                            sx={{width: "16ch", backgroundColor: "var(--bs-white)"}}
                             name={`${field}-max-range`}
                             type="number"
                             value={fields[field].range[1]}
