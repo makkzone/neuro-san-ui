@@ -411,8 +411,7 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                     {!isAwaitingLlm && (
                         <LlmChatButton
                             id="regenerate-output-button"
-                            onClick={async (event) => {
-                                event.preventDefault()
+                            onClick={async () => {
                                 await sendQuery(previousUserQuery)
                             }}
                             posRight={10}
@@ -424,7 +423,7 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                         >
                             <Loop
                                 id="generate-icon"
-                                sx={{display: "inline", marginRight: "0.25rem"}}
+                                sx={{marginRight: "0.25rem", display: "inline"}}
                             />
                             Regenerate
                         </LlmChatButton>
