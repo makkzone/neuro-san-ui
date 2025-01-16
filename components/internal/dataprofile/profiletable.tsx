@@ -603,11 +603,8 @@ export default function ProfileTable(props: ProfileTableProps) {
                     }}
                     sx={{
                         "& .MuiInputBase-root": {
-                            height: "2.5rem", // Adjust the height as needed
+                            height: "2.5rem",
                         },
-                        // "& .MuiInputLabel-root": {
-                        //     lineHeight: "2.5rem", // Adjust the line height to match the input height
-                        // },
                     }}
                 />
                 <Button
