@@ -19,7 +19,7 @@ import {FlowQueries} from "./flow/flowqueries"
 import {PrescriptorNode} from "./flow/nodes/prescriptornode"
 import {NodeType} from "./flow/nodes/types"
 import {FlowElementsType} from "./flow/types"
-import {InferenceButton} from "./InferenceButton"
+import {WideButton} from "./WideButton"
 import {fetchProjects} from "../../controller/projects/fetch"
 import {Project, Projects} from "../../controller/projects/types"
 import {fetchLlmRules} from "../../controller/rules/rules"
@@ -598,12 +598,12 @@ export default function RunPage(props: RunProps): ReactElement {
                     cursor: shouldEnableDMS() ? "pointer" : "not-allowed",
                 }}
             >
-                <InferenceButton
+                <WideButton
                     id="dms-button"
                     disabled={!shouldEnableDMS()}
                 >
                     {getDMSButton()}
-                </InferenceButton>
+                </WideButton>
             </div>
         )
     }

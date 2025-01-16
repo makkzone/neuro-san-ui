@@ -1,8 +1,13 @@
+import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
+import Container from "@mui/material/Container"
+import Grid from "@mui/material/Grid2"
+import List from "@mui/material/List"
+import ListItem from "@mui/material/ListItem"
+import TextField from "@mui/material/TextField"
 import {Alert, Input, Space} from "antd"
 import {ReactElement, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd"
-import {Col, Container, Form, ListGroup, Row} from "react-bootstrap"
 import {AiFillDelete, AiFillEdit, AiFillWarning} from "react-icons/ai"
 
 import {reasonToHumanReadable} from "../../../controller/datasources/conversion"
@@ -16,7 +21,7 @@ interface ProfileTableProps {
     Profile: Profile
     ProfileUpdateHandler: (value: Profile) => void
 
-    // enable/disble saving of profile
+    // enable/disable saving of profile
     readonly updatePermission?: boolean
 }
 
@@ -287,8 +292,8 @@ export default function ProfileTable(props: ProfileTableProps) {
                 className={tableCellClassName}
             >
                 {isContinuous(field) ? (
-                    <Form.Group id={`${field}-min-range-data`}>
-                        <Form.Control
+                    <Box id={`${field}-min-range-data`}>
+                        <TextField
                             id={`${field}-min-range-control`}
                             className="m-0 p-0 mx-auto"
                             style={{width: "16ch"}}
@@ -302,7 +307,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                                 setProfile(profileCopy)
                             }}
                         />
-                    </Form.Group>
+                    </Box>
                 ) : (
                     "N/A"
                 )}
@@ -314,8 +319,8 @@ export default function ProfileTable(props: ProfileTableProps) {
                 className={tableCellClassName}
             >
                 {isContinuous(field) ? (
-                    <Form.Group id={`${field}-max-range-group`}>
-                        <Form.Control
+                    <Box id={`${field}-max-range-group`}>
+                        <TextField
                             id={`${field}-max-range-control`}
                             className="m-0 p-0 mx-auto"
                             style={{width: "16ch"}}
@@ -329,7 +334,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                                 setProfile(profileCopy)
                             }}
                         />
-                    </Form.Group>
+                    </Box>
                 ) : (
                     "N/A"
                 )}
@@ -439,26 +444,25 @@ export default function ProfileTable(props: ProfileTableProps) {
                 {(providedInner, snapshot) => {
                     const opacity = snapshot.isDragging ? "opacity-50" : "opacity-100"
                     return (
-                        <Row
+                        <Grid
                             id={`${val}-row`}
                             className={`my-1 ${opacity}`}
                             ref={providedInner.innerRef}
                             {...providedInner.draggableProps}
                             {...providedInner.dragHandleProps}
                         >
-                            <Col
+                            <Grid
                                 id={`${val}-value-column`}
                                 className="mx-0 px-1"
                             >
-                                <ListGroup.Item
+                                <ListItem
                                     id={`${val}-value`}
-                                    as="li"
                                     className="values"
                                 >
                                     <div id={`${val}`}>{val}</div>
-                                </ListGroup.Item>
-                            </Col>
-                            <Col
+                                </ListItem>
+                            </Grid>
+                            <Grid
                                 id={`${val}-delete-value-column`}
                                 className="d-flex vertical-align-middle mx-0 px-1"
                             >
@@ -479,8 +483,8 @@ export default function ProfileTable(props: ProfileTableProps) {
                                         />
                                     </button>
                                 )}
-                            </Col>
-                        </Row>
+                            </Grid>
+                        </Grid>
                     )
                 }}
             </Draggable>
@@ -527,17 +531,17 @@ export default function ProfileTable(props: ProfileTableProps) {
 
     const editCategoryValuesModalContent = (
         <Container id="field-container">
-            <Row id="field-being-edited-row">
+            <Grid id="field-being-edited-row">
                 <label id="field-being-edited">Field: {fieldBeingEditedName}</label>
-            </Row>
-            <Row
+            </Grid>
+            <Grid
                 id="field-editor-drag-msg-row"
                 className="pt-3"
             >
                 (drag to re-order)
-            </Row>
+            </Grid>
             <p id="values-separator" />
-            <Row id="values-droppable-row">
+            <Grid id="values-droppable-row">
                 {/* Drag-drop list of values */}
                 {
                     <Droppable // eslint-disable-line enforce-ids-in-jsx/missing-ids
@@ -546,8 +550,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                     >
                         {(provided) => (
                             <Container id="values-droppable-container">
-                                <ListGroup
-                                    as="ol"
+                                <List
                                     id="values-droppable-listgroup"
                                     ref={provided.innerRef}
                                     {...provided.droppableProps}
@@ -559,20 +562,20 @@ export default function ProfileTable(props: ProfileTableProps) {
                                               })
                                             : [] // empty list by default
                                     }
-                                </ListGroup>
+                                </List>
                                 {provided.placeholder}
                             </Container>
                         )}
                     </Droppable>
                 }
-            </Row>
-            <Row
+            </Grid>
+            <Grid
                 id="add-category-value-label-row"
                 className="pt-4"
             >
                 <label id="add-category-label">Add category value:</label>
-            </Row>
-            <Row
+            </Grid>
+            <Grid
                 id="add-category-value-row"
                 className="pt-1"
             >
@@ -595,7 +598,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                         Add
                     </Button>
                 </Space.Compact>
-            </Row>
+            </Grid>
         </Container>
     )
 
@@ -671,45 +674,48 @@ export default function ProfileTable(props: ProfileTableProps) {
                     showIcon={true}
                 />
             ) : null}
-            <div
+            <Box
                 id={propsId}
-                className="flex flex-col"
+                sx={{display: "flex", flexDirection: "column"}}
             >
                 {showFieldEditor && renderEditCategoryValuesModal()}
                 {confirmationModalStatus && renderConfirmationModal()}
-                <div
-                    id="profile-table-div"
-                    className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8"
+                <Box
+                    id="profile-table-container"
+                    sx={{
+                        alignItems: "center",
+                        borderBottom: 1,
+                        borderColor: "gray.200",
+                        borderRadius: 1,
+                        boxShadow: 1,
+                        display: "inline-block",
+                        minWidth: "100%",
+                        mx: {sm: 6, lg: 8},
+                        my: 2,
+                        overflow: "hidden",
+                        overflowX: "auto",
+                        py: 2,
+                    }}
                 >
-                    <div
-                        id="profile-table-div-3"
-                        className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8"
+                    <table
+                        id="profile-table"
+                        className="min-w-full divide-y divide-gray-200"
                     >
-                        <div
-                            id="profile-table-div-4"
-                            className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg"
+                        <thead
+                            id="profile-table-header"
+                            className="bg-gray-50"
                         >
-                            <table
-                                id="profile-table"
-                                className="min-w-full divide-y divide-gray-200"
-                            >
-                                <thead
-                                    id="profile-table-header"
-                                    className="bg-gray-50"
-                                >
-                                    <tr id="profile-table-header-elements">{tableHeaderElements}</tr>
-                                </thead>
-                                <tbody
-                                    id="profile-table-all-rows"
-                                    className="bg-white divide-y divide-gray-200"
-                                >
-                                    {allRows}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            <tr id="profile-table-header-elements">{tableHeaderElements}</tr>
+                        </thead>
+                        <tbody
+                            id="profile-table-all-rows"
+                            className="bg-white divide-y divide-gray-200"
+                        >
+                            {allRows}
+                        </tbody>
+                    </table>
+                </Box>
+            </Box>
             <NeuroAIChatbot
                 id="chatbot"
                 userAvatar={undefined}

@@ -1,7 +1,7 @@
 import {styled} from "@mui/material"
 import Button from "@mui/material/Button"
 
-export const InferenceButton = styled(Button)(({disabled}) => ({
+export const WideButton = styled(Button)(({disabled}) => ({
     background: "var(--bs-primary) !important",
     borderColor: "var(--bs-primary) !important",
     width: "100%",
