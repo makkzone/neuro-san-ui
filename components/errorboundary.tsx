@@ -28,7 +28,7 @@ interface ErrorBoundaryState {
  */
 interface ErrorBoundaryProps {
     readonly id: string
-    readonly children: ReactNode[]
+    readonly children: ReactNode
 }
 
 /**
