@@ -22,10 +22,6 @@ import useEnvironmentStore from "../state/environment"
 import useUserInfoStore from "../state/userInfo"
 import {smartSignOut, useAuthentication} from "../utils/authentication"
 
-// Define Constants
-const LOGO_COLOR: string = "var(--bs-white)"
-const NAV_ITEMS_COLOR: string = "var(--bs-white)"
-
 // Declare the Props Interface
 interface NavbarProps {
     // id is a string handle to the element used for testing
@@ -38,7 +34,7 @@ interface NavbarProps {
 }
 
 const MENU_ITEM_TEXT_PROPS = {
-    color: NAV_ITEMS_COLOR,
+    color: "var(--bs-white)",
     backgroundColor: "var(--bs-primary)",
     fontFamily: "var(--bs-body-font-family)",
     fontSize: "18px",
@@ -112,7 +108,7 @@ function Navbar(props: NavbarProps): ReactElement {
                 minHeight: "50px",
                 height: "auto",
                 maxHeight: "100px",
-                color: NAV_ITEMS_COLOR,
+                color: "var(--bs-white)",
             }}
         >
             {/*App title*/}
@@ -121,14 +117,14 @@ function Navbar(props: NavbarProps): ReactElement {
                     id="nav-bar-brand"
                     sx={{
                         ...MENU_ITEM_TEXT_PROPS,
-                        color: LOGO_COLOR,
+                        color: "var(--bs-white)",
                         marginLeft: "10px",
                         fontWeight: "bold",
                     }}
                 >
                     <Link
                         id="navbar-brand-link"
-                        style={{color: NAV_ITEMS_COLOR}}
+                        style={{color: "var(--bs-white)"}}
                         href={{
                             pathname: "/",
                             query: router.query,
@@ -147,7 +143,7 @@ function Navbar(props: NavbarProps): ReactElement {
                     display: "flex",
                     justifyContent: "flex-end", // Right align
                     alignItems: "center", // Vertically center
-                    color: NAV_ITEMS_COLOR,
+                    color: "var(--bs-white)",
                     marginRight: "50px",
                 }}
             >
@@ -176,7 +172,7 @@ function Navbar(props: NavbarProps): ReactElement {
                     Help
                     <ArrowDropDownIcon
                         id="nav-help-dropdown-arrow"
-                        sx={{color: NAV_ITEMS_COLOR, fontSize: 22}}
+                        sx={{color: "var(--bs-white)", fontSize: 22}}
                     />
                 </Typography>
 
@@ -268,7 +264,7 @@ function Navbar(props: NavbarProps): ReactElement {
                         />
                         <ArrowDropDownIcon
                             id="nav-user-dropdown-arrow"
-                            sx={{color: NAV_ITEMS_COLOR, fontSize: 22}}
+                            sx={{color: "var(--bs-white)", fontSize: 22}}
                         />
                     </IconButton>
                     <Menu
