@@ -9,13 +9,15 @@ const config: Config.InitialOptions = {
     // Pull in shared config
     ...sharedConfig,
 
+    coverageDirectory: "coverage/",
+
     // For details on these settings: https://jestjs.io/docs/configuration
     coverageThreshold: {
         global: {
-            statements: 3.14,
-            branches: 2.08,
-            functions: 3.21,
-            lines: 2.94,
+            statements: 30.62,
+            branches: 26.78,
+            functions: 28.42,
+            lines: 30.43,
         },
     },
 }
