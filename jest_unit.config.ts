@@ -1,4 +1,4 @@
-// Base jest config for all test types. Other configuration files will import this one.
+// Jest config for unit tests (and "component" tests)
 
 import type {Config} from "@jest/types"
 
@@ -8,8 +8,6 @@ import sharedConfig from "./jest.config"
 const config: Config.InitialOptions = {
     // Pull in shared config
     ...sharedConfig,
-
-    coverageDirectory: "coverage/",
 
     // For details on these settings: https://jestjs.io/docs/configuration
     coverageThreshold: {
