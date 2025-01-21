@@ -1,6 +1,5 @@
 import "antd/dist/reset.css"
 
-import "bootstrap/dist/css/bootstrap.css"
 import "reactflow/dist/style.css"
 
 import "../styles/updatenode.css"
@@ -8,14 +7,13 @@ import "../styles/globals.css"
 import "../styles/splashpage.css"
 import "../styles/rundialog.css"
 
-import {CssBaseline, ThemeProvider} from "@mui/material"
+import {Container, CssBaseline, ThemeProvider} from "@mui/material"
 import debugModule from "debug"
 import Head from "next/head"
 import {useRouter} from "next/router"
 import {SessionProvider} from "next-auth/react"
 import {SnackbarProvider} from "notistack"
 import {ReactElement, ReactFragment, useEffect} from "react"
-import {Container} from "react-bootstrap"
 import ClipLoader from "react-spinners/ClipLoader"
 
 import {UserInfoResponse} from "./api/userInfo/types"
@@ -256,13 +254,15 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
                     session={session}
                 >
                     <ErrorBoundary id="error_boundary">
-                        <Navbar
-                            id="nav-bar"
-                            Logo={isGeneric ? GENERIC_LOGO : LOGO}
-                            WithBreadcrumbs={Component.withBreadcrumbs ?? true}
-                        />
-
-                        <Container id="body-container">
+                        <Container
+                            id="body-container"
+                            maxWidth="xl"
+                        >
+                            <Navbar
+                                id="nav-bar"
+                                Logo={isGeneric ? GENERIC_LOGO : LOGO}
+                                WithBreadcrumbs={Component.withBreadcrumbs ?? true}
+                            />
                             {getAppComponent()}
                             <div id="fixed-pos-div">
                                 <NeuroAIChatbot
