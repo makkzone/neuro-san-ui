@@ -1,4 +1,3 @@
-import Box from "@mui/material/Box"
 import Card from "@mui/material/Card"
 import CircularProgress from "@mui/material/CircularProgress"
 import Grid from "@mui/material/Grid2"
@@ -174,5 +173,12 @@ export default function ProjectsCards(props: ProjectsCardsProps): ReactElement {
     }
 
     // Build the project card display
-    return <Box id={id}>{projectList.map((project, idx) => getProjectCard(project, idx))}</Box>
+    return (
+        <Grid
+            id={id}
+            container={true}
+        >
+            {projectList.map((project, idx) => getProjectCard(project, idx))}
+        </Grid>
+    )
 }
