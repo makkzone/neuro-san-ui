@@ -29,6 +29,7 @@ interface ProjectsCardsProps {
 // Has to be export default for NextJS so tell ts-prune to ignore
 // ts-prune-ignore-next
 export default function ProjectsCards(props: ProjectsCardsProps): ReactElement {
+    // Extract props
     const {
         id,
         projectList,

@@ -15,13 +15,12 @@ import {DisplayOption, FilterSpecification, ProjectPagePreferences, ShowAsOption
 import {Project} from "../../controller/projects/types"
 
 interface ProjectsTableProps {
+    readonly id: string
     readonly projectList: Project[]
     readonly router: NextRouter
-    readonly allowedActions: {allowDelete: boolean; allowSharing: boolean}
-    readonly isAuthLoading: boolean
-    readonly enableAuthorizeAPI: boolean
+    readonly getAllowedActions: (project: Project) => {allowDelete: boolean; allowSharing: boolean}
     readonly getSharingIcon: (project: Project) => ReactElement
-    readonly getDeleteIcon: (idx: number) => ReactElement
+    readonly getDeleteIcon: (project: Project, idx: number) => ReactElement
     readonly preferences: ProjectPagePreferences
 
     // setPreferences is a React state setter that takes either a value as input or a function argument
@@ -58,70 +57,15 @@ interface ProjectsTableProps {
  * @returns React element representing the project table
  */
 export default function ProjectsTable(props: ProjectsTableProps): ReactElement<ProjectsTableProps> {
-    const {
-        projectList,
-        preferences,
-        setPreferences,
-        router,
-        allowedActions,
-        isAuthLoading,
-        enableAuthorizeAPI,
-        getSharingIcon,
-        getDeleteIcon,
-    } = props
+    // Extract props
+    const {id, projectList, preferences, setPreferences, router, getAllowedActions, getSharingIcon, getDeleteIcon} =
+        props
 
     // For sorting -- column and order
     const [sorting, setSorting] = useState<SortSpecification>({
         columnKey: preferences?.sorting?.columnKey || "updated_at",
         sortOrder: preferences?.sorting?.sortOrder || "desc",
     })
-
-    // Apply the filter if there is one. We only start filtering at 2 characters+
-    const lowerCaseFilterText = preferences.filterSpecification.filterText?.toLocaleLowerCase()
-    const filteredSortedData =
-        preferences.filterSpecification.columnKey && preferences.filterSpecification.filterText
-            ? sortedData.filter(
-                  (datum) =>
-                      preferences.filterSpecification.filterText.length < 2 ||
-                      datum[preferences.filterSpecification.columnKey].toLocaleLowerCase().includes(lowerCaseFilterText)
-              )
-            : sortedData
-
-    const handleHeaderClick = (_event: ReactMouseEvent<unknown>, clickedHeaderId: string) => {
-        if (clickedHeaderId !== sorting.columnKey) {
-            // If a new column is clicked, clear previous sorting
-            setSorting({
-                columnKey: clickedHeaderId,
-                sortOrder: "asc",
-            })
-
-            // Record in persisted preferences
-            setPreferences((currentPreferences: ProjectPagePreferences) => ({
-                ...currentPreferences,
-                sorting: {
-                    columnKey: clickedHeaderId,
-                    sortOrder: "asc",
-                },
-            }))
-        } else {
-            // Toggle sorting order for the same column
-            const newSortOrder = sorting.sortOrder === "desc" ? "asc" : "desc"
-
-            setSorting({
-                ...sorting,
-                sortOrder: newSortOrder,
-            })
-
-            // Record in persisted preferences
-            setPreferences((currentPreferences: ProjectPagePreferences) => ({
-                ...currentPreferences,
-                sorting: {
-                    ...sorting,
-                    sortOrder: newSortOrder,
-                },
-            }))
-        }
-    }
 
     // Sort the project list based on the column and order
     const sortedData = useMemo(
@@ -165,6 +109,55 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
         [projectList, sorting]
     )
 
+    // Apply the filter if there is one. We only start filtering at 2 characters+
+    const lowerCaseFilterText = preferences?.filterSpecification?.filterText?.toLocaleLowerCase()
+    const filteredSortedData =
+        preferences?.filterSpecification?.columnKey && preferences?.filterSpecification?.filterText
+            ? sortedData.filter(
+                  (datum) =>
+                      preferences?.filterSpecification?.filterText.length < 2 ||
+                      datum[preferences?.filterSpecification?.columnKey]
+                          .toLocaleLowerCase()
+                          .includes(lowerCaseFilterText)
+              )
+            : sortedData
+
+    const handleHeaderClick = (_event: ReactMouseEvent<unknown>, clickedHeaderId: string) => {
+        if (clickedHeaderId !== sorting.columnKey) {
+            // If a new column is clicked, clear previous sorting
+            setSorting({
+                columnKey: clickedHeaderId,
+                sortOrder: "asc",
+            })
+
+            // Record in persisted preferences
+            setPreferences((currentPreferences: ProjectPagePreferences) => ({
+                ...currentPreferences,
+                sorting: {
+                    columnKey: clickedHeaderId,
+                    sortOrder: "asc",
+                },
+            }))
+        } else {
+            // Toggle sorting order for the same column
+            const newSortOrder = sorting.sortOrder === "desc" ? "asc" : "desc"
+
+            setSorting({
+                ...sorting,
+                sortOrder: newSortOrder,
+            })
+
+            // Record in persisted preferences
+            setPreferences((currentPreferences: ProjectPagePreferences) => ({
+                ...currentPreferences,
+                sorting: {
+                    ...sorting,
+                    sortOrder: newSortOrder,
+                },
+            }))
+        }
+    }
+
     interface HeadCell {
         dataIndex: string
         title: string
@@ -206,60 +199,40 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
 
     return (
         <Table
-            id="projects-table"
+            id={id}
             sx={{
                 cursor: "pointer",
                 boxShadow: 10,
             }}
             size="medium"
         >
-            <TableHead
-                sx={{
-                    backgroundColor: "var(--bs-secondary) !important",
-                    "&table.thead": {
-                        backgroundColor: "red",
-                        "& th:first-child": {
-                            borderRadius: "1em 0 0 1em",
-                        },
-                        "& th:last-child": {
-                            borderRadius: "0 1em 1em 0",
-                        },
-                    },
-                }}
-            >
+            <TableHead>
                 {headCells.map((headCell) => (
                     <Tooltip title={`Click to sort ${sorting.sortOrder === "asc" ? "descending" : "ascending"}`}>
-                        <TableCell
+                        <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
                             id={`${headCell.title}-header`}
                             key={headCell.title}
                             align="center"
                             sortDirection={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : false}
-                            sx={
-                                {
-                                    // color: "var(--bs-white)",
-                                    // backgroundColor: "var(--bs-secondary)",
-                                    // fontSize: "12px",
-                                    // position: "relative",
-                                    // paddingTop: "14px",
-                                    // paddingBottom: "14px",
-                                    // lineHeight: "1.0",
-                                    // "&:not(:last-child)::after": {
-                                    //     content: '""',
-                                    //     position: "absolute",
-                                    //     right: 0,
-                                    //     top: "20%",
-                                    //     height: "50%",
-                                    //     width: "1px",
-                                    //     backgroundColor: "white",
-                                    // },
-                                    // "&:first-of-type": {
-                                    //     borderTopLeftRadius: "0.5rem",
-                                    // },
-                                    // "&:last-of-type": {
-                                    //     borderTopRightRadius: "0.5rem",
-                                    // },
-                                }
-                            }
+                            sx={{
+                                color: "var(--bs-white)",
+                                backgroundColor: "var(--bs-secondary)",
+                                fontSize: "14px",
+                                position: "relative",
+                                paddingTop: "14px",
+                                paddingBottom: "14px",
+                                lineHeight: "1.0",
+                                // This next part adds the cutesy separator bar between column headers
+                                "&:not(:last-child)::after": {
+                                    content: '""',
+                                    position: "absolute",
+                                    right: 0,
+                                    top: "30%",
+                                    height: "40%",
+                                    width: "1px",
+                                    backgroundColor: "white",
+                                },
+                            }}
                         >
                             <TableSortLabel
                                 active={sorting.columnKey === headCell.dataIndex}
@@ -277,39 +250,41 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                         color: "var(--bs-white)",
                                     },
                                 }}
-                                IconComponent={() => (
-                                    <Box
-                                        component="span"
-                                        sx={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            alignItems: "center",
-                                        }}
-                                    >
-                                        <ArrowDropUpIcon
+                                IconComponent={() =>
+                                    (headCell?.sortable == null || headCell?.sortable) && (
+                                        <Box
+                                            component="span"
                                             sx={{
-                                                color:
-                                                    sorting.columnKey === headCell.dataIndex &&
-                                                    sorting.sortOrder === "asc"
-                                                        ? "white"
-                                                        : "#808080",
-                                                fontSize: "medium",
-                                                marginBottom: "-4px",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "center",
                                             }}
-                                        />
-                                        <ArrowDropDownIcon
-                                            sx={{
-                                                color:
-                                                    sorting.columnKey === headCell.dataIndex &&
-                                                    sorting.sortOrder === "desc"
-                                                        ? "white"
-                                                        : "#808080",
-                                                fontSize: "medium",
-                                                marginTop: "-4px",
-                                            }}
-                                        />
-                                    </Box>
-                                )}
+                                        >
+                                            <ArrowDropUpIcon
+                                                sx={{
+                                                    color:
+                                                        sorting.columnKey === headCell.dataIndex &&
+                                                        sorting.sortOrder === "asc"
+                                                            ? "white"
+                                                            : "var(--bs-gray-medium-dark)",
+                                                    fontSize: "large",
+                                                    marginBottom: "-5px",
+                                                }}
+                                            />
+                                            <ArrowDropDownIcon
+                                                sx={{
+                                                    color:
+                                                        sorting.columnKey === headCell.dataIndex &&
+                                                        sorting.sortOrder === "desc"
+                                                            ? "white"
+                                                            : "var(--bs-gray-medium-dark)",
+                                                    fontSize: "large",
+                                                    marginTop: "-5px",
+                                                }}
+                                            />
+                                        </Box>
+                                    )
+                                }
                             >
                                 <Box
                                     component="span"
@@ -325,55 +300,74 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                     </Tooltip>
                 ))}
             </TableHead>
-            <TableBody>
+            <TableBody
+                sx={{
+                    "& .MuiTableCell-root": {
+                        fontSize: "14px",
+                    },
+                }}
+            >
                 {filteredSortedData.map((project, idx) => {
-                    const {allowDelete, allowSharing} = allowedActions
+                    const {allowDelete, allowSharing} = getAllowedActions(project)
                     return (
                         <TableRow
-                            hover
+                            hover={true}
                             role="checkbox"
                             tabIndex={-1}
                             key={project.id}
+                            sx={{
+                                "& .MuiTableCell-root": {
+                                    paddingTop: "16px",
+                                    paddingBottom: "16px",
+                                    lineHeight: "1.5",
+                                },
+                            }}
+                            onClick={() => {
+                                void router.push({
+                                    pathname: "/projects/[projectID]",
+                                    query: {...router.query, projectID: project.id},
+                                })
+                            }}
                         >
                             <TableCell
                                 id={`project-${project.id}-id`}
-                                align="center"
+                                align="left"
                             >
                                 {project.id}
                             </TableCell>
                             <TableCell
                                 id={`project-${project.id}-name`}
-                                align="center"
+                                align="left"
                             >
                                 {project.name}
                             </TableCell>
                             <TableCell
                                 id={`project-${project.id}-owner`}
-                                align="center"
+                                align="left"
                             >
                                 {project.owner}
                             </TableCell>
                             <TableCell
                                 id={`project-${project.id}-created-at`}
-                                align="center"
+                                align="left"
                             >
                                 {project.created_at}
                             </TableCell>
                             <TableCell
                                 id={`project-${project.id}-last-edited-by`}
-                                align="center"
+                                align="left"
                             >
                                 {project.lastEditedBy}
                             </TableCell>
                             <TableCell
                                 id={`project-${project.id}-updated-at`}
-                                align="center"
+                                align="left"
                             >
                                 {project.updated_at}
                             </TableCell>
                             <TableCell
                                 id={`project-${project.id}-actions`}
-                                align="center"
+                                align="left"
                             >
                                 <div
                                     id={`project-${project.id}-actions-div`}
@@ -384,7 +378,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                     }}
                                 >
                                     {allowSharing ? getSharingIcon(project) : null}
-                                    {allowDelete ? getDeleteIcon(idx) : null}
+                                    {allowDelete ? getDeleteIcon(project, idx) : null}
                                 </div>
                             </TableCell>
                         </TableRow>
