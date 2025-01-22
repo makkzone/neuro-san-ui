@@ -4,9 +4,13 @@
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
 import {DeleteOutline, Loop, StopCircle} from "@mui/icons-material"
 import {Box, Button, FormControl, FormGroup, FormLabel, Input, MenuItem, styled} from "@mui/material"
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Select from "@mui/material/Select"
 import Tooltip from "@mui/material/Tooltip"
-import {Collapse} from "antd"
+import Typography from '@mui/material/Typography';
 import NextImage from "next/image"
 import {CSSProperties, ReactElement, ReactNode, useEffect, useRef, useState} from "react"
 import {MdCode, MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
@@ -30,8 +34,6 @@ import {getTitleBase} from "../../../utils/title"
 import {MUIAlert} from "../../MUIAlert"
 import {LlmChatButton} from "../LlmChatButton"
 import {LlmChatOptionsButton} from "../LlmChatOptionsButton"
-
-const {Panel} = Collapse
 
 // #region: Constants
 // Interval for polling the agents for logs
@@ -440,17 +442,20 @@ export function OpportunityFinder(): ReactElement {
 
         updateOutput(
             <>
-                {/*eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                <Collapse style={{marginBottom: "1rem"}}>
-                    <Panel
-                        id="initiating-orchestration-panel"
-                        header="Contacting orchestration agents..."
-                        key="initiating-orchestration-panel"
-                        style={{fontSize: "large"}}
+                <Accordion id="initiating-orchestration-accordion" sx={{marginBottom: "1rem"}}>
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        aria-controls="initiating-orchestration-content"
+                        id="initiating-orchestration-accordion-summary"
                     >
-                        <p id="initiating-orchestration-details">{`Query: ${orchestrationQuery}`}</p>
-                    </Panel>
-                </Collapse>
+                        <Typography component="span">Contacting orchestration agents...</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Typography id="initiating-orchestration-details">
+                            {`Query: ${orchestrationQuery}`}
+                        </Typography>
+                    </AccordionDetails>
+                </Accordion>
             </>
         )
 
