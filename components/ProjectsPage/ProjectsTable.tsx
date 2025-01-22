@@ -181,15 +181,8 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
         },
     ]
 
-    return (
-        <Table
-            id={id}
-            sx={{
-                cursor: "pointer",
-                boxShadow: 10,
-            }}
-            size="medium"
-        >
+    function getTableHead() {
+        return (
             <TableHead>
                 <TableRow
                     sx={{
@@ -300,6 +293,112 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                     })}
                 </TableRow>
             </TableHead>
+        )
+    }
+
+    function getTableRow(
+        project: Project,
+        columnKey: string,
+        allowSharing: boolean,
+        allowDelete: boolean,
+        idx: number
+    ) {
+        return (
+            <TableRow
+                hover={true}
+                role="checkbox"
+                tabIndex={-1}
+                key={project.id}
+                sx={{
+                    "& .MuiTableCell-root": {
+                        paddingTop: "16px",
+                        paddingBottom: "16px",
+                        lineHeight: "1.5",
+                    },
+                }}
+                onClick={() => {
+                    void router.push({
+                        pathname: "/projects/[projectID]",
+                        query: {...router.query, projectID: project.id},
+                    })
+                }}
+            >
+                <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    id={`project-${project.id}-id`}
+                    align="left"
+                    sx={{
+                        backgroundColor: columnKey === "id" ? "var(--bs-gray-lightest)" : null,
+                    }}
+                >
+                    {project.id}
+                </TableCell>
+                <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    id={`project-${project.id}-name`}
+                    align="left"
+                    sx={{
+                        backgroundColor: columnKey === "name" ? "var(--bs-gray-lightest)" : null,
+                    }}
+                >
+                    {project.name}
+                </TableCell>
+                <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    id={`project-${project.id}-owner`}
+                    align="left"
+                    sx={{
+                        backgroundColor: columnKey === "owner" ? "var(--bs-gray-lightest)" : null,
+                    }}
+                >
+                    {project.owner}
+                </TableCell>
+                <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    id={`project-${project.id}-created-at`}
+                    align="left"
+                    sx={{
+                        backgroundColor: columnKey === "created_at" ? "var(--bs-gray-lightest)" : null,
+                    }}
+                >
+                    {project.created_at}
+                </TableCell>
+                <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    id={`project-${project.id}-last-edited-by`}
+                    align="left"
+                    sx={{
+                        backgroundColor: columnKey === "lastEditedBy" ? "var(--bs-gray-lightest)" : null,
+                    }}
+                >
+                    {project.lastEditedBy}
+                </TableCell>
+                <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    id={`project-${project.id}-updated-at`}
+                    align="left"
+                    sx={{
+                        backgroundColor: columnKey === "updated_at" ? "var(--bs-gray-lightest)" : null,
+                    }}
+                >
+                    {project.updated_at}
+                </TableCell>
+                <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    id={`project-${project.id}-actions`}
+                    align="left"
+                >
+                    <div // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                        id={`project-${project.id}-actions-div`}
+                        style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                    >
+                        {allowSharing ? getSharingIcon(project) : null}
+                        {allowDelete ? getDeleteIcon(project, idx) : null}
+                    </div>
+                </TableCell>
+            </TableRow>
+        )
+    }
+
+    function getTableBody() {
+        return (
             <TableBody
                 sx={{
                     "& .MuiTableCell-root": {
@@ -310,100 +409,23 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                 {filteredSortedData.map((project, idx) => {
                     const {allowDelete, allowSharing} = getAllowedActions(project)
                     const columnKey = sorting?.columnKey
-                    return (
-                        <TableRow
-                            hover={true}
-                            role="checkbox"
-                            tabIndex={-1}
-                            key={project.id}
-                            sx={{
-                                "& .MuiTableCell-root": {
-                                    paddingTop: "16px",
-                                    paddingBottom: "16px",
-                                    lineHeight: "1.5",
-                                },
-                            }}
-                            onClick={() => {
-                                void router.push({
-                                    pathname: "/projects/[projectID]",
-                                    query: {...router.query, projectID: project.id},
-                                })
-                            }}
-                        >
-                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                id={`project-${project.id}-id`}
-                                align="left"
-                                sx={{
-                                    backgroundColor: columnKey === "id" ? "var(--bs-gray-lightest)" : null,
-                                }}
-                            >
-                                {project.id}
-                            </TableCell>
-                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                id={`project-${project.id}-name`}
-                                align="left"
-                                sx={{
-                                    backgroundColor: columnKey === "name" ? "var(--bs-gray-lightest)" : null,
-                                }}
-                            >
-                                {project.name}
-                            </TableCell>
-                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                id={`project-${project.id}-owner`}
-                                align="left"
-                                sx={{
-                                    backgroundColor: columnKey === "owner" ? "var(--bs-gray-lightest)" : null,
-                                }}
-                            >
-                                {project.owner}
-                            </TableCell>
-                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                id={`project-${project.id}-created-at`}
-                                align="left"
-                                sx={{
-                                    backgroundColor: columnKey === "created_at" ? "var(--bs-gray-lightest)" : null,
-                                }}
-                            >
-                                {project.created_at}
-                            </TableCell>
-                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                id={`project-${project.id}-last-edited-by`}
-                                align="left"
-                                sx={{
-                                    backgroundColor: columnKey === "lastEditedBy" ? "var(--bs-gray-lightest)" : null,
-                                }}
-                            >
-                                {project.lastEditedBy}
-                            </TableCell>
-                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                id={`project-${project.id}-updated-at`}
-                                align="left"
-                                sx={{
-                                    backgroundColor: columnKey === "updated_at" ? "var(--bs-gray-lightest)" : null,
-                                }}
-                            >
-                                {project.updated_at}
-                            </TableCell>
-                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                id={`project-${project.id}-actions`}
-                                align="left"
-                            >
-                                <div // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                    id={`project-${project.id}-actions-div`}
-                                    style={{
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    {allowSharing ? getSharingIcon(project) : null}
-                                    {allowDelete ? getDeleteIcon(project, idx) : null}
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                    )
+                    return getTableRow(project, columnKey, allowSharing, allowDelete, idx)
                 })}
             </TableBody>
+        )
+    }
+
+    return (
+        <Table
+            id={id}
+            sx={{
+                cursor: "pointer",
+                boxShadow: 10,
+            }}
+            size="medium"
+        >
+            {getTableHead()}
+            {getTableBody()}
         </Table>
     )
 }
