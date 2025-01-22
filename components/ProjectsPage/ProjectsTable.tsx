@@ -207,98 +207,110 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
             size="medium"
         >
             <TableHead>
-                {headCells.map((headCell) => (
-                    <Tooltip title={`Click to sort ${sorting.sortOrder === "asc" ? "descending" : "ascending"}`}>
-                        <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                            id={`${headCell.title}-header`}
-                            key={headCell.title}
-                            align="center"
-                            sortDirection={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : false}
-                            sx={{
-                                color: "var(--bs-white)",
-                                backgroundColor: "var(--bs-secondary)",
-                                fontSize: "14px",
-                                position: "relative",
-                                paddingTop: "14px",
-                                paddingBottom: "14px",
-                                lineHeight: "1.0",
-                                // This next part adds the cutesy separator bar between column headers
-                                "&:not(:last-child)::after": {
-                                    content: '""',
-                                    position: "absolute",
-                                    right: 0,
-                                    top: "30%",
-                                    height: "40%",
-                                    width: "1px",
-                                    backgroundColor: "white",
-                                },
-                            }}
-                        >
-                            <TableSortLabel
-                                active={sorting.columnKey === headCell.dataIndex}
-                                direction={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : "asc"}
-                                onClick={(event) =>
-                                    (!headCell.sortable || headCell.sortable) &&
-                                    handleHeaderClick(event, headCell.dataIndex)
-                                }
+                <TableRow
+                    sx={{
+                        "&:first-of-type": {
+                            borderTopLeftRadius: "var(--bs-border-radius)",
+                            borderTopRightRadius: "var(--bs-border-radius)",
+                        },
+                    }}
+                >
+                    {headCells.map((headCell, index) => (
+                        <Tooltip title={`Click to sort ${sorting.sortOrder === "asc" ? "descending" : "ascending"}`}>
+                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                id={`${headCell.title}-header`}
+                                key={headCell.title}
+                                align="center"
+                                sortDirection={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : false}
                                 sx={{
                                     color: "var(--bs-white)",
-                                    ontSize: "14px",
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    "&.Mui-active": {
-                                        color: "var(--bs-white)",
+                                    backgroundColor: "var(--bs-secondary)",
+                                    fontSize: "14px",
+                                    position: "relative",
+                                    paddingTop: "14px",
+                                    paddingBottom: "14px",
+                                    lineHeight: "1.0",
+                                    borderTopLeftRadius: index === 0 ? "var(--bs-border-radius)" : 0,
+                                    borderTopRightRadius:
+                                        index === headCells.length - 1 ? "var(--bs-border-radius)" : 0,
+                                    // This next part adds the cutesy separator bar between column headers
+                                    "&:not(:last-child)::after": {
+                                        content: '""',
+                                        position: "absolute",
+                                        right: 0,
+                                        top: "30%",
+                                        height: "40%",
+                                        width: "1px",
+                                        backgroundColor: "white",
                                     },
                                 }}
-                                IconComponent={() =>
-                                    (headCell?.sortable == null || headCell?.sortable) && (
-                                        <Box
-                                            component="span"
-                                            sx={{
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                alignItems: "center",
-                                            }}
-                                        >
-                                            <ArrowDropUpIcon
-                                                sx={{
-                                                    color:
-                                                        sorting.columnKey === headCell.dataIndex &&
-                                                        sorting.sortOrder === "asc"
-                                                            ? "white"
-                                                            : "var(--bs-gray-medium-dark)",
-                                                    fontSize: "large",
-                                                    marginBottom: "-5px",
-                                                }}
-                                            />
-                                            <ArrowDropDownIcon
-                                                sx={{
-                                                    color:
-                                                        sorting.columnKey === headCell.dataIndex &&
-                                                        sorting.sortOrder === "desc"
-                                                            ? "white"
-                                                            : "var(--bs-gray-medium-dark)",
-                                                    fontSize: "large",
-                                                    marginTop: "-5px",
-                                                }}
-                                            />
-                                        </Box>
-                                    )
-                                }
                             >
-                                <Box
-                                    component="span"
+                                <TableSortLabel
+                                    active={sorting.columnKey === headCell.dataIndex}
+                                    direction={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : "asc"}
+                                    onClick={(event) =>
+                                        (!headCell.sortable || headCell.sortable) &&
+                                        handleHeaderClick(event, headCell.dataIndex)
+                                    }
                                     sx={{
-                                        flexGrow: 1,
-                                        textAlign: "left",
+                                        color: "var(--bs-white)",
+                                        ontSize: "14px",
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        "&.Mui-active": {
+                                            color: "var(--bs-white)",
+                                        },
                                     }}
+                                    IconComponent={() =>
+                                        (headCell?.sortable == null || headCell?.sortable) && (
+                                            <Box
+                                                component="span"
+                                                sx={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <ArrowDropUpIcon
+                                                    sx={{
+                                                        color:
+                                                            sorting.columnKey === headCell.dataIndex &&
+                                                            sorting.sortOrder === "asc"
+                                                                ? "white"
+                                                                : "var(--bs-gray-medium-dark)",
+                                                        fontSize: "large",
+                                                        marginBottom: "-5px",
+                                                    }}
+                                                />
+                                                <ArrowDropDownIcon
+                                                    sx={{
+                                                        color:
+                                                            sorting.columnKey === headCell.dataIndex &&
+                                                            sorting.sortOrder === "desc"
+                                                                ? "white"
+                                                                : "var(--bs-gray-medium-dark)",
+                                                        fontSize: "large",
+                                                        marginTop: "-5px",
+                                                    }}
+                                                />
+                                            </Box>
+                                        )
+                                    }
                                 >
-                                    {headCell.title}
-                                </Box>
-                            </TableSortLabel>
-                        </TableCell>
-                    </Tooltip>
-                ))}
+                                    <Box
+                                        component="span"
+                                        sx={{
+                                            flexGrow: 1,
+                                            textAlign: "left",
+                                        }}
+                                    >
+                                        {headCell.title}
+                                    </Box>
+                                </TableSortLabel>
+                            </TableCell>
+                        </Tooltip>
+                    ))}
+                </TableRow>
             </TableHead>
             <TableBody
                 sx={{
@@ -329,47 +341,47 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                 })
                             }}
                         >
-                            <TableCell
+                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 id={`project-${project.id}-id`}
                                 align="left"
                             >
                                 {project.id}
                             </TableCell>
-                            <TableCell
+                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 id={`project-${project.id}-name`}
                                 align="left"
                             >
                                 {project.name}
                             </TableCell>
-                            <TableCell
+                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 id={`project-${project.id}-owner`}
                                 align="left"
                             >
                                 {project.owner}
                             </TableCell>
-                            <TableCell
+                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 id={`project-${project.id}-created-at`}
                                 align="left"
                             >
                                 {project.created_at}
                             </TableCell>
-                            <TableCell
+                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 id={`project-${project.id}-last-edited-by`}
                                 align="left"
                             >
                                 {project.lastEditedBy}
                             </TableCell>
-                            <TableCell
+                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 id={`project-${project.id}-updated-at`}
                                 align="left"
                             >
                                 {project.updated_at}
                             </TableCell>
-                            <TableCell
+                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                 id={`project-${project.id}-actions`}
                                 align="left"
                             >
-                                <div
+                                <div // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                     id={`project-${project.id}-actions-div`}
                                     style={{
                                         display: "flex",
