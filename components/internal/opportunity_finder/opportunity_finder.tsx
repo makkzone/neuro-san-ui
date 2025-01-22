@@ -3,7 +3,7 @@
  */
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
 import {DeleteOutline, Loop, StopCircle} from "@mui/icons-material"
-import {Box, Button, FormControl, FormGroup, FormLabel, Input, MenuItem, styled} from "@mui/material"
+import {Box, Button, CircularProgress, FormControl, FormGroup, FormLabel, Input, MenuItem, styled} from "@mui/material"
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -14,7 +14,6 @@ import Typography from '@mui/material/Typography';
 import NextImage from "next/image"
 import {CSSProperties, ReactElement, ReactNode, useEffect, useRef, useState} from "react"
 import {MdCode, MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
-import ClipLoader from "react-spinners/ClipLoader"
 import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import * as prismStyles from "react-syntax-highlighter/dist/cjs/styles/prism"
 
@@ -23,9 +22,9 @@ import {pollForLogs} from "./AgentChatHandling"
 import {experimentGeneratedMessage} from "./common"
 import {FormattedMarkdown} from "./FormattedMarkdown"
 import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
-import {DEFAULT_USER_IMAGE, SecondaryBlue} from "../../../const"
+import {DEFAULT_USER_IMAGE} from "../../../const"
 import {sendChatQuery} from "../../../controller/agent/agent"
-import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/opportunity_finder"
+import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/fetch"
 import {AgentStatus, ChatResponse} from "../../../generated/neuro_san/api/grpc/agent"
 import {OpportunityFinderRequestType} from "../../../pages/api/gpt/opportunityFinder/types"
 import {useAuthentication} from "../../../utils/authentication"
@@ -649,7 +648,7 @@ export function OpportunityFinder(): ReactElement {
                         id="llm-responses"
                         ref={chatOutputRef}
                         sx={{
-                            backgroundColor: SecondaryBlue,
+                            backgroundColor: "var(--bs-secondary-blue)",
                             borderWidth: "1px",
                             borderRadius: "0.5rem",
                             fontSize: "smaller",
@@ -683,8 +682,11 @@ export function OpportunityFinder(): ReactElement {
                                 >
                                     Working...
                                 </span>
-                                <ClipLoader
+                                <CircularProgress
                                     id="awaitingOutputSpinner"
+                                    sx={{
+                                        color: "var(--bs-primary)",
+                                    }}
                                     size="1rem"
                                 />
                             </Box>
