@@ -45,6 +45,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
     const {id, projectList, preferences, setPreferences, router, getAllowedActions, getSharingIcon, getDeleteIcon} =
         props
 
+    // Sorting state
     // For sorting -- column and order
     const [sorting, setSorting] = useState<SortSpecification>({
         columnKey: preferences?.sorting?.columnKey || "updated_at",
@@ -55,12 +56,11 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
     const sortedData = useMemo(
         () =>
             [...projectList].sort((a, b) => {
-                const columnKey = sorting.columnKey
-                const sortOrder = sorting.sortOrder === "desc" ? -1 : 1
+                const sortOrderNumeric = sorting.sortOrder === "desc" ? -1 : 1
 
-                if (columnKey) {
-                    const valueA = a[columnKey]
-                    const valueB = b[columnKey]
+                if (sorting.columnKey) {
+                    const valueA = a[sorting.columnKey]
+                    const valueB = b[sorting.columnKey]
 
                     if (typeof valueA !== typeof valueB) {
                         // Can't compare apples and oranges. Should never happen since we're comparing two rows from the
@@ -72,17 +72,17 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                     // here. For example, "updated_at": "5/26/2023, 1:07:24 PM". The only ways to know this is a date
                     // would be to attempt to parse it as such (leading to false positives...) or use our intrinstic
                     // knowledge of which type each field name is.
-                    switch (columnKey) {
+                    switch (sorting.columnKey) {
                         case "name":
                         case "description":
                         case "owner":
                         case "lastEditedBy":
-                            return sortOrder * valueA.localeCompare(valueB)
+                            return sortOrderNumeric * valueA.localeCompare(valueB)
                         case "updated_at":
                         case "created_at":
-                            return sortOrder * (new Date(valueA) > new Date(valueB) ? 1 : -1)
+                            return sortOrderNumeric * (new Date(valueA) > new Date(valueB) ? 1 : -1)
                         case "id":
-                            return sortOrder * (parseInt(valueA) - parseInt(valueB))
+                            return sortOrderNumeric * (parseInt(valueA) - parseInt(valueB))
                         default:
                             return 0
                     }
@@ -199,101 +199,105 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                         },
                     }}
                 >
-                    {headCells.map((headCell, index) => (
-                        <Tooltip title={`Click to sort ${sorting.sortOrder === "asc" ? "descending" : "ascending"}`}>
-                            <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                id={`${headCell.title}-header`}
-                                key={headCell.title}
-                                align="center"
-                                sortDirection={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : false}
-                                sx={{
-                                    color: "var(--bs-white)",
-                                    backgroundColor: "var(--bs-secondary)",
-                                    fontSize: "14px",
-                                    position: "relative",
-                                    paddingTop: "14px",
-                                    paddingBottom: "14px",
-                                    lineHeight: "1.0",
-                                    borderTopLeftRadius: index === 0 ? "var(--bs-border-radius)" : 0,
-                                    borderTopRightRadius:
-                                        index === headCells.length - 1 ? "var(--bs-border-radius)" : 0,
-                                    // This next part adds the cutesy separator bar between column headers
-                                    "&:not(:last-child)::after": {
-                                        content: '""',
-                                        position: "absolute",
-                                        right: 0,
-                                        top: "30%",
-                                        height: "40%",
-                                        width: "1px",
-                                        backgroundColor: "white",
-                                    },
-                                }}
+                    {headCells.map((headCell, index) => {
+                        return (
+                            <Tooltip
+                                title={`Click to sort ${sorting.sortOrder === "asc" ? "descending" : "ascending"}`}
                             >
-                                <TableSortLabel
-                                    active={sorting.columnKey === headCell.dataIndex}
-                                    direction={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : "asc"}
-                                    onClick={(event) =>
-                                        (!headCell.sortable || headCell.sortable) &&
-                                        handleHeaderClick(event, headCell.dataIndex)
-                                    }
+                                <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                    id={`${headCell.title}-header`}
+                                    key={headCell.title}
+                                    align="center"
+                                    sortDirection={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : false}
                                     sx={{
                                         color: "var(--bs-white)",
-                                        ontSize: "14px",
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        "&.Mui-active": {
-                                            color: "var(--bs-white)",
+                                        backgroundColor: "var(--bs-secondary)",
+                                        fontSize: "14px",
+                                        position: "relative",
+                                        paddingTop: "14px",
+                                        paddingBottom: "14px",
+                                        lineHeight: "1.0",
+                                        borderTopLeftRadius: index === 0 ? "var(--bs-border-radius)" : 0,
+                                        borderTopRightRadius:
+                                            index === headCells.length - 1 ? "var(--bs-border-radius)" : 0,
+                                        // This next part adds the cutesy separator bar between column headers
+                                        "&:not(:last-child)::after": {
+                                            content: '""',
+                                            position: "absolute",
+                                            right: 0,
+                                            top: "30%",
+                                            height: "40%",
+                                            width: "1px",
+                                            backgroundColor: "white",
                                         },
                                     }}
-                                    IconComponent={() =>
-                                        (headCell?.sortable == null || headCell?.sortable) && (
-                                            <Box
-                                                component="span"
-                                                sx={{
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <ArrowDropUpIcon
-                                                    sx={{
-                                                        color:
-                                                            sorting.columnKey === headCell.dataIndex &&
-                                                            sorting.sortOrder === "asc"
-                                                                ? "white"
-                                                                : "var(--bs-gray-medium-dark)",
-                                                        fontSize: "large",
-                                                        marginBottom: "-5px",
-                                                    }}
-                                                />
-                                                <ArrowDropDownIcon
-                                                    sx={{
-                                                        color:
-                                                            sorting.columnKey === headCell.dataIndex &&
-                                                            sorting.sortOrder === "desc"
-                                                                ? "white"
-                                                                : "var(--bs-gray-medium-dark)",
-                                                        fontSize: "large",
-                                                        marginTop: "-5px",
-                                                    }}
-                                                />
-                                            </Box>
-                                        )
-                                    }
                                 >
-                                    <Box
-                                        component="span"
+                                    <TableSortLabel
+                                        active={sorting.columnKey === headCell.dataIndex}
+                                        direction={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : "asc"}
+                                        onClick={(event) =>
+                                            (!headCell.sortable || headCell.sortable) &&
+                                            handleHeaderClick(event, headCell.dataIndex)
+                                        }
                                         sx={{
-                                            flexGrow: 1,
-                                            textAlign: "left",
+                                            color: "var(--bs-white)",
+                                            ontSize: "14px",
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            "&.Mui-active": {
+                                                color: "var(--bs-white)",
+                                            },
                                         }}
+                                        IconComponent={() =>
+                                            (headCell?.sortable == null || headCell?.sortable) && (
+                                                <Box
+                                                    component="span"
+                                                    sx={{
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        alignItems: "center",
+                                                    }}
+                                                >
+                                                    <ArrowDropUpIcon
+                                                        sx={{
+                                                            color:
+                                                                sorting.columnKey === headCell.dataIndex &&
+                                                                sorting.sortOrder === "asc"
+                                                                    ? "white"
+                                                                    : "var(--bs-gray-medium-dark)",
+                                                            fontSize: "large",
+                                                            marginBottom: "-5px",
+                                                        }}
+                                                    />
+                                                    <ArrowDropDownIcon
+                                                        sx={{
+                                                            color:
+                                                                sorting.columnKey === headCell.dataIndex &&
+                                                                sorting.sortOrder === "desc"
+                                                                    ? "white"
+                                                                    : "var(--bs-gray-medium-dark)",
+                                                            fontSize: "large",
+                                                            marginTop: "-5px",
+                                                        }}
+                                                    />
+                                                </Box>
+                                            )
+                                        }
                                     >
-                                        {headCell.title}
-                                    </Box>
-                                </TableSortLabel>
-                            </TableCell>
-                        </Tooltip>
-                    ))}
+                                        <Box
+                                            component="span"
+                                            sx={{
+                                                flexGrow: 1,
+                                                textAlign: "left",
+                                            }}
+                                        >
+                                            {headCell.title}
+                                        </Box>
+                                    </TableSortLabel>
+                                </TableCell>
+                            </Tooltip>
+                        )
+                    })}
                 </TableRow>
             </TableHead>
             <TableBody
@@ -305,6 +309,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
             >
                 {filteredSortedData.map((project, idx) => {
                     const {allowDelete, allowSharing} = getAllowedActions(project)
+                    const columnKey = sorting?.columnKey
                     return (
                         <TableRow
                             hover={true}
@@ -329,8 +334,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                 id={`project-${project.id}-id`}
                                 align="left"
                                 sx={{
-                                    backgroundColor:
-                                        preferences?.sorting?.columnKey === "id" ? "var(--bs-gray-lightest)" : null,
+                                    backgroundColor: columnKey === "id" ? "var(--bs-gray-lightest)" : null,
                                 }}
                             >
                                 {project.id}
@@ -339,8 +343,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                 id={`project-${project.id}-name`}
                                 align="left"
                                 sx={{
-                                    backgroundColor:
-                                        preferences?.sorting?.columnKey === "name" ? "var(--bs-gray-lightest)" : null,
+                                    backgroundColor: columnKey === "name" ? "var(--bs-gray-lightest)" : null,
                                 }}
                             >
                                 {project.name}
@@ -349,8 +352,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                 id={`project-${project.id}-owner`}
                                 align="left"
                                 sx={{
-                                    backgroundColor:
-                                        preferences?.sorting?.columnKey === "owner" ? "var(--bs-gray-lightest)" : null,
+                                    backgroundColor: columnKey === "owner" ? "var(--bs-gray-lightest)" : null,
                                 }}
                             >
                                 {project.owner}
@@ -359,10 +361,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                 id={`project-${project.id}-created-at`}
                                 align="left"
                                 sx={{
-                                    backgroundColor:
-                                        preferences?.sorting?.columnKey === "created_at"
-                                            ? "var(--bs-gray-lightest)"
-                                            : null,
+                                    backgroundColor: columnKey === "created_at" ? "var(--bs-gray-lightest)" : null,
                                 }}
                             >
                                 {project.created_at}
@@ -371,10 +370,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                 id={`project-${project.id}-last-edited-by`}
                                 align="left"
                                 sx={{
-                                    backgroundColor:
-                                        preferences?.sorting?.columnKey === "lastEditedBy"
-                                            ? "var(--bs-gray-lightest)"
-                                            : null,
+                                    backgroundColor: columnKey === "lastEditedBy" ? "var(--bs-gray-lightest)" : null,
                                 }}
                             >
                                 {project.lastEditedBy}
@@ -383,10 +379,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                 id={`project-${project.id}-updated-at`}
                                 align="left"
                                 sx={{
-                                    backgroundColor:
-                                        preferences?.sorting?.columnKey === "updated_at"
-                                            ? "var(--bs-gray-lightest)"
-                                            : null,
+                                    backgroundColor: columnKey === "updated_at" ? "var(--bs-gray-lightest)" : null,
                                 }}
                             >
                                 {project.updated_at}
