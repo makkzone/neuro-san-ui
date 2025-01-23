@@ -1,5 +1,6 @@
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp"
+import SearchIcon from "@mui/icons-material/Search"
 import Box from "@mui/material/Box"
 import Table from "@mui/material/Table"
 import TableBody from "@mui/material/TableBody"
@@ -23,6 +24,8 @@ interface ProjectsTableProps {
     readonly getSharingIcon: (project: Project) => ReactElement
     readonly getDeleteIcon: (project: Project, idx: number) => ReactElement
     readonly preferences: ProjectPagePreferences
+    readonly filterText: string
+    readonly filterColumn: string
 
     // setPreferences is a React state setter that takes either a value as input or a function argument
     readonly setPreferences: (
@@ -43,8 +46,18 @@ interface ProjectsTableProps {
  */
 export default function ProjectsTable(props: ProjectsTableProps): ReactElement<ProjectsTableProps> {
     // Extract props
-    const {id, projectList, preferences, setPreferences, router, getAllowedActions, getSharingIcon, getDeleteIcon} =
-        props
+    const {
+        id,
+        projectList,
+        preferences,
+        setPreferences,
+        router,
+        getAllowedActions,
+        getSharingIcon,
+        getDeleteIcon,
+        filterColumn,
+        filterText,
+    } = props
 
     // For sorting -- column and order
     const [sorting, setSorting] = useState<SortSpecification>({
@@ -98,18 +111,65 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
     )
 
     // Apply the filter if there is one. We only start filtering at 2 characters+
-    const lowerCaseFilterText = preferences?.filterSpecification?.filterText?.toLocaleLowerCase()
+    const lowerCaseFilterText = filterText?.toLocaleLowerCase()
     const filteredSortedData = (
-        preferences?.filterSpecification?.columnKey && preferences?.filterSpecification?.filterText
+        filterColumn && filterText
             ? sortedData.filter(
                   (datum) =>
-                      preferences?.filterSpecification?.filterText.length < 2 ||
-                      datum[preferences?.filterSpecification?.columnKey]
-                          .toLocaleLowerCase()
-                          .includes(lowerCaseFilterText)
+                      filterText.length < 2 || datum[filterColumn].toLocaleLowerCase().includes(lowerCaseFilterText)
               )
             : sortedData
     ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+
+    // const getFilterDialog = (columnName) => (
+    //     <div
+    //         id="input-filter-div"
+    //         style={{padding: 8, display: "flex"}}
+    //     >
+    //         <Input
+    //             id="filter-input"
+    //             placeholder={`Search ${columnName}`}
+    //             value={filterText}
+    //             onChange={(e) => setFilterText(e.target.value ? e.target.value : "")}
+    //             style={{width: 188, marginBottom: 8, display: "block"}}
+    //             // onPressEnter={(e) => handleKeyPress(e, confirm)}
+    //             onBlur={() => {
+    //                 // save to preferences
+    //                 setPreferences((currentPreferences: ProjectPagePreferences) => ({
+    //                     ...currentPreferences,
+    //                     filterSpecification: {
+    //                         columnKey: columnName,
+    //                         filterText: filterText,
+    //                     },
+    //                 }))
+    //             }}
+    //         />
+    //         <Button
+    //             id="filter-clear-button"
+    //             style={{
+    //                 backgroundColor: "transparent",
+    //                 border: "none",
+    //                 position: "absolute",
+    //                 right: 0,
+    //                 opacity: filterText ? "100%" : "25%",
+    //                 cursor: filterText ? "pointer" : "default",
+    //             }}
+    //             onClick={() => {
+    //                 // Update preferences
+    //                 setPreferences((currentPreferences: ProjectPagePreferences) => ({
+    //                     ...currentPreferences,
+    //                     filterSpecification: {
+    //                         columnKey: "",
+    //                         filterText: "",
+    //                     },
+    //                 }))
+    //                 setFilterText("")
+    //             }}
+    //         >
+    //             X
+    //         </Button>
+    //     </div>
+    // )
 
     const handleHeaderClick = (_event: ReactMouseEvent<unknown>, clickedHeaderId: string) => {
         if (clickedHeaderId !== sorting.columnKey) {
@@ -151,6 +211,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
         dataIndex: string
         title: string
         sortable?: boolean
+        filterable?: boolean
     }
 
     // Define the columns for the table
@@ -162,10 +223,12 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
         {
             title: "Name",
             dataIndex: "name",
+            filterable: true,
         },
         {
             title: "Owner",
             dataIndex: "owner",
+            filterable: true,
         },
         {
             title: "Created at",
@@ -174,6 +237,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
         {
             title: "Last edited by",
             dataIndex: "lastEditedBy",
+            filterable: true,
         },
         {
             title: "Updated at",
@@ -200,13 +264,15 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                     {headCells.map((headCell, index) => {
                         return (
                             <Tooltip
-                                title={`Click to sort ${sorting.sortOrder === "asc" ? "descending" : "ascending"}`}
+                                title={`Click to sort ${sorting?.sortOrder === "asc" ? "descending" : "ascending"}`}
                             >
                                 <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
                                     id={`${headCell.title}-header`}
                                     key={headCell.title}
                                     align="center"
-                                    sortDirection={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : false}
+                                    sortDirection={
+                                        sorting?.columnKey === headCell.dataIndex ? sorting?.sortOrder : false
+                                    }
                                     sx={{
                                         color: "var(--bs-white)",
                                         backgroundColor: "var(--bs-secondary)",
@@ -229,69 +295,84 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                             backgroundColor: "white",
                                         },
                                     }}
+                                    onClick={(event) =>
+                                        (!headCell.sortable || headCell.sortable) &&
+                                        handleHeaderClick(event, headCell.dataIndex)
+                                    }
                                 >
-                                    <TableSortLabel
-                                        active={sorting.columnKey === headCell.dataIndex}
-                                        direction={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : "asc"}
-                                        onClick={(event) =>
-                                            (!headCell.sortable || headCell.sortable) &&
-                                            handleHeaderClick(event, headCell.dataIndex)
-                                        }
-                                        sx={{
-                                            color: "var(--bs-white)",
-                                            ontSize: "14px",
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            "&.Mui-active": {
-                                                color: "var(--bs-white)",
-                                            },
-                                        }}
-                                        IconComponent={() =>
-                                            (headCell?.sortable == null || headCell?.sortable) && (
-                                                <Box
-                                                    component="span"
-                                                    sx={{
-                                                        display: "flex",
-                                                        flexDirection: "column",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
-                                                    <ArrowDropUpIcon
-                                                        sx={{
-                                                            color:
-                                                                sorting.columnKey === headCell.dataIndex &&
-                                                                sorting.sortOrder === "asc"
-                                                                    ? "white"
-                                                                    : "var(--bs-gray-medium-dark)",
-                                                            fontSize: "large",
-                                                            marginBottom: "-5px",
-                                                        }}
-                                                    />
-                                                    <ArrowDropDownIcon
-                                                        sx={{
-                                                            color:
-                                                                sorting.columnKey === headCell.dataIndex &&
-                                                                sorting.sortOrder === "desc"
-                                                                    ? "white"
-                                                                    : "var(--bs-gray-medium-dark)",
-                                                            fontSize: "large",
-                                                            marginTop: "-5px",
-                                                        }}
-                                                    />
-                                                </Box>
-                                            )
-                                        }
-                                    >
+                                    <Box sx={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
                                         <Box
                                             component="span"
                                             sx={{
-                                                flexGrow: 1,
                                                 textAlign: "left",
+                                                flexGrow: 1,
                                             }}
                                         >
                                             {headCell.title}
                                         </Box>
-                                    </TableSortLabel>
+                                        <Box sx={{display: "flex", alignItems: "center"}}>
+                                            <TableSortLabel
+                                                active={sorting?.columnKey === headCell.dataIndex}
+                                                direction={
+                                                    sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : "asc"
+                                                }
+                                                sx={{
+                                                    color: "var(--bs-white)",
+                                                    fontSize: "14px",
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    "&.Mui-active": {
+                                                        color: "var(--bs-white)",
+                                                    },
+                                                }}
+                                                IconComponent={() =>
+                                                    (headCell?.sortable == null || headCell?.sortable) && (
+                                                        <Box
+                                                            component="span"
+                                                            sx={{
+                                                                display: "flex",
+                                                                flexDirection: "column",
+                                                                alignItems: "center",
+                                                            }}
+                                                        >
+                                                            <ArrowDropUpIcon
+                                                                sx={{
+                                                                    color:
+                                                                        sorting.columnKey === headCell.dataIndex &&
+                                                                        sorting.sortOrder === "asc"
+                                                                            ? "white"
+                                                                            : "var(--bs-gray-medium-dark)",
+                                                                    fontSize: "large",
+                                                                    marginBottom: "-5px",
+                                                                }}
+                                                            />
+                                                            <ArrowDropDownIcon
+                                                                sx={{
+                                                                    color:
+                                                                        sorting.columnKey === headCell.dataIndex &&
+                                                                        sorting.sortOrder === "desc"
+                                                                            ? "white"
+                                                                            : "var(--bs-gray-medium-dark)",
+                                                                    fontSize: "large",
+                                                                    marginTop: "-5px",
+                                                                }}
+                                                            />
+                                                        </Box>
+                                                    )
+                                                }
+                                            />
+                                            {headCell?.filterable && (
+                                                <SearchIcon
+                                                    sx={{
+                                                        display: "flex",
+                                                        fontSize: "1rem",
+                                                        color: "var(--bs-gray-medium-dark)",
+                                                    }}
+                                                    onClick={() => console.debug(`Filtering by ${headCell.title}`)}
+                                                />
+                                            )}
+                                        </Box>
+                                    </Box>
                                 </TableCell>
                             </Tooltip>
                         )
@@ -422,8 +503,13 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
         }
 
         const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
-            setRowsPerPage(parseInt(event.target.value, 10))
+            const newItemsPerPageValue = parseInt(event.target.value, 10)
+            setRowsPerPage(newItemsPerPageValue)
             setPage(0)
+            setPreferences((currentPreferences: ProjectPagePreferences) => ({
+                ...currentPreferences,
+                itemsPerPage: newItemsPerPageValue,
+            }))
         }
 
         return (
@@ -459,6 +545,8 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
         <Box id={id}>
             {/* Show pagination at the top as well as bottom for long pages with lots of rows */}
             {rowsPerPage >= 15 && getTablePagination()}
+
+            {/*Main Table*/}
             <Table
                 id={`${id}-table`}
                 sx={{
