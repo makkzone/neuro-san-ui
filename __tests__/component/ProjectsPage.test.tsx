@@ -305,9 +305,6 @@ describe("Projects Page", () => {
         // Force "list" view
         ;(useLocalStorage as jest.Mock).mockImplementation(() => [{showAsOption: "LIST"}, jest.fn()])
 
-        // We get antd errors in the console. We're migrating away from antd so we don't care about these
-        jest.spyOn(console, "error").mockImplementation()
-
         renderProjectsPage()
 
         // Sanity check
@@ -334,21 +331,5 @@ describe("Projects Page", () => {
         expect(mockProjectfterClick.compareDocumentPosition(demoProjectAfterClick)).toBe(
             Node.DOCUMENT_POSITION_FOLLOWING
         )
-
-        // Deal with console errors. Once we migrate away from antd, we can remove all this junk
-        // expect console.error to have been called n times with a string containing "antd"
-        expect(console.error).toHaveBeenCalledTimes(10)
-
-        // Flatten the array of console output messages and grab the first one (the "header" line)
-        const allElements = (console.error as jest.Mock).mock.calls.flatMap((arr) => arr[0])
-
-        // Check every element contains "antd" or "warning-keys".
-        allElements.forEach((element) => {
-            try {
-                expect(element.includes("antd") || element.includes("warning-keys")).toBe(true)
-            } catch (error) {
-                throw `Expected element to contain "antd" or "warning-keys", but received: ${element}`
-            }
-        })
     })
 })

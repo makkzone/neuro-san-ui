@@ -1,3 +1,4 @@
+/* eslint-disable enforce-ids-in-jsx/missing-ids */
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp"
 import ClearIcon from "@mui/icons-material/Clear"
@@ -237,7 +238,10 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
 
     function getTableHeaderCell(headCell: HeadCell, index: number): ReactElement<typeof Tooltip> {
         return (
-            <Tooltip title={`Click to sort ${sorting?.sortOrder === "asc" ? "descending" : "ascending"}`}>
+            <Tooltip
+                title={`Click to sort ${sorting?.sortOrder === "asc" ? "descending" : "ascending"}`}
+                key={`${headCell.title}-tooltip`}
+            >
                 <TableCell // eslint-disable-line enforce-ids-in-jsx/missing-ids
                     id={`${headCell.title}-header`}
                     key={headCell.title}
