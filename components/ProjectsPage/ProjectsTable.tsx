@@ -196,7 +196,8 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
         }
 
         return (
-            <Tooltip
+            <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                id={`${headCell.title}-tooltip`}
                 title={`Click to sort ${sorting?.sortOrder === "asc" ? "descending" : "ascending"}`}
                 key={`${headCell.title}-tooltip`}
             >
@@ -230,8 +231,12 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                         (!headCell.sortable || headCell.sortable) && handleHeaderClick(event, headCell.dataIndex)
                     }
                 >
-                    <Box sx={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
-                        <Box
+                    <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                        id={`${headCell.title}-header-box`}
+                        sx={{display: "flex", alignItems: "center", justifyContent: "space-between"}}
+                    >
+                        <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                            id={`${headCell.title}-header-box-inner`}
                             component="span"
                             sx={{
                                 textAlign: "left",
@@ -240,9 +245,15 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                         >
                             {headCell.title}
                         </Box>
-                        <Box sx={{display: "flex", alignItems: "center"}}>
-                            <Box>
-                                <TableSortLabel
+                        <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                            id={`${headCell.title}-header-box-inner-2`}
+                            sx={{display: "flex", alignItems: "center"}}
+                        >
+                            <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                id={`${headCell.title}-header-box-inner-2-box`}
+                            >
+                                <TableSortLabel // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                    id={`${headCell.title}-header-sort-label`}
                                     active={sorting?.columnKey === headCell.dataIndex}
                                     direction={sorting.columnKey === headCell.dataIndex ? sorting.sortOrder : "asc"}
                                     sx={{
@@ -256,7 +267,8 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                     }}
                                     IconComponent={() =>
                                         (headCell?.sortable == null || headCell?.sortable) && (
-                                            <Box
+                                            <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                                id={`${headCell.title}-header-sort-label-box`}
                                                 component="span"
                                                 sx={{
                                                     display: "flex",
@@ -264,7 +276,8 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                                     alignItems: "center",
                                                 }}
                                             >
-                                                <ArrowDropUpIcon
+                                                <ArrowDropUpIcon // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                                    id={`${headCell.title}-header-sort-label-arrow-up`}
                                                     sx={{
                                                         color:
                                                             sorting.columnKey === headCell.dataIndex &&
@@ -275,7 +288,8 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                                         marginBottom: "-5px",
                                                     }}
                                                 />
-                                                <ArrowDropDownIcon
+                                                <ArrowDropDownIcon // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                                    id={`${headCell.title}-header-sort-label-arrow-down`}
                                                     sx={{
                                                         color:
                                                             sorting.columnKey === headCell.dataIndex &&
@@ -292,7 +306,8 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                 />
                             </Box>
                             {headCell?.filterable && (
-                                <SearchIcon
+                                <SearchIcon // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                    id={`${headCell.title}-header-search-icon`}
                                     sx={{
                                         display: "flex",
                                         fontSize: "1rem",
@@ -313,8 +328,11 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
 
     function getTableHead() {
         return (
-            <TableHead>
-                <TableRow
+            <TableHead // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                id={`${id}-table-head`}
+            >
+                <TableRow // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    id={`${id}-table-head-row`}
                     sx={{
                         "&:first-of-type": {
                             borderTopLeftRadius: "var(--bs-border-radius)",
@@ -333,7 +351,8 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
         const columnKey = sorting?.columnKey
 
         return (
-            <TableRow
+            <TableRow // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                id={`project-${project.id}`}
                 hover={true}
                 role="checkbox"
                 tabIndex={-1}
@@ -419,7 +438,12 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                     >
                         {allowSharing ? getSharingIcon(project) : null}
                         {allowDelete ? (
-                            <Box sx={{marginLeft: "0.5rem", display: "flex"}}>{getDeleteIcon(project, idx)}</Box>
+                            <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                id={`project-${project.id}-delete`}
+                                sx={{marginLeft: "0.5rem", display: "flex"}}
+                            >
+                                {getDeleteIcon(project, idx)}
+                            </Box>
                         ) : null}
                     </Box>
                 </TableCell>
@@ -429,7 +453,8 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
 
     function getTableBody() {
         return (
-            <TableBody
+            <TableBody // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                id={`${id}-table-body`}
                 sx={{
                     "& .MuiTableCell-root": {
                         fontSize: "14px",
@@ -488,8 +513,8 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
     function getPopover() {
         const isOpen = Boolean(anchorEl)
         return (
-            <Popover
-                id={isOpen ? "filter-column-popover" : undefined}
+            <Popover // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                id={isOpen ? "input-filter-div" : undefined}
                 open={isOpen}
                 anchorEl={anchorEl}
                 onClose={() => {
@@ -502,6 +527,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                 sx={{padding: 0, margin: 0, minHeight: 0}}
             >
                 <TextField
+                    id="filter-input"
                     autoFocus={true}
                     value={filtering.filterText}
                     label="Filter value"
@@ -522,7 +548,7 @@ export default function ProjectsTable(props: ProjectsTableProps): ReactElement<P
                                     position="end"
                                 >
                                     <IconButton
-                                        id="clear-input-button"
+                                        id="filter-clear-button"
                                         onClick={() => {
                                             setFiltering({columnKey: "", filterText: ""})
                                         }}
