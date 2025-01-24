@@ -31,7 +31,6 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
 ))(({theme}) => ({
     backgroundColor: "rgba(0, 0, 0, 0.02)",
     color: "rgba(0, 0, 0, 0.88)",
-    flexDirection: "row-reverse",
 
     [`& .${accordionSummaryClasses.expandIconWrapper}.${accordionSummaryClasses.expanded}`]: {
         transform: "rotate(90deg)",
@@ -51,15 +50,14 @@ const AccordionDetails = styled(MuiAccordionDetails)(({theme}) => ({
 // #endregion: Styled Components
 
 // #region: Types
-type ArrowPosition = "left" | "right"
-
 interface MUIAccordionItem {
-    title: string
+    title: ReactNode
     content: ReactNode
+    disabled?: boolean
 }
 
 interface MUIAccordionProps {
-    arrowPosition?: ArrowPosition
+    arrowPosition?: "left" | "right"
     expandOnlyOnePanel?: boolean
     id: string
     items: MUIAccordionItem[]
@@ -68,6 +66,7 @@ interface MUIAccordionProps {
 // #endregion: Types
 
 // TODO: write tests once all the features are added
+// TODO: implement expandOnlyOnePanel feature, and also specifiying which section to expand (antd did that with key)
 export const MUIAccordion: FC<MUIAccordionProps> = ({
     arrowPosition = "left",
     expandOnlyOnePanel = false,
@@ -76,8 +75,8 @@ export const MUIAccordion: FC<MUIAccordionProps> = ({
     sx,
 }) => (
     <>
-        {items.map((item, index) => (
-            <Accordion
+        {items.map(({title, content, disabled = false}, index) => (
+            <Accordion disabled={disabled}
                 key={`${id}-${index}`} // eslint-disable-line react/no-array-index-key
                 id={`${id}-${index}`}
                 sx={sx}
@@ -85,13 +84,14 @@ export const MUIAccordion: FC<MUIAccordionProps> = ({
                 <AccordionSummary
                     aria-controls={`${id}-${index}-summary`}
                     id={`${id}-${index}-summary`}
+                    sx={{flexDirection: arrowPosition === "left" ? "row-reverse" : undefined}}
                 >
                     <Typography
                         component="span"
                         id={`${id}-${index}-summary-typography`}
                         sx={{fontSize: "0.9rem"}}
                     >
-                        {item.title}
+                        {title}
                     </Typography>
                 </AccordionSummary>
                 <AccordionDetails id={`${id}-${index}-details`}>
@@ -99,7 +99,7 @@ export const MUIAccordion: FC<MUIAccordionProps> = ({
                         id={`${id}-${index}-details-typography`}
                         sx={{fontSize: "0.85rem"}}
                     >
-                        {item.content}
+                        {content}
                     </Typography>
                 </AccordionDetails>
             </Accordion>

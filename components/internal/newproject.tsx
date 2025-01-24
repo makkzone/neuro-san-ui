@@ -6,7 +6,7 @@ import Container from "@mui/material/Container"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
-import {Collapse, Radio, RadioChangeEvent, Space} from "antd"
+import {Radio, RadioChangeEvent, Space} from "antd"
 import debugModule from "debug"
 import httpStatus from "http-status"
 import {NextRouter, useRouter} from "next/router"
@@ -59,8 +59,6 @@ interface NewProps {
     UpdateHook?: () => void
 }
 
-const {Panel} = Collapse
-
 export default function NewProject(props: NewProps) {
     /*
     This function adds a component form to add a new project to the system. Despite the name, also used when editing
@@ -101,173 +99,195 @@ export default function NewProject(props: NewProps) {
     // For CSV Confirm dialog
     const [csvConfirmDialogOpen, setCsvConfirmDialogOpen] = useState<boolean>(false)
 
-    function getCreateDataProfilePanel() {
+    function getCreateDataProfileButton() {
         return (
-            <Panel
-                id="create-project-or-data-profile-button-panel"
-                header={
-                    <Tooltip
-                        id="create-project-or-data-profile-button-tooltip"
-                        title={getCreateProjectButtonTooltip()}
+            <Tooltip
+                id="create-project-or-data-profile-button-tooltip"
+                title={getCreateProjectButtonTooltip()}
+            >
+                <span id="create_project_span">
+                    <Button
+                        id="create-project-or-data-profile-button"
+                        disabled={!enabledDataTagSection}
+                        fullWidth={true}
+                        sx={{
+                            backgroundColor: "var(--bs-primary) !important",
+                            border: "solid 1px var(--bs-primary)",
+                            borderRadius: "var(--bs-border-radius)",
+                            color: "white !important",
+                            fontSize: "0.9em",
+                            marginTop: "0.5em",
+                            opacity: enabledDataTagSection ? OPAQUE : SEMI_OPAQUE,
+                        }}
+                        onClick={createDataSourceAndDataTag}
                     >
-                        <span id="create_project_span">
-                            <Button
-                                id="create-project-or-data-profile-button"
-                                disabled={!enabledDataTagSection}
-                                fullWidth={true}
-                                sx={{
-                                    backgroundColor: "var(--bs-primary) !important",
-                                    border: "solid 1px var(--bs-primary)",
-                                    borderRadius: "var(--bs-border-radius)",
-                                    color: "white !important",
-                                    fontSize: "0.9em",
-                                    marginTop: "0.5em",
-                                    opacity: enabledDataTagSection ? OPAQUE : SEMI_OPAQUE,
-                                }}
-                                onClick={createDataSourceAndDataTag}
-                            >
-                                {`${4 + startIndexOffset}. ${isNewProject ? "Create project" : "Create data profile"}`}
-                            </Button>
-                        </span>
-                    </Tooltip>
-                }
-                key="4"
-            />
+                        {`${4 + startIndexOffset}. ${isNewProject
+                            ? "Create project" : "Create data profile"}`}
+                    </Button>
+                </span>
+            </Tooltip>
         )
     }
 
     function getProfileTablePanel() {
         return (
-            <Panel
+            <MUIAccordion
                 id="profile-table-panel"
-                header={
-                    <Tooltip
-                        id="tag-your-data-header-tooltip"
-                        title={enabledDataTagSection ? "" : "Please create your data source first"}
-                        placement="left-start"
-                    >
-                        <span id="tag-your-data-header">{`${3 + startIndexOffset}. Tag your Data`}</span>
-                    </Tooltip>
-                }
                 key={tagYourDataPanelKey}
-                collapsible={enabledDataTagSection ? "header" : "disabled"}
-            >
-                {profileTable}
-            </Panel>
+                items={[
+                    {
+                        title: (
+                            <Tooltip
+                                id="tag-your-data-header-tooltip"
+                                title={enabledDataTagSection ? "" : "Please create your data source first"}
+                                placement="left-start"
+                            >
+                                <span id="tag-your-data-header">{`${3 + startIndexOffset}. Tag your Data`}</span>
+                            </Tooltip>
+                        ),
+                        content: (
+                            <>
+                                {profileTable}
+                            </>
+                        ),
+                        disabled: !enabledDataTagSection,
+                    },
+                ]}
+            />
         )
     }
 
     function getDataSourcePanel() {
         return (
-            <Panel
+            <MUIAccordion
                 id="data-source-panel"
-                header={
-                    <Tooltip
-                        id="create-your-data-source-header-tooltip"
-                        title={enabledDataSourceSection ? "" : "Please enter project name and description first"}
-                        placement="left-start"
-                    >
-                        <span id="create-your-data-source-header">
-                            {`${2 + startIndexOffset}. Create your data source`}
-                        </span>
-                    </Tooltip>
-                }
                 key={dataSourcePanelKey}
-                collapsible={enabledDataSourceSection ? "header" : "disabled"}
-            >
-                <Radio.Group
-                    id="data-source-radio"
-                    onChange={(e: RadioChangeEvent) => {
-                        setChosenDataSource(e.target.value)
-                    }}
-                    value={chosenDataSource}
-                >
-                    <Space
-                        id="s3-file-space"
-                        direction="vertical"
-                        size="large"
-                    >
-                        <Radio
-                            id="local-file-radio"
-                            value={localFileOption}
-                        >
-                            {getFileUploadForm()}
-                        </Radio>
-                        <MUIAccordion
-                            id="advanced_data_source_panel"
-                            items={[
-                                {
-                                    title: "Advanced",
-                                    content: (
-                                        <Radio
-                                            id="s3-file-radio"
-                                            value={s3Option}
-                                        >
-                                            {getS3DataForm()}
-                                        </Radio>
-                                    ),
-                                },
-                            ]}
-                        />
-                    </Space>
-                </Radio.Group>
-            </Panel>
+                items={[
+                    {
+                        title: (
+                            <Tooltip
+                                id="create-your-data-source-header-tooltip"
+                                title={enabledDataSourceSection ? "" : "Please enter project name and description first"}
+                                placement="left-start"
+                            >
+                                <span id="create-your-data-source-header">
+                                    {`${2 + startIndexOffset}. Create your data source`}
+                                </span>
+                            </Tooltip>
+                        ),
+                        content: (
+                            <Radio.Group
+                                id="data-source-radio"
+                                onChange={(e: RadioChangeEvent) => {
+                                    setChosenDataSource(e.target.value)
+                                }}
+                                value={chosenDataSource}
+                            >
+                                <Space
+                                    id="s3-file-space"
+                                    direction="vertical"
+                                    size="large"
+                                >
+                                    <Radio
+                                        id="local-file-radio"
+                                        value={localFileOption}
+                                    >
+                                        {getFileUploadForm()}
+                                    </Radio>
+                                    <MUIAccordion
+                                        id="advanced_data_source_panel"
+                                        items={[
+                                            {
+                                                title: "Advanced",
+                                                content: (
+                                                    <Radio
+                                                        id="s3-file-radio"
+                                                        value={s3Option}
+                                                    >
+                                                        {getS3DataForm()}
+                                                    </Radio>
+                                                ),
+                                            },
+                                        ]}
+                                    />
+                                </Space>
+                            </Radio.Group>
+                        ),
+                        disabled: !enabledDataSourceSection,
+                    },
+                ]}
+            />
         )
     }
 
     function getProjectDetailsPanel() {
         return (
-            <Panel
+            <MUIAccordion
                 id="project-details-panel"
-                header={<span id="project-details-header">1. Project Details</span>}
                 key={projectDetailsPanelKey}
-            >
-                <Box
-                    id="project-name-box"
-                    display="block"
-                >
-                    <TextField
-                        id="project-name-input"
-                        name="name"
-                        ref={projectNameRef}
-                        type="text"
-                        label="Project Name"
-                        placeholder="My project name"
-                        onChange={(event) => setInputFields({...inputFields, projectName: event.target.value})}
-                        sx={{width: "100%"}}
-                        slotProps={{
-                            inputLabel: {
-                                shrink: true,
-                            },
-                            input: {
-                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
-                            },
-                        }}
-                    />
-                </Box>
-                <Box
-                    id="project-description-box"
-                    display="block"
-                    sx={{marginTop: "1rem"}}
-                >
-                    <TextField
-                        id="project-description-input"
-                        name="description"
-                        label="Description"
-                        placeholder="What are you building?"
-                        onChange={(event) => setInputFields({...inputFields, description: event.target.value})}
-                        sx={{width: "100%"}}
-                        slotProps={{
-                            inputLabel: {
-                                shrink: true,
-                            },
-                            input: {
-                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
-                            },
-                        }}
-                    />
-                </Box>
-            </Panel>
+                items={[
+                    {
+                        title: (
+                            <span id="project-details-header">
+                                1. Project Details
+                            </span>
+                        ),
+                        content: (
+                            <>
+                                <Box
+                                    id="project-name-box"
+                                    display="block"
+                                >
+                                    <TextField
+                                        id="project-name-input"
+                                        name="name"
+                                        ref={projectNameRef}
+                                        type="text"
+                                        label="Project Name"
+                                        placeholder="My project name"
+                                        onChange={(event) =>
+                                            setInputFields({...inputFields, projectName: event.target.value})
+                                        }
+                                        sx={{width: "100%"}}
+                                        slotProps={{
+                                            inputLabel: {
+                                                shrink: true,
+                                            },
+                                            input: {
+                                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
+                                            },
+                                        }}
+                                    />
+                                </Box>
+                                <Box
+                                    id="project-description-box"
+                                    display="block"
+                                    sx={{marginTop: "1rem"}}
+                                >
+                                    <TextField
+                                        id="project-description-input"
+                                        name="description"
+                                        label="Description"
+                                        placeholder="What are you building?"
+                                        onChange={(event) => 
+                                            setInputFields({...inputFields, description: event.target.value})
+                                        }
+                                        sx={{width: "100%"}}
+                                        slotProps={{
+                                            inputLabel: {
+                                                shrink: true,
+                                            },
+                                            input: {
+                                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
+                                            },
+                                        }}
+                                    />
+                                </Box>
+                            </>
+                        )
+                    },
+                ]}
+            />
         )
     }
 
@@ -884,23 +904,15 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`
 
     const propsId = props.id
 
+    // TODO: get this to work
+    // defaultActiveKey={isNewProject ? projectDetailsPanelKey : dataSourcePanelKey}
     return (
         <>
             <Container id={propsId}>
-                {/* TODO: bit more complex, expand icon end, and accordion so only one open, and
-                    default open one */}
-                <Collapse // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                    // id={`${propsId}-collapse`}
-                    accordion
-                    expandIconPosition="end"
-                    defaultActiveKey={isNewProject ? projectDetailsPanelKey : dataSourcePanelKey}
-                >
-                    {isNewProject && getProjectDetailsPanel()}
-                    {getDataSourcePanel()}
-                    {getProfileTablePanel()}
-                </Collapse>
-
-                {getCreateDataProfilePanel()}
+                {isNewProject && getProjectDetailsPanel()}
+                {getDataSourcePanel()}
+                {getProfileTablePanel()}
+                {getCreateDataProfileButton()}
             </Container>
             {csvConfirmDialogOpen && (
                 <ConfirmationModal
