@@ -11,13 +11,13 @@ import CircularProgress from "@mui/material/CircularProgress"
 import IconButton from "@mui/material/IconButton"
 import InputAdornment from "@mui/material/InputAdornment"
 import TextField from "@mui/material/TextField"
-import {Drawer} from "antd"
 import {ReactElement, useRef, useState} from "react"
 
 import {StringToStringOrNumber} from "../../../controller/base_types"
 import {sendDmsChatQuery} from "../../../controller/dmschat/dmschat"
 import {Run} from "../../../controller/run/types"
 import {hasOnlyWhitespace} from "../../../utils/text"
+import {MUIDrawer} from "../../MUIDrawer"
 import {LlmChatButton} from "../LlmChatButton"
 
 /**
@@ -184,14 +184,16 @@ export function DMSChat(props: {
     const enableClearChatButton = !isAwaitingLlm && userLlmChatOutput.length > 0
 
     return (
-        <Drawer // eslint-disable-line enforce-ids-in-jsx/missing-ids
-            title="AI Decision Assistant"
-            placement="right"
-            closable={true}
+        <MUIDrawer
+            id="user-query-drawer"
+            isOpen={props.open}
             onClose={props.onClose}
-            open={props.open}
-            width="35%"
-            destroyOnClose={true}
+            paperProps={{
+                sx: {
+                    width: "35%",
+                },
+            }}
+            title="AI Decision Assistant"
         >
             <Box
                 id="user-query-form"
@@ -396,6 +398,6 @@ export function DMSChat(props: {
                     </div>
                 </Box>
             </Box>
-        </Drawer>
+        </MUIDrawer>
     )
 }

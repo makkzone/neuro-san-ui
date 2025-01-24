@@ -1,6 +1,5 @@
 import CircularProgress from "@mui/material/CircularProgress"
 import Tooltip from "@mui/material/Tooltip"
-import {Drawer} from "antd"
 import {cloneDeep} from "lodash"
 import {useEffect, useRef, useState} from "react"
 import {MdOutlineSaveAlt} from "react-icons/md"
@@ -13,6 +12,7 @@ import {sendLlmRequest} from "../../../controller/llm/llm_chat"
 import {DataTag, DataTagFieldValued} from "../../../generated/metadata"
 import {toSafeFilename} from "../../../utils/file"
 import {omitDeep} from "../../../utils/objects"
+import {MUIDrawer} from "../../MUIDrawer"
 import {FlowQueries} from "../flow/flowqueries"
 import {DataSourceNode} from "../flow/nodes/datasourcenode"
 import {NodeType} from "../flow/nodes/types"
@@ -121,13 +121,15 @@ export function ExperimentAnalyzer(props: {
     }
 
     return (
-        <Drawer // eslint-disable-line enforce-ids-in-jsx/missing-ids
-            open={props.show}
-            placement="right"
-            destroyOnClose={true}
-            closable={true}
+        <MUIDrawer
+            id="experiment-analyzer-drawer"
+            isOpen={props.show}
             onClose={props.onClose}
-            width="60%"
+            paperProps={{
+                sx: {
+                    width: "60%",
+                },
+            }}
             title="Experiment analyzer"
         >
             {experimentAnalysis ? (
@@ -196,6 +198,6 @@ export function ExperimentAnalyzer(props: {
                     size={50}
                 />
             )}
-        </Drawer>
+        </MUIDrawer>
     )
 }
