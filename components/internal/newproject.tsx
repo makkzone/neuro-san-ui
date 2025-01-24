@@ -99,269 +99,7 @@ export default function NewProject(props: NewProps) {
     // For CSV Confirm dialog
     const [csvConfirmDialogOpen, setCsvConfirmDialogOpen] = useState<boolean>(false)
 
-    function getCreateDataProfileButton() {
-        return (
-            <Tooltip
-                id="create-project-or-data-profile-button-tooltip"
-                title={getCreateProjectButtonTooltip()}
-            >
-                <span id="create_project_span">
-                    <Button
-                        id="create-project-or-data-profile-button"
-                        disabled={!enabledDataTagSection}
-                        fullWidth={true}
-                        sx={{
-                            backgroundColor: "var(--bs-primary) !important",
-                            border: "solid 1px var(--bs-primary)",
-                            borderRadius: "var(--bs-border-radius)",
-                            color: "white !important",
-                            fontSize: "0.9em",
-                            marginTop: "0.5em",
-                            opacity: enabledDataTagSection ? OPAQUE : SEMI_OPAQUE,
-                        }}
-                        onClick={createDataSourceAndDataTag}
-                    >
-                        {`${4 + startIndexOffset}. ${isNewProject ? "Create project" : "Create data profile"}`}
-                    </Button>
-                </span>
-            </Tooltip>
-        )
-    }
-
-    function getProfileTablePanel() {
-        return (
-            <MUIAccordion
-                id="profile-table-panel"
-                key={tagYourDataPanelKey}
-                items={[
-                    {
-                        title: (
-                            <Tooltip
-                                id="tag-your-data-header-tooltip"
-                                title={enabledDataTagSection ? "" : "Please create your data source first"}
-                                placement="left-start"
-                            >
-                                <span id="tag-your-data-header">{`${3 + startIndexOffset}. Tag your Data`}</span>
-                            </Tooltip>
-                        ),
-                        content: <>{profileTable}</>,
-                        disabled: !enabledDataTagSection,
-                    },
-                ]}
-            />
-        )
-    }
-
-    function getDataSourcePanel() {
-        return (
-            <MUIAccordion
-                id="data-source-panel"
-                key={dataSourcePanelKey}
-                items={[
-                    {
-                        title: (
-                            <Tooltip
-                                id="create-your-data-source-header-tooltip"
-                                title={
-                                    enabledDataSourceSection ? "" : "Please enter project name and description first"
-                                }
-                                placement="left-start"
-                            >
-                                <span id="create-your-data-source-header">
-                                    {`${2 + startIndexOffset}. Create your data source`}
-                                </span>
-                            </Tooltip>
-                        ),
-                        content: (
-                            <Radio.Group
-                                id="data-source-radio"
-                                onChange={(e: RadioChangeEvent) => {
-                                    setChosenDataSource(e.target.value)
-                                }}
-                                value={chosenDataSource}
-                            >
-                                <Space
-                                    id="s3-file-space"
-                                    direction="vertical"
-                                    size="large"
-                                >
-                                    <Radio
-                                        id="local-file-radio"
-                                        value={localFileOption}
-                                    >
-                                        {getFileUploadForm()}
-                                    </Radio>
-                                    <MUIAccordion
-                                        id="advanced_data_source_panel"
-                                        items={[
-                                            {
-                                                title: "Advanced",
-                                                content: (
-                                                    <Radio
-                                                        id="s3-file-radio"
-                                                        value={s3Option}
-                                                    >
-                                                        {getS3DataForm()}
-                                                    </Radio>
-                                                ),
-                                            },
-                                        ]}
-                                    />
-                                </Space>
-                            </Radio.Group>
-                        ),
-                        disabled: !enabledDataSourceSection,
-                    },
-                ]}
-            />
-        )
-    }
-
-    function getProjectDetailsPanel() {
-        return (
-            <MUIAccordion
-                id="project-details-panel"
-                key={projectDetailsPanelKey}
-                items={[
-                    {
-                        title: <span id="project-details-header">1. Project Details</span>,
-                        content: (
-                            <>
-                                <Box
-                                    id="project-name-box"
-                                    display="block"
-                                >
-                                    <TextField
-                                        id="project-name-input"
-                                        name="name"
-                                        ref={projectNameRef}
-                                        type="text"
-                                        label="Project Name"
-                                        placeholder="My project name"
-                                        onChange={(event) =>
-                                            setInputFields({...inputFields, projectName: event.target.value})
-                                        }
-                                        sx={{width: "100%"}}
-                                        slotProps={{
-                                            inputLabel: {
-                                                shrink: true,
-                                            },
-                                            input: {
-                                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
-                                            },
-                                        }}
-                                    />
-                                </Box>
-                                <Box
-                                    id="project-description-box"
-                                    display="block"
-                                    sx={{marginTop: "1rem"}}
-                                >
-                                    <TextField
-                                        id="project-description-input"
-                                        name="description"
-                                        label="Description"
-                                        placeholder="What are you building?"
-                                        onChange={(event) =>
-                                            setInputFields({...inputFields, description: event.target.value})
-                                        }
-                                        sx={{width: "100%"}}
-                                        slotProps={{
-                                            inputLabel: {
-                                                shrink: true,
-                                            },
-                                            input: {
-                                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
-                                            },
-                                        }}
-                                    />
-                                </Box>
-                            </>
-                        ),
-                    },
-                ]}
-            />
-        )
-    }
-
-    function getS3DataForm() {
-        const shouldDisableS3Create = getS3CreateButtonTooltip() !== null || chosenDataSource === localFileOption
-        return (
-            <>
-                <Box
-                    id="s3-file-upload-div"
-                    style={{display: "inline-flex"}}
-                >
-                    From S3
-                    <InfoTip
-                        id="file-upload-bubble"
-                        info={
-                            "Use this option to use an existing CSV file, which must already be present in the " +
-                            "appropriate S3 bucket, for your training data. Contact Cognizant AI Labs for assistance."
-                        }
-                    />
-                </Box>
-                <Box
-                    id="s3-file-set-input-fields"
-                    display="block"
-                    sx={{marginTop: "1rem"}}
-                >
-                    <TextField
-                        id="s3-file-set-input-fields"
-                        name="s3Key"
-                        type="text"
-                        label="S3 Key"
-                        placeholder="data/somewhere/somefile.csv"
-                        onChange={(event) => setInputFields({...inputFields, s3Key: event.target.value})}
-                        disabled={isUsingLocalFile}
-                        required={!isUsingLocalFile}
-                        sx={{width: "80ch"}}
-                        slotProps={{
-                            inputLabel: {
-                                shrink: true,
-                            },
-                            input: {
-                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
-                            },
-                        }}
-                    />
-                </Box>
-                <Box
-                    id="create-data-source-button-box"
-                    display="block"
-                    sx={{marginTop: "1rem"}}
-                >
-                    <Tooltip
-                        id="create-data-source-button-tooltip"
-                        title={getS3CreateButtonTooltip()}
-                    >
-                        <span id="create-data-source-button-span">
-                            <Button
-                                id="create-data-source-button"
-                                sx={{
-                                    background: "var(--bs-primary) !important",
-                                    borderColor: "var(--bs-primary)  !important",
-                                    borderRadius: "var(--bs-border-radius)",
-                                    color: "var(--bs-white)  !important",
-                                    opacity: shouldDisableS3Create ? SEMI_OPAQUE : OPAQUE,
-                                    "&:disabled": {
-                                        cursor: "default",
-                                        pointerEvents: "all !important",
-                                    },
-                                }}
-                                onClick={async () => generateDataProfile(getS3Key())}
-                                disabled={shouldDisableS3Create}
-                            >
-                                Create
-                            </Button>
-                        </span>
-                    </Tooltip>
-                </Box>
-            </>
-        )
-    }
-
-    function getFileUploadForm() {
+    const getFileUploadForm = () => {
         const uploadButtonTooltip = getUploadButtonTooltip()
         const shouldDisableFileUpload = uploadButtonTooltip !== null
 
@@ -487,10 +225,239 @@ export default function NewProject(props: NewProps) {
         )
     }
 
+    const getS3DataForm = () => {
+        const shouldDisableS3Create = getS3CreateButtonTooltip() !== null || chosenDataSource === localFileOption
+        return (
+            <>
+                <Box
+                    id="s3-file-upload-div"
+                    style={{display: "inline-flex"}}
+                >
+                    From S3
+                    <InfoTip
+                        id="file-upload-bubble"
+                        info={
+                            "Use this option to use an existing CSV file, which must already be present in the " +
+                            "appropriate S3 bucket, for your training data. Contact Cognizant AI Labs for assistance."
+                        }
+                    />
+                </Box>
+                <Box
+                    id="s3-file-set-input-fields"
+                    display="block"
+                    sx={{marginTop: "1rem"}}
+                >
+                    <TextField
+                        id="s3-file-set-input-fields"
+                        name="s3Key"
+                        type="text"
+                        label="S3 Key"
+                        placeholder="data/somewhere/somefile.csv"
+                        onChange={(event) => setInputFields({...inputFields, s3Key: event.target.value})}
+                        disabled={isUsingLocalFile}
+                        required={!isUsingLocalFile}
+                        sx={{width: "80ch"}}
+                        slotProps={{
+                            inputLabel: {
+                                shrink: true,
+                            },
+                            input: {
+                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
+                            },
+                        }}
+                    />
+                </Box>
+                <Box
+                    id="create-data-source-button-box"
+                    display="block"
+                    sx={{marginTop: "1rem"}}
+                >
+                    <Tooltip
+                        id="create-data-source-button-tooltip"
+                        title={getS3CreateButtonTooltip()}
+                    >
+                        <span id="create-data-source-button-span">
+                            <Button
+                                id="create-data-source-button"
+                                sx={{
+                                    background: "var(--bs-primary) !important",
+                                    borderColor: "var(--bs-primary)  !important",
+                                    borderRadius: "var(--bs-border-radius)",
+                                    color: "var(--bs-white)  !important",
+                                    opacity: shouldDisableS3Create ? SEMI_OPAQUE : OPAQUE,
+                                    "&:disabled": {
+                                        cursor: "default",
+                                        pointerEvents: "all !important",
+                                    },
+                                }}
+                                onClick={async () => generateDataProfile(getS3Key())}
+                                disabled={shouldDisableS3Create}
+                            >
+                                Create
+                            </Button>
+                        </span>
+                    </Tooltip>
+                </Box>
+            </>
+        )
+    }
+
     // Decide which S3Key to use based on radio buttons
-    function getS3Key() {
+    const getS3Key = () => {
         return chosenDataSource === s3Option ? inputFields.s3Key : inputFields.uploadedFileS3Key
     }
+
+    const getProjectDetailsItem = () => ({
+        title: <span id="project-details-header">1. Project Details</span>,
+        content: (
+            <>
+                <Box
+                    id="project-name-box"
+                    display="block"
+                >
+                    <TextField
+                        id="project-name-input"
+                        name="name"
+                        ref={projectNameRef}
+                        type="text"
+                        label="Project Name"
+                        placeholder="My project name"
+                        onChange={(event) =>
+                            setInputFields({...inputFields, projectName: event.target.value})
+                        }
+                        sx={{width: "100%"}}
+                        slotProps={{
+                            inputLabel: {
+                                shrink: true,
+                            },
+                            input: {
+                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
+                            },
+                        }}
+                    />
+                </Box>
+                <Box
+                    id="project-description-box"
+                    display="block"
+                    sx={{marginTop: "1rem"}}
+                >
+                    <TextField
+                        id="project-description-input"
+                        name="description"
+                        label="Description"
+                        placeholder="What are you building?"
+                        onChange={(event) =>
+                            setInputFields({...inputFields, description: event.target.value})
+                        }
+                        sx={{width: "100%"}}
+                        slotProps={{
+                            inputLabel: {
+                                shrink: true,
+                            },
+                            input: {
+                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
+                            },
+                        }}
+                    />
+                </Box>
+            </>
+        )
+    })
+
+    const getDataSourceItem = () => ({
+        title: (
+            <Tooltip
+                id="create-your-data-source-header-tooltip"
+                title={
+                    enabledDataSourceSection ? "" : "Please enter project name and description first"
+                }
+                placement="left-start"
+            >
+                <span id="create-your-data-source-header">
+                    {`${2 + startIndexOffset}. Create your data source`}
+                </span>
+            </Tooltip>
+        ),
+        content: (
+            <Radio.Group
+                id="data-source-radio"
+                onChange={(e: RadioChangeEvent) => {
+                    setChosenDataSource(e.target.value)
+                }}
+                value={chosenDataSource}
+            >
+                <Space
+                    id="s3-file-space"
+                    direction="vertical"
+                    size="large"
+                >
+                    <Radio
+                        id="local-file-radio"
+                        value={localFileOption}
+                    >
+                        {getFileUploadForm()}
+                    </Radio>
+                    <MUIAccordion
+                        id="advanced_data_source_panel"
+                        items={[
+                            {
+                                title: "Advanced",
+                                content: (
+                                    <Radio
+                                        id="s3-file-radio"
+                                        value={s3Option}
+                                    >
+                                        {getS3DataForm()}
+                                    </Radio>
+                                ),
+                            },
+                        ]}
+                    />
+                </Space>
+            </Radio.Group>
+        ),
+        disabled: !enabledDataSourceSection,
+    })
+
+    const getProfileTableItem = () => ({
+        title: (
+            <Tooltip
+                id="tag-your-data-header-tooltip"
+                title={enabledDataTagSection ? "" : "Please create your data source first"}
+                placement="left-start"
+            >
+                <span id="tag-your-data-header">{`${3 + startIndexOffset}. Tag your Data`}</span>
+            </Tooltip>
+        ),
+        content: <>{profileTable}</>,
+        disabled: !enabledDataTagSection,
+    })
+
+    const getCreateDataProfileButton = () => (
+        <Tooltip
+            id="create-project-or-data-profile-button-tooltip"
+            title={getCreateProjectButtonTooltip()}
+        >
+            <span id="create_project_span">
+                <Button
+                    id="create-project-or-data-profile-button"
+                    disabled={!enabledDataTagSection}
+                    fullWidth={true}
+                    sx={{
+                        backgroundColor: "var(--bs-primary) !important",
+                        border: "solid 1px var(--bs-primary)",
+                        borderRadius: "var(--bs-border-radius)",
+                        color: "white !important",
+                        fontSize: "0.9em",
+                        marginTop: "0.5em",
+                    }}
+                    onClick={createDataSourceAndDataTag}
+                >
+                    {`${4 + startIndexOffset}. ${isNewProject ? "Create project" : "Create data profile"}`}
+                </Button>
+            </span>
+        </Tooltip>
+    )
 
     /* Terminology:
         data source = where to find the data (S3 URL, etc.), headers, stats about number of rows etc
@@ -902,9 +869,16 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`
     return (
         <>
             <Container id={propsId}>
-                {isNewProject && getProjectDetailsPanel()}
-                {getDataSourcePanel()}
-                {getProfileTablePanel()}
+                <MUIAccordion
+                    arrowPosition="right"
+                    id="project-details-panel"
+                    key={projectDetailsPanelKey}
+                    items={[
+                        ...(isNewProject ? [getProjectDetailsItem()] : []),
+                        getDataSourceItem(),
+                        getProfileTableItem()
+                    ]}
+                />
                 {getCreateDataProfileButton()}
             </Container>
             {csvConfirmDialogOpen && (
