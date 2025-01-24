@@ -202,6 +202,11 @@ export function MultiPareto(props: ParetoPlotProps): ReactElement {
         <div
             id={propsId}
             key={propsId}
+            // Prevent mousewheel events from being propagated down to the chart or it will interpret them as zooming
+            // which in general, the user doesn't want: they are trying to scroll the page.
+            onWheelCapture={(e) => {
+                e.stopPropagation()
+            }}
         >
             <NewBar
                 id="pareto-prescriptors-bar"
