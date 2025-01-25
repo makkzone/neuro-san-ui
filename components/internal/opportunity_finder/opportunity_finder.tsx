@@ -14,7 +14,8 @@ import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import * as prismStyles from "react-syntax-highlighter/dist/cjs/styles/prism"
 
 import {AgentButtons} from "./Agentbuttons"
-import {pollForLogs} from "./AgentChatHandling"
+import {pollForLogs, processLogLine} from "./AgentChatHandling"
+import {BYTEDANCE_QUERY} from "./bytedance"
 import {experimentGeneratedMessage} from "./common"
 import {FormattedMarkdown} from "./FormattedMarkdown"
 import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
@@ -22,6 +23,7 @@ import {DEFAULT_USER_IMAGE} from "../../../const"
 import {sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/fetch"
 import {AgentStatus, ChatResponse} from "../../../generated/neuro_san/api/grpc/agent"
+import {ChatMessage, ChatMessageChatMessageType} from "../../../generated/neuro_san/api/grpc/chat"
 import {OpportunityFinderRequestType} from "../../../pages/api/gpt/opportunityFinder/types"
 import {useAuthentication} from "../../../utils/authentication"
 import {hasOnlyWhitespace} from "../../../utils/text"
@@ -339,25 +341,25 @@ export function OpportunityFinder(): ReactElement {
             if (currentResponse?.current?.length > 0) {
                 chatHistory.current = [...chatHistory.current, new AIMessage(currentResponse.current)]
             }
-        } catch (error) {
-            const isAbortError = error instanceof Error && error.name === "AbortError"
-
-            if (error instanceof Error) {
-                // AbortErrors are handled elsewhere
-                if (!isAbortError) {
-                    updateOutput(
-                        <MUIAlert
-                            id="opp-finder-error-occurred-alert"
-                            severity="error"
-                        >
-                            {`Error occurred: ${error}`}
-                        </MUIAlert>
-                    )
-
-                    // log error to console
-                    console.error(error)
-                }
-            }
+            // } catch (error) {
+            //     const isAbortError = error instanceof Error && error.name === "AbortError"
+            //
+            //     if (error instanceof Error) {
+            //         // AbortErrors are handled elsewhere
+            //         if (!isAbortError) {
+            //             updateOutput(
+            //                 <MUIAlert
+            //                     id="opp-finder-error-occurred-alert"
+            //                     severity="error"
+            //                 >
+            //                     {`Error occurred: ${error}`}
+            //                 </MUIAlert>
+            //             )
+            //
+            //             // log error to console
+            //             console.error(error)
+            //         }
+            //     }
         } finally {
             resetState()
         }
@@ -408,6 +410,67 @@ export function OpportunityFinder(): ReactElement {
         },
     ]
 
+    function handleStreamingChunk(chunk: string): void {
+        console.debug(`Received chunk: ${chunk}`)
+        let chatResponse: ChatResponse
+        try {
+            chatResponse = JSON.parse(chunk).result
+        } catch (e) {
+            console.error(`Error parsing log line: ${e}`)
+            return
+        }
+        const chatMessage: ChatMessage = chatResponse.response
+
+        const messageType: ChatMessageChatMessageType = chatMessage?.type
+
+        // We only know how to handle AI messages
+        if (messageType !== ChatMessageChatMessageType.AI) {
+            return
+        }
+
+        // Check for termination
+        let chatMessageJson = null
+        try {
+            chatMessageJson = JSON.parse(chatMessage.text)
+            if (chatMessageJson.project_id && chatMessageJson.experiment_id) {
+                // Set the URL for displaying to the user
+                projectUrl.current = new URL(
+                    // eslint-disable-next-line max-len
+                    `/projects/${chatMessageJson.project_id}/experiments/${chatMessageJson.experiment_id}/?generated=true`
+                )
+
+                // Generate the "experiment complete" item in the agent dialog
+                updateOutput(
+                    <>
+                        {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
+                        <Collapse>
+                            <Panel
+                                id="experiment-generation-complete-panel"
+                                header="Experiment generation complete"
+                                key="Experiment generation complete"
+                                style={{fontSize: "large"}}
+                            >
+                                <p id="experiment-generation-complete-details">
+                                    {experimentGeneratedMessage(projectUrl.current)}
+                                </p>
+                            </Panel>
+                        </Collapse>
+                        <br id="experiment-generation-complete-br" />
+                    </>
+                )
+                endOrchestration()
+                return
+            }
+        } catch {
+            // Not a JSON object, so we'll just continue on
+        }
+
+        if (chatMessage?.text) {
+            const newOutputItem = processLogLine(chatMessage.text, highlighterTheme)
+            updateOutput(newOutputItem)
+        }
+    }
+
     /**
      * Initiate the orchestration process. Sends the initial chat query to initiate the session, and saves the resulting
      * session ID in a ref for later use.
@@ -433,9 +496,13 @@ export function OpportunityFinder(): ReactElement {
 
         // The input to Orchestration is the organization name, if we have it, plus the Python code that generates
         // the data.
-        const orchestrationQuery =
-            (inputOrganization.current ? `Organization in question: ${inputOrganization.current}\n` : "") +
-            previousResponse.current.DataGenerator
+        // const orchestrationQuery =
+        //     (inputOrganization.current ? `Organization in question: ${inputOrganization.current}\n` : "") +
+        //     previousResponse.current.DataGenerator
+        //
+        // console.debug(`Orchestration query:\n ${orchestrationQuery}`)
+
+        const orchestrationQuery = BYTEDANCE_QUERY
 
         updateOutput(
             <>
@@ -457,7 +524,12 @@ export function OpportunityFinder(): ReactElement {
             setIsAwaitingLlm(true)
 
             // Send the initial chat query to the server.
-            const response: ChatResponse = await sendChatQuery(abortController.signal, orchestrationQuery, currentUser)
+            const response: ChatResponse = await sendChatQuery(
+                abortController.signal,
+                orchestrationQuery,
+                currentUser,
+                handleStreamingChunk
+            )
 
             // We expect the response to have status CREATED and to contain the session ID
             if (response.status !== AgentStatus.CREATED || !response.sessionId) {
@@ -474,22 +546,23 @@ export function OpportunityFinder(): ReactElement {
             } else {
                 sessionId.current = response.sessionId
             }
-        } catch (e) {
-            updateOutput(
-                <MUIAlert
-                    id="opp-finder-error-occurred-while-interacting-with-agents-alert"
-                    severity="error"
-                >
-                    {`Internal Error occurred while interacting with agents. Exception: ${e}`}
-                </MUIAlert>
-            )
-            endOrchestration()
+            // } catch (e) {
+            //     updateOutput(
+            //         <MUIAlert
+            //             id="opp-finder-error-occurred-while-interacting-with-agents-alert"
+            //             severity="error"
+            //         >
+            //             {`Internal Error occurred while interacting with agents. Exception: ${e}`}
+            //         </MUIAlert>
+            //     )
+            //     endOrchestration()
+            //     throw e
         } finally {
             setIsAwaitingLlm(false)
         }
     }
 
-    const enableOrchestration = previousResponse?.current?.DataGenerator?.length > 0 && !awaitingResponse
+    const enableOrchestration = !awaitingResponse
 
     // Render the component
     return (

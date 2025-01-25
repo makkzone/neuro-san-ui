@@ -8,7 +8,7 @@ import useEnvironmentStore from "../../state/environment"
 import {sendLlmRequest} from "../llm/llm_chat"
 
 // API path for the agent chat endpoint
-const CHAT_PATH = "api/v1/agent/chat"
+const CHAT_PATH = "api/v1/agent/streaming_chat"
 
 // API path for the agent logs endpoint
 const LOGS_PATH = "api/v1/agent/logs"
@@ -52,12 +52,14 @@ export async function getLogs(sessionId: string, signal: AbortSignal, requestUse
  * In practice this "input" will actually be the output from one of the previous agents such as the data generator
  * or scoping agent.
  * @param requestUser The user making the request
+ * @param callback The callback function to be called when a chunk of data is received from the server.
  * @returns The response from the agent network.
  */
 export async function sendChatQuery(
     signal: AbortSignal,
     userInput: string,
-    requestUser: string
+    requestUser: string,
+    callback: (chunk: string) => void
 ): Promise<ChatResponse> {
     const baseUrl = useEnvironmentStore.getState().backendApiUrl
     const fetchUrl = `${baseUrl}/${CHAT_PATH}`
@@ -78,6 +80,6 @@ export async function sendChatQuery(
         {}
     )
 
-    const result = await sendLlmRequest(null, signal, fetchUrl, requestRecord, null)
+    const result = await sendLlmRequest(callback, signal, fetchUrl, requestRecord, null)
     return ChatResponse.fromJSON(result)
 }

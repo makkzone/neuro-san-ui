@@ -154,7 +154,7 @@ function splitLogLine(logLine: string) {
  * @param highlighterTheme The theme to use for the syntax highlighter
  * @returns A React component representing the log line (agent message)
  */
-function processLogLine(logLine: string, highlighterTheme: {[p: string]: CSSProperties}) {
+export function processLogLine(logLine: string, highlighterTheme: {[p: string]: CSSProperties}) {
     // extract the parts of the line
     const {summarySentenceCase, logLineDetails} = splitLogLine(logLine)
 
