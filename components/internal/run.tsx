@@ -719,7 +719,6 @@ export default function RunPage(props: RunProps): ReactElement {
                             marginLeft: "2rem",
                             display: "flex",
                             flexDirection: "column",
-                            // alignItems: "center",
                         }}
                     >
                         <RadioGroup
