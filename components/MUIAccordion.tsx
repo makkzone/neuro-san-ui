@@ -115,6 +115,7 @@ export const MUIAccordion: FC<MUIAccordionProps> = ({
                         </AccordionSummary>
                         <AccordionDetails id={`${baseIdAndIndex}-details`}>
                             <Typography
+                                component="span"
                                 id={`${baseIdAndIndex}-details-typography`}
                                 sx={{fontSize: "0.85rem"}}
                             >
