@@ -5,8 +5,10 @@ import {CSSProperties, Dispatch, MutableRefObject, ReactNode, SetStateAction} fr
 import SyntaxHighlighter from "react-syntax-highlighter"
 
 import {experimentGeneratedMessage} from "./common"
+import {sendChatQuery} from "../../../controller/agent/agent"
 import {ChatResponse} from "../../../generated/neuro_san/api/grpc/agent"
 import {ChatMessage, ChatMessageChatMessageType} from "../../../generated/neuro_san/api/grpc/chat"
+import {MUIAlert} from "../../MUIAlert"
 
 const {Panel} = Collapse
 
@@ -36,6 +38,8 @@ function splitLogLine(logLine: string) {
 
 /**
  * Process a log line from the agent and format it nicely using the syntax highlighter and antd Collapse component.
+ * By the time we get to here, it's assumed things like errors and termination conditions have already been handled.
+ *
  * @param logLine The log line to process
  * @param highlighterTheme The theme to use for the syntax highlighter
  * @returns A React component representing the log line (agent message)
@@ -159,6 +163,23 @@ export function handleStreamingReceived(
             )
             setIsAwaitingLlm(false)
             return
+        } else if (chatMessageJson.error) {
+            console.error("Error in experiment generation")
+            console.error(chatMessageJson.error)
+            const errorMessage =
+                `Error occurred. Error: "${chatMessageJson.error}", ` +
+                `traceback: "${chatMessageJson.traceback}", ` +
+                `tool: "${chatMessageJson.tool}".`
+            updateOutput(
+                <MUIAlert
+                    id="retry-message-alert"
+                    severity="warning"
+                >
+                    {errorMessage}
+                </MUIAlert>
+            )
+            setIsAwaitingLlm(false)
+            return
         }
     } catch {
         // Not a JSON object, so we'll just continue on
@@ -168,5 +189,80 @@ export function handleStreamingReceived(
     if (chatMessage?.text) {
         const newOutputItem = processLogLine(chatMessage.text, highlighterTheme)
         updateOutput(newOutputItem)
+    }
+}
+
+/**
+ * Sends the request to neuro-san to create the project and experiment.
+ *
+ */
+export async function sendOrchestrationRequest(
+    projectUrl: MutableRefObject<URL>,
+    updateOutput: (node: ReactNode) => void,
+    highlighterTheme: {[p: string]: CSSProperties},
+    setIsAwaitingLlm: Dispatch<SetStateAction<boolean>>,
+    controller: MutableRefObject<AbortController>,
+    currentUser: string
+) {
+    // Reset project URL
+    projectUrl.current = null
+
+    // Set up the abort controller
+    const abortController = new AbortController()
+    controller.current = abortController
+
+    // The input to Orchestration is the organization name, if we have it, plus the Python code that generates
+    // the data.
+    // const orchestrationQuery =
+    //     (inputOrganization.current ? `Organization in question: ${inputOrganization.current}\n` : "") +
+    //     previousResponse.current.DataGenerator
+    //
+    // console.debug(`Orchestration query:\n ${orchestrationQuery}`)
+
+    // const orchestrationQuery = BYTEDANCE_QUERY
+    const orchestrationQuery = "generate a standard error block for testing purposes please"
+
+    updateOutput(
+        <>
+            {/*eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
+            <Collapse style={{marginBottom: "1rem"}}>
+                <Panel
+                    id="initiating-orchestration-panel"
+                    header="Contacting orchestration agents..."
+                    key="initiating-orchestration-panel"
+                    style={{fontSize: "large"}}
+                >
+                    <p id="initiating-orchestration-details">{`Query: ${orchestrationQuery}`}</p>
+                </Panel>
+            </Collapse>
+        </>
+    )
+
+    try {
+        setIsAwaitingLlm(true)
+
+        // Send the chat query to the server. This will block until the stream ends from the server
+        const response: ChatResponse = await sendChatQuery(
+            abortController.signal,
+            orchestrationQuery,
+            currentUser,
+            (chunk) => handleStreamingReceived(chunk, projectUrl, updateOutput, highlighterTheme, setIsAwaitingLlm)
+        )
+
+        console.debug("Orchestration response: ", response)
+    } catch (error) {
+        // AbortError is handled elsewhere
+        if (error instanceof Error && error.name !== "AbortError") {
+            updateOutput(
+                <MUIAlert
+                    id="opp-finder-error-occurred-while-interacting-with-agents-alert"
+                    severity="error"
+                >
+                    {`Internal Error occurred while interacting with agents. Exception: ${error}`}
+                </MUIAlert>
+            )
+        }
+    } finally {
+        setIsAwaitingLlm(false)
     }
 }

@@ -6,7 +6,6 @@ import {DeleteOutline, Loop, StopCircle} from "@mui/icons-material"
 import {Box, Button, CircularProgress, FormControl, FormGroup, FormLabel, Input, MenuItem, styled} from "@mui/material"
 import Select from "@mui/material/Select"
 import Tooltip from "@mui/material/Tooltip"
-import {Collapse} from "antd"
 import NextImage from "next/image"
 import {CSSProperties, ReactElement, ReactNode, useEffect, useRef, useState} from "react"
 import {MdCode, MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
@@ -14,15 +13,12 @@ import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import * as prismStyles from "react-syntax-highlighter/dist/cjs/styles/prism"
 
 import {AgentButtons} from "./Agentbuttons"
-import {handleStreamingReceived} from "./AgentChatHandling"
-import {BYTEDANCE_QUERY} from "./bytedance"
+import {sendOrchestrationRequest} from "./AgentChatHandling"
 import {experimentGeneratedMessage} from "./common"
 import {FormattedMarkdown} from "./FormattedMarkdown"
 import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
 import {DEFAULT_USER_IMAGE} from "../../../const"
-import {sendChatQuery} from "../../../controller/agent/agent"
 import {sendOpportunityFinderRequest} from "../../../controller/opportunity_finder/fetch"
-import {ChatResponse} from "../../../generated/neuro_san/api/grpc/agent"
 import {OpportunityFinderRequestType} from "../../../pages/api/gpt/opportunityFinder/types"
 import {useAuthentication} from "../../../utils/authentication"
 import {hasOnlyWhitespace} from "../../../utils/text"
@@ -31,7 +27,7 @@ import {MUIAlert} from "../../MUIAlert"
 import {LlmChatButton} from "../LlmChatButton"
 import {LlmChatOptionsButton} from "../LlmChatOptionsButton"
 
-const {Panel} = Collapse
+// import {BYTEDANCE_QUERY} from "./bytedance"
 
 // #region: Constants
 
@@ -146,9 +142,6 @@ export function OpportunityFinder(): ReactElement {
         ? hljsStyles[selectedTheme]
         : prismStyles[selectedTheme]
 
-    // Orchestration retry count. Bootstrap with 0; we increment this each time we retry the orchestration process.
-    const orchestrationAttemptNumber = useRef<number>(0)
-
     // Define styles based on user options (wrap setting)
     const divStyle: CSSProperties = {
         whiteSpace: shouldWrapOutput ? "normal" : "nowrap",
@@ -250,7 +243,14 @@ export function OpportunityFinder(): ReactElement {
 
             // If it's the orchestration process, we need to handle the query differently
             if (selectedAgent === "OrchestrationAgent") {
-                await initiateOrchestration(false)
+                await sendOrchestrationRequest(
+                    projectUrl,
+                    updateOutput,
+                    highlighterTheme,
+                    setIsAwaitingLlm,
+                    controller,
+                    currentUser
+                )
             } else {
                 // Record organization name if current agent is OpportunityFinder. This is risky as the user may
                 // have had a back-and-forth with the OpportunityFinder agent, but we'll assume that the last
@@ -331,84 +331,6 @@ export function OpportunityFinder(): ReactElement {
 
     // Enable Clear Chat button if not awaiting response and there is chat output to clear
     const enableClearChatButton = !isAwaitingLlm && chatOutput.length > 0
-
-    /**
-     * Initiate the orchestration process. Sends the initial chat query to initiate the session, and saves the resulting
-     * session ID in a ref for later use.
-     *
-     * @param isRetry Whether this is a retry of the orchestration process or the first attempt initiated by user
-     * @returns Nothing, but sets the session ID for the orchestration process
-     */
-    async function initiateOrchestration(isRetry: boolean) {
-        // Reset project URL
-        projectUrl.current = null
-
-        if (isRetry) {
-            // Increment attempt number
-            orchestrationAttemptNumber.current += 1
-        } else {
-            // Reset attempt number
-            orchestrationAttemptNumber.current = 1
-        }
-
-        // Set up the abort controller
-        const abortController = new AbortController()
-        controller.current = abortController
-
-        // The input to Orchestration is the organization name, if we have it, plus the Python code that generates
-        // the data.
-        // const orchestrationQuery =
-        //     (inputOrganization.current ? `Organization in question: ${inputOrganization.current}\n` : "") +
-        //     previousResponse.current.DataGenerator
-        //
-        // console.debug(`Orchestration query:\n ${orchestrationQuery}`)
-
-        const orchestrationQuery = BYTEDANCE_QUERY
-
-        updateOutput(
-            <>
-                {/*eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                <Collapse style={{marginBottom: "1rem"}}>
-                    <Panel
-                        id="initiating-orchestration-panel"
-                        header="Contacting orchestration agents..."
-                        key="initiating-orchestration-panel"
-                        style={{fontSize: "large"}}
-                    >
-                        <p id="initiating-orchestration-details">{`Query: ${orchestrationQuery}`}</p>
-                    </Panel>
-                </Collapse>
-            </>
-        )
-
-        try {
-            setIsAwaitingLlm(true)
-
-            // Send the chat query to the server. This will block until the stream ends from the server
-            const response: ChatResponse = await sendChatQuery(
-                abortController.signal,
-                orchestrationQuery,
-                currentUser,
-                (chunk) => handleStreamingReceived(chunk, projectUrl, updateOutput, highlighterTheme, setIsAwaitingLlm)
-            )
-
-            console.debug("Orchestration response: ", response)
-        } catch (error) {
-            // AbortError is handled elsewhere
-            if (error instanceof Error && error.name !== "AbortError") {
-                updateOutput(
-                    <MUIAlert
-                        id="opp-finder-error-occurred-while-interacting-with-agents-alert"
-                        severity="error"
-                    >
-                        {`Internal Error occurred while interacting with agents. Exception: ${error}`}
-                    </MUIAlert>
-                )
-            }
-        } finally {
-            setIsAwaitingLlm(false)
-        }
-    }
 
     const enableOrchestration = !isAwaitingLlm
 
