@@ -291,7 +291,7 @@ export async function sendOrchestrationRequest(
         } finally {
             setIsAwaitingLlm(false)
         }
-    } while (orchestrationAttemptNumber <= MAX_ORCHESTRATION_ATTEMPTS)
+    } while (orchestrationAttemptNumber <= MAX_ORCHESTRATION_ATTEMPTS && projectUrl.current === null)
 
     if (orchestrationAttemptNumber >= MAX_ORCHESTRATION_ATTEMPTS && projectUrl.current === null) {
         updateOutput(
