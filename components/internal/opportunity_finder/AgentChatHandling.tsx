@@ -33,7 +33,7 @@ function splitLogLine(logLine: string) {
         const logLineDetails = logLineElements[1]
         return {summarySentenceCase, logLineDetails}
     } else {
-        return {summarySentenceCase: "Agent", logLineDetails: logLine}
+        return {summarySentenceCase: "Agent message", logLineDetails: logLine}
     }
 }
 
@@ -111,6 +111,16 @@ class AgentError extends Error {
     }
 }
 
+/**
+ * Handle a chunk of data received from the server. This is the main entry point for processing the data received from
+ * neuro-san streaming chat.
+ *
+ * @param chunk The chunk of data received from the server. This is expected to be a JSON object with a `response` key.
+ * @param projectUrl Mutable reference to the URL of the project that will be created. We update this as a side effect.
+ * @param updateOutput Function to update the output window.
+ * @param highlighterTheme The theme to use for the syntax highlighter.
+ * @param setIsAwaitingLlm Function to set the state of whether we're awaiting a response from LLM.
+ */
 export function handleStreamingReceived(
     chunk: string,
     projectUrl: MutableRefObject<URL>,
@@ -210,13 +220,15 @@ export function handleStreamingReceived(
  * Sends the request to neuro-san to create the project and experiment.
  *
  */
-export async function sendOrchestrationRequest(
+export async function sendStreamingChatRequest(
     projectUrl: MutableRefObject<URL>,
     updateOutput: (node: ReactNode) => void,
     highlighterTheme: {[p: string]: CSSProperties},
     setIsAwaitingLlm: Dispatch<SetStateAction<boolean>>,
     controller: MutableRefObject<AbortController>,
-    currentUser: string
+    currentUser: string,
+    inputOrganization: string,
+    dataGeneratorResponse: string
 ) {
     // Reset project URL
     projectUrl.current = null
@@ -227,14 +239,8 @@ export async function sendOrchestrationRequest(
 
     // The input to Orchestration is the organization name, if we have it, plus the Python code that generates
     // the data.
-    // const orchestrationQuery =
-    //     (inputOrganization.current ? `Organization in question: ${inputOrganization.current}\n` : "") +
-    //     previousResponse.current.DataGenerator
-    //
-    // console.debug(`Orchestration query:\n ${orchestrationQuery}`)
-
-    // const orchestrationQuery = BYTEDANCE_QUERY
-    const orchestrationQuery = "generate a standard error block for testing purposes please"
+    const orchestrationQuery =
+        (inputOrganization ? `Organization in question: ${inputOrganization}\n` : "") + dataGeneratorResponse
 
     updateOutput(
         <>

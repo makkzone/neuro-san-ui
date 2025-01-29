@@ -13,7 +13,7 @@ import * as hljsStyles from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import * as prismStyles from "react-syntax-highlighter/dist/cjs/styles/prism"
 
 import {AgentButtons} from "./Agentbuttons"
-import {sendOrchestrationRequest} from "./AgentChatHandling"
+import {sendStreamingChatRequest} from "./AgentChatHandling"
 import {experimentGeneratedMessage} from "./common"
 import {FormattedMarkdown} from "./FormattedMarkdown"
 import {HLJS_THEMES, PRISM_THEMES} from "./SyntaxHighlighterThemes"
@@ -243,13 +243,15 @@ export function OpportunityFinder(): ReactElement {
 
             // If it's the orchestration process, we need to handle the query differently
             if (selectedAgent === "OrchestrationAgent") {
-                await sendOrchestrationRequest(
+                await sendStreamingChatRequest(
                     projectUrl,
                     updateOutput,
                     highlighterTheme,
                     setIsAwaitingLlm,
                     controller,
-                    currentUser
+                    currentUser,
+                    inputOrganization.current,
+                    previousResponse.current.DataGenerator
                 )
             } else {
                 // Record organization name if current agent is OpportunityFinder. This is risky as the user may
