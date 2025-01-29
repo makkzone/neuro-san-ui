@@ -424,7 +424,7 @@ export default function NewProject(props: NewProps) {
     })
 
     const getProfileTableItem = () => ({
-        content: <>{profileTable}</>,
+        content: profileTable,
         disabled: !enabledDataTagSection,
         title: (
             <Tooltip
