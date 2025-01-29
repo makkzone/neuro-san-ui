@@ -8,9 +8,9 @@ describe("MUIAccordion", () => {
     const defaultProps = {
         id: "test-accordion",
         items: [
-            {title: "Title 1", content: "Content 1", panelKey: 1},
-            {title: "Title 2", content: "Content 2", panelKey: 2},
-            {title: "Title 3", content: "Content 3", panelKey: 3},
+            {title: "Title 1", content: "Content 1"},
+            {title: "Title 2", content: "Content 2"},
+            {title: "Title 3", content: "Content 3"},
         ],
         // TODO: Could also test arrowPosition although it's more styling than
         // user experience / interaction
@@ -18,50 +18,30 @@ describe("MUIAccordion", () => {
     }
 
     const defaultPropsExpandOnePanelAndFirstPanelDefault = {
+        ...defaultProps,
         defaultExpandedPanelKey: 1,
-        id: "test-accordion",
-        items: [
-            {title: "Title 1", content: "Content 1", panelKey: 1},
-            {title: "Title 2", content: "Content 2", panelKey: 2},
-            {title: "Title 3", content: "Content 3", panelKey: 3},
-        ],
         expandOnlyOnePanel: true,
-        sx: {},
-        arrowPosition: "left" as "left" | "right",
     }
 
     const defaultPropsExpandOnePanelAndSecondPanelDefault = {
+        ...defaultProps,
         defaultExpandedPanelKey: 2,
-        id: "test-accordion",
-        items: [
-            {title: "Title 1", content: "Content 1", panelKey: 1},
-            {title: "Title 2", content: "Content 2", panelKey: 2},
-            {title: "Title 3", content: "Content 3", panelKey: 3},
-        ],
         expandOnlyOnePanel: true,
-        arrowPosition: "left" as "left" | "right",
     }
 
     const defaultPropsExpandOnePanelAndThirdPanelDefault = {
+        ...defaultProps,
         defaultExpandedPanelKey: 3,
-        id: "test-accordion",
-        items: [
-            {title: "Title 1", content: "Content 1", panelKey: 1},
-            {title: "Title 2", content: "Content 2", panelKey: 2},
-            {title: "Title 3", content: "Content 3", panelKey: 3},
-        ],
         expandOnlyOnePanel: true,
-        arrowPosition: "left" as "left" | "right",
     }
 
     const defaultPropsPanelTwoDisabled = {
-        id: "test-accordion",
+        ...defaultProps,
         items: [
-            {title: "Title 1", content: "Content 1", panelKey: 1},
-            {title: "Title 2", content: "Content 2", panelKey: 2, disabled: true},
-            {title: "Title 3", content: "Content 3", panelKey: 3},
+            {title: "Title 1", content: "Content 1"},
+            {title: "Title 2", content: "Content 2", disabled: true},
+            {title: "Title 3", content: "Content 3"},
         ],
-        arrowPosition: "left" as "left" | "right",
     }
 
     test("renders correctly with given props", () => {
@@ -103,7 +83,9 @@ describe("MUIAccordion", () => {
 
         // Click to expand the second panel, first panel should collapse
         await user.click(title2)
-        expect(screen.getByText("Content 1")).not.toBeVisible()
+        await waitFor(() => {
+            expect(screen.getByText("Content 1")).not.toBeVisible()
+        })
         await waitFor(() => {
             expect(screen.getByText("Content 2")).toBeVisible()
         })
@@ -112,7 +94,9 @@ describe("MUIAccordion", () => {
         // Click to expand the third panel, second panel should collapse
         await user.click(title3)
         expect(screen.getByText("Content 1")).not.toBeVisible()
-        expect(screen.getByText("Content 2")).not.toBeVisible()
+        await waitFor(() => {
+            expect(screen.getByText("Content 2")).not.toBeVisible()
+        })
         await waitFor(() => {
             expect(screen.getByText("Content 3")).toBeVisible()
         })
