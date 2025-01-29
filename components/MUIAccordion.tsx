@@ -4,7 +4,7 @@ import MuiAccordion, {AccordionProps} from "@mui/material/Accordion"
 import MuiAccordionDetails from "@mui/material/AccordionDetails"
 import MuiAccordionSummary, {accordionSummaryClasses, AccordionSummaryProps} from "@mui/material/AccordionSummary"
 import Typography from "@mui/material/Typography"
-import {FC, ReactNode, useCallback, useState} from "react"
+import {FC, ReactNode, SyntheticEvent, useCallback, useState} from "react"
 
 // #region: Styled Components
 const Accordion = styled((props: AccordionProps) => (
@@ -82,7 +82,7 @@ export const MUIAccordion: FC<MUIAccordionProps> = ({
     const [expandedList, setExpandedList] = useState<number[]>(defaultExpandedPanelKey ? [defaultExpandedPanelKey] : [])
 
     const handleChange = useCallback(
-        (panelKey: number) => (_event: React.SyntheticEvent, newExpanded: boolean) => {
+        (panelKey: number) => (_event: SyntheticEvent, newExpanded: boolean) => {
             setExpandedList((prevExpandedList) => {
                 if (!expandOnlyOnePanel) {
                     return newExpanded
