@@ -5,6 +5,7 @@ import {CSSProperties, Dispatch, MutableRefObject, ReactNode, SetStateAction} fr
 import SyntaxHighlighter from "react-syntax-highlighter"
 
 import {experimentGeneratedMessage} from "./common"
+import {MAX_ORCHESTRATION_ATTEMPTS} from "./const"
 import {sendChatQuery} from "../../../controller/agent/agent"
 import {ChatResponse} from "../../../generated/neuro_san/api/grpc/agent"
 import {ChatMessage, ChatMessageChatMessageType} from "../../../generated/neuro_san/api/grpc/chat"
@@ -97,6 +98,19 @@ export function processLogLine(logLine: string, highlighterTheme: {[p: string]: 
     )
 }
 
+interface AgentErrorProps {
+    error: string
+    traceback?: string
+    tool?: string
+}
+
+class AgentError extends Error {
+    constructor(message: string) {
+        super(message)
+        this.name = "AgentError"
+    }
+}
+
 export function handleStreamingReceived(
     chunk: string,
     projectUrl: MutableRefObject<URL>,
@@ -104,7 +118,6 @@ export function handleStreamingReceived(
     highlighterTheme: {[p: string]: CSSProperties},
     setIsAwaitingLlm: Dispatch<SetStateAction<boolean>>
 ): void {
-    console.debug(`Received chunk: ${chunk}`)
     let chatResponse: ChatResponse
     try {
         chatResponse = JSON.parse(chunk).result
@@ -116,79 +129,80 @@ export function handleStreamingReceived(
 
     const messageType: ChatMessageChatMessageType = chatMessage?.type
 
-    // We only know how to handle AI messages
-    if (messageType !== ChatMessageChatMessageType.AI && messageType !== ChatMessageChatMessageType.LEGACY_LOGS) {
-        console.debug(`Received message of type ${messageType}, ignoring`)
+    const knownMessageTypes = [ChatMessageChatMessageType.AI, ChatMessageChatMessageType.LEGACY_LOGS]
+
+    // Check if it's a message type we know how to handle
+    if (!knownMessageTypes.includes(messageType)) {
         return
     }
 
-    // Check for termination
-    let chatMessageJson = null
+    let chatMessageJson: object = null
+
+    // LLM sometimes wraps the JSON in markdown code blocks, so we need to remove them before parsing
+    const chatMessageCleaned = chatMessage.text.replace(/```json/gu, "").replace(/```/gu, "")
+
     try {
-        // LLM sometimes wraps the JSON in markdown code blocks, so we need to remove them before parsing
-        const chatMessageCleaned = chatMessage.text.replace(/```json/gu, "").replace(/```/gu, "")
-
         chatMessageJson = JSON.parse(chatMessageCleaned)
-        if (chatMessageJson.project_id && chatMessageJson.experiment_id) {
-            console.debug("Received experiment generation complete message")
-
-            const baseUrl = window.location.origin
-
-            // Set the URL for displaying to the user
-            projectUrl.current = new URL(
-                // want to keep it on a single line for readability
-                // eslint-disable-next-line max-len
-                `/projects/${chatMessageJson.project_id}/experiments/${chatMessageJson.experiment_id}/?generated=true`,
-                baseUrl
-            )
-
-            // Generate the "experiment complete" item in the agent dialog
-            updateOutput(
-                <>
-                    {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                    <Collapse>
-                        <Panel
-                            id="experiment-generation-complete-panel"
-                            header="Experiment generation complete"
-                            key="Experiment generation complete"
-                            style={{fontSize: "large"}}
-                        >
-                            <p id="experiment-generation-complete-details">
-                                {experimentGeneratedMessage(projectUrl.current)}
-                            </p>
-                        </Panel>
-                    </Collapse>
-                    <br id="experiment-generation-complete-br" />
-                </>
-            )
-            setIsAwaitingLlm(false)
+    } catch (error) {
+        // Not JSON-like, so just add it to the output
+        if (error instanceof SyntaxError) {
+            // Regular chat message (not error or end condition) so just add it to the output
+            const newOutputItem = processLogLine(chatMessage.text, highlighterTheme)
+            updateOutput(newOutputItem)
             return
-        } else if (chatMessageJson.error) {
-            console.error("Error in experiment generation")
-            console.error(chatMessageJson.error)
-            const errorMessage =
-                `Error occurred. Error: "${chatMessageJson.error}", ` +
-                `traceback: "${chatMessageJson.traceback}", ` +
-                `tool: "${chatMessageJson.tool}".`
-            updateOutput(
-                <MUIAlert
-                    id="retry-message-alert"
-                    severity="warning"
-                >
-                    {errorMessage}
-                </MUIAlert>
-            )
-            setIsAwaitingLlm(false)
-            return
+        } else {
+            // Not an expected error, so rethrow it for someone else to figure out.
+            throw error
         }
-    } catch {
-        // Not a JSON object, so we'll just continue on
-        console.debug("Received message is not experiment generation complete message: ", chatMessage.text)
     }
 
-    if (chatMessage?.text) {
-        const newOutputItem = processLogLine(chatMessage.text, highlighterTheme)
-        updateOutput(newOutputItem)
+    // It was JSON-like. Figure out what we're dealing with
+    // LLM sometimes wraps the JSON in markdown code blocks, so we need to remove them before parsing
+    if ("project_id" in chatMessageJson && "experiment_id" in chatMessageJson) {
+        const baseUrl = window.location.origin
+
+        // Set the URL for displaying to the user
+        projectUrl.current = new URL(
+            `/projects/${chatMessageJson.project_id}/experiments/${chatMessageJson.experiment_id}/?generated=true`,
+            baseUrl
+        )
+
+        // Generate the "experiment complete" item in the agent dialog
+        updateOutput(
+            <>
+                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
+                <Collapse>
+                    <Panel
+                        id="experiment-generation-complete-panel"
+                        header="Experiment generation complete"
+                        key="Experiment generation complete"
+                        style={{fontSize: "large"}}
+                    >
+                        <p id="experiment-generation-complete-details">
+                            {experimentGeneratedMessage(projectUrl.current)}
+                        </p>
+                    </Panel>
+                </Collapse>
+                <br id="experiment-generation-complete-br" />
+            </>
+        )
+        setIsAwaitingLlm(false)
+    } else if ("error" in chatMessageJson) {
+        const agentError: AgentErrorProps = chatMessageJson as AgentErrorProps
+        const errorMessage =
+            `Error occurred. Error: "${agentError.error}", ` +
+            `traceback: "${agentError?.traceback}", ` +
+            `tool: "${agentError?.tool}" Retrying...`
+        updateOutput(
+            <MUIAlert
+                id="retry-message-alert"
+                severity="warning"
+            >
+                {errorMessage}
+            </MUIAlert>
+        )
+        setIsAwaitingLlm(false)
+        throw new AgentError(errorMessage)
     }
 }
 
@@ -238,31 +252,55 @@ export async function sendOrchestrationRequest(
         </>
     )
 
-    try {
-        setIsAwaitingLlm(true)
+    let orchestrationAttemptNumber = 1
 
-        // Send the chat query to the server. This will block until the stream ends from the server
-        const response: ChatResponse = await sendChatQuery(
-            abortController.signal,
-            orchestrationQuery,
-            currentUser,
-            (chunk) => handleStreamingReceived(chunk, projectUrl, updateOutput, highlighterTheme, setIsAwaitingLlm)
-        )
+    do {
+        try {
+            setIsAwaitingLlm(true)
 
-        console.debug("Orchestration response: ", response)
-    } catch (error) {
-        // AbortError is handled elsewhere
-        if (error instanceof Error && error.name !== "AbortError") {
-            updateOutput(
-                <MUIAlert
-                    id="opp-finder-error-occurred-while-interacting-with-agents-alert"
-                    severity="error"
-                >
-                    {`Internal Error occurred while interacting with agents. Exception: ${error}`}
-                </MUIAlert>
+            // Send the chat query to the server. This will block until the stream ends from the server
+            const response: ChatResponse = await sendChatQuery(
+                abortController.signal,
+                orchestrationQuery,
+                currentUser,
+                (chunk) => handleStreamingReceived(chunk, projectUrl, updateOutput, highlighterTheme, setIsAwaitingLlm)
             )
+
+            console.debug(`Orchestration attempt ${orchestrationAttemptNumber} complete. Response: ${response}`)
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                // If the user clicked Stop, just bail
+                if (error.name === "AbortError") {
+                    return
+                }
+
+                orchestrationAttemptNumber += 1
+
+                // Agent errors are handled elsewhere
+                if (!(error instanceof AgentError)) {
+                    updateOutput(
+                        <MUIAlert
+                            id="opp-finder-error-occurred-while-interacting-with-agents-alert"
+                            severity="error"
+                        >
+                            {`Internal Error occurred while interacting with agents. Exception: ${error}`}
+                        </MUIAlert>
+                    )
+                }
+            }
+        } finally {
+            setIsAwaitingLlm(false)
         }
-    } finally {
-        setIsAwaitingLlm(false)
+    } while (orchestrationAttemptNumber <= MAX_ORCHESTRATION_ATTEMPTS)
+
+    if (orchestrationAttemptNumber >= MAX_ORCHESTRATION_ATTEMPTS && projectUrl.current === null) {
+        updateOutput(
+            <MUIAlert
+                id="opp-finder-max-retries-exceeded-alert"
+                severity="error"
+            >
+                {`Gave up after ${MAX_ORCHESTRATION_ATTEMPTS} attempts.`}
+            </MUIAlert>
+        )
     }
 }
