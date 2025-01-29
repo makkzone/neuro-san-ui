@@ -6,7 +6,6 @@ import {DeleteOutline, Loop, StopCircle} from "@mui/icons-material"
 import {Box, Button, CircularProgress, FormControl, FormGroup, FormLabel, Input, MenuItem, styled} from "@mui/material"
 import Select from "@mui/material/Select"
 import Tooltip from "@mui/material/Tooltip"
-import {Collapse} from "antd"
 import NextImage from "next/image"
 import {CSSProperties, ReactElement, ReactNode, useEffect, useRef, useState} from "react"
 import {MdCode, MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
@@ -26,11 +25,10 @@ import {OpportunityFinderRequestType} from "../../../pages/api/gpt/opportunityFi
 import {useAuthentication} from "../../../utils/authentication"
 import {hasOnlyWhitespace} from "../../../utils/text"
 import {getTitleBase} from "../../../utils/title"
+import {MUIAccordion} from "../../MUIAccordion"
 import {MUIAlert} from "../../MUIAlert"
 import {LlmChatButton} from "../LlmChatButton"
 import {LlmChatOptionsButton} from "../LlmChatOptionsButton"
-
-const {Panel} = Collapse
 
 // #region: Constants
 // Interval for polling the agents for logs
@@ -438,19 +436,16 @@ export function OpportunityFinder(): ReactElement {
             previousResponse.current.DataGenerator
 
         updateOutput(
-            <>
-                {/*eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                <Collapse style={{marginBottom: "1rem"}}>
-                    <Panel
-                        id="initiating-orchestration-panel"
-                        header="Contacting orchestration agents..."
-                        key="initiating-orchestration-panel"
-                        style={{fontSize: "large"}}
-                    >
-                        <p id="initiating-orchestration-details">{`Query: ${orchestrationQuery}`}</p>
-                    </Panel>
-                </Collapse>
-            </>
+            <MUIAccordion
+                id="initiating-orchestration-accordion"
+                items={[
+                    {
+                        title: "Contacting orchestration agents...",
+                        content: `Query: ${orchestrationQuery}`,
+                    },
+                ]}
+                sx={{marginBottom: "1rem"}}
+            />
         )
 
         try {
