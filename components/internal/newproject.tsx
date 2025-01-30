@@ -4,14 +4,15 @@ import Checkbox from "@mui/material/Checkbox"
 import CircularProgress from "@mui/material/CircularProgress"
 import Container from "@mui/material/Container"
 import FormControlLabel from "@mui/material/FormControlLabel"
+import Radio from "@mui/material/Radio"
+import RadioGroup from "@mui/material/RadioGroup"
 import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
-import {Collapse, Radio, RadioChangeEvent, Space} from "antd"
 import debugModule from "debug"
 import httpStatus from "http-status"
 import {NextRouter, useRouter} from "next/router"
 import prettyBytes from "pretty-bytes"
-import {useEffect, useRef, useState} from "react"
+import {ChangeEvent, useEffect, useRef, useState} from "react"
 
 import {checkValidity} from "./dataprofile/dataprofileutils"
 import ProfileTable from "./dataprofile/profiletable"
@@ -29,6 +30,7 @@ import {getFileName, splitFilename, toSafeFilename} from "../../utils/file"
 import {empty} from "../../utils/objects"
 import {ConfirmationModal} from "../confirmationModal"
 import {InfoTip} from "../infotip"
+import {MUIAccordion} from "../MUIAccordion"
 import {NotificationType, sendNotification} from "../notification"
 
 const debug = debugModule("newProject")
@@ -58,8 +60,6 @@ interface NewProps {
     UpdateHook?: () => void
 }
 
-const {Panel} = Collapse
-
 export default function NewProject(props: NewProps) {
     /*
     This function adds a component form to add a new project to the system. Despite the name, also used when editing
@@ -76,8 +76,8 @@ export default function NewProject(props: NewProps) {
         uploadedFileS3Key: "",
     })
 
-    const s3Option = 1
-    const localFileOption = 2
+    const LOCAL_FILE_OPTION = "LOCAL_FILE_OPTION"
+    const S3_OPTION = "S3_OPTION"
 
     // State variable for project ID
     const [projectId, setProjectId] = useState(props.ProjectID)
@@ -86,7 +86,7 @@ export default function NewProject(props: NewProps) {
     const [profile, setProfile] = useState<Profile | undefined>(null)
 
     // Data source currently chosen by the user using the radio buttons
-    const [chosenDataSource, setChosenDataSource] = useState(localFileOption)
+    const [chosenDataSource, setChosenDataSource] = useState<string>(LOCAL_FILE_OPTION)
 
     // For access to logged in session and current user name
     const {data: session} = useAuthentication()
@@ -100,178 +100,149 @@ export default function NewProject(props: NewProps) {
     // For CSV Confirm dialog
     const [csvConfirmDialogOpen, setCsvConfirmDialogOpen] = useState<boolean>(false)
 
-    function getCreateDataProfilePanel() {
-        return (
-            <Panel
-                id="create-project-or-data-profile-button-panel"
-                header={
-                    <Tooltip
-                        id="create-project-or-data-profile-button-tooltip"
-                        title={getCreateProjectButtonTooltip()}
-                    >
-                        <span id="create_project_span">
-                            <Button
-                                id="create-project-or-data-profile-button"
-                                disabled={!enabledDataTagSection}
-                                fullWidth={true}
-                                sx={{
-                                    backgroundColor: "var(--bs-primary) !important",
-                                    border: "solid 1px var(--bs-primary)",
-                                    borderRadius: "var(--bs-border-radius)",
-                                    color: "white !important",
-                                    fontSize: "0.9em",
-                                    marginTop: "0.5em",
-                                    opacity: enabledDataTagSection ? OPAQUE : SEMI_OPAQUE,
-                                }}
-                                onClick={createDataSourceAndDataTag}
-                            >
-                                {`${4 + startIndexOffset}. ${isNewProject ? "Create project" : "Create data profile"}`}
-                            </Button>
-                        </span>
-                    </Tooltip>
-                }
-                key="4"
-            />
-        )
-    }
+    const getFileUploadForm = () => {
+        const uploadButtonTooltip = getUploadButtonTooltip()
+        const shouldDisableFileUpload = uploadButtonTooltip !== null
 
-    function getProfileTablePanel() {
         return (
-            <Panel
-                id="profile-table-panel"
-                header={
-                    <Tooltip
-                        id="tag-your-data-header-tooltip"
-                        title={enabledDataTagSection ? "" : "Please create your data source first"}
-                        placement="left-start"
-                    >
-                        <span id="tag-your-data-header">{`${3 + startIndexOffset}. Tag your Data`}</span>
-                    </Tooltip>
-                }
-                key={tagYourDataPanelKey}
-                collapsible={enabledDataTagSection ? "header" : "disabled"}
-            >
-                {profileTable}
-            </Panel>
-        )
-    }
-
-    function getDataSourcePanel() {
-        return (
-            <Panel
-                id="data-source-panel"
-                header={
-                    <Tooltip
-                        id="create-your-data-source-header-tooltip"
-                        title={enabledDataSourceSection ? "" : "Please enter project name and description first"}
-                        placement="left-start"
-                    >
-                        <span id="create-your-data-source-header">
-                            {`${2 + startIndexOffset}. Create your data source`}
-                        </span>
-                    </Tooltip>
-                }
-                key={dataSourcePanelKey}
-                collapsible={enabledDataSourceSection ? "header" : "disabled"}
-            >
-                <Radio.Group
-                    id="data-source-radio"
-                    onChange={(e: RadioChangeEvent) => {
-                        setChosenDataSource(e.target.value)
+            <>
+                <div
+                    id="local-file-upload-div"
+                    style={{
+                        display: "inline-flex",
+                        fontSize: "0.8rem",
+                        marginBottom: "0.5rem",
                     }}
-                    value={chosenDataSource}
                 >
-                    <Space
-                        id="s3-file-space"
-                        direction="vertical"
-                        size="large"
-                    >
-                        <Radio
-                            id="local-file-radio"
-                            value={localFileOption}
+                    From a local file
+                    <InfoTip
+                        id="file-upload-bubble"
+                        info={`Use this option to upload a CSV file containing your training data. \
+                                        Note: file size limited to ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}.`}
+                    />
+                </div>
+                <div id="upload-file-info-div">
+                    <input
+                        id="new-project-local-file"
+                        disabled={!isUsingLocalFile}
+                        name="file"
+                        onChange={changeHandler}
+                        ref={fileInputRef}
+                        style={{marginBottom: "0.5rem"}}
+                        type="file"
+                    />
+                    {selectedFile ? (
+                        <Box
+                            id="file-info-div"
+                            sx={{
+                                opacity: isUsingLocalFile ? OPAQUE : SEMI_OPAQUE,
+                                fontSize: "0.8rem",
+                            }}
                         >
-                            {getFileUploadForm()}
-                        </Radio>
-                        <Collapse // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                        // Collapse does not have an id property
-                        >
-                            <Panel
-                                key="advanced_data_source"
-                                id="advanced_data_source_panel"
-                                header="Advanced"
+                            <b id="file-name">Filename:</b> {selectedFile.name}, <b id="file-type">filetype: </b>
+                            <span
+                                id="file_type_span"
+                                style={{
+                                    color: selectedFile.type === EXPECTED_FILE_TYPE ? "black" : "var(--bs-red)",
+                                }}
                             >
-                                <Radio
-                                    id="s3-file-radio"
-                                    value={s3Option}
+                                {`${selectedFile.type}, `}
+                            </span>{" "}
+                            <b id="file-size">size:</b> {prettyBytes(selectedFile.size)}
+                        </Box>
+                    ) : (
+                        <p
+                            id="select-a-file"
+                            style={{fontSize: "0.8rem"}}
+                        >
+                            Select a file to show details.
+                        </p>
+                    )}
+                </div>
+                <div
+                    id="uploading-div"
+                    style={{
+                        marginTop: "1rem",
+                        marginBottom: "1rem",
+                    }}
+                >
+                    {isUploading ? (
+                        <label
+                            id="uploading-label"
+                            style={{fontSize: "0.8rem"}}
+                        >
+                            Uploading {selectedFile.name}
+                            <span id="uploading-clip-loader-span">
+                                <CircularProgress
+                                    id="uploading-clip-loader"
+                                    sx={{color: "var(--bs-primary)"}}
+                                    size={14}
+                                />
+                            </span>
+                        </label>
+                    ) : (
+                        <>
+                            <FormControlLabel // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                                label={
+                                    // MUI will not accept the `sx` prop on this element
+                                    <strong
+                                        id="warning"
+                                        style={{fontSize: "0.75em"}}
+                                    >
+                                        I confirm that the file I am about to upload does NOT contain sensitive customer
+                                        data or personally identifiable information (PII).
+                                    </strong>
+                                }
+                                control={
+                                    <Checkbox
+                                        id="agree_checkbox"
+                                        checked={fileUploadAcknowledged}
+                                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                            setFileUploadAcknowledged(e.target.checked)
+                                        }}
+                                    />
+                                }
+                            />
+                            <Box
+                                id="upload-file-button-box"
+                                display="block"
+                            >
+                                <Tooltip
+                                    id="upload-file-button-tooltip"
+                                    title={uploadButtonTooltip}
                                 >
-                                    {getS3DataForm()}
-                                </Radio>
-                            </Panel>
-                        </Collapse>
-                    </Space>
-                </Radio.Group>
-            </Panel>
+                                    <span id="upload-file-button-span">
+                                        <Button
+                                            id="upload-file-button"
+                                            disabled={shouldDisableFileUpload}
+                                            sx={{
+                                                marginTop: "1rem",
+                                                background: "var(--bs-primary) !important",
+                                                borderColor: "var(--bs-primary) !important",
+                                                borderRadius: "var(--bs-border-radius)",
+                                                color: "var(--bs-white) !important",
+                                                opacity: shouldDisableFileUpload ? SEMI_OPAQUE : OPAQUE,
+                                                "&:disabled": {
+                                                    cursor: "default",
+                                                    pointerEvents: "all !important",
+                                                },
+                                            }}
+                                            onClick={handleFileUpload}
+                                        >
+                                            Upload
+                                        </Button>
+                                    </span>
+                                </Tooltip>
+                            </Box>
+                        </>
+                    )}
+                </div>
+            </>
         )
     }
 
-    function getProjectDetailsPanel() {
-        return (
-            <Panel
-                id="project-details-panel"
-                header={<span id="project-details-header">1. Project Details</span>}
-                key={projectDetailsPanelKey}
-            >
-                <Box
-                    id="project-name-box"
-                    display="block"
-                >
-                    <TextField
-                        id="project-name-input"
-                        name="name"
-                        ref={projectNameRef}
-                        type="text"
-                        label="Project Name"
-                        placeholder="My project name"
-                        onChange={(event) => setInputFields({...inputFields, projectName: event.target.value})}
-                        sx={{width: "100%"}}
-                        slotProps={{
-                            inputLabel: {
-                                shrink: true,
-                            },
-                            input: {
-                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
-                            },
-                        }}
-                    />
-                </Box>
-                <Box
-                    id="project-description-box"
-                    display="block"
-                    sx={{marginTop: "1rem"}}
-                >
-                    <TextField
-                        id="project-description-input"
-                        name="description"
-                        label="Description"
-                        placeholder="What are you building?"
-                        onChange={(event) => setInputFields({...inputFields, description: event.target.value})}
-                        sx={{width: "100%"}}
-                        slotProps={{
-                            inputLabel: {
-                                shrink: true,
-                            },
-                            input: {
-                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
-                            },
-                        }}
-                    />
-                </Box>
-            </Panel>
-        )
-    }
-
-    function getS3DataForm() {
-        const shouldDisableS3Create = getS3CreateButtonTooltip() !== null || chosenDataSource === localFileOption
+    const getS3DataForm = () => {
+        const shouldDisableS3Create = getS3CreateButtonTooltip() !== null || chosenDataSource === LOCAL_FILE_OPTION
         return (
             <>
                 <Box
@@ -347,136 +318,150 @@ export default function NewProject(props: NewProps) {
         )
     }
 
-    function getFileUploadForm() {
-        const uploadButtonTooltip = getUploadButtonTooltip()
-        const shouldDisableFileUpload = uploadButtonTooltip !== null
-
-        return (
-            <Space
-                id="local-file-space"
-                direction="vertical"
-                size="middle"
-            >
-                <div
-                    id="local-file-upload-div"
-                    style={{display: "inline-flex"}}
-                >
-                    From a local file
-                    <InfoTip
-                        id="file-upload-bubble"
-                        info={`Use this option to upload a CSV file containing your training data. \
-                                        Note: file size limited to ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}.`}
-                    />
-                </div>
-                <div id="upload-file-info-div">
-                    <input
-                        id="new-project-local-file"
-                        disabled={!isUsingLocalFile}
-                        name="file"
-                        onChange={changeHandler}
-                        ref={fileInputRef}
-                        type="file"
-                    />
-                    {selectedFile ? (
-                        <Box
-                            id="file-info-div"
-                            sx={{
-                                opacity: isUsingLocalFile ? OPAQUE : SEMI_OPAQUE,
-                                fontSize: "90%",
-                            }}
-                        >
-                            <b id="file-name">Filename:</b> {selectedFile.name}, <b id="file-type">filetype: </b>
-                            <span
-                                id="file_type_span"
-                                style={{
-                                    color: selectedFile.type === EXPECTED_FILE_TYPE ? "black" : "var(--bs-red)",
-                                }}
-                            >
-                                {`${selectedFile.type}, `}
-                            </span>{" "}
-                            <b id="file-size">size:</b> {prettyBytes(selectedFile.size)}
-                        </Box>
-                    ) : (
-                        <p id="select-a-file">Select a file to show details.</p>
-                    )}
-                </div>
-                <div id="uploading-div">
-                    {isUploading ? (
-                        <label id="uploading-label">
-                            Uploading {selectedFile.name}
-                            <span id="uploading-clip-loader-span">
-                                <CircularProgress
-                                    id="uploading-clip-loader"
-                                    sx={{color: "var(--bs-primary)"}}
-                                    size={14}
-                                />
-                            </span>
-                        </label>
-                    ) : (
-                        <>
-                            <FormControlLabel // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                                label={
-                                    // MUI will not accept the `sx` prop on this element
-                                    <strong
-                                        id="warning"
-                                        style={{fontSize: "0.75em"}}
-                                    >
-                                        I confirm that the file I am about to upload does NOT contain sensitive customer
-                                        data or personally identifiable information (PII).
-                                    </strong>
-                                }
-                                control={
-                                    <Checkbox
-                                        id="agree_checkbox"
-                                        checked={fileUploadAcknowledged}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                            setFileUploadAcknowledged(e.target.checked)
-                                        }}
-                                    />
-                                }
-                            />
-                            <Box
-                                id="upload-file-button-box"
-                                display="block"
-                            >
-                                <Tooltip
-                                    id="upload-file-button-tooltip"
-                                    title={uploadButtonTooltip}
-                                >
-                                    <span id="upload-file-button-span">
-                                        <Button
-                                            id="upload-file-button"
-                                            disabled={shouldDisableFileUpload}
-                                            sx={{
-                                                marginTop: "1rem",
-                                                background: "var(--bs-primary) !important",
-                                                borderColor: "var(--bs-primary) !important",
-                                                borderRadius: "var(--bs-border-radius)",
-                                                color: "var(--bs-white) !important",
-                                                opacity: shouldDisableFileUpload ? SEMI_OPAQUE : OPAQUE,
-                                                "&:disabled": {
-                                                    cursor: "default",
-                                                    pointerEvents: "all !important",
-                                                },
-                                            }}
-                                            onClick={handleFileUpload}
-                                        >
-                                            Upload
-                                        </Button>
-                                    </span>
-                                </Tooltip>
-                            </Box>
-                        </>
-                    )}
-                </div>
-            </Space>
-        )
-    }
+    const getS3DataFormAccordion = () => (
+        <MUIAccordion
+            id="advanced_data_source_panel"
+            items={[
+                {
+                    title: "Advanced",
+                    content: getS3DataForm(),
+                },
+            ]}
+        />
+    )
 
     // Decide which S3Key to use based on radio buttons
-    function getS3Key() {
-        return chosenDataSource === s3Option ? inputFields.s3Key : inputFields.uploadedFileS3Key
+    const getS3Key = () => {
+        return chosenDataSource === S3_OPTION ? inputFields.s3Key : inputFields.uploadedFileS3Key
     }
+
+    const getProjectDetailsItem = () => ({
+        content: (
+            <>
+                <Box
+                    id="project-name-box"
+                    display="block"
+                >
+                    <TextField
+                        id="project-name-input"
+                        name="name"
+                        ref={projectNameRef}
+                        type="text"
+                        label="Project Name"
+                        placeholder="My project name"
+                        onChange={(event) => setInputFields({...inputFields, projectName: event.target.value})}
+                        sx={{width: "100%"}}
+                        slotProps={{
+                            inputLabel: {
+                                shrink: true,
+                            },
+                            input: {
+                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
+                            },
+                        }}
+                    />
+                </Box>
+                <Box
+                    id="project-description-box"
+                    display="block"
+                    sx={{marginTop: "1rem"}}
+                >
+                    <TextField
+                        id="project-description-input"
+                        name="description"
+                        label="Description"
+                        placeholder="What are you building?"
+                        onChange={(event) => setInputFields({...inputFields, description: event.target.value})}
+                        sx={{width: "100%"}}
+                        slotProps={{
+                            inputLabel: {
+                                shrink: true,
+                            },
+                            input: {
+                                sx: {borderRadius: "var(--bs-border-radius)", height: "3rem"},
+                            },
+                        }}
+                    />
+                </Box>
+            </>
+        ),
+        title: <span id="project-details-header">1. Project Details</span>,
+    })
+
+    const getDataSourceItem = () => ({
+        content: (
+            <RadioGroup
+                id="data-source-radio"
+                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    setChosenDataSource(e.target.value)
+                }}
+                value={chosenDataSource}
+            >
+                <FormControlLabel
+                    control={<Radio id="local-file-radio" />}
+                    id="local-file-form-control-label"
+                    label={getFileUploadForm()}
+                    value={LOCAL_FILE_OPTION}
+                />
+                <FormControlLabel
+                    control={<Radio id="s3-file-radio" />}
+                    id="s3-file-form-control-label"
+                    label={getS3DataFormAccordion()}
+                    value={S3_OPTION}
+                />
+            </RadioGroup>
+        ),
+        disabled: !enabledDataSourceSection,
+        title: (
+            <Tooltip
+                id="create-your-data-source-header-tooltip"
+                title={enabledDataSourceSection ? "" : "Please enter project name and description first"}
+                placement="left-start"
+            >
+                <span id="create-your-data-source-header">{`${2 + startIndexOffset}. Create your data source`}</span>
+            </Tooltip>
+        ),
+    })
+
+    const getProfileTableItem = () => ({
+        content: profileTable,
+        disabled: !enabledDataTagSection,
+        title: (
+            <Tooltip
+                id="tag-your-data-header-tooltip"
+                title={enabledDataTagSection ? "" : "Please create your data source first"}
+                placement="left-start"
+            >
+                <span id="tag-your-data-header">{`${3 + startIndexOffset}. Tag your Data`}</span>
+            </Tooltip>
+        ),
+    })
+
+    const getCreateDataProfileButton = () => (
+        <Tooltip
+            id="create-project-or-data-profile-button-tooltip"
+            title={getCreateProjectButtonTooltip()}
+        >
+            <span id="create_project_span">
+                <Button
+                    id="create-project-or-data-profile-button"
+                    disabled={!enabledDataTagSection}
+                    fullWidth={true}
+                    sx={{
+                        backgroundColor: "var(--bs-primary) !important",
+                        border: "solid 1px var(--bs-primary)",
+                        borderRadius: "var(--bs-border-radius)",
+                        color: "white !important",
+                        fontSize: "0.9em",
+                        marginTop: "0.5em",
+                    }}
+                    onClick={createDataSourceAndDataTag}
+                >
+                    {`${4 + startIndexOffset}. ${isNewProject ? "Create project" : "Create data profile"}`}
+                </Button>
+            </span>
+        </Tooltip>
+    )
 
     /* Terminology:
         data source = where to find the data (S3 URL, etc.), headers, stats about number of rows etc
@@ -807,12 +792,7 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`
         }
     }
 
-    // Keys for the various panels
-    const projectDetailsPanelKey = 1
-    const dataSourcePanelKey = 2
-    const tagYourDataPanelKey = 3
-
-    const isUsingLocalFile = chosenDataSource === localFileOption
+    const isUsingLocalFile = chosenDataSource === LOCAL_FILE_OPTION
     const isUsingS3Source = !isUsingLocalFile
 
     const isNewProject = startIndexOffset === 0
@@ -868,8 +848,8 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`
         enabledDataSourceSection &&
         !isUploading &&
         profile &&
-        ((chosenDataSource === s3Option && Boolean(inputFields.s3Key)) ||
-            (chosenDataSource === localFileOption && Boolean(inputFields.uploadedFileS3Key)))
+        ((chosenDataSource === S3_OPTION && Boolean(inputFields.s3Key)) ||
+            (chosenDataSource === LOCAL_FILE_OPTION && Boolean(inputFields.uploadedFileS3Key)))
 
     // Tell user why button is disabled
     function getCreateProjectButtonTooltip() {
@@ -885,19 +865,22 @@ allowed file size of ${prettyBytes(MAX_ALLOWED_UPLOAD_SIZE_BYTES)}`
 
     return (
         <>
-            <Container id={propsId}>
-                <Collapse // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                    // 2/6/23 DEF - Collapse does not have an id property when compiling
-                    accordion
-                    expandIconPosition="end"
-                    defaultActiveKey={isNewProject ? projectDetailsPanelKey : dataSourcePanelKey}
-                >
-                    {isNewProject && getProjectDetailsPanel()}
-                    {getDataSourcePanel()}
-                    {getProfileTablePanel()}
-                </Collapse>
-
-                {getCreateDataProfilePanel()}
+            <Container
+                id={propsId}
+                sx={{marginBottom: "2rem"}}
+            >
+                <MUIAccordion
+                    arrowPosition="right"
+                    defaultExpandedPanelKey={1}
+                    expandOnlyOnePanel={true}
+                    id="project-details-panel"
+                    items={[
+                        ...(isNewProject ? [getProjectDetailsItem()] : []),
+                        getDataSourceItem(),
+                        getProfileTableItem(),
+                    ]}
+                />
+                {getCreateDataProfileButton()}
             </Container>
             {csvConfirmDialogOpen && (
                 <ConfirmationModal
