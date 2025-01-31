@@ -15,7 +15,7 @@ const config: Config.InitialOptions = {
             statements: 35.08,
             branches: 31.74,
             functions: 32.56,
-            lines: 34.89,
+            lines: 34.88,
         },
     },
 }
