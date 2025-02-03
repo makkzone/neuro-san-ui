@@ -39,13 +39,6 @@ NEURO_SAN_VERSION="0.2.6"
 # Create directories if necessary
 mkdir -p "${PROTOS_DIR}/internal" "$NEURO_SAN_PROTO_DIR" "${GENERATED_DIR}"
 
-# Copy main project proto files to the protos directory. Some day they will be in a separate repo.
-# This is only for the "local dev" case. In the Docker case, the previous steps will have copied these files where they
-# need to be so they don't need to be copied here.
-if [ -z "$(ls ${PROTOS_DIR}/*.proto &> /dev/null)" ]; then
-  cp -r ../proto/* "${PROTOS_DIR}/"
-fi
-
 # Retrieve neuro-san proto file
 echo "Retrieving neuro-san proto files..."
 # Define the target local directory and file path
