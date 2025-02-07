@@ -2,7 +2,7 @@
  * Runs table module
  */
 
-import DeleteIcon from "@mui/icons-material/Delete"
+import {DeleteOutline} from "@mui/icons-material"
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline"
 import {Box, styled, Table, TableBody, TableCell, TableHead, TableRow, Tooltip, Typography} from "@mui/material"
 import CircularProgress from "@mui/material/CircularProgress"
@@ -684,7 +684,7 @@ export default function RunsTable(props: RunTableProps): ReactElement {
                     disabled={deleteRunModalOpen}
                     onClick={(event: ReactMouseEvent<HTMLElement>) => handleDelete(event, idx, run)}
                 >
-                    <DeleteIcon
+                    <DeleteOutline
                         id={`delete-training-run-${idx}-fill`}
                         sx={{
                             "&:hover": {
