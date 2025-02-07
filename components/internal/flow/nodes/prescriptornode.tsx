@@ -1,13 +1,24 @@
-import {Card, CardContent, CardHeader, FormControlLabel, Tab, Tabs, Typography} from "@mui/material"
+import DeleteOutline from "@mui/icons-material/Delete"
+import Card from "@mui/material/Card"
+import CardContent from "@mui/material/CardContent"
+import CardHeader from "@mui/material/CardHeader"
 import Checkbox from "@mui/material/Checkbox"
 import Container from "@mui/material/Container"
+import FormControl from "@mui/material/FormControl"
+import FormControlLabel from "@mui/material/FormControlLabel"
 import Grid from "@mui/material/Grid2"
+import InputLabel from "@mui/material/InputLabel"
+import MenuItem from "@mui/material/MenuItem"
+import Select from "@mui/material/Select"
 import Slider from "@mui/material/Slider"
+import Tab from "@mui/material/Tab"
+import Tabs from "@mui/material/Tabs"
+import TextField from "@mui/material/TextField"
+import Typography from "@mui/material/Typography"
 import {FC, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
 import {AiFillDelete} from "react-icons/ai"
 import {BiPlusMedical} from "react-icons/bi"
 import {GrSettingsOption} from "react-icons/gr"
-import {MdDelete} from "react-icons/md"
 import {Handle, Position as HandlePosition, NodeProps, Node as RFNode} from "reactflow"
 
 import {DataTag, DataTagFieldCAOType} from "../../../../generated/metadata"
@@ -212,61 +223,80 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
     // Create the Neural Network Hidden layer utility
 
     const neuralNetworkConfiguration = ParentPrescriptorState.network.hidden_layers.map((hiddenLayer, idx) => (
-        <div
+        <Grid
             id={`${flowPrefix}-hidden-layer-${idx}`}
-            key={`${NodeID}-hiddenlayer-${crypto.randomUUID()}`}
+            container={true}
+            gap={1}
+            key={`${NodeID}-hiddenlayer-${hiddenLayer.layer_name}`}
+            style={{marginTop: "0.5rem"}}
         >
-            <h6
-                id={`${flowPrefix}-hidden-layer-${idx}-headline`}
-                style={{display: "inline"}}
+            <Grid
+                id={`${flowPrefix}-hidden-layer-${idx}-outer`}
+                style={{display: "flex", alignItems: "center"}}
             >
-                Hidden Layer {idx + 1}{" "}
-            </h6>
-            {!readOnlyNode && (
-                <button
-                    id={`${flowPrefix}-hidden-layer-${idx}-button`}
-                    style={{width: "1rem", marginBottom: "0.5rem"}}
-                    type="button"
-                    onClick={(event) => {
-                        event.stopPropagation()
-                        if (ParentPrescriptorState.network.hidden_layers.length === 1) {
-                            sendNotification(NotificationType.warning, "Last remaining hidden layer cannot be deleted")
-                        } else {
-                            const stateCopy = {...ParentPrescriptorState}
-                            stateCopy.network.hidden_layers.splice(idx, 1)
-                            SetParentPrescriptorState(stateCopy)
-                        }
-                    }}
+                <Typography
+                    id={`${flowPrefix}-hidden-layer-${idx}-headline`}
+                    style={{color: "var(--bs-secondary)", fontSize: "0.8rem"}}
                 >
-                    <MdDelete id={`${flowPrefix}-hidden-layer-${idx}-delete`} />
-                </button>
-            )}
-            <div
-                id={`${flowPrefix}-hidden-layer-${idx}-neural-net-config`}
-                className="grid grid-cols-3 gap-1 mb-2 justify-items-center"
-            >
-                <div id={`${flowPrefix}-hidden-layer-${idx}-units`}>
-                    <label
-                        id={`${flowPrefix}-hidden-layer-${idx}-units-label`}
-                        className="mr-2"
-                    >
-                        Units:{" "}
-                    </label>
-                    <input
-                        style={{
-                            width: "2.25rem",
-                            height: "2.25rem",
-                            border: "1px solid #97999b",
-                            borderRadius: "0.375rem",
-                            textAlign: "center",
+                    {`Hidden Layer ${idx + 1}`}
+                </Typography>
+                {!readOnlyNode && (
+                    <DeleteOutline
+                        id={`${flowPrefix}-hidden-layer-${idx}-delete`}
+                        sx={{
+                            marginLeft: "0.5rem",
+                            cursor: "pointer",
+                            "&:hover": {
+                                color: "var(--bs-red)",
+                            },
+                            fontSize: "0.8rem",
+                            color: "var(--bs-secondary)",
                         }}
+                        onClick={(event) => {
+                            event.stopPropagation()
+                            if (ParentPrescriptorState.network.hidden_layers.length === 1) {
+                                sendNotification(
+                                    NotificationType.warning,
+                                    "Last remaining hidden layer cannot be deleted"
+                                )
+                            } else {
+                                const stateCopy = {...ParentPrescriptorState}
+                                stateCopy.network.hidden_layers.splice(idx, 1)
+                                SetParentPrescriptorState(stateCopy)
+                            }
+                        }}
+                    />
+                )}
+            </Grid>
+            <Grid
+                id={`${flowPrefix}-hidden-layer-${idx}-neural-net-config`}
+                container={true}
+                size={12}
+            >
+                <Grid
+                    id={`${flowPrefix}-hidden-layer-${idx}-units`}
+                    size={4}
+                >
+                    <TextField
                         id={`${flowPrefix}-hidden-layer-${idx}-units-input`}
+                        label="Units"
+                        style={{
+                            width: "6rem",
+                        }}
                         type="number"
-                        step="1"
-                        min={8}
-                        max={256}
+                        size="small"
                         value={hiddenLayer.layer_params.units}
                         disabled={readOnlyNode}
+                        slotProps={{
+                            htmlInput: {
+                                min: 8,
+                                max: 256,
+                                step: 1,
+                            },
+                            inputLabel: {
+                                shrink: true,
+                            },
+                        }}
                         onChange={(event) => {
                             const modifiedHiddenLayerState = {...ParentPrescriptorState}
                             modifiedHiddenLayerState.network.hidden_layers[idx].layer_params.units = parseInt(
@@ -275,62 +305,76 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                             SetParentPrescriptorState(modifiedHiddenLayerState)
                         }}
                     />
-                </div>
-                <div id={`${flowPrefix}-hidden-layer-${idx}-activation`}>
-                    <label
-                        id={`${flowPrefix}-hidden-layer-${idx}-activation-label`}
-                        className="mr-2"
+                </Grid>
+                <Grid
+                    id={`${flowPrefix}-hidden-layer-${idx}-activation`}
+                    size={4}
+                >
+                    <FormControl
+                        id={`${flowPrefix}-hidden-layer-${idx}-activation-input`}
+                        sx={{width: "6rem"}}
                     >
-                        Activation:{" "}
-                    </label>
-                    <select
-                        id={`${flowPrefix}-hidden-layer-${idx}-activation-select`}
-                        defaultValue="tanh"
-                        value={hiddenLayer.layer_params.activation}
-                        disabled={readOnlyNode}
-                        onChange={(event) => {
-                            const modifiedHiddenLayerState = {...ParentPrescriptorState}
-                            modifiedHiddenLayerState.network.hidden_layers[idx].layer_params.activation =
-                                event.target.value
-                            SetParentPrescriptorState(modifiedHiddenLayerState)
-                        }}
-                    >
-                        {ACTIVATION_FUNCTIONS.map((activationFn) => (
-                            <option
-                                id={`${flowPrefix}-hidden-layer-${idx}-activation-${activationFn}`}
-                                key={`hidden-layer-activation-${activationFn}`}
-                                value={activationFn}
-                                disabled={readOnlyNode}
-                            >
-                                {activationFn}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                        <InputLabel
+                            id={`${flowPrefix}-hidden-layer-${idx}-activation-label`}
+                            shrink={true}
+                        >
+                            Activation
+                        </InputLabel>
+                        <Select
+                            id={`${flowPrefix}-hidden-layer-${idx}-activation-select`}
+                            defaultValue="tanh"
+                            label="Activation"
+                            size="small"
+                            value={hiddenLayer.layer_params.activation}
+                            disabled={readOnlyNode}
+                            onChange={(event) => {
+                                const modifiedHiddenLayerState = {...ParentPrescriptorState}
+                                modifiedHiddenLayerState.network.hidden_layers[idx].layer_params.activation =
+                                    event.target.value
+                                SetParentPrescriptorState(modifiedHiddenLayerState)
+                            }}
+                            sx={{minWidth: "6rem"}}
+                        >
+                            {ACTIVATION_FUNCTIONS.map((activationFn) => (
+                                <MenuItem
+                                    id={`${flowPrefix}-hidden-layer-${idx}-activation-${activationFn}`}
+                                    key={`hidden-layer-activation-${activationFn}`}
+                                    value={activationFn}
+                                    disabled={readOnlyNode}
+                                >
+                                    {activationFn}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Grid>
 
-                <div id={`${flowPrefix}-hidden-layer-${idx}-use-bias`}>
-                    <label
+                <Grid
+                    id={`${flowPrefix}-hidden-layer-${idx}-use-bias`}
+                    size={4}
+                >
+                    <FormControlLabel
                         id={`${flowPrefix}-hidden-layer-${idx}-use-bias-label`}
-                        className="mr-2"
-                    >
-                        Use Bias:{" "}
-                    </label>
-                    <input
-                        id={`${flowPrefix}-hidden-layer-${idx}-use-bias-input`}
-                        type="checkbox"
-                        defaultChecked={true}
-                        checked={hiddenLayer.layer_params.use_bias}
-                        disabled={readOnlyNode}
-                        onChange={(event) => {
-                            const modifiedHiddenLayerState = {...ParentPrescriptorState}
-                            modifiedHiddenLayerState.network.hidden_layers[idx].layer_params.use_bias =
-                                event.target.checked
-                            SetParentPrescriptorState(modifiedHiddenLayerState)
-                        }}
+                        control={
+                            <Checkbox
+                                id={`${flowPrefix}-hidden-layer-${idx}-use-bias-input`}
+                                defaultChecked={true}
+                                checked={hiddenLayer.layer_params.use_bias}
+                                disabled={readOnlyNode}
+                                size="small"
+                                onChange={(event) => {
+                                    const modifiedHiddenLayerState = {...ParentPrescriptorState}
+                                    modifiedHiddenLayerState.network.hidden_layers[idx].layer_params.use_bias =
+                                        event.target.checked
+                                    SetParentPrescriptorState(modifiedHiddenLayerState)
+                                }}
+                            />
+                        }
+                        label="Use Bias"
                     />
-                </div>
-            </div>
-        </div>
+                </Grid>
+            </Grid>
+        </Grid>
     ))
 
     const createRulesConfig = (representationConfig) => (
@@ -492,10 +536,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                 </select>
             </div>
             <hr id={`${flowPrefix}-config-separator`} />
-            <div
-                id={`${flowPrefix}-nn-weights-config-div`}
-                className="mb-4"
-            >
+            <div id={`${flowPrefix}-nn-weights-config-div`}>
                 {ParentPrescriptorState.LEAF.representation === "NNWeights" && (
                     <div
                         id={`${flowPrefix}-nn-weights-div`}
