@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-shadow
 import {render, screen} from "@testing-library/react"
+import {userEvent} from "@testing-library/user-event"
 
 // import JSON file for conoxFlow to use in test
 import DMS from "../../pages/projects/[projectID]/experiments/[experimentID]/runs/[runID]/prescriptors/[prescriptorID]"
@@ -43,11 +44,32 @@ jest.mock("../../controller/run/fetch", () => ({
                 owner: "mock_user",
                 lastEditedBy: "mock_user",
                 flow: JSON.stringify(conoxFlow),
-                output_artifacts: "{}",
+                output_artifacts: JSON.stringify({
+                    "3288": "s3://s3bucket/run_data/5997/artifacts/3288.csv",
+                    experiment: "s3://s3bucket/run_data/5997/artifacts/experiment.ipynb",
+                    llm_dataops: "s3://s3bucket/run_data/5997/artifacts/llm_dataops.ipynb",
+                    "3288_profile": "s3://s3bucket/run_data/5997/artifacts/3288_profile.json",
+                    requirements: "s3://s3bucket/run_data/5997/artifacts/requirements.txt",
+                    private_dependencies: "s3://s3bucket/run_data/5997/artifacts/private_dependencies.zip",
+                    "rio-f7649978-9ba0-11ef-ac92-0ea0df19cb35-Cost":
+                        "s3://s3bucket/run_data/5997/artifacts/rio-f7649978-9ba0-11ef-ac92-0ea0df19cb35-Cost",
+                    "predictor-f76482ee-9ba0-11ef-ac92-0ea0df19cb35":
+                        "s3://s3bucket/run_data/5997/artifacts/predictor-f76482ee-9ba0-11ef-ac92-0ea0df19cb35.onnx",
+                    "predictor-f7648eec-9ba0-11ef-ac92-0ea0df19cb35":
+                        "s3://s3bucket/run_data/5997/artifacts/predictor-f7648eec-9ba0-11ef-ac92-0ea0df19cb35.onnx",
+                    "predictor-f7649978-9ba0-11ef-ac92-0ea0df19cb35":
+                        "s3://s3bucket/run_data/5997/artifacts/predictor-f7649978-9ba0-11ef-ac92-0ea0df19cb35.onnx",
+                    "prescriptor-f780fe2e-9ba0-11ef-ac92-0ea0df19cb35-1_2":
+                        "s3://s3bucket/run_data/5997/artifacts/prescriptor-f780fe2e-9ba0-11ef-ac92-0ea0df19cb35-1_2.json",
+                }),
             },
         ])
     ),
+    fetchRunArtifact: jest.fn(),
 }))
+
+// Mock artifact retrieval
+jest.mock("../../components/internal/artifacts/artifacts")
 
 // mock next/router
 jest.mock("next/router", () => ({
@@ -68,7 +90,7 @@ jest.mock("next/router", () => ({
                 projectID: "1",
                 experimentID: "1",
                 runID: "1",
-                prescriptorID: "1",
+                prescriptorID: "1_2",
             },
         }
     },
@@ -86,11 +108,16 @@ jest.mock("../../utils/authentication", () => ({
     useAuthentication: jest.fn(() => ({data: {user: {name: "mock_user"}}})),
 }))
 
-// mock deployRun
-jest.mock("../../controller/model_serving/crud", () => ({
-    deployRun: jest.fn(() => Promise.resolve([true, ""])),
-    checkIfDeploymentReady: jest.fn(() => Promise.resolve(false)),
-}))
+// mock deployRun and checkIfDeploymentReady, but use the real implementation for getRunModelData
+jest.mock("../../controller/model_serving/crud", () => {
+    const originalModule = jest.requireActual("../../controller/model_serving/crud")
+    return {
+        ...originalModule,
+        deployRun: jest.fn(() => Promise.resolve([true, ""])),
+        checkIfDeploymentReady: jest.fn(() => Promise.resolve(true)),
+        queryModel: jest.fn(() => Promise.resolve({})),
+    }
+})
 
 window.fetch = mockFetch({})
 
@@ -136,5 +163,19 @@ describe("DMS", () => {
                 expect(await screen.findByText(item)).toBeInTheDocument()
             })
         )
+    })
+
+    it("Should access the prescriptor correctly", async () => {
+        const user = userEvent.setup()
+
+        // eslint-disable-next-line react/jsx-pascal-case
+        render(<DMS />)
+
+        // Find button with title "Prescribe Actions"
+        const prescribeButton = await screen.findByRole("button", {name: "Prescribe Actions"})
+        expect(prescribeButton).toBeInTheDocument()
+
+        // Click the button
+        await user.click(prescribeButton)
     })
 })
