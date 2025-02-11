@@ -2,10 +2,13 @@
 
 import httpStatus from "http-status"
 import {NextApiRequest, NextApiResponse} from "next"
-import "openai/shims/node"
 import {createMocks, RequestOptions} from "node-mocks-http"
 
 import handler from "../../pages/api/gpt/dmschat"
+
+// Mock the OpenAI module which we import transitively via langchain to avoid issues with "fetch" not being defined.
+// See: https://github.com/openai/openai-node/issues/666
+jest.mock("@langchain/openai", () => ({}))
 
 describe("handler", () => {
     let request: RequestOptions
