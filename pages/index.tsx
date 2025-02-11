@@ -1,8 +1,9 @@
+import {styled} from "@mui/material"
+import Box from "@mui/material/Box"
 import NextImage from "next/legacy/image"
 import Link from "next/link"
 import {useRouter} from "next/router"
 import {ReactElement, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
-import {styled} from "styled-components"
 
 import {ConfirmationModal} from "../components/confirmationModal"
 import {CONTACT_US_CONFIRMATION_DIALOG_TEXT, CONTACT_US_CONFIRMATION_DIALOG_TITLE, GENERIC_LOGO, LOGO} from "../const"
@@ -11,57 +12,65 @@ import useFeaturesStore from "../state/features"
 import {getTitleBase} from "../utils/title"
 
 // #region: Styled Components
-const OuterContainer = styled.div`
-    width: 100%;
-    min-height: 75vh;
-    overflow: auto;
-`
+const OuterContainer = styled("div")({
+    width: "100%",
+    minHeight: "75vh",
+    overflow: "auto",
+})
 
-const Marginer = styled.div`
-    margin: 3% 9.375% 6% 9.375%;
-`
+const Marginer = styled("div")({
+    margin: "3% 9.375% 6% 9.375%",
+})
 
-const Navbar = styled.div`
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    height: 5%;
-    align-items: center;
-`
+const Navbar = styled("div")({
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    height: "5%",
+    alignItems: "center",
+})
 
-const NavbarLogo = styled.h1`
-    color: white;
-    font-size: 1.25rem;
-    width: 250px;
-`
+const NavbarLogo = styled("h1")({
+    color: "var(--bs-white)",
+    fontSize: "1.25rem",
+    width: "250px",
+})
 
-const NavbarMiddleSection = styled.div`
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-gap: 27.32%;
-    width: 28.59%;
-`
+const NavbarMiddleSection = styled("div")({
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gridGap: "27.32%",
+    width: "28.59%",
+})
 
-const HeaderLineOne = styled.h1`
-    margin: 0;
-    margin-top: 6rem;
-    color: white;
-`
+const HeaderLineOne = styled("h1")({
+    margin: "0",
+    marginTop: "6rem",
+    color: "var(--bs-white)",
+})
 
-const LaunchButton = styled.div`
-    display: inline-block;
-    margin-top: 3rem;
-    font-weight: bold;
-    font-size: 1.25rem;
-    border-radius: 1000px;
-    padding: 1rem 2rem;
-    background: #26efe9;
-    text-align: center;
-`
-const HeaderLineFive = styled.h5`
-    color: white;
-    font-weight: bold;
-`
+const LaunchButton = styled("div")({
+    display: "inline-block",
+    marginTop: "3rem",
+    fontWeight: "bold",
+    fontSize: "1.25rem",
+    borderRadius: "1000px",
+    padding: "1rem 2rem",
+    background: "#26efe9",
+    textAlign: "center",
+})
+
+const HeaderLineFive = styled("h5")({
+    color: "var(--bs-white)",
+    fontWeight: "bold",
+})
+
+const NeuroAIDescriptionBox = styled(Box)({
+    color: "var(--bs-white)",
+    fontSize: "1.5rem",
+    fontWeight: "bold",
+})
+
 // #endregion: Styled Components
 
 // Main function.
@@ -92,7 +101,7 @@ export default function Index(): ReactElement {
 
     function getButtonStyle(ids: string[]) {
         return {
-            color: ids.includes(hoveredId) ? "white" : "#000000", // Change text color on hover
+            color: ids.includes(hoveredId) ? "var(--bs-white)" : "#000000", // Change text color on hover
             cursor: "pointer",
             transition: "background-color 0.3s, color 0.3s", // Smooth transition effect
             boxShadow: ids.includes(hoveredId) ? "0 0 30px 0 #26efe9" : "none", // Add shadow on hover
@@ -161,6 +170,9 @@ export default function Index(): ReactElement {
                                 {isGeneric ? GENERIC_LOGO : LOGO}
                             </div>
                         </HeaderLineOne>
+                        <NeuroAIDescriptionBox id="neuro-ai-description-box">
+                            The AI platform for smarter business decisions.
+                        </NeuroAIDescriptionBox>
                         <div id="neuro-ai-tools-container">
                             <Link
                                 id="of-link"
