@@ -46,17 +46,18 @@ export function checkValidity(flow: NodeType[]): boolean {
         return false
     }
 
-    // Each predictor must have at least one outcome checked
-    const hasAnyOutcomesChecked = predictorNodes.every((node) =>
-        // External data -- don't trust it to be a clean bool
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
-        Object.values(node.data.ParentNodeState.caoState.outcome).some((val) => val === true)
+    // Each predictor must have exactly one outcome checked
+    const hasExactlyOneOutcomeChecked = predictorNodes.every(
+        (node) =>
+            // External data -- don't trust it to be a clean bool
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
+            Object.values(node.data.ParentNodeState.caoState.outcome).filter((val) => val === true).length === 1
     )
 
-    if (!hasAnyOutcomesChecked) {
+    if (!hasExactlyOneOutcomeChecked) {
         sendNotification(
             NotificationType.warning,
-            "Please check (enable) at least one Outcome on each predictor before training."
+            "Please check (enable) exactly one Outcome on each predictor before training."
         )
         return false
     }
