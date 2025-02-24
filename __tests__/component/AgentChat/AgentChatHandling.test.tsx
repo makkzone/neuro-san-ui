@@ -5,12 +5,13 @@ import {
     handleStreamingReceived,
     processLogLine,
     sendStreamingChatRequest,
-} from "../../../../components/internal/opportunity_finder/AgentChatHandling"
-import {AgentError, AgentErrorProps, LOGS_DELIMITER} from "../../../../components/internal/opportunity_finder/common"
-import {MAX_ORCHESTRATION_ATTEMPTS} from "../../../../components/internal/opportunity_finder/const"
-import {sendChatQuery} from "../../../../controller/agent/agent"
-import {ChatResponse} from "../../../../generated/neuro_san/api/grpc/agent"
-import {ChatMessage, ChatMessageChatMessageType} from "../../../../generated/neuro_san/api/grpc/chat"
+} from "../../../components/AgentChat/AgentChatHandling"
+import {AgentError, AgentErrorProps, LOGS_DELIMITER} from "../../../components/AgentChat/common"
+import {MAX_AGENT_RETRIES} from "../../../components/AgentChat/const"
+import {sendChatQuery} from "../../../controller/agent/agent"
+import {AgentType} from "../../../generated/metadata"
+import {ChatResponse} from "../../../generated/neuro_san/api/grpc/agent"
+import {ChatMessage, ChatMessageChatMessageType} from "../../../generated/neuro_san/api/grpc/chat"
 
 const mockSyntaxHighlighter = jest.fn(({children}) => <div>{children}</div>)
 
@@ -24,7 +25,7 @@ jest.mock("react-syntax-highlighter", () => {
 })
 
 // Mock the agent module
-jest.mock("../../../../controller/agent/agent")
+jest.mock("../../../controller/agent/agent")
 
 describe("processLogLine", () => {
     beforeEach(() => {
@@ -35,7 +36,7 @@ describe("processLogLine", () => {
         // Use a value that intentionally doesn't parse as JSON for this test case
         const logLineDetails = "[]This is a test log line"
         const logLine = `AgentName${LOGS_DELIMITER}${logLineDetails}`
-        const result = processLogLine(logLine, null)
+        const result = processLogLine(logLine)
 
         render(result)
 
@@ -47,7 +48,7 @@ describe("processLogLine", () => {
     it("Should syntax highlight JSON", () => {
         const logLineDetails = JSON.stringify({test: "value"})
         const logLine = `AgentName${LOGS_DELIMITER}${logLineDetails}`
-        const result = processLogLine(logLine, null)
+        const result = processLogLine(logLine)
 
         render(result)
 
@@ -70,52 +71,9 @@ describe("handleStreamingReceived", () => {
             }),
         }
         const updateOutputMock = jest.fn()
-        handleStreamingReceived(JSON.stringify(chunk), null, updateOutputMock, null, null)
+        handleStreamingReceived(JSON.stringify(chunk), updateOutputMock, null, null)
 
         expect(updateOutputMock).not.toHaveBeenCalled()
-    })
-
-    it("Should detect an 'orchestration complete' message", async () => {
-        const orchestrationCompleteMessage = {
-            project_id: 123,
-            experiment_id: 456,
-        }
-
-        const chunk = {
-            result: ChatResponse.fromPartial({
-                response: ChatMessage.fromPartial({
-                    type: ChatMessageChatMessageType.AI,
-                    text: JSON.stringify(orchestrationCompleteMessage),
-                }),
-            }),
-        }
-
-        const updateOutputMock = jest.fn()
-        const projectUrl: {current: URL} = {
-            current: null,
-        }
-        const isAwaitingLlmMock = jest.fn()
-        handleStreamingReceived(JSON.stringify(chunk), projectUrl, updateOutputMock, null, isAwaitingLlmMock)
-
-        expect(projectUrl.current.pathname).toContain(`/projects/${orchestrationCompleteMessage.project_id}/`)
-        expect(projectUrl.current.pathname).toContain(`/experiments/${orchestrationCompleteMessage.experiment_id}/`)
-
-        // Should have signaled that we are done with the interaction
-        expect(isAwaitingLlmMock).toHaveBeenCalledWith(false)
-
-        // Retrieve call to updateOutputMock
-        const experimentGeneratedItem = updateOutputMock.mock.calls[0][0]
-
-        // Render the component it was called with
-        const {container} = render(experimentGeneratedItem)
-
-        // Check for success message
-        expect(await screen.findByText(/Your new experiment has been generated/u)).toBeInTheDocument()
-
-        // Check for expected link
-        const anchor = container.querySelector("a")
-        expect(anchor).toBeInTheDocument()
-        expect(anchor).toHaveAttribute("href", projectUrl.current.toString())
     })
 
     it("Should detect an 'orchestration failed' message", async () => {
@@ -135,13 +93,10 @@ describe("handleStreamingReceived", () => {
         }
 
         const updateOutputMock = jest.fn()
-        const projectUrl: {current: URL} = {
-            current: null,
-        }
-        const isAwaitingLlmMock = jest.fn()
+        const setIsAwaitingLlmMock = jest.fn()
         let caughtError: Error | null = null
         try {
-            handleStreamingReceived(JSON.stringify(chunk), projectUrl, updateOutputMock, null, isAwaitingLlmMock)
+            handleStreamingReceived(JSON.stringify(chunk), updateOutputMock, setIsAwaitingLlmMock, jest.fn())
         } catch (error: unknown) {
             caughtError = error as Error
         }
@@ -153,7 +108,7 @@ describe("handleStreamingReceived", () => {
         expect(caughtError.message).toContain(orchestrationFailedMessage.tool)
 
         // Should have signaled that we are done with the interaction
-        expect(isAwaitingLlmMock).toHaveBeenCalledWith(false)
+        expect(setIsAwaitingLlmMock).toHaveBeenCalledWith(false)
     })
 
     it("Should handle a non-JSON chat message", async () => {
@@ -167,11 +122,8 @@ describe("handleStreamingReceived", () => {
         }
 
         const updateOutputMock = jest.fn()
-        const projectUrl: {current: URL} = {
-            current: null,
-        }
         const setAwaitingLlmMock = jest.fn()
-        handleStreamingReceived(JSON.stringify(chunk), projectUrl, updateOutputMock, null, setAwaitingLlmMock)
+        handleStreamingReceived(JSON.stringify(chunk), updateOutputMock, setAwaitingLlmMock)
 
         // It's a plain text chat so we shouldn't have invoked the formatter
         expect(mockSyntaxHighlighter).not.toHaveBeenCalled()
@@ -191,31 +143,25 @@ describe("handleStreamingReceived", () => {
         })
 
         it("Should handle chat messages", async () => {
-            const projectUrl: {current: URL} = {
-                current: null,
-            }
-
             const abortController = {
                 current: null,
             }
             const updateOutputMock = jest.fn()
             const setAwaitingLlmMock = jest.fn()
 
-            ;(sendChatQuery as jest.Mock).mockImplementation(async (_signal, _query, _user, callback) => {
+            ;(sendChatQuery as jest.Mock).mockImplementation(async (_signal, _query, _user, _targetAgent, callback) => {
                 callback()
             })
 
             await sendStreamingChatRequest(
-                projectUrl,
                 updateOutputMock,
                 setAwaitingLlmMock,
                 abortController,
                 "testUser",
                 "testQuery",
-                () => {
-                    // signals success
-                    projectUrl.current = new URL("http://example.com")
-                }
+                AgentType.UNKNOWN_AGENT,
+                jest.fn,
+                (): boolean => true // always succeed
             )
 
             expect(sendChatQuery).toHaveBeenCalledTimes(1)
@@ -230,14 +176,10 @@ describe("handleStreamingReceived", () => {
             render(experimentGeneratedItem)
 
             // Check for initial message
-            expect(await screen.findByText(/Contacting orchestration agents/u)).toBeInTheDocument()
+            expect(await screen.findByText(/Contacting Unknown Agent agent.../u)).toBeInTheDocument()
         })
 
         it("Should retry when not receiving success message", async () => {
-            const projectUrl: {current: URL} = {
-                current: null,
-            }
-
             const abortController = {
                 current: null,
             }
@@ -249,19 +191,17 @@ describe("handleStreamingReceived", () => {
             })
 
             await sendStreamingChatRequest(
-                projectUrl,
                 updateOutputMock,
                 setAwaitingLlmMock,
                 abortController,
                 "testUser",
                 "testQuery",
-                () => {
-                    // Do nothing
-                }
+                AgentType.UNKNOWN_AGENT,
+                () => false // never succeed
             )
 
             // Should have retried the maximum number of times then given up
-            expect(sendChatQuery).toHaveBeenCalledTimes(MAX_ORCHESTRATION_ATTEMPTS)
+            expect(sendChatQuery).toHaveBeenCalledTimes(MAX_AGENT_RETRIES)
         })
     })
 })

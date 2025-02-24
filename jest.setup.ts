@@ -131,4 +131,11 @@ jest.mock(
 /* eslint-enable react/display-name, react/no-multi-comp */
 
 // Make tests fail if any output is sent to the console
-failOnConsole({shouldFailOnAssert: true, shouldFailOnDebug: true})
+failOnConsole({
+    shouldFailOnAssert: true,
+    shouldFailOnDebug: true,
+    shouldFailOnError: true,
+    shouldFailOnInfo: true,
+    shouldFailOnLog: true,
+    shouldFailOnWarn: true,
+})

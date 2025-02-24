@@ -35,7 +35,7 @@ const config: Config.InitialOptions = {
         "!postcss.config.js",
         "!tailwind.config.js",
     ],
-    coverageReporters: ["json", "text-summary"],
+    coverageReporters: ["text-summary"],
 
     // Prevent Jest from trying to parse CSS files. Reference: https://stackoverflow.com/a/43813992
     moduleNameMapper: {"\\.(css|less)$": "<rootDir>/__tests__/__mocks__/styleMock.js"},

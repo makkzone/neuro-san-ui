@@ -1,0 +1,23 @@
+// Random greetings agents can use
+export const AGENT_GREETINGS: string[] = [
+    "Hey there! How can I assist you today?",
+    "Hi! What can I do for you?",
+    "Hello! Need help with something?",
+    "Hey! How’s your day going? What can I help with?",
+    "Hi there! What’s on your mind?",
+    "Hello, friend! How can I make your day easier?",
+    "Hey, how can I assist you today?",
+    "Hi! Got any questions? I’m here to help!",
+    "Hey! What’s up? How can I be of service?",
+    "Greetings! What can I do for you?",
+    "Hello there! Need any assistance?",
+    "Hey, good to see you! How can I help?",
+    "Hi! I’d love to assist you—what’s on your mind?",
+    "Hey, what’s new? How can I lend a hand?",
+    "Hello! I’m here to help—what do you need?",
+    "Hi there! Looking for answers? I’ve got you!",
+    "Hey! Need some help? I’m all ears!",
+    "Hello! What’s something I can help you figure out today?",
+    "Hi! How’s it going? What can I do for you?",
+    "Hey there! Got a challenge? Let’s solve it together!",
+]

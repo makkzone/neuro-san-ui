@@ -1,15 +1,18 @@
 import {jsonrepair} from "jsonrepair"
 import {capitalize} from "lodash"
-import {CSSProperties, Dispatch, MutableRefObject, ReactNode, SetStateAction} from "react"
+import {Dispatch, MutableRefObject, ReactNode, SetStateAction} from "react"
 import SyntaxHighlighter from "react-syntax-highlighter"
 
-import {AgentError, AgentErrorProps, experimentGeneratedMessage, LOGS_DELIMITER} from "./common"
-import {MAX_ORCHESTRATION_ATTEMPTS} from "./const"
-import {sendChatQuery} from "../../../controller/agent/agent"
-import {ChatResponse} from "../../../generated/neuro_san/api/grpc/agent"
-import {ChatMessage, ChatMessageChatMessageType} from "../../../generated/neuro_san/api/grpc/chat"
-import {MUIAccordion} from "../../MUIAccordion"
-import {MUIAlert} from "../../MUIAlert"
+import {AgentError, AgentErrorProps, cleanUpAgentName, CombinedAgentType, LOGS_DELIMITER} from "./common"
+import {HIGHLIGHTER_THEME, MAX_AGENT_RETRIES} from "./const"
+import {sendChatQuery} from "../../controller/agent/agent"
+import {AgentType} from "../../generated/metadata"
+import {ChatResponse} from "../../generated/neuro_san/api/grpc/agent"
+import {ChatMessage, ChatMessageChatMessageType} from "../../generated/neuro_san/api/grpc/chat"
+import {MUIAccordion} from "../MUIAccordion"
+import {MUIAlert} from "../MUIAlert"
+
+const knownMessageTypes = [ChatMessageChatMessageType.AI, ChatMessageChatMessageType.LEGACY_LOGS]
 
 /**
  * Split a log line into its summary and details parts, using `LOGS_DELIMITER` as the separator. If the delimiter is not
@@ -37,10 +40,11 @@ function splitLogLine(logLine: string) {
  * By the time we get to here, it's assumed things like errors and termination conditions have already been handled.
  *
  * @param logLine The log line to process
- * @param highlighterTheme The theme to use for the syntax highlighter
+ * @param messageType The type of the message (AI, LEGACY_LOGS etc.). Used for displaying certain message types
+ * differently
  * @returns A React component representing the log line (agent message)
  */
-export function processLogLine(logLine: string, highlighterTheme: {[p: string]: CSSProperties}) {
+export function processLogLine(logLine: string, messageType?: ChatMessageChatMessageType): ReactNode {
     // extract the parts of the line
     const {summarySentenceCase, logLineDetails} = splitLogLine(logLine)
 
@@ -59,9 +63,12 @@ export function processLogLine(logLine: string, highlighterTheme: {[p: string]: 
         repairedJson = null
     }
 
+    const isAIMessage = messageType === ChatMessageChatMessageType.AI
+
     return (
         <MUIAccordion
             id={`${summarySentenceCase}-panel`}
+            defaultExpandedPanelKey={isAIMessage ? 1 : null}
             items={[
                 {
                     title: summarySentenceCase,
@@ -72,7 +79,7 @@ export function processLogLine(logLine: string, highlighterTheme: {[p: string]: 
                                 <SyntaxHighlighter
                                     id="syntax-highlighter"
                                     language="json"
-                                    style={highlighterTheme}
+                                    style={HIGHLIGHTER_THEME}
                                     showLineNumbers={false}
                                     wrapLines={true}
                                 >
@@ -88,6 +95,7 @@ export function processLogLine(logLine: string, highlighterTheme: {[p: string]: 
             sx={{
                 fontSize: "large",
                 marginBottom: "1rem",
+                backgroundColor: isAIMessage ? "var(--bs-accent3-light)" : undefined,
             }}
         />
     )
@@ -98,17 +106,15 @@ export function processLogLine(logLine: string, highlighterTheme: {[p: string]: 
  * neuro-san streaming chat.
  *
  * @param chunk The chunk of data received from the server. This is expected to be a JSON object with a `response` key.
- * @param projectUrl Mutable reference to the URL of the project that will be created. We update this as a side effect.
  * @param updateOutput Function to update the output window.
- * @param highlighterTheme The theme to use for the syntax highlighter.
  * @param setIsAwaitingLlm Function to set the state of whether we're awaiting a response from LLM.
+ * @param handleJsonReceived Caller-supplied function to handle the JSON object received from the server.
  */
 export function handleStreamingReceived(
     chunk: string,
-    projectUrl: MutableRefObject<URL>,
     updateOutput: (node: ReactNode) => void,
-    highlighterTheme: {[p: string]: CSSProperties},
-    setIsAwaitingLlm: Dispatch<SetStateAction<boolean>>
+    setIsAwaitingLlm: Dispatch<SetStateAction<boolean>>,
+    handleJsonReceived?: (receivedObject: object) => void
 ): void {
     let chatResponse: ChatResponse
     try {
@@ -121,17 +127,16 @@ export function handleStreamingReceived(
 
     const messageType: ChatMessageChatMessageType = chatMessage?.type
 
-    const knownMessageTypes = [ChatMessageChatMessageType.AI, ChatMessageChatMessageType.LEGACY_LOGS]
-
     // Check if it's a message type we know how to handle
     if (!knownMessageTypes.includes(messageType)) {
         return
     }
 
     let chatMessageJson: object = null
+    const chatMessageText = chatMessage.text
 
     // LLM sometimes wraps the JSON in markdown code blocks, so we need to remove them before parsing
-    const chatMessageCleaned = chatMessage.text.replace(/```json/gu, "").replace(/```/gu, "")
+    const chatMessageCleaned = chatMessageText.replace(/```json/gu, "").replace(/```/gu, "")
 
     try {
         chatMessageJson = JSON.parse(chatMessageCleaned)
@@ -139,7 +144,7 @@ export function handleStreamingReceived(
         // Not JSON-like, so just add it to the output
         if (error instanceof SyntaxError) {
             // Regular chat message (not error or end condition) so just add it to the output
-            const newOutputItem = processLogLine(chatMessage.text, highlighterTheme)
+            const newOutputItem = processLogLine(chatMessageText, messageType)
             updateOutput(newOutputItem)
             return
         } else {
@@ -149,35 +154,9 @@ export function handleStreamingReceived(
     }
 
     // It was JSON-like. Figure out what we're dealing with
-    // LLM sometimes wraps the JSON in markdown code blocks, so we need to remove them before parsing
-    if ("project_id" in chatMessageJson && "experiment_id" in chatMessageJson) {
-        const baseUrl = window.location.origin
 
-        // Set the URL for displaying to the user
-        projectUrl.current = new URL(
-            `/projects/${chatMessageJson.project_id}/experiments/${chatMessageJson.experiment_id}/?generated=true`,
-            baseUrl
-        )
-
-        // Generate the "experiment complete" item in the agent dialog
-        updateOutput(
-            <MUIAccordion
-                id="experiment-generation-complete-panel"
-                items={[
-                    {
-                        title: "Experiment generation complete",
-                        content: (
-                            <p id="experiment-generation-complete-details">
-                                {experimentGeneratedMessage(projectUrl.current)}
-                            </p>
-                        ),
-                    },
-                ]}
-                sx={{fontSize: "large", marginBottom: "1rem"}}
-            />
-        )
-        setIsAwaitingLlm(false)
-    } else if ("error" in chatMessageJson) {
+    // Error?
+    if ("error" in chatMessageJson) {
         const agentError: AgentErrorProps = chatMessageJson as AgentErrorProps
         const errorMessage =
             `Error occurred. Error: "${agentError.error}", ` +
@@ -194,33 +173,34 @@ export function handleStreamingReceived(
         setIsAwaitingLlm(false)
         throw new AgentError(errorMessage)
     }
+
+    // Some other kind of JSON block. Let the caller handle it.
+    handleJsonReceived(chatMessageJson)
 }
 
 /**
  * Sends the request to neuro-san to create the project and experiment.
  *
- * @param projectUrl Mutable reference to the URL of the project that will be created. We update this as a side effect.
  * @param updateOutput Function to display agent chat responses to the user
  * @param setIsAwaitingLlm Function to set the state of whether we're awaiting a response from LLM
  * @param controller Mutable reference to the AbortController used to cancel the request
  * @param currentUser The current user (for displaying in the UI and for letting the server know who is calling)
- * @param orchestrationQuery The query to send to the server
+ * @param query The query to send to the server
+ * @param targetAgent The target agent to send the request to
  * @param callback The callback to call when streaming chunks are received
- *
- * @returns Nothing, but received chunks are pumped to the `handleStreamingReceived` function
+ * @param checkSuccess User-supplied predicate to check if the agents succeeded in their task
+ * @returns Nothing, but received chunks are pumped to the supplied callback function
  */
 export async function sendStreamingChatRequest(
-    projectUrl: MutableRefObject<URL>,
     updateOutput: (node: ReactNode) => void,
     setIsAwaitingLlm: Dispatch<SetStateAction<boolean>>,
     controller: MutableRefObject<AbortController>,
     currentUser: string,
-    orchestrationQuery: string,
-    callback: (chunk) => void
+    query: string,
+    targetAgent: CombinedAgentType,
+    callback: (chunk: string) => void,
+    checkSuccess: () => boolean = () => true
 ): Promise<void> {
-    // Reset project URL
-    projectUrl.current = null
-
     // Set up the abort controller
     const abortController = new AbortController()
     controller.current = abortController
@@ -230,8 +210,8 @@ export async function sendStreamingChatRequest(
             id="initiating-orchestration-accordion"
             items={[
                 {
-                    title: "Contacting orchestration agents...",
-                    content: `Query: ${orchestrationQuery}`,
+                    title: `Contacting ${cleanUpAgentName(targetAgent)} agent...`,
+                    content: `Query: ${query}`,
                 },
             ]}
             sx={{marginBottom: "1rem"}}
@@ -240,6 +220,7 @@ export async function sendStreamingChatRequest(
 
     let orchestrationAttemptNumber = 0
 
+    let succeeded: boolean = false
     do {
         try {
             // Increment the attempt number and set the state to indicate we're awaiting a response
@@ -247,7 +228,9 @@ export async function sendStreamingChatRequest(
             setIsAwaitingLlm(true)
 
             // Send the chat query to the server. This will block until the stream ends from the server
-            await sendChatQuery(abortController.signal, orchestrationQuery, currentUser, callback)
+            await sendChatQuery(abortController.signal, query, currentUser, targetAgent as AgentType, callback)
+
+            succeeded = checkSuccess()
         } catch (error: unknown) {
             if (error instanceof Error) {
                 // If the user clicked Stop, just bail
@@ -270,15 +253,15 @@ export async function sendStreamingChatRequest(
         } finally {
             setIsAwaitingLlm(false)
         }
-    } while (orchestrationAttemptNumber < MAX_ORCHESTRATION_ATTEMPTS && projectUrl.current === null)
+    } while (orchestrationAttemptNumber < MAX_AGENT_RETRIES && !succeeded)
 
-    if (orchestrationAttemptNumber >= MAX_ORCHESTRATION_ATTEMPTS && projectUrl.current === null) {
+    if (!succeeded) {
         updateOutput(
             <MUIAlert
                 id="opp-finder-max-retries-exceeded-alert"
                 severity="error"
             >
-                {`Gave up after ${MAX_ORCHESTRATION_ATTEMPTS} attempts.`}
+                {`Gave up after ${MAX_AGENT_RETRIES} attempts.`}
             </MUIAlert>
         )
     }

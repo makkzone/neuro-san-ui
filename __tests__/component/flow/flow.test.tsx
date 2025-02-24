@@ -3,13 +3,13 @@ import {act, cleanup, fireEvent, render, screen, waitFor} from "@testing-library
 import user from "@testing-library/user-event"
 import {Position} from "reactflow"
 
-import {EdgeType} from "../../components/internal/flow/edges/types"
-import Flow from "../../components/internal/flow/flow"
-import NodeTypes, {NodeType} from "../../components/internal/flow/nodes/types"
-import {NotificationType, sendNotification} from "../../components/notification"
-import loadDataTags from "../../controller/datatag/fetchdatataglist"
-import {DataTagFieldCAOType, DataTagFieldDataType, DataTagFieldValued} from "../../generated/metadata"
-import {AuthorizationInfo} from "../../utils/authorization"
+import {EdgeType} from "../../../components/internal/flow/edges/types"
+import Flow from "../../../components/internal/flow/flow"
+import NodeTypes, {NodeType} from "../../../components/internal/flow/nodes/types"
+import {NotificationType, sendNotification} from "../../../components/notification"
+import loadDataTags from "../../../controller/datatag/fetchdatataglist"
+import {DataTagFieldCAOType, DataTagFieldDataType, DataTagFieldValued} from "../../../generated/metadata"
+import {AuthorizationInfo} from "../../../utils/authorization"
 
 // Generate some random values to use in tests
 const testUser = crypto.randomUUID()
@@ -148,10 +148,10 @@ jest.mock("next-auth/react", () => {
 })
 
 // Don't want to send user notifications during tests so mock this
-jest.mock("../../components/notification")
+jest.mock("../../../components/notification")
 
 // Mock this so we don't have to deal with the actual API during tests
-jest.mock("../../controller/datatag/fetchdatataglist", () => {
+jest.mock("../../../controller/datatag/fetchdatataglist", () => {
     return {
         __esModule: true,
         default: jest.fn(() => {

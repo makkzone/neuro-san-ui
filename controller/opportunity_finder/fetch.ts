@@ -4,12 +4,12 @@
 
 import {BaseMessage} from "@langchain/core/messages"
 
-import {OpportunityFinderRequestType} from "../../pages/api/gpt/opportunityFinder/types"
+import {LegacyAgentType} from "../../components/AgentChat/common"
 import {sendLlmRequest} from "../llm/llm_chat"
 
 export async function sendOpportunityFinderRequest(
     userQuery: string,
-    requestType: OpportunityFinderRequestType,
+    requestType: LegacyAgentType,
     callback: (token: string) => void,
     signal: AbortSignal,
     chatHistory: BaseMessage[]
