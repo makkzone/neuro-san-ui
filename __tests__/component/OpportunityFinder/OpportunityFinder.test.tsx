@@ -85,8 +85,11 @@ describe("OpportunityFinder", () => {
             const successMessage: ChatMessage = {
                 type: ChatMessageChatMessageType.AI,
                 text: JSON.stringify({project_id: "mockProjectId", experiment_id: "mockExperimentId"}),
+                structure: null,
                 mimeData: [],
                 origin: [],
+                chatContext: null,
+                toolResultOrigin: [],
             }
 
             const chatResponse: ChatResponse = ChatResponse.fromPartial({
