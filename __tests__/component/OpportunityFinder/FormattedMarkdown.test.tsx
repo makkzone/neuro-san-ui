@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-shadow
 import {render, screen} from "@testing-library/react"
 
-import {FormattedMarkdown} from "../../../../components/internal/opportunity_finder/FormattedMarkdown"
+import {FormattedMarkdown} from "../../../components/AgentChat/FormattedMarkdown"
 
 describe("FormattedMarkdown component tests", () => {
     // eslint-disable-next-line jest/expect-expect

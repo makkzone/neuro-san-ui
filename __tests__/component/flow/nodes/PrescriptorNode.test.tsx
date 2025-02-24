@@ -1,8 +1,8 @@
 // eslint-disable-next-line no-shadow
 import {fireEvent, render, screen} from "@testing-library/react"
 
-import Prescriptornode from "../../../../../components/internal/flow/nodes/prescriptornode"
-import {DataTag} from "../../../../../generated/metadata"
+import Prescriptornode from "../../../../components/internal/flow/nodes/prescriptornode"
+import {DataTag} from "../../../../generated/metadata"
 
 // Mock the Handle component since we don't want to invite react-flow to this party
 jest.mock("reactflow", () => ({

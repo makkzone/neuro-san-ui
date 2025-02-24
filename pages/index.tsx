@@ -1,4 +1,5 @@
 import {styled} from "@mui/material"
+import Badge from "@mui/material/Badge"
 import Box from "@mui/material/Box"
 import NextImage from "next/legacy/image"
 import Link from "next/link"
@@ -58,6 +59,7 @@ const LaunchButton = styled("div")({
     padding: "1rem 2rem",
     background: "#26efe9",
     textAlign: "center",
+    width: "350px",
 })
 
 const HeaderLineFive = styled("h5")({
@@ -70,7 +72,6 @@ const NeuroAIDescriptionBox = styled(Box)({
     fontSize: "1.5rem",
     fontWeight: "bold",
 })
-
 // #endregion: Styled Components
 
 // Main function.
@@ -224,6 +225,36 @@ export default function Index(): ReactElement {
                                         style={{position: "relative", ...getButtonStyle(["model-orchestrator-button"])}}
                                     >
                                         Model Orchestrator
+                                    </LaunchButton>
+                                </a>
+                            </Link>
+                            <Link
+                                id="agent-network-link"
+                                // Use the URL object form of `href` to pass along the query string
+                                href={`/agentNetwork?${buildQueryString()}`}
+                                legacyBehavior={true}
+                                passHref
+                            >
+                                <a
+                                    id="of-link-anchor"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    href={`/projects?${buildQueryString()}`}
+                                    style={{marginLeft: "50px"}}
+                                    onMouseEnter={handleMouseEnter}
+                                    onMouseLeave={handleMouseLeave}
+                                >
+                                    <LaunchButton
+                                        id="neuro-san-button"
+                                        style={{position: "relative", ...getButtonStyle(["neuro-san-button"])}}
+                                    >
+                                        <Badge
+                                            badgeContent="New"
+                                            color="primary"
+                                            id="multi-agent-accelerator-new-badge"
+                                        >
+                                            Multi-Agent Accelerator
+                                        </Badge>
                                     </LaunchButton>
                                 </a>
                             </Link>

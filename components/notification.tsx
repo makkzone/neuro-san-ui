@@ -62,6 +62,7 @@ export function sendNotification(
     enqueueSnackbar(messageSpan, {
         anchorOrigin: placement,
         autoHideDuration: duration,
+        disableWindowBlurListener: true,
         // @ts-expect-error - Could "declare module" to fix this
         description,
         key: baseId,

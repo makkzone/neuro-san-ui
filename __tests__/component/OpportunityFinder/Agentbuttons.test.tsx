@@ -2,7 +2,7 @@
 import {render, screen, waitFor} from "@testing-library/react"
 import {userEvent} from "@testing-library/user-event"
 
-import {AgentButtons} from "../../../../components/internal/opportunity_finder/Agentbuttons"
+import {AgentButtons} from "../../../components/OpportunityFinder/Agentbuttons"
 
 describe("AgentButtons", () => {
     const setSelectedAgentMock = jest.fn()
