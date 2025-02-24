@@ -1,3 +1,4 @@
+import AdjustRoundedIcon from "@mui/icons-material/AdjustRounded"
 import HubOutlinedIcon from "@mui/icons-material/HubOutlined"
 import ScatterPlotOutlinedIcon from "@mui/icons-material/ScatterPlotOutlined"
 import Box from "@mui/material/Box"
@@ -18,11 +19,13 @@ import {
     ReactFlowInstance,
     Node as RFNode,
     NodeTypes as RFNodeTypes,
+    useStore,
 } from "reactflow"
 
 import "reactflow/dist/style.css"
 import {AgentNode, AgentNodeProps} from "./AgentNode"
 import {AnimatedEdge} from "./AnimatedEdge"
+import {BASE_RADIUS, DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS, LEVEL_SPACING} from "./const"
 import {layoutLinear, layoutRadial} from "./GraphLayouts"
 import {ConnectivityInfo} from "../../generated/neuro_san/api/grpc/agent"
 
@@ -38,18 +41,15 @@ type Layout = "radial" | "linear"
 
 const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) => {
     // Save this as a mutable ref so child nodes see updates
-    const selectedAgentIdRef = useRef<string>(selectedAgentId)
+    const selectedAgentIdRef = useRef(selectedAgentId)
     const selectedSourceAgentId = useRef<string | undefined>(undefined)
 
     useEffect(() => {
         selectedAgentIdRef.current = selectedAgentId
     }, [selectedAgentId])
 
-    const getSelectedAgentId = useCallback<() => string>(() => selectedAgentIdRef.current, [selectedAgentIdRef.current])
-    const getSelectedSourceAgentId = useCallback<() => string>(
-        () => selectedSourceAgentId.current,
-        [selectedSourceAgentId.current]
-    )
+    const getSelectedAgentId = useCallback(() => selectedAgentIdRef.current, [selectedAgentIdRef.current])
+    const getSelectedSourceAgentId = useCallback(() => selectedSourceAgentId.current, [selectedSourceAgentId.current])
 
     const [flowInstance, setFlowInstance] = useState<ReactFlowInstance>(null)
 
@@ -58,11 +58,13 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) =
 
     const [layout, setLayout] = useState<Layout>("radial")
 
+    const [enableRadialGuides, setEnableRadialGuides] = useState<boolean>(true)
+
     useEffect(() => {
         flowInstance && setTimeout(flowInstance.fitView, 50)
     }, [flowInstance, nodes.length, edges.length, layout])
 
-    // Create the flow layout depending on user preference
+    // TODO: does this really need to be an effect?
     useEffect(() => {
         if (agentsInNetwork?.length === 0) {
             return
@@ -103,12 +105,12 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) =
         setFlowInstance(reactFlowInstance)
     }, [])
 
-    // Highlight first edge we find connected to active agent. SOMETIMES THIS WILL BE WRONG if there are multiple
+    // Highlight first edge we find connected to active agent. Sometimes this will be wrong if there are multiple
     // edges to the active agent but this is a start.
     // TODO: we really only want to highlight the one from the sender to the active agent, but we don't have
     // origins info yet. We don't know _who_ sent the message to the active agent so for now, we guess.
     useEffect(() => {
-        let sourceAgentId: string
+        let sourceAgentId
 
         /* eslint-disable newline-per-chained-call */
         const selectedAgentFirstEdge = edges.find((edge) => {
@@ -118,12 +120,9 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) =
             }
             return false
         })
-        /* eslint-enable newline-per-chained-call */
 
         if (sourceAgentId) {
             selectedSourceAgentId.current = sourceAgentId
-        } else {
-            selectedSourceAgentId.current = null
         }
 
         const edgesCopy = edges.map((edge: Edge<EdgeProps>) => ({
@@ -143,9 +142,12 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) =
                     : undefined,
             type: edge.id === selectedAgentFirstEdge?.id ? "animatedEdge" : undefined,
         }))
+        /* eslint-enable newline-per-chained-call */
 
         setEdges(edgesCopy)
     }, [selectedAgentId])
+
+    const transform = useStore((state) => state.transform)
 
     // Why not just a "const"? See: https://reactflow.dev/learn/customization/custom-nodes
     // "It’s important that the nodeTypes are memoized or defined outside of the component. Otherwise React creates
@@ -163,6 +165,47 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) =
         }),
         [AnimatedEdge]
     )
+
+    const getRadialGuides = () => {
+        console.debug("nodes", nodes)
+        // Figure out the maximum depth of the network
+        const maxDepth = nodes?.reduce((max, node) => (node.data.depth > max ? node.data.depth : max), 0)
+
+        // If it's just Frontman, no need to draw guides
+        if (maxDepth === 0) {
+            return null
+        }
+
+        const circles = []
+        for (let i = 1; i <= maxDepth; i += 1) {
+            circles.push(
+                <circle
+                    key={i}
+                    cx={DEFAULT_FRONTMAN_X_POS + 35}
+                    cy={DEFAULT_FRONTMAN_Y_POS + 35}
+                    r={BASE_RADIUS + i * LEVEL_SPACING}
+                    stroke="lightgray"
+                    fill="none"
+                    opacity="0.7"
+                />
+            )
+        }
+
+        return (
+            <svg
+                style={{
+                    position: "absolute",
+                    top: 0,
+                    width: "100%",
+                    left: 0,
+                    height: "100%",
+                    pointerEvents: "none", // Prevents blocking interactions with React Flow
+                }}
+            >
+                <g transform={`translate(${transform[0]}, ${transform[1]}) scale(${transform[2]})`}>{circles}</g>
+            </svg>
+        )
+    }
 
     return (
         <Box
@@ -228,7 +271,25 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) =
                             </ControlButton>
                         </span>
                     </Tooltip>
+                    <Tooltip
+                        id="radial-guides-tooltip"
+                        title="Enable/disable radial guides"
+                        placement="right"
+                    >
+                        <span id="radial-guides-span">
+                            <ControlButton
+                                id="radial-guides-button"
+                                onClick={() => setEnableRadialGuides(!enableRadialGuides)}
+                            >
+                                <AdjustRoundedIcon
+                                    id="radial-guides-icon"
+                                    sx={{color: "black"}}
+                                />
+                            </ControlButton>
+                        </span>
+                    </Tooltip>
                 </Controls>
+                {enableRadialGuides && getRadialGuides()}
             </ReactFlow>
         </Box>
     )

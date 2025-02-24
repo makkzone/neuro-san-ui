@@ -6,18 +6,11 @@ import {cloneDeep} from "lodash"
 import {Edge, EdgeProps, Node as RFNode} from "reactflow"
 
 import {AgentNodeProps} from "./AgentNode"
+import {BASE_RADIUS, DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS, LEVEL_SPACING} from "./const"
 import {ConnectivityInfo} from "../../generated/neuro_san/api/grpc/agent"
 import {cleanUpAgentName} from "../AgentChat/common"
 
 // #region: Constants
-export const DEFAULT_FRONTMAN_X_POS = 150
-export const DEFAULT_FRONTMAN_Y_POS = 450
-
-// Minimum distance from center
-const BASE_RADIUS = 100
-
-// Distance between depth levels
-const LEVEL_SPACING = 100
 
 // Name for custom node
 const AGENT_NODE_TYPE_NAME = "agentNode"
