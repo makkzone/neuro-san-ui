@@ -61,6 +61,7 @@ const NodePopper = ({
                     id={popperId}
                     open={isOpen}
                     anchorEl={anchorEl}
+                    sx={{zIndex: 999999}}
                 >
                     {children}
                 </Popper>
