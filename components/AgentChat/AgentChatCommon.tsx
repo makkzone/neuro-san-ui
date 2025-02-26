@@ -426,18 +426,10 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                             currentResponse.current = ""
                             introduceAgent()
                         }}
+                        posRight={80}
                         disabled={!enableClearChatButton}
-                        posRight={145}
-                        posBottom={10}
-                        sx={{
-                            position: "absolute",
-                        }}
                     >
-                        <DeleteOutline
-                            id="stop-button-icon"
-                            sx={{marginRight: "0.25rem", display: "inline"}}
-                        />
-                        Clear Chat
+                        <DeleteOutline id="stop-button-icon" />
                     </LlmChatButton>
                 )}
 
@@ -446,18 +438,9 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                     <LlmChatButton
                         id="stop-output-button"
                         onClick={() => handleStop()}
-                        posRight={10}
-                        posBottom={10}
                         disabled={!isAwaitingLlm}
-                        sx={{
-                            position: "absolute",
-                        }}
                     >
-                        <StopCircle
-                            id="stop-button-icon"
-                            sx={{display: "inline", marginRight: "0.5rem"}}
-                        />
-                        Stop
+                        <StopCircle id="stop-button-icon" />
                     </LlmChatButton>
                 )}
 
@@ -466,18 +449,9 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                     <LlmChatButton
                         id="regenerate-output-button"
                         onClick={() => handleSend(previousUserQuery)}
-                        posRight={10}
-                        posBottom={10}
                         disabled={!shouldEnableRegenerateButton}
-                        sx={{
-                            position: "absolute",
-                        }}
                     >
-                        <Loop
-                            id="generate-icon"
-                            sx={{display: "inline", marginRight: "0.25rem"}}
-                        />
-                        Regenerate
+                        <Loop id="generate-icon" />
                     </LlmChatButton>
                 )}
             </Box>
@@ -537,9 +511,17 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                     id="submit-query-button"
                     type="submit"
                     posBottom={0}
+                    posRight={0}
                     disabled={!shouldEnableSendButton}
                     sx={{
                         opacity: shouldEnableSendButton ? "100%" : "50%",
+                        color: "white !important",
+                        fontSize: "15px",
+                        fontWeight: "500",
+                        lineHeight: "38px",
+                        padding: "2px",
+                        position: "relative",
+                        width: 126,
                     }}
                     onClick={() => handleSend(chatInput)}
                 >

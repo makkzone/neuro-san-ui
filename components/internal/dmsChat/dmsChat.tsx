@@ -262,17 +262,9 @@ export function DMSChat(props: {
                                 setUserLlmChatOutput("")
                             }}
                             disabled={!enableClearChatButton}
-                            posRight={155}
-                            posBottom={20}
-                            sx={{
-                                position: "absolute",
-                            }}
+                            posRight={80}
                         >
-                            <DeleteOutline
-                                id="clear-chat-icon"
-                                sx={{marginRight: "0.25rem", display: "inline"}}
-                            />
-                            Clear Chat
+                            <DeleteOutline id="clear-chat-icon" />
                         </LlmChatButton>
                     )}
                     {/*Stop Button*/}
@@ -280,17 +272,8 @@ export function DMSChat(props: {
                         <LlmChatButton
                             id="stop-output-button"
                             onClick={() => handleStop()}
-                            posRight={20}
-                            posBottom={20}
-                            sx={{
-                                position: "absolute",
-                            }}
                         >
-                            <StopCircle
-                                id="stop-button-icon"
-                                sx={{display: "inline", marginRight: "0.5rem"}}
-                            />
-                            Stop
+                            <StopCircle id="stop-button-icon" />
                         </LlmChatButton>
                     )}
                     {/*Regenerate Button*/}
@@ -300,18 +283,9 @@ export function DMSChat(props: {
                             onClick={async () => {
                                 await sendQuery(previousUserQuery)
                             }}
-                            posRight={20}
-                            posBottom={20}
                             disabled={!shouldEnableRegenerateButton}
-                            sx={{
-                                position: "absolute",
-                            }}
                         >
-                            <Loop
-                                id="generate-icon"
-                                sx={{marginRight: "0.25rem", display: "inline"}}
-                            />
-                            Regenerate
+                            <Loop id="generate-icon" />
                         </LlmChatButton>
                     )}
                 </Box>
@@ -390,7 +364,18 @@ export function DMSChat(props: {
                                 onClick={async () => {
                                     await sendQuery(userInput)
                                 }}
-                                sx={{opacity: shouldDisableSendButton ? "50%" : "100%"}}
+                                posBottom={0}
+                                posRight={0}
+                                sx={{
+                                    opacity: shouldDisableSendButton ? "50%" : "100%",
+                                    color: "white !important",
+                                    fontSize: "15px",
+                                    fontWeight: "500",
+                                    lineHeight: "38px",
+                                    padding: "2px",
+                                    position: "relative",
+                                    width: 126,
+                                }}
                             >
                                 Send
                             </LlmChatButton>

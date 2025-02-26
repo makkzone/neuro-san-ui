@@ -375,36 +375,18 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                                 setImageData(null)
                             }}
                             disabled={!enableClearChatButton}
-                            posRight={145}
-                            posBottom={10}
-                            sx={{
-                                position: "absolute",
-                            }}
+                            posRight={80}
                         >
-                            <DeleteOutline
-                                id="stop-button-icon"
-                                sx={{marginRight: "0.25rem", display: "inline"}}
-                            />
-                            Clear Chat
+                            <DeleteOutline id="stop-button-icon" />
                         </LlmChatButton>
                     )}
-
                     {/*Stop Button*/}
                     {isAwaitingLlm && (
                         <LlmChatButton
                             id="stop-output-button"
                             onClick={() => handleStop()}
-                            posRight={10}
-                            posBottom={10}
-                            sx={{
-                                position: "absolute",
-                            }}
                         >
-                            <StopCircle
-                                id="stop-button-icon"
-                                sx={{display: "inline", marginRight: "0.5rem"}}
-                            />
-                            Stop
+                            <StopCircle id="stop-button-icon" />
                         </LlmChatButton>
                     )}
                     {/*Regenerate Button*/}
@@ -414,18 +396,9 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                             onClick={async () => {
                                 await sendQuery(previousUserQuery)
                             }}
-                            posRight={10}
-                            posBottom={10}
                             disabled={!shouldEnableRegenerateButton}
-                            sx={{
-                                position: "absolute",
-                            }}
                         >
-                            <Loop
-                                id="generate-icon"
-                                sx={{marginRight: "0.25rem", display: "inline"}}
-                            />
-                            Regenerate
+                            <Loop id="generate-icon" />
                         </LlmChatButton>
                     )}
                 </Box>
@@ -505,7 +478,18 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                                 onClick={async () => {
                                     await sendQuery(userInput)
                                 }}
-                                sx={{opacity: shouldDisableSendButton ? "50%" : "100%"}}
+                                posBottom={0}
+                                posRight={0}
+                                sx={{
+                                    opacity: shouldDisableSendButton ? "50%" : "100%",
+                                    color: "white !important",
+                                    fontSize: "15px",
+                                    fontWeight: "500",
+                                    lineHeight: "38px",
+                                    padding: "2px",
+                                    position: "relative",
+                                    width: 126,
+                                }}
                             >
                                 Send
                             </LlmChatButton>
