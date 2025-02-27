@@ -2,10 +2,7 @@
  * This is the module for the "DMS Chat assistant".
  */
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
-import {Loop} from "@mui/icons-material"
 import ClearIcon from "@mui/icons-material/Clear"
-import DeleteOutline from "@mui/icons-material/DeleteOutline"
-import StopCircle from "@mui/icons-material/StopCircle"
 import Box from "@mui/material/Box"
 import CircularProgress from "@mui/material/CircularProgress"
 import IconButton from "@mui/material/IconButton"
@@ -17,9 +14,9 @@ import {StringToStringOrNumber} from "../../../controller/base_types"
 import {sendDmsChatQuery} from "../../../controller/dmschat/dmschat"
 import {Run} from "../../../controller/run/types"
 import {hasOnlyWhitespace} from "../../../utils/text"
+import {AgentChatButtons} from "../../AgentChat/AgentChatButtons"
 import {MUIDrawer} from "../../MUIDrawer"
 import {LlmChatButton} from "../LlmChatButton"
-import {AgentChatButtons} from "../../AgentChat/AgentChatButtons"
 
 /**
  * Chat assistant, initially for DMS page but in theory could be used elsewhere. Allows the user to chat with an LLM
@@ -253,8 +250,11 @@ export function DMSChat(props: {
                         value={userLlmChatOutput}
                     />
 
-                    <Box sx={{position: "absolute", right: "10px", bottom: "10px"}}>
-                        <AgentChatButtons
+                    <Box
+                        id="dms-chat-agent-chat-btns-box"
+                        sx={{position: "absolute", right: "10px", bottom: "10px"}}
+                    >
+                        <AgentChatButtons // eslint-disable-line enforce-ids-in-jsx/missing-ids
                             clearChatOnClickCallback={() => {
                                 chatHistory.current = []
                                 currentResponse.current = ""

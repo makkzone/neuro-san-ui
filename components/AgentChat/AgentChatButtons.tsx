@@ -39,34 +39,46 @@ export const AgentChatButtons: React.FC<AgentButtonsProps> = ({
         {/*Clear Chat button*/}
         {!isAwaitingLlm && (
             <SmallLlmChatButton
+                aria-label="Clear Chat"
                 disabled={!enableClearChatButton}
                 id="clear-chat-button"
                 onClick={clearChatOnClickCallback}
                 posRight={55}
             >
-                <DeleteOutline fontSize="small" id="stop-button-icon" />
+                <DeleteOutline
+                    fontSize="small"
+                    id="stop-button-icon"
+                />
             </SmallLlmChatButton>
         )}
 
         {/*Stop Button*/}
         {isAwaitingLlm && (
             <SmallLlmChatButton
+                aria-label="Stop"
                 disabled={!isAwaitingLlm}
                 id="stop-output-button"
                 onClick={() => handleStop()}
             >
-                <StopCircle fontSize="small" id="stop-button-icon" />
+                <StopCircle
+                    fontSize="small"
+                    id="stop-button-icon"
+                />
             </SmallLlmChatButton>
         )}
 
         {/*Regenerate Button*/}
         {!isAwaitingLlm && (
             <SmallLlmChatButton
+                aria-label="Regenerate"
                 disabled={!shouldEnableRegenerateButton}
                 id="regenerate-output-button"
                 onClick={() => handleSend(previousUserQuery)}
             >
-                <Loop fontSize="small" id="generate-icon" />
+                <Loop
+                    fontSize="small"
+                    id="generate-icon"
+                />
             </SmallLlmChatButton>
         )}
     </>

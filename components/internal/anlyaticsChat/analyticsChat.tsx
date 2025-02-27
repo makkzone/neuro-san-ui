@@ -20,11 +20,11 @@ import {CsvDataChatResponse} from "../../../generated/analytics_chat"
 import {ChatMessage as AnalyticsChatMessage, ChatMessageChatMessageType} from "../../../generated/chat"
 import {DataSource} from "../../../generated/metadata"
 import {hasOnlyWhitespace} from "../../../utils/text"
+import {AgentChatButtons} from "../../AgentChat/AgentChatButtons"
 import {ConfirmationModal} from "../../confirmationModal"
 import {NotificationType, sendNotification} from "../../notification"
 import {LlmChatButton} from "../LlmChatButton"
 import {LlmChatOptionsButton} from "../LlmChatOptionsButton"
-import {AgentChatButtons} from "../../AgentChat/AgentChatButtons"
 
 interface AnalyticsChatProps {
     readonly projectId: number
@@ -363,7 +363,7 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                         }
                     />
 
-                    <AgentChatButtons
+                    <AgentChatButtons // eslint-disable-line enforce-ids-in-jsx/missing-ids
                         clearChatOnClickCallback={() => {
                             chatHistory.current = []
                             setPreviousUserQuery("")

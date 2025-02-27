@@ -415,7 +415,7 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                     )}
                 </Box>
 
-                <AgentChatButtons
+                <AgentChatButtons // eslint-disable-line enforce-ids-in-jsx/missing-ids
                     clearChatOnClickCallback={() => {
                         setChatOutput([])
                         setChatHistory([])
