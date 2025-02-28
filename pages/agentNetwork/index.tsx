@@ -83,13 +83,13 @@ export default function AgentNetworkPage() {
 
     const handleStreamingReceived = (chunk: string) => {
         const chatMessage = tryParseJson(chunk)
-        if (!chatMessage || typeof chatMessage !== "object" || !("text" in chatMessage)) {
+
+        // Messages that contain agent origin info currently are only the "string" ones, not JSON
+        if (!chatMessage || typeof chatMessage !== "string") {
             return
         }
 
-        const chatMessageText = chatMessage.text as string
-
-        highlightAgentNetwork(chatMessageText)
+        highlightAgentNetwork(chatMessage)
     }
 
     return (
