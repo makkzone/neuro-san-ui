@@ -322,6 +322,37 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
         updateOutput(greeting)
     }
 
+    const getConnectivityInfo = (connectivityInfo) => (
+        /* eslint-disable enforce-ids-in-jsx/missing-ids */
+        <>
+            {connectivityInfo
+                .filter((info) => info.origin.toLowerCase() !== targetAgent.toLowerCase())
+                .sort((a, b) => a.origin.localeCompare(b.origin))
+                .map((info) => (
+                    <li
+                        id={info.origin}
+                        key={info.origin}
+                    >
+                        <b id={info.origin}>{info.origin}</b>
+                        <ul
+                            id={`${info.origin}-tools`}
+                            style={{marginLeft: "8px"}}
+                        >
+                            {info.tools.map((tool) => (
+                                <li
+                                    id={tool}
+                                    key={tool}
+                                >
+                                    {tool}
+                                </li>
+                            ))}
+                        </ul>
+                    </li>
+                ))}
+        </>
+        /* eslint-enable enforce-ids-in-jsx/missing-ids */
+    )
+
     useEffect(() => {
         const newAgent = async () => {
             introduceAgent()
@@ -335,74 +366,44 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                 return
             }
 
-            let connectivity: ConnectivityResponse
             try {
-                connectivity = await getConnectivity(currentUser, targetAgent as AgentType)
+                const connectivity: ConnectivityResponse = await getConnectivity(currentUser, targetAgent as AgentType)
+                updateOutput(
+                    <MUIAccordion
+                        id={`${id}-agent-details`}
+                        sx={{marginTop: "1rem", marginBottom: "1rem"}}
+                        items={[
+                            {
+                                title: "Agent Details",
+                                content: [
+                                    `My description is: "${agentFunction?.function?.description}"`,
+                                    <h6
+                                        key="item-1"
+                                        id="connectivity-header"
+                                        style={{marginTop: "1rem"}}
+                                    >
+                                        I can connect you to the following agents
+                                    </h6>,
+                                    <ul
+                                        key="item-2"
+                                        id="connectivity-list"
+                                        style={{marginTop: "1rem"}}
+                                    >
+                                        {getConnectivityInfo(connectivity?.connectivityInfo)}
+                                    </ul>,
+                                ],
+                            },
+                        ]}
+                    />
+                )
             } catch (e) {
                 sendNotification(
                     NotificationType.error,
                     `Failed to get connectivity info for ${cleanUpAgentName(targetAgent)}. Error: ${e}`
                 )
-                return
             }
-
-            updateOutput(
-                <MUIAccordion
-                    id={`${id}-agent-details`}
-                    sx={{marginTop: "1rem", marginBottom: "1rem"}}
-                    items={[
-                        {
-                            title: "Agent Details",
-                            content: [
-                                `My description is: "${agentFunction?.function?.description}"`,
-                                <h6
-                                    key="item-1"
-                                    id="connectivity-header"
-                                    style={{marginTop: "1rem"}}
-                                >
-                                    I can connect you to the following agents
-                                </h6>,
-                                <ul
-                                    key="item-2"
-                                    id="connectivity-list"
-                                    style={{marginTop: "1rem"}}
-                                >
-                                    {connectivity.connectivityInfo
-                                        .filter((info) => info.origin.toLowerCase() !== targetAgent.toLowerCase())
-                                        .sort((a, b) => a.origin.localeCompare(b.origin))
-                                        .map((info) => (
-                                            // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-                                            <li
-                                                id={info.origin}
-                                                key={info.origin}
-                                            >
-                                                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                                                <b id={info.origin}>{info.origin}</b>
-                                                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                                                <ul
-                                                    id={`${info.origin}-tools`}
-                                                    style={{marginLeft: "8px"}}
-                                                >
-                                                    {info.tools.map((tool) => (
-                                                        <li
-                                                            id={tool}
-                                                            key={tool}
-                                                        >
-                                                            {tool}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </li>
-                                        ))}
-                                </ul>,
-                            ],
-                        },
-                    ]}
-                />
-            )
         }
 
-        console.debug("in effect, targetAgent is", targetAgent)
         if (targetAgent) {
             void newAgent()
         }
