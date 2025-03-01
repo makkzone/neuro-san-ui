@@ -61,6 +61,7 @@ interface AgentChatCommonProps {
      * Will be called when the streaming is complete, whatever the reason for termination (normal or error)
      */
     readonly onStreamingComplete?: () => void
+    readonly onSend?: (query: string) => string
     readonly setPreviousResponse?: (agent: string, response: string) => void
     readonly setChatHistory?: (val: BaseMessage[]) => void
     readonly getChatHistory?: () => BaseMessage[]
@@ -109,6 +110,7 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
     isAwaitingLlm,
     onChunkReceived,
     onStreamingComplete,
+    onSend,
     setPreviousResponse,
     setChatHistory = NO_OP_SET,
     getChatHistory = NO_OP_GET,
@@ -467,12 +469,15 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
             // Record user query in chat history
             setChatHistory([...getChatHistory(), new HumanMessage(previousUserQuery)])
 
-            setPreviousUserQuery(query)
+            // Allow parent to intercept and modify the query before sending if needed
+            const queryToSend = onSend?.(query) ?? query
+            console.debug(`Sending query: ${queryToSend}`)
+            setPreviousUserQuery(queryToSend)
 
             setIsAwaitingLlm(true)
 
             // Always start output by echoing user query.
-            updateOutput(getUserImageAndUserQuery(query, currentUser, userImage))
+            updateOutput(getUserImageAndUserQuery(queryToSend, currentUser, userImage))
 
             // Add ID block for agent
             updateOutput(getUserImageAndUserQuery(cleanUpAgentName(targetAgent), targetAgent, AGENT_IMAGE))
@@ -486,8 +491,8 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                     id="initiating-orchestration-accordion"
                     items={[
                         {
-                            title: `Contacting ${cleanUpAgentName(targetAgent)} agent...`,
-                            content: `Query: ${query}`,
+                            title: `Contacting ${cleanUpAgentName(targetAgent)}...`,
+                            content: `Query: ${queryToSend}`,
                         },
                     ]}
                     sx={{marginBottom: "1rem"}}
@@ -499,7 +504,7 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                 // It's a Neuro-san agent.
 
                 // Send the chat query to the server. This will block until the stream ends from the server
-                await sendStreamingChatRequest(query, (chunk: string) => {
+                await sendStreamingChatRequest(queryToSend, (chunk: string) => {
                     const chatMessage: ChatMessage = chatMessageFromChunk(chunk)
                     if (chatMessage) {
                         updateOutput(processLogLine(chatMessage.text, chatMessage.type))
@@ -518,7 +523,7 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                     controller?.current.signal,
                     legacyAgentEndpoint,
                     {requestType: targetAgent},
-                    query,
+                    queryToSend,
                     getChatHistory()
                 )
             }
