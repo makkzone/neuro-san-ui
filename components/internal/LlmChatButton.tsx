@@ -4,7 +4,7 @@ import Button from "@mui/material/Button"
 // #region: Types
 
 type LLMChatGroupConfigBtnProps = {
-    enabled?: boolean
+    disabled?: boolean
     posRight?: number
     posBottom?: number
 }
@@ -15,18 +15,11 @@ export const LlmChatButton = styled(Button, {
     shouldForwardProp: (prop) => prop !== "posRight" && prop !== "posBottom",
 })<LLMChatGroupConfigBtnProps>(({disabled, posRight, posBottom}) => ({
     background: "var(--bs-primary) !important",
-    borderColor: "var(--bs-primary) !important",
     borderRadius: "var(--bs-border-radius)",
-    bottom: posBottom || null,
-    color: "white !important",
-    display: "inline",
-    fontSize: "15px",
-    fontWeight: "500",
-    right: posRight || null,
-    lineHeight: "38px",
-    padding: "2px",
-    width: 126,
-    zIndex: 99999,
-    opacity: disabled ? "50%" : "70%",
+    bottom: posBottom !== undefined ? posBottom : "10px",
     cursor: disabled ? "default" : "pointer",
+    opacity: disabled ? "50%" : "100%",
+    right: posRight !== undefined ? posRight : "10px",
+    position: "absolute",
+    zIndex: 99999,
 }))

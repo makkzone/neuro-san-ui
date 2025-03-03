@@ -2,9 +2,11 @@
  * See main function description.
  */
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
-import {DeleteOutline, Loop, StopCircle} from "@mui/icons-material"
-import {Box, Button, Input, SxProps} from "@mui/material"
+import ClearIcon from "@mui/icons-material/Clear"
+import {Box, Input, SxProps} from "@mui/material"
 import CircularProgress from "@mui/material/CircularProgress"
+import IconButton from "@mui/material/IconButton"
+import InputAdornment from "@mui/material/InputAdornment"
 import Tooltip from "@mui/material/Tooltip"
 import {CSSProperties, Dispatch, FC, ReactNode, SetStateAction, useEffect, useRef, useState} from "react"
 import {MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
@@ -12,14 +14,15 @@ import {MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
 import {handleStreamingReceived, sendStreamingChatRequest} from "./AgentChatHandling"
 import {AGENT_GREETINGS} from "./AgentGreetings"
 import {cleanUpAgentName, CombinedAgentType, getUserImageAndUserQuery} from "./common"
+import {ControlButtons} from "./ControlButtons"
 import {FormattedMarkdown} from "./FormattedMarkdown"
+import {SendButton} from "./SendButton"
 import {HLJS_THEMES} from "./SyntaxHighlighterThemes"
 import {getAgentFunction, getConnectivity} from "../../controller/agent/agent"
 import {AgentType} from "../../generated/metadata"
 import {ConnectivityResponse, FunctionResponse} from "../../generated/neuro_san/api/grpc/agent"
 import {hasOnlyWhitespace} from "../../utils/text"
 import {getTitleBase} from "../../utils/title"
-import {LlmChatButton} from "../internal/LlmChatButton"
 import {LlmChatOptionsButton} from "../internal/LlmChatOptionsButton"
 import {MUIAccordion} from "../MUIAccordion"
 import {MUIAlert} from "../MUIAlert"
@@ -415,71 +418,21 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                     )}
                 </Box>
 
-                {/*Clear Chat button*/}
-                {!isAwaitingLlm && (
-                    <LlmChatButton
-                        id="clear-chat-button"
-                        onClick={() => {
-                            setChatOutput([])
-                            setChatHistory([])
-                            setPreviousUserQuery("")
-                            currentResponse.current = ""
-                            introduceAgent()
-                        }}
-                        disabled={!enableClearChatButton}
-                        posRight={145}
-                        posBottom={10}
-                        sx={{
-                            position: "absolute",
-                        }}
-                    >
-                        <DeleteOutline
-                            id="stop-button-icon"
-                            sx={{marginRight: "0.25rem", display: "inline"}}
-                        />
-                        Clear Chat
-                    </LlmChatButton>
-                )}
-
-                {/*Stop Button*/}
-                {isAwaitingLlm && (
-                    <LlmChatButton
-                        id="stop-output-button"
-                        onClick={() => handleStop()}
-                        posRight={10}
-                        posBottom={10}
-                        disabled={!isAwaitingLlm}
-                        sx={{
-                            position: "absolute",
-                        }}
-                    >
-                        <StopCircle
-                            id="stop-button-icon"
-                            sx={{display: "inline", marginRight: "0.5rem"}}
-                        />
-                        Stop
-                    </LlmChatButton>
-                )}
-
-                {/*Regenerate Button*/}
-                {!isAwaitingLlm && (
-                    <LlmChatButton
-                        id="regenerate-output-button"
-                        onClick={() => handleSend(previousUserQuery)}
-                        posRight={10}
-                        posBottom={10}
-                        disabled={!shouldEnableRegenerateButton}
-                        sx={{
-                            position: "absolute",
-                        }}
-                    >
-                        <Loop
-                            id="generate-icon"
-                            sx={{display: "inline", marginRight: "0.25rem"}}
-                        />
-                        Regenerate
-                    </LlmChatButton>
-                )}
+                <ControlButtons // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    clearChatOnClickCallback={() => {
+                        setChatOutput([])
+                        setChatHistory([])
+                        setPreviousUserQuery("")
+                        currentResponse.current = ""
+                        introduceAgent()
+                    }}
+                    enableClearChatButton={enableClearChatButton}
+                    isAwaitingLlm={isAwaitingLlm}
+                    handleSend={handleSend}
+                    handleStop={handleStop}
+                    previousUserQuery={previousUserQuery}
+                    shouldEnableRegenerateButton={shouldEnableRegenerateButton}
+                />
             </Box>
             <Box
                 id="user-input-div"
@@ -493,7 +446,7 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                     sx={{
                         display: "flex",
                         flexGrow: 1,
-                        marginRight: "10px",
+                        marginRight: "0.5rem",
                         borderWidth: "1px",
                         borderColor: "var(--bs-border-color)",
                         borderRadius: "0.5rem",
@@ -507,44 +460,37 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                         setChatInput(event.target.value)
                     }}
                     value={chatInput}
+                    endAdornment={
+                        <InputAdornment
+                            id="clear-input-adornment"
+                            position="end"
+                            disableTypography={true}
+                        >
+                            <IconButton
+                                id="clear-input-button"
+                                onClick={() => {
+                                    setChatInput("")
+                                }}
+                                sx={{
+                                    color: "var(--bs-primary)",
+                                    opacity: userInputEmpty ? "25%" : "100%",
+                                }}
+                                disabled={userInputEmpty}
+                                tabIndex={-1}
+                                edge="end"
+                            >
+                                <ClearIcon id="clear-input-icon" />
+                            </IconButton>
+                        </InputAdornment>
+                    }
                 />
 
-                {/* Clear Input Button */}
-                <Button
-                    id="clear-input-button"
-                    onClick={() => {
-                        setChatInput("")
-                    }}
-                    style={{
-                        backgroundColor: "transparent",
-                        color: "var(--bs-primary)",
-                        border: "none",
-                        fontWeight: 550,
-                        left: "calc(100% - 180px)",
-                        lineHeight: "35px",
-                        opacity: userInputEmpty ? "25%" : "100%",
-                        position: "absolute",
-                        zIndex: 99999,
-                    }}
-                    disabled={userInputEmpty}
-                    tabIndex={-1}
-                >
-                    X
-                </Button>
-
                 {/* Send Button */}
-                <LlmChatButton
+                <SendButton
+                    enableSendButton={shouldEnableSendButton}
                     id="submit-query-button"
-                    type="submit"
-                    posBottom={0}
-                    disabled={!shouldEnableSendButton}
-                    sx={{
-                        opacity: shouldEnableSendButton ? "100%" : "50%",
-                    }}
-                    onClick={() => handleSend(chatInput)}
-                >
-                    Send
-                </LlmChatButton>
+                    onClickCallback={() => handleSend(chatInput)}
+                />
             </Box>
         </Box>
     )

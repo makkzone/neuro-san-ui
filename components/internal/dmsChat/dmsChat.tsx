@@ -2,10 +2,7 @@
  * This is the module for the "DMS Chat assistant".
  */
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
-import {Loop} from "@mui/icons-material"
 import ClearIcon from "@mui/icons-material/Clear"
-import DeleteOutline from "@mui/icons-material/DeleteOutline"
-import StopCircle from "@mui/icons-material/StopCircle"
 import Box from "@mui/material/Box"
 import CircularProgress from "@mui/material/CircularProgress"
 import IconButton from "@mui/material/IconButton"
@@ -17,8 +14,9 @@ import {StringToStringOrNumber} from "../../../controller/base_types"
 import {sendDmsChatQuery} from "../../../controller/dmschat/dmschat"
 import {Run} from "../../../controller/run/types"
 import {hasOnlyWhitespace} from "../../../utils/text"
+import {ControlButtons} from "../../AgentChat/ControlButtons"
+import {SendButton} from "../../AgentChat/SendButton"
 import {MUIDrawer} from "../../MUIDrawer"
-import {LlmChatButton} from "../LlmChatButton"
 
 /**
  * Chat assistant, initially for DMS page but in theory could be used elsewhere. Allows the user to chat with an LLM
@@ -251,69 +249,26 @@ export function DMSChat(props: {
                         }}
                         value={userLlmChatOutput}
                     />
-                    {/*Clear Chat button*/}
-                    {!isAwaitingLlm && (
-                        <LlmChatButton
-                            id="clear-chat-button"
-                            onClick={() => {
+
+                    <Box
+                        id="dms-chat-agent-chat-btns-box"
+                        sx={{position: "absolute", right: "10px", bottom: "10px"}}
+                    >
+                        <ControlButtons // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                            clearChatOnClickCallback={() => {
                                 chatHistory.current = []
                                 currentResponse.current = ""
                                 setPreviousUserQuery("")
                                 setUserLlmChatOutput("")
                             }}
-                            disabled={!enableClearChatButton}
-                            posRight={155}
-                            posBottom={20}
-                            sx={{
-                                position: "absolute",
-                            }}
-                        >
-                            <DeleteOutline
-                                id="clear-chat-icon"
-                                sx={{marginRight: "0.25rem", display: "inline"}}
-                            />
-                            Clear Chat
-                        </LlmChatButton>
-                    )}
-                    {/*Stop Button*/}
-                    {isAwaitingLlm && (
-                        <LlmChatButton
-                            id="stop-output-button"
-                            onClick={() => handleStop()}
-                            posRight={20}
-                            posBottom={20}
-                            sx={{
-                                position: "absolute",
-                            }}
-                        >
-                            <StopCircle
-                                id="stop-button-icon"
-                                sx={{display: "inline", marginRight: "0.5rem"}}
-                            />
-                            Stop
-                        </LlmChatButton>
-                    )}
-                    {/*Regenerate Button*/}
-                    {!isAwaitingLlm && (
-                        <LlmChatButton
-                            id="regenerate-output-button"
-                            onClick={async () => {
-                                await sendQuery(previousUserQuery)
-                            }}
-                            posRight={20}
-                            posBottom={20}
-                            disabled={!shouldEnableRegenerateButton}
-                            sx={{
-                                position: "absolute",
-                            }}
-                        >
-                            <Loop
-                                id="generate-icon"
-                                sx={{marginRight: "0.25rem", display: "inline"}}
-                            />
-                            Regenerate
-                        </LlmChatButton>
-                    )}
+                            enableClearChatButton={enableClearChatButton}
+                            isAwaitingLlm={isAwaitingLlm}
+                            handleSend={sendQuery}
+                            handleStop={handleStop}
+                            previousUserQuery={previousUserQuery}
+                            shouldEnableRegenerateButton={shouldEnableRegenerateButton}
+                        />
+                    </Box>
                 </Box>
 
                 <Box
@@ -374,7 +329,7 @@ export function DMSChat(props: {
                             display: "flex",
                             width: "100px",
                             justifyContent: "center",
-                            marginLeft: "1rem",
+                            marginLeft: "0.1rem",
                         }}
                     >
                         {isAwaitingLlm ? (
@@ -384,16 +339,13 @@ export function DMSChat(props: {
                                 sx={{color: "var(--bs-primary)"}}
                             />
                         ) : (
-                            <LlmChatButton
+                            <SendButton
+                                enableSendButton={!shouldDisableSendButton}
                                 id="submit-query-button"
-                                disabled={shouldDisableSendButton}
-                                onClick={async () => {
+                                onClickCallback={async () => {
                                     await sendQuery(userInput)
                                 }}
-                                sx={{opacity: shouldDisableSendButton ? "50%" : "100%"}}
-                            >
-                                Send
-                            </LlmChatButton>
+                            />
                         )}
                     </div>
                 </Box>

@@ -3,7 +3,6 @@
  */
 
 import {ChatMessage as LangchainChatMessage} from "@langchain/core/messages"
-import {DeleteOutline, Loop, StopCircle} from "@mui/icons-material"
 import ClearIcon from "@mui/icons-material/Clear"
 import Box from "@mui/material/Box"
 import CircularProgress from "@mui/material/CircularProgress"
@@ -21,9 +20,10 @@ import {CsvDataChatResponse} from "../../../generated/analytics_chat"
 import {ChatMessage as AnalyticsChatMessage, ChatMessageChatMessageType} from "../../../generated/chat"
 import {DataSource} from "../../../generated/metadata"
 import {hasOnlyWhitespace} from "../../../utils/text"
+import {ControlButtons} from "../../AgentChat/ControlButtons"
+import {SendButton} from "../../AgentChat/SendButton"
 import {ConfirmationModal} from "../../confirmationModal"
 import {NotificationType, sendNotification} from "../../notification"
-import {LlmChatButton} from "../LlmChatButton"
 import {LlmChatOptionsButton} from "../LlmChatOptionsButton"
 
 interface AnalyticsChatProps {
@@ -362,72 +362,23 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                             }
                         }
                     />
-                    {/*Clear Chat button*/}
-                    {!isAwaitingLlm && (
-                        <LlmChatButton
-                            id="clear-chat-button"
-                            onClick={() => {
-                                chatHistory.current = []
-                                setPreviousUserQuery("")
-                                setUserLlmChatOutput("")
-                                chatHistory.current = []
-                                currentResponse.current = ""
-                                setImageData(null)
-                            }}
-                            disabled={!enableClearChatButton}
-                            posRight={145}
-                            posBottom={10}
-                            sx={{
-                                position: "absolute",
-                            }}
-                        >
-                            <DeleteOutline
-                                id="stop-button-icon"
-                                sx={{marginRight: "0.25rem", display: "inline"}}
-                            />
-                            Clear Chat
-                        </LlmChatButton>
-                    )}
 
-                    {/*Stop Button*/}
-                    {isAwaitingLlm && (
-                        <LlmChatButton
-                            id="stop-output-button"
-                            onClick={() => handleStop()}
-                            posRight={10}
-                            posBottom={10}
-                            sx={{
-                                position: "absolute",
-                            }}
-                        >
-                            <StopCircle
-                                id="stop-button-icon"
-                                sx={{display: "inline", marginRight: "0.5rem"}}
-                            />
-                            Stop
-                        </LlmChatButton>
-                    )}
-                    {/*Regenerate Button*/}
-                    {!isAwaitingLlm && (
-                        <LlmChatButton
-                            id="regenerate-output-button"
-                            onClick={async () => {
-                                await sendQuery(previousUserQuery)
-                            }}
-                            posRight={10}
-                            posBottom={10}
-                            disabled={!shouldEnableRegenerateButton}
-                            sx={{
-                                position: "absolute",
-                            }}
-                        >
-                            <Loop
-                                id="generate-icon"
-                                sx={{marginRight: "0.25rem", display: "inline"}}
-                            />
-                            Regenerate
-                        </LlmChatButton>
-                    )}
+                    <ControlButtons // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                        clearChatOnClickCallback={() => {
+                            chatHistory.current = []
+                            setPreviousUserQuery("")
+                            setUserLlmChatOutput("")
+                            chatHistory.current = []
+                            currentResponse.current = ""
+                            setImageData(null)
+                        }}
+                        enableClearChatButton={enableClearChatButton}
+                        isAwaitingLlm={isAwaitingLlm}
+                        handleSend={sendQuery}
+                        handleStop={handleStop}
+                        previousUserQuery={previousUserQuery}
+                        shouldEnableRegenerateButton={shouldEnableRegenerateButton}
+                    />
                 </Box>
 
                 <div
@@ -489,7 +440,7 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                             width: "100px",
                             justifyContent: "center",
                             marginTop: "1rem",
-                            marginLeft: "1rem",
+                            marginLeft: "0.1rem",
                         }}
                     >
                         {isAwaitingLlm ? (
@@ -499,16 +450,13 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                                 sx={{color: "var(--bs-primary)"}}
                             />
                         ) : (
-                            <LlmChatButton
+                            <SendButton
+                                enableSendButton={!shouldDisableSendButton}
                                 id="submit-query-button"
-                                disabled={shouldDisableSendButton}
-                                onClick={async () => {
+                                onClickCallback={async () => {
                                     await sendQuery(userInput)
                                 }}
-                                sx={{opacity: shouldDisableSendButton ? "50%" : "100%"}}
-                            >
-                                Send
-                            </LlmChatButton>
+                            />
                         )}
                     </div>
                 </div>
