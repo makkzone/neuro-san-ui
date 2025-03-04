@@ -1,5 +1,10 @@
 import {AgentType as NeuroSanAgentType} from "../../generated/metadata"
 
-export type LegacyAgentType = "OpportunityFinder" | "ScopingAgent" | "DataGenerator" | "OrchestrationAgent"
+// eslint-disable-next-line no-shadow
+export enum LegacyAgentType {
+    OpportunityFinder = "OpportunityFinder",
+    ScopingAgent = "ScopingAgent",
+    DataGenerator = "DataGenerator",
+}
 
 export type CombinedAgentType = LegacyAgentType | NeuroSanAgentType

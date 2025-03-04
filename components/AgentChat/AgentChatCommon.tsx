@@ -21,8 +21,8 @@ import {ControlButtons} from "./ControlButtons"
 import {FormattedMarkdown} from "./FormattedMarkdown"
 import {SendButton} from "./SendButton"
 import {HLJS_THEMES} from "./SyntaxHighlighterThemes"
-import {CombinedAgentType} from "./Types"
-import {checkError, cleanUpAgentName, splitLogLine, tryParseJson} from "./Utils"
+import {CombinedAgentType, LegacyAgentType} from "./Types"
+import {chatMessageFromChunk, checkError, cleanUpAgentName, splitLogLine, tryParseJson} from "./Utils"
 import {DEFAULT_USER_IMAGE} from "../../const"
 import {getAgentFunction, getConnectivity, sendChatQuery} from "../../controller/agent/agent"
 import {sendLlmRequest} from "../../controller/llm/llm_chat"
@@ -181,7 +181,7 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
     }, [autoScrollEnabled])
 
     useEffect(() => {
-        document.title = `${getTitleBase()} | Opportunity Finder`
+        document.title = `${getTitleBase()} | Agent Chat`
 
         // Delay for a second before focusing on the input area; gets around ChatBot stealing focus.
         setTimeout(() => chatInputRef?.current?.focus(), 1000)
@@ -270,7 +270,7 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
         updateOutput(greeting)
     }
 
-    const getConnectivityInfo = (connectivityInfo: ConnectivityInfo[]) => (
+    const renderConnectivityInfo = (connectivityInfo: ConnectivityInfo[]) => (
         /* eslint-disable enforce-ids-in-jsx/missing-ids */
         <>
             {connectivityInfo
@@ -346,7 +346,7 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                                         id="connectivity-list"
                                         style={{marginTop: "1rem"}}
                                     >
-                                        {getConnectivityInfo(connectivity?.connectivityInfo)}
+                                        {renderConnectivityInfo(connectivity?.connectivityInfo)}
                                     </ul>,
                                 ],
                             },
@@ -368,8 +368,8 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
 
     /**
      * Handles adding content to the output window.
-     * @param node A ReactNode to add to the output window -- text, spinner, etc.
-     * @returns Nothing, but updates the output window with the new content
+     * @param node A ReactNode to add to the output window -- text, spinner, etc. but could also be  simple string
+     * @returns Nothing, but updates the output window with the new content. Updates currentResponse as a side effect.
      */
     const updateOutput = (node: ReactNode) => {
         // Auto scroll as response is generated
@@ -425,11 +425,26 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
         let succeeded: boolean = false
 
         function handleChunk(chunk: string) {
+            // Give container a chance to process the chunk first
             succeeded = onChunkReceived?.(chunk) || true
-            // Could be a ChatMessage (Neuro-san) or just a string (legacy agent)
+
+            // For legacy agents, we either get plain text or markdown. Just output it as-is.
+            if (targetAgent in LegacyAgentType) {
+                updateOutput(chunk)
+                return
+            }
+
+            const chatMessage: ChatMessage = chatMessageFromChunk(chunk)
+            if (!chatMessage) {
+                // This is an error. But don't want to spam output.
+                return
+            }
+
+            // It's a Neuro-san agent. Should be a ChatMessage at this point since all Neuro-san agents should return
+            // ChatMessages.
             const parsedResult: null | object | string = tryParseJson(chunk)
             if (typeof parsedResult === "string") {
-                updateOutput(chunk)
+                updateOutput(processLogLine(parsedResult, chatMessage.type))
             } else if (typeof parsedResult === "object") {
                 // It's a ChatMessage. Does it have the error block?
                 const isError = checkError(parsedResult)
@@ -450,7 +465,6 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                     succeeded = false
                 } else {
                     // Not an error, so output it
-                    const chatMessage: ChatMessage = parsedResult as ChatMessage
                     updateOutput(processLogLine(chatMessage.text, chatMessage.type))
                 }
             }
