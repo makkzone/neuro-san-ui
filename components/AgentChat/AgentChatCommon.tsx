@@ -372,7 +372,6 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
      * @returns Nothing, but updates the output window with the new content. Updates currentResponse as a side effect.
      */
     const updateOutput = (node: ReactNode) => {
-        // Auto scroll as response is generated
         currentResponse.current += node
         setChatOutput((currentOutput) => [...currentOutput, node])
     }
@@ -421,7 +420,7 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
     // Enable Clear Chat button if not awaiting response and there is chat output to clear
     const enableClearChatButton = !isAwaitingLlm && chatOutput.length > 0
 
-    async function doQueryLoop(query: string, queryToSend: string) {
+    async function doQueryLoop(query: string) {
         let succeeded: boolean = false
 
         function handleChunk(chunk: string) {
@@ -500,7 +499,7 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                         controller?.current.signal,
                         legacyAgentEndpoint,
                         {requestType: targetAgent},
-                        queryToSend,
+                        query,
                         getChatHistory()
                     )
                 }
@@ -533,12 +532,18 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
 
         // Allow parent to intercept and modify the query before sending if needed
         const queryToSend = onSend?.(query) ?? query
-        setPreviousUserQuery(queryToSend)
+
+        // Save query for "regenerate" use. Again we save the real user input, not the modified query. It will again
+        // get intercepted and re-modified (if applicable) on "regenerate".
+        setPreviousUserQuery(query)
 
         setIsAwaitingLlm(true)
 
         // Always start output by echoing user query.
-        updateOutput(getUserImageAndUserQuery(queryToSend, currentUser, userImage))
+        // Note: we display the original user query, not the modified one. The modified one could be a monstrosity
+        // that we generated behind their back. Ultimately, we shouldn't need to generate a fake query on behalf of the
+        // user but currently we do for orchestration.
+        updateOutput(getUserImageAndUserQuery(query, currentUser, userImage))
 
         // Add ID block for agent
         updateOutput(getUserImageAndUserQuery(cleanUpAgentName(targetAgent), targetAgent, AGENT_IMAGE))
@@ -560,7 +565,7 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
             />
         )
         try {
-            const {succeeded, wasAborted} = await doQueryLoop(query, queryToSend)
+            const {succeeded, wasAborted} = await doQueryLoop(queryToSend)
 
             if (!wasAborted && !succeeded) {
                 updateOutput(
