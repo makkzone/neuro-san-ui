@@ -420,54 +420,56 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
     // Enable Clear Chat button if not awaiting response and there is chat output to clear
     const enableClearChatButton = !isAwaitingLlm && chatOutput.length > 0
 
-    async function doQueryLoop(query: string) {
-        let succeeded: boolean = false
+    function handleChunk(chunk: string): boolean {
+        // Give container a chance to process the chunk first
+        let succeeded: boolean = onChunkReceived ? onChunkReceived(chunk) : true
 
-        function handleChunk(chunk: string) {
-            // Give container a chance to process the chunk first
-            succeeded = onChunkReceived?.(chunk) || true
+        // For legacy agents, we either get plain text or markdown. Just output it as-is.
+        if (targetAgent in LegacyAgentType) {
+            updateOutput(chunk)
+            return succeeded
+        }
 
-            // For legacy agents, we either get plain text or markdown. Just output it as-is.
-            if (targetAgent in LegacyAgentType) {
-                updateOutput(chunk)
-                return
-            }
+        const chatMessage: ChatMessage = chatMessageFromChunk(chunk)
+        if (!chatMessage) {
+            // This is an error. But don't want to spam output.
+            return succeeded
+        }
 
-            const chatMessage: ChatMessage = chatMessageFromChunk(chunk)
-            if (!chatMessage) {
-                // This is an error. But don't want to spam output.
-                return
-            }
-
-            // It's a Neuro-san agent. Should be a ChatMessage at this point since all Neuro-san agents should return
-            // ChatMessages.
-            const parsedResult: null | object | string = tryParseJson(chunk)
-            if (typeof parsedResult === "string") {
-                updateOutput(processLogLine(parsedResult, chatMessage.type))
-            } else if (typeof parsedResult === "object") {
-                // It's a ChatMessage. Does it have the error block?
-                const isError = checkError(parsedResult)
-                if (isError) {
-                    const agentError: AgentErrorProps = parsedResult as AgentErrorProps
-                    const errorMessage =
-                        `Error occurred. Error: "${agentError.error}", ` +
-                        `traceback: "${agentError?.traceback}", ` +
-                        `tool: "${agentError?.tool}" Retrying...`
-                    updateOutput(
-                        <MUIAlert
-                            id="retry-message-alert"
-                            severity="warning"
-                        >
-                            {errorMessage}
-                        </MUIAlert>
-                    )
-                    succeeded = false
-                } else {
-                    // Not an error, so output it
-                    updateOutput(processLogLine(chatMessage.text, chatMessage.type))
-                }
+        // It's a Neuro-san agent. Should be a ChatMessage at this point since all Neuro-san agents should return
+        // ChatMessages.
+        const parsedResult: null | object | string = tryParseJson(chunk)
+        if (typeof parsedResult === "string") {
+            updateOutput(processLogLine(parsedResult, chatMessage.type))
+        } else if (typeof parsedResult === "object") {
+            // It's a ChatMessage. Does it have the error block?
+            const isError = checkError(parsedResult)
+            if (isError) {
+                const agentError: AgentErrorProps = parsedResult as AgentErrorProps
+                const errorMessage =
+                    `Error occurred. Error: "${agentError.error}", ` +
+                    `traceback: "${agentError?.traceback}", ` +
+                    `tool: "${agentError?.tool}" Retrying...`
+                updateOutput(
+                    <MUIAlert
+                        id="retry-message-alert"
+                        severity="warning"
+                    >
+                        {errorMessage}
+                    </MUIAlert>
+                )
+                succeeded = false
+            } else {
+                // Not an error, so output it
+                updateOutput(processLogLine(chatMessage.text, chatMessage.type))
             }
         }
+
+        return succeeded
+    }
+
+    async function doQueryLoop(query: string) {
+        let succeeded: boolean = false
 
         let attemptNumber: number = 0
         let wasAborted: boolean = false
@@ -488,14 +490,20 @@ export const AgentChatCommon: FC<AgentChatCommonProps> = ({
                         query,
                         currentUser,
                         targetAgent as NeuroSanAgent,
-                        handleChunk
+                        // eslint-disable-next-line @typescript-eslint/no-loop-func
+                        (chunk) => {
+                            succeeded = handleChunk(chunk)
+                        }
                     )
                 } else {
                     // It's a legacy agent.
 
                     // Send the chat query to the server. This will block until the stream ends from the server
                     await sendLlmRequest(
-                        handleChunk,
+                        // eslint-disable-next-line @typescript-eslint/no-loop-func
+                        (chunk) => {
+                            succeeded = handleChunk(chunk)
+                        },
                         controller?.current.signal,
                         legacyAgentEndpoint,
                         {requestType: targetAgent},
