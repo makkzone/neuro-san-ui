@@ -68,6 +68,10 @@ interface AgentChatCommonProps {
      * Will be called when the streaming is complete, whatever the reason for termination (normal or error)
      */
     readonly onStreamingComplete?: () => void
+    /**
+     * Optional callback to modify the query before sending it to the server. This is useful for adding extra
+     * information to the query before sending it or totally modifying the user query before sending.
+     */
     readonly onSend?: (query: string) => string
     readonly setPreviousResponse?: (agent: CombinedAgentType, response: string) => void
     readonly setChatHistory?: (val: BaseMessage[]) => void
@@ -109,6 +113,12 @@ const getUserImageAndUserQuery = (userQuery: string, title: string, userImage: s
         </UserQueryContainer>
     </div>
 )
+
+/**
+ * Common chat component for agent chat. This component is used by all agent chat components to provide a consistent
+ * experience for users when chatting with agents. It handles user input as well as displaying and nicely formatting
+ * agent responses. Customization for inputs and outputs is provided via event handlers-like props.
+ */
 export const ChatCommon: FC<AgentChatCommonProps> = ({
     id,
     currentUser,
@@ -424,7 +434,8 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
 
     function handleChunk(chunk: string): void {
         // Give container a chance to process the chunk first
-        succeeded.current = succeeded.current || (onChunkReceived ? onChunkReceived(chunk) : true)
+        const onChunkReceivedResult = onChunkReceived ? onChunkReceived(chunk) : true
+        succeeded.current = succeeded.current || onChunkReceivedResult
 
         // For legacy agents, we either get plain text or markdown. Just output it as-is.
         if (targetAgent in LegacyAgentType) {

@@ -79,15 +79,12 @@ export default function AgentNetworkPage() {
         }
     }
 
-    const handleStreamingReceived = (chunk: string) => {
+    const onChunkReceived = (chunk: string) => {
         const chatMessage = tryParseJson(chunk)
-
         // Messages that contain agent origin info currently are only the "string" ones, not JSON
-        if (!chatMessage || typeof chatMessage !== "string") {
-            return true
+        if (chatMessage && typeof chatMessage === "string") {
+            detectSelectedAgent(chatMessage)
         }
-
-        detectSelectedAgent(chatMessage)
 
         return true
     }
@@ -151,7 +148,7 @@ export default function AgentNetworkPage() {
                         chatHistory.current = val
                     }}
                     getChatHistory={() => chatHistory.current}
-                    onChunkReceived={handleStreamingReceived}
+                    onChunkReceived={onChunkReceived}
                     onStreamingComplete={onStreamingComplete}
                 />
             </Grid>
