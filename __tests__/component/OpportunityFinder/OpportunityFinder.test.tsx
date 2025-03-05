@@ -13,13 +13,16 @@ jest.mock("next-auth/react", () => {
     }
 })
 
+let onChunkReceived
+let setPreviousResponse
+
 jest.mock("../../../components/AgentChat/ChatCommon", () => {
     return {
         __esModule: true,
         ChatCommon: jest.fn((props) => {
             // Capture the onChunkReceived function
-            global.onChunkReceived = props.onChunkReceived
-            global.setPreviousResponse = props.setPreviousResponse
+            onChunkReceived = props.onChunkReceived
+            setPreviousResponse = props.setPreviousResponse
             return <div>Mocked ChatCommon</div>
         }),
     }
@@ -79,7 +82,7 @@ describe("OpportunityFinder", () => {
         expect(orchestratorButton).toBeInTheDocument()
 
         // Have to feed it a data generator response to enable the orchestrator
-        global.setPreviousResponse(LegacyAgentType.DataGenerator, "testResponse")
+        setPreviousResponse(LegacyAgentType.DataGenerator, "testResponse")
         rerender(<OpportunityFinder />)
 
         await user.click(orchestratorButton)
@@ -97,7 +100,7 @@ describe("OpportunityFinder", () => {
             },
         })
 
-        const result = global.onChunkReceived(mockChunk)
+        const result = onChunkReceived(mockChunk)
         expect(result).toBe(true)
 
         // Re-render to pick up "experiment complete" message
@@ -116,14 +119,14 @@ describe("OpportunityFinder", () => {
         expect(orchestratorButton).toBeInTheDocument()
 
         // Have to feed it a data generator response to enable the orchestrator
-        global.setPreviousResponse(LegacyAgentType.DataGenerator, "testResponse")
+        setPreviousResponse(LegacyAgentType.DataGenerator, "testResponse")
         rerender(<OpportunityFinder />)
 
         await user.click(orchestratorButton)
 
         // Call the captured onChunkReceived function
         const invalidChunk = "invalid json"
-        const result = global.onChunkReceived(invalidChunk)
+        const result = onChunkReceived(invalidChunk)
         expect(result).toBe(false)
     })
 })

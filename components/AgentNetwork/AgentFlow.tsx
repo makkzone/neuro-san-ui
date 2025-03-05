@@ -116,7 +116,6 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) =
     useEffect(() => {
         let sourceAgentId: string
 
-        /* eslint-disable newline-per-chained-call */
         const selectedAgentFirstEdge = edges.find((edge) => {
             if (edge.target.toLowerCase().trim() === selectedAgentId.toLowerCase().trim()) {
                 sourceAgentId = edge.source // This is expected, we want the source if it's target
@@ -124,7 +123,6 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) =
             }
             return false
         })
-        /* eslint-enable newline-per-chained-call */
 
         if (sourceAgentId) {
             selectedSourceAgentId.current = sourceAgentId

@@ -1,11 +1,14 @@
 // eslint-disable-next-line no-shadow
 import {render, screen} from "@testing-library/react"
-import {UserEvent, default as userEvent} from "@testing-library/user-event"
+import {default as userEvent, UserEvent} from "@testing-library/user-event"
 
 import {ChatCommon} from "../../../components/AgentChat/ChatCommon"
+import {AgentErrorProps, CombinedAgentType} from "../../../components/AgentChat/Types"
 import {cleanUpAgentName} from "../../../components/AgentChat/Utils"
+import {sendChatQuery} from "../../../controller/agent/agent"
 import {AgentType} from "../../../generated/metadata"
-import {ConnectivityResponse, FunctionResponse} from "../../../generated/neuro_san/api/grpc/agent"
+import {ChatResponse, ConnectivityResponse, FunctionResponse} from "../../../generated/neuro_san/api/grpc/agent"
+import {ChatMessage, ChatMessageChatMessageType} from "../../../generated/neuro_san/api/grpc/chat"
 
 // Mock agent API
 jest.mock("../../../controller/agent/agent", () => ({
@@ -14,7 +17,10 @@ jest.mock("../../../controller/agent/agent", () => ({
             function: {description: "Hello, I am the Hello World agent", parameters: []},
         }),
     getConnectivity: () => ConnectivityResponse.fromPartial({connectivityInfo: []}),
+    sendChatQuery: jest.fn(),
 }))
+
+const TEST_USER = "testUser"
 
 describe("AgentChatCommon", () => {
     let user: UserEvent
@@ -22,6 +28,22 @@ describe("AgentChatCommon", () => {
         jest.clearAllMocks()
         user = userEvent.setup()
     })
+
+    async function sendQuery(agent: CombinedAgentType, query: string) {
+        // locate user query input
+        const userQueryInput = screen.getByPlaceholderText(`Chat with ${cleanUpAgentName(agent)}`)
+        expect(userQueryInput).toBeInTheDocument()
+
+        // Type a query
+        await user.type(userQueryInput, query)
+
+        // Find "Send" button
+        const sendButton = screen.getByRole("button", {name: "Send"})
+        expect(sendButton).toBeInTheDocument()
+
+        // Click on the "Send" button
+        await user.click(sendButton)
+    }
 
     it("Should render correctly", async () => {
         render(
@@ -71,11 +93,10 @@ describe("AgentChatCommon", () => {
 
     it("Should handle send correctly", async () => {
         const mockSendFunction = jest.fn()
-        const testUser = "testUser"
         render(
             <ChatCommon
                 id=""
-                currentUser={testUser}
+                currentUser={TEST_USER}
                 userImage=""
                 setIsAwaitingLlm={jest.fn()}
                 isAwaitingLlm={false}
@@ -84,29 +105,108 @@ describe("AgentChatCommon", () => {
             />
         )
 
-        // locate user query input
-        const userQueryInput = screen.getByPlaceholderText("Chat with Telco Network Support")
-        expect(userQueryInput).toBeInTheDocument()
-
-        // Type a query
-        const query = "Hello"
-        await user.type(userQueryInput, query)
-
-        // Find "Send" button
-        const sendButton = screen.getByRole("button", {name: "Send"})
-
-        // Click on the "Send" button
-        await user.click(sendButton)
+        const query = "Sample test query for send test"
+        await sendQuery(AgentType.TELCO_NETWORK_SUPPORT, query)
 
         expect(mockSendFunction).toHaveBeenCalledTimes(1)
         expect(mockSendFunction).toHaveBeenCalledWith(query)
+    })
+
+    it("Should handle receiving chunks correctly", async () => {
+        const onChunkReceivedMock = jest.fn().mockReturnValue(true)
+        const chatCommon = (
+            <ChatCommon
+                id=""
+                currentUser={TEST_USER}
+                userImage=""
+                setIsAwaitingLlm={jest.fn()}
+                isAwaitingLlm={false}
+                targetAgent={AgentType.TELCO_NETWORK_SUPPORT}
+                onSend={jest.fn()}
+                onChunkReceived={onChunkReceivedMock}
+            />
+        )
+        render(chatCommon)
+
+        const testResponseText = '"Response text from LLM"'
+        const successMessage: ChatMessage = ChatMessage.fromPartial({
+            type: ChatMessageChatMessageType.AI,
+            text: testResponseText,
+        })
+
+        const chatResponse: ChatResponse = ChatResponse.fromPartial({
+            response: successMessage,
+        })
+
+        const chunk = JSON.stringify({result: chatResponse})
+        ;(sendChatQuery as jest.Mock).mockImplementation(async (_, __, ___, ____, callback) => {
+            callback(chunk)
+        })
+
+        const query = "Sample test query for chunk handling"
+        await sendQuery(AgentType.TELCO_NETWORK_SUPPORT, query)
+
+        expect(await screen.findByText(testResponseText)).toBeInTheDocument()
+        expect(onChunkReceivedMock).toHaveBeenCalledTimes(1)
+        expect(onChunkReceivedMock).toHaveBeenCalledWith(chunk)
+    })
+
+    it("Should correctly detect an error chunk from Neuro-san", async () => {
+        const chatCommon = (
+            <ChatCommon
+                id=""
+                currentUser={TEST_USER}
+                userImage=""
+                setIsAwaitingLlm={jest.fn()}
+                isAwaitingLlm={false}
+                targetAgent={AgentType.ESP_DECISION_ASSISTANT}
+                onSend={jest.fn()}
+            />
+        )
+        render(chatCommon)
+
+        const errorMessage = "Error message from LLM"
+        const testResponseText = JSON.stringify({
+            error: errorMessage,
+            traceback: "test tracebook",
+            tool: "test tool",
+        } as AgentErrorProps)
+        const successMessage: ChatMessage = ChatMessage.fromPartial({
+            type: ChatMessageChatMessageType.AI,
+            text: testResponseText,
+        })
+
+        const chatResponse: ChatResponse = ChatResponse.fromPartial({
+            response: successMessage,
+        })
+
+        ;(sendChatQuery as jest.Mock).mockImplementation(async (_, __, ___, ____, callback) => {
+            callback(JSON.stringify({result: chatResponse}))
+        })
+
+        const query = "Sample test query for error handling"
+        await sendQuery(AgentType.ESP_DECISION_ASSISTANT, query)
+
+        // Should be 3 retries due to the error
+        expect(await screen.findAllByText(/Error occurred/u)).toHaveLength(3)
+
+        // Should be 3 alert items
+        const alertItems = await screen.findAllByRole("alert")
+
+        // First two are warnings
+        ;[alertItems[0], alertItems[1], alertItems[2]].forEach((item) => {
+            expect(item).toHaveClass("MuiAlert-standardWarning")
+        })
+
+        // Final one is an error
+        expect(alertItems[3]).toHaveClass("MuiAlert-standardError")
     })
 
     it("Should show agent introduction", async () => {
         render(
             <ChatCommon
                 id=""
-                currentUser="testUser"
+                currentUser={TEST_USER}
                 userImage=""
                 setIsAwaitingLlm={jest.fn()}
                 isAwaitingLlm={false}
