@@ -80,7 +80,7 @@ describe("AgentChatCommon", () => {
                 setIsAwaitingLlm={jest.fn()}
                 isAwaitingLlm={false}
                 targetAgent={AgentType.TELCO_NETWORK_SUPPORT}
-                sendFunction={mockSendFunction}
+                onSend={mockSendFunction}
             />
         )
 
@@ -99,14 +99,7 @@ describe("AgentChatCommon", () => {
         await user.click(sendButton)
 
         expect(mockSendFunction).toHaveBeenCalledTimes(1)
-        expect(mockSendFunction).toHaveBeenCalledWith(
-            expect.any(Function),
-            expect.any(Object),
-            testUser,
-            query,
-            AgentType.TELCO_NETWORK_SUPPORT,
-            expect.any(Function)
-        )
+        expect(mockSendFunction).toHaveBeenCalledWith(query)
     })
 
     it("Should show agent introduction", async () => {
@@ -118,7 +111,6 @@ describe("AgentChatCommon", () => {
                 setIsAwaitingLlm={jest.fn()}
                 isAwaitingLlm={false}
                 targetAgent={AgentType.HELLO_WORLD}
-                sendFunction={jest.fn()}
             />
         )
 
