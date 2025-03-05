@@ -94,8 +94,6 @@ export default function AgentNetworkPage() {
     }
 
     return (
-        // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-
         <Grid
             id="multi-agent-accelerator-grid"
             container
