@@ -39,7 +39,6 @@ export const FormattedMarkdown = (props: FormattedMarkdownProps): ReactElement<F
      * @param stringToFormat The string to format.
      * @returns The formatted markdown.
      */
-
     const getFormattedMarkdown = (stringToFormat: string): JSX.Element => (
         // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
         <ReactMarkdown
