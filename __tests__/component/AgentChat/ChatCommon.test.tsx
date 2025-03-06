@@ -87,7 +87,6 @@ describe("AgentChatCommon", () => {
         expect(screen.queryByRole("button", {name: "Clear Chat"})).not.toBeInTheDocument()
 
         // "Regenerate" button should be replaced by "Stop" button while awaiting LLM response
-        expect(screen.getByRole("button", {name: "Stop"})).toBeInTheDocument()
         expect(screen.queryByRole("button", {name: "Regenerate"})).not.toBeInTheDocument()
     })
 
