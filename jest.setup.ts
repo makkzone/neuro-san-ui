@@ -130,6 +130,9 @@ jest.mock(
 )
 /* eslint-enable react/display-name, react/no-multi-comp */
 
+// Not available in JSDom. See: https://github.com/jsdom/jsdom/issues/1695
+window.HTMLElement.prototype.scrollIntoView = jest.fn()
+
 // Make tests fail if any output is sent to the console
 failOnConsole({
     shouldFailOnAssert: true,

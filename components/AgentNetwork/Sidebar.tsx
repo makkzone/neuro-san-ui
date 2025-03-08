@@ -3,7 +3,7 @@ import List from "@mui/material/List"
 import ListItemButton from "@mui/material/ListItemButton"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import ListItemText from "@mui/material/ListItemText"
-import {FC} from "react"
+import {FC, useEffect, useRef} from "react"
 
 import {AgentType} from "../../generated/metadata"
 import {cleanUpAgentName} from "../AgentChat/Utils"
@@ -25,6 +25,15 @@ const NETWORKS = Object.values(AgentType)
     .sort((a, b) => a.localeCompare(b))
 
 const Sidebar: FC<SidebarProps> = ({id, selectedNetwork, setSelectedNetwork, isAwaitingLlm}) => {
+    const selectedNetworkRef = useRef<HTMLDivElement | null>(null)
+
+    // Make sure selected network in the list is always in view
+    useEffect(() => {
+        if (selectedNetworkRef.current) {
+            selectedNetworkRef.current.scrollIntoView({behavior: "instant", block: "nearest"})
+        }
+    }, [selectedNetwork])
+
     const selectNetworkHandler = (network: string) => {
         setSelectedNetwork(network as AgentType)
     }
@@ -73,6 +82,7 @@ const Sidebar: FC<SidebarProps> = ({id, selectedNetwork, setSelectedNetwork, isA
                         sx={{textAlign: "left"}}
                         selected={selectedNetwork === network}
                         disabled={isAwaitingLlm}
+                        ref={selectedNetwork === network ? selectedNetworkRef : null}
                     >
                         <ListItemIcon id={`${network}-icon`}>
                             <SpokeOutlinedIcon id={`${network}-icon`} />
