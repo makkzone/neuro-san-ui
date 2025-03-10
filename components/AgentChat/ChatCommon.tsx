@@ -462,6 +462,9 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
             // Save the chat context, potentially overwriting any previous ones we received during this session.
             // We only care about the last one received.
             chatContext.current = chatMessage.chatContext
+
+            // Nothing more to do with this message. It's just a message to give us the chat context, so return
+            return
         }
 
         // It's a Neuro-san agent. Should be a ChatMessage at this point since all Neuro-san agents should return
