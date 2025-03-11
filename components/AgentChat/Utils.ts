@@ -58,8 +58,9 @@ export const tryParseJson: (chunk: string) => null | object | string = (chunk: s
         return chatMessageJson
     } catch (error) {
         // Not JSON-like, so just return it as is, except we replace escaped newlines with actual newlines
+        // Also replace escaped double quotes with single quotes
         if (error instanceof SyntaxError) {
-            return chatMessageText.replace(/\\n/gu, "\n")
+            return chatMessageText.replace(/\\n/gu, "\n").replace(/\\"/gu, "'")
         } else {
             // Not an expected error, so rethrow it for someone else to figure out.
             throw error

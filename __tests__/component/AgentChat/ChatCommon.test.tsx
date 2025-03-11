@@ -3,9 +3,10 @@ import {render, screen} from "@testing-library/react"
 import {default as userEvent, UserEvent} from "@testing-library/user-event"
 
 import {ChatCommon} from "../../../components/AgentChat/ChatCommon"
-import {AgentErrorProps, CombinedAgentType} from "../../../components/AgentChat/Types"
+import {AgentErrorProps, CombinedAgentType, LegacyAgentType} from "../../../components/AgentChat/Types"
 import {cleanUpAgentName} from "../../../components/AgentChat/Utils"
 import {sendChatQuery} from "../../../controller/agent/agent"
+import {sendLlmRequest} from "../../../controller/llm/llm_chat"
 import {AgentType} from "../../../generated/metadata"
 import {ChatResponse, ConnectivityResponse, FunctionResponse} from "../../../generated/neuro_san/api/grpc/agent"
 import {
@@ -23,6 +24,11 @@ jest.mock("../../../controller/agent/agent", () => ({
         }),
     getConnectivity: () => ConnectivityResponse.fromPartial({connectivityInfo: []}),
     sendChatQuery: jest.fn(),
+}))
+
+// Mock llm_chat API
+jest.mock("../../../controller/llm/llm_chat", () => ({
+    sendLlmRequest: jest.fn(),
 }))
 
 const TEST_USER = "testUser"
@@ -116,9 +122,9 @@ describe("AgentChatCommon", () => {
         expect(mockSendFunction).toHaveBeenCalledWith(query)
     })
 
-    it("Should handle receiving chunks correctly", async () => {
+    it("Should handle receiving chunks from Neuro-san agents correctly", async () => {
         const onChunkReceivedMock = jest.fn().mockReturnValue(true)
-        const chatCommon = (
+        render(
             <ChatCommon
                 id=""
                 currentUser={TEST_USER}
@@ -130,16 +136,13 @@ describe("AgentChatCommon", () => {
                 onChunkReceived={onChunkReceivedMock}
             />
         )
-        render(chatCommon)
 
         const testResponseText = '"Response text from LLM"'
-        const successMessage: ChatMessage = ChatMessage.fromPartial({
-            type: ChatMessageChatMessageType.AI,
-            text: testResponseText,
-        })
-
         const chatResponse: ChatResponse = ChatResponse.fromPartial({
-            response: successMessage,
+            response: ChatMessage.fromPartial({
+                type: ChatMessageChatMessageType.AI,
+                text: testResponseText,
+            }),
         })
 
         const chunk = JSON.stringify({result: chatResponse})
@@ -153,6 +156,35 @@ describe("AgentChatCommon", () => {
         expect(await screen.findByText(testResponseText)).toBeInTheDocument()
         expect(onChunkReceivedMock).toHaveBeenCalledTimes(1)
         expect(onChunkReceivedMock).toHaveBeenCalledWith(chunk)
+    })
+
+    it("Should handle receiving chunks from legacy agents correctly", async () => {
+        const onChunkReceivedMock = jest.fn().mockReturnValue(true)
+        render(
+            <ChatCommon
+                id=""
+                currentUser={TEST_USER}
+                userImage=""
+                setIsAwaitingLlm={jest.fn()}
+                isAwaitingLlm={false}
+                targetAgent={LegacyAgentType.DataGenerator}
+                onSend={jest.fn()}
+                onChunkReceived={onChunkReceivedMock}
+            />
+        )
+
+        const testResponseText = '"Response text from LLM"'
+
+        ;(sendLlmRequest as jest.Mock).mockImplementation(async (callback) => {
+            callback(testResponseText)
+        })
+
+        const query = "Sample test query for chunk handling"
+        await sendQuery(LegacyAgentType.DataGenerator, query)
+
+        expect(await screen.findByText(testResponseText)).toBeInTheDocument()
+        expect(onChunkReceivedMock).toHaveBeenCalledTimes(1)
+        expect(onChunkReceivedMock).toHaveBeenCalledWith(testResponseText)
     })
 
     it("Should correctly detect an error chunk from Neuro-san", async () => {
@@ -280,5 +312,27 @@ describe("AgentChatCommon", () => {
         )
 
         expect(await screen.findByText(cleanUpAgentName(AgentType.HELLO_WORLD))).toBeInTheDocument()
+    })
+
+    it("Should handle Stop correctly", async () => {
+        const setAwaitingLlmMock = jest.fn()
+        render(
+            <ChatCommon
+                id=""
+                currentUser={TEST_USER}
+                userImage=""
+                setIsAwaitingLlm={setAwaitingLlmMock}
+                isAwaitingLlm={true}
+                targetAgent={AgentType.HELLO_WORLD}
+            />
+        )
+
+        const stopButton = await screen.findByRole("button", {name: "Stop"})
+        expect(stopButton).toBeInTheDocument()
+
+        await user.click(stopButton)
+        expect(await screen.findByText("Request cancelled.")).toBeInTheDocument()
+        expect(setAwaitingLlmMock).toHaveBeenCalledTimes(1)
+        expect(setAwaitingLlmMock).toHaveBeenCalledWith(false)
     })
 })

@@ -12,6 +12,7 @@ import {jsonrepair} from "jsonrepair"
 import NextImage from "next/image"
 import {CSSProperties, Dispatch, FC, ReactElement, ReactNode, SetStateAction, useEffect, useRef, useState} from "react"
 import {MdOutlineWrapText, MdVerticalAlignBottom} from "react-icons/md"
+import ReactMarkdown from "react-markdown"
 import SyntaxHighlighter from "react-syntax-highlighter"
 
 import {HIGHLIGHTER_THEME, MAX_AGENT_RETRIES} from "./const"
@@ -28,7 +29,7 @@ import {sendLlmRequest} from "../../controller/llm/llm_chat"
 import {AgentType as NeuroSanAgent} from "../../generated/metadata"
 import {ConnectivityInfo, ConnectivityResponse, FunctionResponse} from "../../generated/neuro_san/api/grpc/agent"
 import {ChatContext, ChatMessage, ChatMessageChatMessageType} from "../../generated/neuro_san/api/grpc/chat"
-import {hasOnlyWhitespace} from "../../utils/text"
+import {hashString, hasOnlyWhitespace} from "../../utils/text"
 import {getTitleBase} from "../../utils/title"
 import {LlmChatOptionsButton} from "../internal/LlmChatOptionsButton"
 import {MUIAccordion} from "../MUIAccordion"
@@ -228,10 +229,12 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
             // Attempt to parse as JSON
 
             // First, repair it. Also replace "escaped newlines" with actual newlines for better display.
-            repairedJson = jsonrepair(logLineDetails).replace(/\\n/gu, "\n")
+            repairedJson = jsonrepair(logLineDetails)
 
             // Now try to parse it. We don't care about the result, only if it throws on parsing.
             JSON.parse(repairedJson)
+
+            repairedJson = repairedJson.replace(/\\n/gu, "\n").replace(/\\"/gu, "'")
         } catch (e) {
             // Not valid JSON
             repairedJson = null
@@ -255,13 +258,15 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
                                         language="json"
                                         style={HIGHLIGHTER_THEME}
                                         showLineNumbers={false}
-                                        wrapLines={true}
                                         wrapLongLines={shouldWrapOutput}
                                     >
                                         {repairedJson}
                                     </SyntaxHighlighter>
                                 ) : (
-                                    logLineDetails || "No further details"
+                                    // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
+                                    <ReactMarkdown key={hashString(logLineDetails)}>
+                                        {logLineDetails || "No further details"}
+                                    </ReactMarkdown>
                                 )}
                             </div>
                         ),
@@ -425,7 +430,6 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
             )
         } finally {
             resetState()
-            setIsAwaitingLlm(false)
         }
     }
 
