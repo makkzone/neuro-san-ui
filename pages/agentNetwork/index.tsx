@@ -3,23 +3,17 @@ import {useEffect, useState} from "react"
 import {ReactFlowProvider} from "reactflow"
 
 import {ChatCommon} from "../../components/AgentChat/ChatCommon"
-import {cleanUpAgentName, tryParseJson} from "../../components/AgentChat/Utils"
+import {chatMessageFromChunk, cleanUpAgentName} from "../../components/AgentChat/Utils"
 import AgentFlow from "../../components/AgentNetwork/AgentFlow"
 import Sidebar from "../../components/AgentNetwork/Sidebar"
 import {NotificationType, sendNotification} from "../../components/notification"
 import {getConnectivity} from "../../controller/agent/agent"
 import {AgentType} from "../../generated/metadata"
 import {ConnectivityInfo, ConnectivityResponse} from "../../generated/neuro_san/api/grpc/agent"
+import {Origin} from "../../generated/neuro_san/api/grpc/chat"
 import {useAuthentication} from "../../utils/authentication"
 
 // #region: Types
-
-// no-shadow doesn't do well with enum types
-// eslint-disable-next-line no-shadow
-enum AgentNetworkEvents {
-    CALLED = "CALLED",
-    RETURNED = "RETURNED",
-}
 
 // #endregion: Types
 
@@ -35,7 +29,7 @@ export default function AgentNetworkPage() {
     // Stores whether are currently awaiting LLM response (for knowing when to show spinners)
     const [isAwaitingLlm, setIsAwaitingLlm] = useState(false)
 
-    const [selectedAgentId, setSelectedAgentId] = useState<string>("")
+    const [originInfo, setOriginInfo] = useState<Origin[]>([])
 
     const [agentsInNetwork, setAgentsInNetwork] = useState<ConnectivityInfo[]>([])
 
@@ -58,35 +52,18 @@ export default function AgentNetworkPage() {
         })()
     }, [selectedNetwork])
 
-    const detectSelectedAgent = (chatMessageText: string) => {
-        // TODO: replace this with a strategy using "origins" info now available in Neuro-san API
-        const calledIndexOf = chatMessageText.indexOf(AgentNetworkEvents.CALLED)
-        const returnedIndexOf = chatMessageText.indexOf(AgentNetworkEvents.RETURNED)
-        let agentName: string
-
-        if (calledIndexOf > -1) {
-            agentName = chatMessageText.slice(0, calledIndexOf)
-        } else if (returnedIndexOf > -1) {
-            agentName = chatMessageText.slice(0, returnedIndexOf)
-        }
-
-        if (agentName) {
-            setSelectedAgentId(agentName)
-        }
-    }
-
     const onChunkReceived = (chunk: string) => {
-        const chatMessage = tryParseJson(chunk)
-        // Messages that contain agent origin info currently are only the "string" ones, not JSON
-        if (chatMessage && typeof chatMessage === "string") {
-            detectSelectedAgent(chatMessage)
+        // Obtain origin info if present
+        const chatMessage = chatMessageFromChunk(chunk)
+        if (chatMessage?.origin.length > 0) {
+            setOriginInfo(chatMessage.origin)
         }
 
         return true
     }
 
     const onStreamingComplete = (): void => {
-        setSelectedAgentId("")
+        setOriginInfo([])
     }
 
     return (
@@ -123,7 +100,7 @@ export default function AgentNetworkPage() {
                     <AgentFlow
                         agentsInNetwork={agentsInNetwork}
                         id="multi-agent-accelerator-agent-flow"
-                        selectedAgentId={selectedAgentId}
+                        originInfo={originInfo}
                     />
                 </ReactFlowProvider>
             </Grid>

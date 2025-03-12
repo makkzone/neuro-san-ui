@@ -4,11 +4,11 @@ import {FC} from "react"
 import {Handle, NodeProps, Position} from "reactflow"
 
 import {BACKGROUND_COLORS} from "./const"
+import {Origin} from "../../generated/neuro_san/api/grpc/chat"
 
 export interface AgentNodeProps {
     agentName: string
-    getSelectedAgentId: () => string
-    getSourceAgentId: () => string
+    getOriginInfo: () => Origin[]
     isFrontman: boolean
     depth: number
 }
@@ -24,7 +24,7 @@ export const NODE_WIDTH = 70
 export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentNodeProps>) => {
     // Unpack the node-specific data
     const data: AgentNodeProps = props.data
-    const {agentName, getSelectedAgentId, getSourceAgentId, isFrontman, depth} = data
+    const {agentName, getOriginInfo, isFrontman, depth} = data
 
     // Unpack the node-specific id
     const agentId = props.id
@@ -33,9 +33,9 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
     // We highlight them with a red background.
     /* eslint-disable newline-per-chained-call */
 
-    const isActiveAgent =
-        getSelectedAgentId()?.toLowerCase().trim() === agentId.toLowerCase().trim() ||
-        getSourceAgentId()?.toLowerCase().trim() === agentId.toLowerCase().trim()
+    const isActiveAgent = getOriginInfo()
+        .map((originItem) => originItem.tool)
+        .includes(agentId)
 
     /* eslint-enable newline-per-chained-call */
 

@@ -8,6 +8,7 @@ import {Edge, EdgeProps, Node as RFNode} from "reactflow"
 import {AgentNodeProps} from "./AgentNode"
 import {BASE_RADIUS, DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS, LEVEL_SPACING} from "./const"
 import {ConnectivityInfo} from "../../generated/neuro_san/api/grpc/agent"
+import {Origin} from "../../generated/neuro_san/api/grpc/chat"
 import {cleanUpAgentName} from "../AgentChat/Utils"
 
 // #region: Constants
@@ -57,8 +58,7 @@ const getFrontman = (parentAgents: ConnectivityInfo[], childAgents: Set<string>)
 
 export const layoutRadial = (
     agentsInNetwork: ConnectivityInfo[],
-    getSelectedAgentId: () => string,
-    getSourceAgentId: () => string | undefined
+    getOriginInfo: () => Origin[]
 ): {
     nodes: RFNode<AgentNodeProps>[]
     edges: Edge<EdgeProps>[]
@@ -144,8 +144,7 @@ export const layoutRadial = (
                 type: AGENT_NODE_TYPE_NAME,
                 data: {
                     agentName: cleanUpAgentName(nodeId),
-                    getSelectedAgentId,
-                    getSourceAgentId,
+                    getOriginInfo,
                     isFrontman,
                     depth,
                 },
@@ -159,8 +158,7 @@ export const layoutRadial = (
 
 export const layoutLinear = (
     agentsInNetwork: ConnectivityInfo[],
-    getSelectedAgentId: () => string,
-    getSourceAgentId: () => string | undefined
+    getOriginInfo: () => Origin[]
 ): {
     nodes: RFNode<AgentNodeProps>[]
     edges: Edge<EdgeProps>[]
@@ -181,8 +179,7 @@ export const layoutLinear = (
             type: AGENT_NODE_TYPE_NAME,
             data: {
                 agentName: cleanUpAgentName(originOfNode),
-                getSelectedAgentId,
-                getSourceAgentId,
+                getOriginInfo,
                 isFrontman,
             },
             position: isFrontman ? {x: DEFAULT_FRONTMAN_X_POS, y: DEFAULT_FRONTMAN_Y_POS} : {x: 0, y: 0},

@@ -29,31 +29,27 @@ import {AnimatedEdge} from "./AnimatedEdge"
 import {BACKGROUND_COLORS, BASE_RADIUS, DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS, LEVEL_SPACING} from "./const"
 import {layoutLinear, layoutRadial} from "./GraphLayouts"
 import {ConnectivityInfo} from "../../generated/neuro_san/api/grpc/agent"
+import {Origin} from "../../generated/neuro_san/api/grpc/chat"
 
 // #region: Types
 interface AgentFlowProps {
     agentsInNetwork: ConnectivityInfo[]
     id: string
-    selectedAgentId?: string
+    originInfo?: Origin[]
 }
 
 type Layout = "radial" | "linear"
 // #endregion: Types
 
-const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) => {
+const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo}) => {
     // Save this as a mutable ref so child nodes see updates
-    const selectedAgentIdRef = useRef<string>(selectedAgentId)
-    const selectedSourceAgentId = useRef<string | undefined>(undefined)
+    const originInfoRef = useRef<Origin[]>(originInfo)
 
     useEffect(() => {
-        selectedAgentIdRef.current = selectedAgentId
-    }, [selectedAgentId])
+        originInfoRef.current = originInfo
+    }, [originInfo])
 
-    const getSelectedAgentId = useCallback<() => string>(() => selectedAgentIdRef.current, [selectedAgentIdRef.current])
-    const getSelectedSourceAgentId = useCallback<() => string>(
-        () => selectedSourceAgentId.current,
-        [selectedSourceAgentId.current]
-    )
+    const getOriginInfo = useCallback<() => Origin[]>(() => originInfoRef.current, [originInfoRef.current])
 
     const [flowInstance, setFlowInstance] = useState<ReactFlowInstance>(null)
 
@@ -76,20 +72,20 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) =
 
         switch (layout) {
             case "linear": {
-                const linearLayout = layoutLinear(agentsInNetwork, getSelectedAgentId, getSelectedSourceAgentId)
+                const linearLayout = layoutLinear(agentsInNetwork, getOriginInfo)
                 linearLayout.nodes && setNodes(linearLayout.nodes)
                 linearLayout.edges && setEdges(linearLayout.edges)
                 break
             }
             case "radial":
             default: {
-                const radialLayout = layoutRadial(agentsInNetwork, getSelectedAgentId, getSelectedSourceAgentId)
+                const radialLayout = layoutRadial(agentsInNetwork, getOriginInfo)
                 radialLayout.nodes && setNodes(radialLayout.nodes)
                 radialLayout.edges && setEdges(radialLayout.edges)
                 break
             }
         }
-    }, [agentsInNetwork, layout, selectedAgentId, selectedSourceAgentId])
+    }, [agentsInNetwork, layout, originInfo])
 
     const onNodesChange = useCallback((changes: NodeChange[]) => {
         setNodes((ns) =>
@@ -109,35 +105,18 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) =
         setFlowInstance(reactFlowInstance)
     }, [])
 
-    // Highlight first edge we find connected to active agent. SOMETIMES THIS WILL BE WRONG if there are multiple
-    // edges to the active agent but this is a start.
-    // TODO: we really only want to highlight the one from the sender to the active agent, but we don't have
-    // origins info yet. We don't know _who_ sent the message to the active agent so for now, we guess.
+    // Highlight active edges, which are those connecting active agents as defined by originInfo.
     useEffect(() => {
-        let sourceAgentId: string
+        const originTools = originInfo.map((originItem) => originItem.tool)
 
-        const selectedAgentFirstEdge = edges.find((edge) => {
-            if (edge.target.toLowerCase().trim() === selectedAgentId.toLowerCase().trim()) {
-                sourceAgentId = edge.source // This is expected, we want the source if it's target
-                return true
-            }
-            return false
-        })
-
-        if (sourceAgentId) {
-            selectedSourceAgentId.current = sourceAgentId
-        } else {
-            selectedSourceAgentId.current = null
-        }
-
-        const edgesCopy = edges.map((edge: Edge<EdgeProps>) => ({
-            ...edge,
-            style: {
-                strokeWidth: edge.id === selectedAgentFirstEdge?.id ? 3 : undefined,
-                stroke: edge.id === selectedAgentFirstEdge?.id ? "var(--bs-primary)" : undefined,
-            },
-            markerEnd:
-                edge.id === selectedAgentFirstEdge?.id
+        const edgesCopy = edges.map((edge: Edge<EdgeProps>) => {
+            return {
+                ...edge,
+                style: {
+                    strokeWidth: originTools.includes(edge.target.toLowerCase().trim()) ? 3 : undefined,
+                    stroke: originTools.includes(edge.target.toLowerCase().trim()) ? "var(--bs-primary)" : undefined,
+                },
+                markerEnd: originTools.includes(edge.target.toLowerCase().trim())
                     ? {
                           type: MarkerType.Arrow,
                           color: "darkblue", // var(--bs-primary) doesn't work here for some reason
@@ -145,11 +124,12 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, selectedAgentId}) =
                           height: 15,
                       }
                     : undefined,
-            type: edge.id === selectedAgentFirstEdge?.id ? "animatedEdge" : undefined,
-        }))
+                type: originTools.includes(edge.target.toLowerCase().trim()) ? "animatedEdge" : undefined,
+            }
+        })
 
         setEdges(edgesCopy)
-    }, [selectedAgentId])
+    }, [originInfo])
 
     const transform = useStore((state) => state.transform)
 
