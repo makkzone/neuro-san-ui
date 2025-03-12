@@ -45,7 +45,7 @@ describe("GraphLayouts", () => {
     ]
 
     it("Should generate a linear layout", async () => {
-        const {nodes, edges} = layoutLinear(threeAgentNetwork, jest.fn(), jest.fn())
+        const {nodes, edges} = layoutLinear(threeAgentNetwork, jest.fn())
 
         expect(nodes).toHaveLength(3)
         expect(edges).toHaveLength(2)
@@ -71,7 +71,7 @@ describe("GraphLayouts", () => {
     })
 
     it("Should generate a radial layout", async () => {
-        const {nodes, edges} = layoutRadial(sevenAgentNetwork, jest.fn(), jest.fn())
+        const {nodes, edges} = layoutRadial(sevenAgentNetwork, jest.fn())
 
         expect(nodes).toHaveLength(7)
         expect(edges).toHaveLength(6)
@@ -136,7 +136,7 @@ describe("GraphLayouts", () => {
     })
 
     it("Should handle cycles in the graph", async () => {
-        const {nodes, edges} = layoutRadial(threeAgentNetwork, jest.fn(), jest.fn())
+        const {nodes, edges} = layoutRadial(threeAgentNetwork, jest.fn())
 
         expect(nodes).toHaveLength(3)
         expect(edges).toHaveLength(2)
@@ -159,7 +159,7 @@ describe("GraphLayouts", () => {
 
     // Broken test! We don't handle transitive dependencies correctly.
     it("Should handle direct and transitive dependencies in the graph", async () => {
-        const {nodes, edges} = layoutRadial(transitiveGraph, jest.fn(), jest.fn())
+        const {nodes, edges} = layoutRadial(transitiveGraph, jest.fn())
 
         // Check nodes
         expect(nodes).toHaveLength(3)
@@ -183,7 +183,7 @@ describe("GraphLayouts", () => {
         {layoutFunction: layoutRadial, name: "radial"},
         {layoutFunction: layoutLinear, name: "linear"},
     ])("Should handle a degenerate single-node graph in $name layout", async ({layoutFunction}) => {
-        const {nodes, edges} = layoutFunction(singleNodeNetwork, jest.fn(), jest.fn())
+        const {nodes, edges} = layoutFunction(singleNodeNetwork, jest.fn())
 
         expect(nodes).toHaveLength(1)
         expect(edges).toHaveLength(0)
@@ -197,7 +197,7 @@ describe("GraphLayouts", () => {
     ])("Should handle a disconnected graph in $name layout", async ({layoutFunction}) => {
         // We don't really support this case; "should never happen". This test is to make sure we at least
         // don't crash. This also exercises the (invalid) "multiple frontmen" case
-        const {nodes, edges} = layoutFunction(disconnectedGraph, jest.fn(), jest.fn())
+        const {nodes, edges} = layoutFunction(disconnectedGraph, jest.fn())
 
         expect(nodes).toHaveLength(4)
         expect(edges.length).toBeGreaterThanOrEqual(0) // undefined behavior with bad input

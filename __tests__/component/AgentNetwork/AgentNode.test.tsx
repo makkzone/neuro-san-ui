@@ -28,8 +28,7 @@ describe("AgentNode", () => {
                 dragging={false}
                 data={{
                     agentName: agentName,
-                    getSelectedAgentId: () => "",
-                    getSourceAgentId: () => "",
+                    getOriginInfo: () => [],
                     isFrontman: false,
                     depth: 1,
                 }}
@@ -61,8 +60,7 @@ describe("AgentNode", () => {
                 dragging={false}
                 data={{
                     agentName: "testAgent",
-                    getSelectedAgentId: () => "",
-                    getSourceAgentId: () => "",
+                    getOriginInfo: () => [],
                     isFrontman: true,
                     depth: 3,
                 }}
@@ -96,8 +94,7 @@ describe("AgentNode", () => {
                 dragging={false}
                 data={{
                     agentName: "testAgent",
-                    getSelectedAgentId: () => "",
-                    getSourceAgentId: () => agentName,
+                    getOriginInfo: () => [{tool: agentName, instantiationIndex: 1}],
                     isFrontman: false,
                     depth: 3,
                 }}

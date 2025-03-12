@@ -53,7 +53,7 @@ describe("AgentFlow", () => {
                 <AgentFlow
                     id="test-flow-id"
                     agentsInNetwork={network}
-                    selectedAgentId="agent1"
+                    originInfo={[{tool: "agent1", instantiationIndex: 1}]}
                 />
             </ReactFlowProvider>
         )
@@ -70,7 +70,7 @@ describe("AgentFlow", () => {
                 <AgentFlow
                     id="test-flow-id"
                     agentsInNetwork={network}
-                    selectedAgentId="agent2"
+                    originInfo={[{tool: "agent2", instantiationIndex: 1}]}
                 />
             </ReactFlowProvider>
         )
@@ -84,7 +84,7 @@ describe("AgentFlow", () => {
                 <AgentFlow
                     id="test-flow-id"
                     agentsInNetwork={network}
-                    selectedAgentId="agent3"
+                    originInfo={[{tool: "agent3", instantiationIndex: 1}]}
                 />
             </ReactFlowProvider>
         )
@@ -116,7 +116,7 @@ describe("AgentFlow", () => {
                 <AgentFlow
                     id="test-flow-id"
                     agentsInNetwork={[]}
-                    selectedAgentId={null}
+                    originInfo={[]}
                 />
             </ReactFlowProvider>
         )
@@ -131,7 +131,7 @@ describe("AgentFlow", () => {
                 <AgentFlow
                     id="test-flow-id"
                     agentsInNetwork={network}
-                    selectedAgentId="agent1"
+                    originInfo={[{tool: "agent1", instantiationIndex: 1}]}
                 />
             </ReactFlowProvider>
         )

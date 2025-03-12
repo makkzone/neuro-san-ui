@@ -31,13 +31,9 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
 
     // "Active" agents are those at either end of the current communication from the incoming chat messages.
     // We highlight them with a red background.
-    /* eslint-disable newline-per-chained-call */
-
     const isActiveAgent = getOriginInfo()
         .map((originItem) => originItem.tool)
         .includes(agentId)
-
-    /* eslint-enable newline-per-chained-call */
 
     let backgroundColor
     if (isFrontman) {
