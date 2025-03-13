@@ -2,6 +2,7 @@ import Card from "@mui/material/Card"
 import Tooltip from "@mui/material/Tooltip"
 import {useEffect, useState} from "react"
 
+import {ZIndexLayers} from "../../../../../utils/zIndexLayers"
 import NodePopper from "../../../../nodepopper"
 import {addDisabledPropertyToOutcomes, Outcomes} from "../utils"
 
@@ -118,7 +119,7 @@ const CAOButtons = (props) => {
                 <Card
                     id={`${flowPrefix}-actions-card${idExtension}`}
                     className="overflow-y-auto h-40 text-xs"
-                    style={{zIndex: 1000}}
+                    style={{zIndex: ZIndexLayers.LAYER_2}}
                 >
                     <span
                         id={`${flowPrefix}-actions-text${idExtension}`}

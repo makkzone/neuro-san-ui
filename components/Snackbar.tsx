@@ -58,8 +58,6 @@ export const Snackbar = forwardRef<HTMLDivElement, SnackbarProps>(
                         maxWidth: "450px",
                         minWidth: "250px",
                         padding: "5px",
-                        position: "relative",
-                        zIndex: 10000,
                     }}
                 >
                     {!hideIconVariant && (

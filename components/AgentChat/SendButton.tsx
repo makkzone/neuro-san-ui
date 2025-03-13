@@ -20,8 +20,6 @@ export const SendButton: React.FC<SendButtonProps> = ({enableSendButton, id, onC
         id={id}
         disabled={!enableSendButton}
         onClick={onClickCallback}
-        posBottom={0}
-        posRight={0}
         sx={{
             padding: "0.6rem",
             position: "relative",

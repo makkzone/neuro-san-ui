@@ -2,6 +2,8 @@ import {ClickAwayListener} from "@mui/base/ClickAwayListener"
 import {Popper, PopperPlacementType} from "@mui/material"
 import {CSSProperties, ReactNode, useState} from "react"
 
+import {ZIndexLayers} from "../utils/zIndexLayers"
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     btnContent: string | ReactNode
     id: string
@@ -61,7 +63,7 @@ const NodePopper = ({
                     id={popperId}
                     open={isOpen}
                     anchorEl={anchorEl}
-                    sx={{zIndex: 999999}}
+                    sx={{zIndex: ZIndexLayers.LAYER_2}}
                 >
                     {children}
                 </Popper>

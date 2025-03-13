@@ -6,6 +6,7 @@ import ListItemText from "@mui/material/ListItemText"
 import {FC, useEffect, useRef} from "react"
 
 import {AgentType} from "../../generated/metadata"
+import {ZIndexLayers} from "../../utils/zIndexLayers"
 import {cleanUpAgentName} from "../AgentChat/Utils"
 
 // #region: Types
@@ -64,7 +65,7 @@ const Sidebar: FC<SidebarProps> = ({id, selectedNetwork, setSelectedNetwork, isA
                     paddingBottom: "0.75rem",
                     position: "sticky",
                     top: 0,
-                    zIndex: 1,
+                    zIndex: ZIndexLayers.LAYER_1,
                 }}
             >
                 Agent Networks

@@ -6,6 +6,7 @@ import {getOutgoers, NodeProps, useEdges, useNodes} from "reactflow"
 
 import ConfigurableNodeComponent, {ConfigurableNode, ConfigurableNodeData} from "./generic/configurableNode"
 import {NodeData, NodeType} from "./types"
+import {ZIndexLayers} from "../../../../utils/zIndexLayers"
 import {NotificationType, sendNotification} from "../../../notification"
 import {EdgeType} from "../edges/types"
 import {FlowQueries} from "../flowqueries"
@@ -356,7 +357,7 @@ const PredictorNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) => {
             }}
             type="predictor"
             selected={false}
-            zIndex={0}
+            zIndex={ZIndexLayers.LAYER_1}
             isConnectable={false}
             xPos={0}
             yPos={0}

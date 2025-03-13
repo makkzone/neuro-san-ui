@@ -11,7 +11,7 @@ export enum NotificationType {
 }
 
 // Display warning and error notification popups for this many seconds
-const ERROR_WARNING_NOTIFICATION_DURATION_MS = 15000
+const ERROR_WARNING_NOTIFICATION_DURATION_MS = 15_000
 
 // Display info notification popups for this many seconds
 const SUCCESS_NOTIFICATION_DURATION_MS = 5000

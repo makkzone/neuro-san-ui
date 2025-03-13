@@ -634,7 +634,13 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
         >
             <Box
                 id="llm-response-div"
-                sx={{...divStyle, height: "60vh", margin: "10px", position: "relative", marginTop: "1rem"}}
+                sx={{
+                    ...divStyle,
+                    height: "60vh",
+                    margin: "10px",
+                    position: "relative",
+                    marginTop: "1rem",
+                }}
             >
                 <Tooltip
                     id="enable-autoscroll"

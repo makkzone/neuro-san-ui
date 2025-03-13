@@ -16,10 +16,9 @@ export const LlmChatButton = styled(Button, {
 })<LLMChatGroupConfigBtnProps>(({disabled, posRight, posBottom}) => ({
     background: "var(--bs-primary) !important",
     borderRadius: "var(--bs-border-radius)",
-    bottom: posBottom !== undefined ? posBottom : "10px",
+    bottom: posBottom !== undefined ? posBottom : 0,
     cursor: disabled ? "default" : "pointer",
     opacity: disabled ? "50%" : "100%",
-    right: posRight !== undefined ? posRight : "10px",
+    right: posRight !== undefined ? posRight : 0,
     position: "absolute",
-    zIndex: 99999,
 }))
