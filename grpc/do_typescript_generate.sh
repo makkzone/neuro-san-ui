@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-# This script generates gRPC stubs for Typescript from the definitions in the ./proto directory. The script needs
-# to be run when initially setting up a dev environment, and any time there are changes to the protobuf definitions.
+# This script generates gRPC stubs for Typescript for both Neuro AI and Neuro SAN.
+#
+# This script retrieves the necessary proto files from both Github repositories, and saves them to an appropriate
+# location where the protoc compiler can find them.
 #
 # Pre-requisites:
 # 1) Install the protoc compiler
@@ -12,8 +14,6 @@
 # This script must be run from the nextfront directory, which is in line with the Docker build which runs from the
 # nextfront directory.
 #
-# The agent (neuro-san) protobuf files reside in a separate Github repository. This script retrieves those and saves
-# them to an appropriate location where the protoc compiler can find them.
 
 # See https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html for what these do
 set -o errexit
