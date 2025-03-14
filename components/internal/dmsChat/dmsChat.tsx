@@ -289,6 +289,12 @@ export function DMSChat(props: {
                         onChange={(event) => {
                             setUserInput(event.target.value)
                         }}
+                        onKeyDown={async (event) => {
+                            if (event.key === "Enter" && !event.shiftKey) {
+                                event.preventDefault()
+                                await sendQuery(userInput)
+                            }
+                        }}
                         value={userInput}
                         slotProps={{
                             input: {

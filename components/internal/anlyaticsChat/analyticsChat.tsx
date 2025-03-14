@@ -390,6 +390,7 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                         type="text"
                         placeholder="Message the analytics chat agent"
                         inputRef={inputAreaRef}
+                        multiline={true}
                         sx={{
                             fontSize: "90%",
                             width: "100%",
@@ -398,6 +399,12 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
                         }}
                         onChange={(event) => {
                             setUserInput(event.target.value)
+                        }}
+                        onKeyDown={async (event) => {
+                            if (event.key === "Enter" && !event.shiftKey) {
+                                event.preventDefault()
+                                await sendQuery(userInput)
+                            }
                         }}
                         value={userInput}
                         slotProps={{

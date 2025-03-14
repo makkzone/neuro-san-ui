@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-shadow
-import {render, screen} from "@testing-library/react"
+import {fireEvent, render, screen, waitFor} from "@testing-library/react"
 import {default as userEvent, UserEvent} from "@testing-library/user-event"
 
 import {ChatCommon} from "../../../components/AgentChat/ChatCommon"
@@ -101,8 +101,10 @@ describe("AgentChatCommon", () => {
         expect(screen.queryByRole("button", {name: "Regenerate"})).not.toBeInTheDocument()
     })
 
-    it("Should handle send correctly", async () => {
+    it("Should handle user input correctly and should call Send on click", async () => {
         const mockSendFunction = jest.fn()
+        const strToCheck = "Please fix my internet"
+
         render(
             <ChatCommon
                 id=""
@@ -115,11 +117,91 @@ describe("AgentChatCommon", () => {
             />
         )
 
-        const query = "Sample test query for send test"
-        await sendQuery(AgentType.TELCO_NETWORK_SUPPORT, query)
+        const userInput = screen.getByPlaceholderText("Chat with Telco Network Support")
+        expect(userInput).toBeInTheDocument()
 
+        // Type user input
+        await user.type(userInput, strToCheck)
+        // Check that user input is correct
+        expect(userInput).toHaveValue(strToCheck)
+
+        const sendButton = await screen.findByRole("button", {name: "Send"})
+        expect(sendButton).toBeInTheDocument()
+        // Click Send button
+        await user.click(sendButton)
+
+        // Check that Send button on click works
         expect(mockSendFunction).toHaveBeenCalledTimes(1)
-        expect(mockSendFunction).toHaveBeenCalledWith(query)
+        expect(mockSendFunction).toHaveBeenCalledWith(strToCheck)
+    })
+
+    it("Should call Send on enter", async () => {
+        const mockSendFunction = jest.fn()
+        const strToCheck = "Please fix my internet"
+
+        render(
+            <ChatCommon
+                id=""
+                currentUser={TEST_USER}
+                userImage=""
+                setIsAwaitingLlm={jest.fn()}
+                isAwaitingLlm={false}
+                targetAgent={AgentType.TELCO_NETWORK_SUPPORT}
+                onSend={mockSendFunction}
+            />
+        )
+
+        const userInput = screen.getByPlaceholderText("Chat with Telco Network Support")
+        expect(userInput).toBeInTheDocument()
+
+        // Type user input
+        await user.type(userInput, strToCheck)
+        // Press enter
+        fireEvent.keyDown(userInput, {key: "Enter"})
+
+        // Check that enter has triggered the Send
+        await waitFor(() => expect(mockSendFunction).toHaveBeenCalledTimes(1))
+        await waitFor(() => expect(mockSendFunction).toHaveBeenCalledWith(strToCheck))
+    })
+
+    it("Should not call Send on enter + shift and should handle multiline input correctly", async () => {
+        const mockSendFunction = jest.fn()
+        const strToCheckLine1 = "Please fix my internet line 1"
+        const strToCheckLine2 = "Please fix my internet line 2"
+        const fullStrToCheck = `${strToCheckLine1}\n${strToCheckLine2}`
+
+        render(
+            <ChatCommon
+                id=""
+                currentUser={TEST_USER}
+                userImage=""
+                setIsAwaitingLlm={jest.fn()}
+                isAwaitingLlm={false}
+                targetAgent={AgentType.TELCO_NETWORK_SUPPORT}
+                onSend={mockSendFunction}
+            />
+        )
+
+        const userInput = screen.getByPlaceholderText("Chat with Telco Network Support")
+        expect(userInput).toBeInTheDocument()
+
+        // Type line 1
+        await user.type(userInput, strToCheckLine1)
+        // Type enter + shift
+        await user.type(userInput, "{Shift>}{Enter}{/Shift}")
+
+        // Make sure that enter + shift has not triggered the Send
+        await waitFor(() => expect(mockSendFunction).not.toHaveBeenCalledTimes(1))
+        await waitFor(() => expect(mockSendFunction).not.toHaveBeenCalledWith(strToCheckLine1))
+
+        // Type line 2
+        await user.type(userInput, strToCheckLine2)
+
+        // Press enter
+        fireEvent.keyDown(userInput, {key: "Enter"})
+
+        await waitFor(() => expect(mockSendFunction).toHaveBeenCalledTimes(1))
+        await waitFor(() => expect(mockSendFunction).toHaveBeenCalledWith(fullStrToCheck))
     })
 
     it("Should handle receiving chunks from Neuro-san agents correctly", async () => {
@@ -334,5 +416,43 @@ describe("AgentChatCommon", () => {
         expect(await screen.findByText("Request cancelled.")).toBeInTheDocument()
         expect(setAwaitingLlmMock).toHaveBeenCalledTimes(1)
         expect(setAwaitingLlmMock).toHaveBeenCalledWith(false)
+    })
+
+    it("Should handle autoscroll toggle correctly", async () => {
+        render(
+            <ChatCommon
+                id=""
+                currentUser={TEST_USER}
+                userImage=""
+                setIsAwaitingLlm={jest.fn()}
+                isAwaitingLlm={false}
+                targetAgent={AgentType.TELCO_NETWORK_SUPPORT}
+            />
+        )
+
+        const autoscrollButton = screen.getByRole("button", {name: "Autoscroll enabled"})
+        expect(autoscrollButton).toBeInTheDocument()
+
+        await user.click(autoscrollButton)
+        expect(screen.getByRole("button", {name: "Autoscroll disabled"})).toBeInTheDocument()
+    })
+
+    it("Should handle text wrapping toggle correctly", async () => {
+        render(
+            <ChatCommon
+                id=""
+                currentUser={TEST_USER}
+                userImage=""
+                setIsAwaitingLlm={jest.fn()}
+                isAwaitingLlm={false}
+                targetAgent={AgentType.TELCO_NETWORK_SUPPORT}
+            />
+        )
+
+        const wrapButton = screen.getByRole("button", {name: "Text wrapping enabled"})
+        expect(wrapButton).toBeInTheDocument()
+
+        await user.click(wrapButton)
+        expect(screen.getByRole("button", {name: "Text wrapping disabled"})).toBeInTheDocument()
     })
 })

@@ -745,6 +745,7 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
                 <Input
                     autoComplete="off"
                     id="user-input"
+                    multiline={true}
                     placeholder={agentPlaceholders[targetAgent] || `Chat with ${cleanUpAgentName(targetAgent)}`}
                     ref={chatInputRef}
                     sx={{
@@ -762,6 +763,12 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
                     }}
                     onChange={(event) => {
                         setChatInput(event.target.value)
+                    }}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter" && !event.shiftKey) {
+                            event.preventDefault()
+                            handleSend(chatInput)
+                        }
                     }}
                     value={chatInput}
                     endAdornment={
