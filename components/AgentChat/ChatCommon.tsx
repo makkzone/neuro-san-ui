@@ -28,7 +28,6 @@ import {
 } from "react"
 import ReactMarkdown from "react-markdown"
 import SyntaxHighlighter from "react-syntax-highlighter"
-import remarkGfm from "remark-gfm"
 
 import {HIGHLIGHTER_THEME, MAX_AGENT_RETRIES} from "./const"
 import {ControlButtons} from "./ControlButtons"
@@ -47,7 +46,7 @@ import {ChatContext, ChatMessage, ChatMessageChatMessageType} from "../../genera
 import {hashString, hasOnlyWhitespace} from "../../utils/text"
 import {getTitleBase} from "../../utils/title"
 import {LlmChatOptionsButton} from "../internal/LlmChatOptionsButton"
-import {MUIAccordion} from "../MUIAccordion"
+import {MUIAccordion, MUIAccordionProps} from "../MUIAccordion"
 import {MUIAlert} from "../MUIAlert"
 import {NotificationType, sendNotification} from "../notification"
 
@@ -141,7 +140,6 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
     legacyAgentEndpoint,
     agentPlaceholders = EMPTY,
 }) => {
-    console.debug("rendering")
     // User LLM chat input
     const [chatInput, setChatInput] = useState<string>("")
 
@@ -173,8 +171,11 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
     // Whether to wrap output text
     const [shouldWrapOutput, setShouldWrapOutput] = useState<boolean>(true)
 
-    // lastAIMessage
+    // Keeps a copy of the last AI message so we can highlight it as "final answer"
     const lastAIMessage = useRef<string>("")
+
+    // Ref for the final answer key, so we can highlight the accordion
+    const finalAnswerKey = useRef<string>("")
 
     // Use useRef here since we don't want changes in the chat history to trigger a re-render
     const chatHistory = useRef<BaseMessage[]>([])
@@ -212,15 +213,16 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
     // Keeps track of whether the agent completed its task
     const succeeded = useRef<boolean>(false)
 
+    // Hide/show existing accordions based on showThinking state
     useEffect(() => {
         setChatOutput((currentOutput) =>
             currentOutput.map((item) => {
                 if (isValidElement(item) && item.type === MUIAccordion) {
-                    return cloneElement(item, {
-                        // TODO: need type guard/coercion here
+                    const itemAsAccordion = item as ReactElement<MUIAccordionProps>
+                    return cloneElement(itemAsAccordion, {
                         sx: {
                             ...item.props.sx,
-                            display: showThinking || item.props.isFinalAnswer ? "block" : "none",
+                            display: showThinking || item.key === finalAnswerKey?.current ? "block" : "none",
                         },
                     })
                 }
@@ -255,17 +257,22 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
      * @param logLine The log line to process
      * @param messageType The type of the message (AI, LEGACY_LOGS etc.). Used for displaying certain message types
      * differently
-     * @param isFinalAnswer
+     * @param isFinalAnswer If true, the log line is the final answer from the agent. This will be highlighted in some
+     * way to draw the user's attention to it.
+     * @param summaryOverride If provided, this string will be used as the summary instead of one from the chat
+     * message. Initially implemented for the "Final answer" scenario.
      * @returns A React component representing the log line (agent message)
      */
-    function processLogLine(
+    const processLogLine = (
         logLine: string,
         messageType?: ChatMessageChatMessageType,
         isFinalAnswer?: boolean,
-        defaultSummary?: string
-    ): ReactNode {
+        summaryOverride?: string
+    ): ReactNode => {
         // extract the parts of the line
-        const {summarySentenceCase, logLineDetails} = splitLogLine(logLine, defaultSummary)
+        const {summarySentenceCase, logLineDetails} = splitLogLine(logLine)
+
+        const summary = summaryOverride || summarySentenceCase || "Agent message"
 
         let repairedJson: string = null
 
@@ -283,25 +290,29 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
             // Not valid JSON
             repairedJson = null
         }
+
+        const hashedSummary = hashString(summary)
         const isAIMessage = messageType === ChatMessageChatMessageType.AI
+
         if (isAIMessage && !isFinalAnswer) {
-            console.debug("setting lastAIMessage to: ", logLine)
             lastAIMessage.current = logLine
         }
-        console.debug("logLineDetails: ", logLineDetails)
+
+        if (isFinalAnswer) {
+            // Save key of final answer for highlighting
+            finalAnswerKey.current = hashedSummary
+        }
 
         return (
             <MUIAccordion
-                key={`${summarySentenceCase}-${showThinking}`}
-                id={`${summarySentenceCase}-panel`}
+                key={hashedSummary}
+                id={`${hashedSummary}-panel`}
                 defaultExpandedPanelKey={isFinalAnswer ? 1 : null}
-                // TODO: this property doesn't exist on MUIAccordion. How to fix this?
-                isFinalAnswer={isFinalAnswer} // Add the isFinalAnswer prop here
                 items={[
                     {
-                        title: summarySentenceCase,
+                        title: summary,
                         content: (
-                            <div id={`${summarySentenceCase}-details`}>
+                            <div id={`${summary}-details`}>
                                 {/* If we managed to parse it as JSON, pretty print it */}
                                 {repairedJson ? (
                                     <SyntaxHighlighter
@@ -315,10 +326,7 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
                                     </SyntaxHighlighter>
                                 ) : (
                                     // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-                                    <ReactMarkdown
-                                        remarkPlugins={[remarkGfm]}
-                                        key={hashString(logLineDetails)}
-                                    >
+                                    <ReactMarkdown key={hashString(logLineDetails)}>
                                         {logLineDetails || "No further details"}
                                     </ReactMarkdown>
                                 )}
@@ -513,7 +521,6 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
 
         // For legacy agents, we either get plain text or markdown. Just output it as-is.
         if (targetAgent in LegacyAgentType) {
-            console.debug(chunk)
             updateOutput(chunk)
             return
         }
@@ -713,17 +720,20 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
                     id="show-thinking"
                     title={showThinking ? "Displaying agent thinking" : "Hiding agent thinking"}
                 >
-                    <LlmChatOptionsButton
-                        enabled={showThinking}
-                        id="show-thinking-button"
-                        onClick={() => setShowThinking(!showThinking)}
-                        posRight={150}
-                    >
-                        <AccountTreeIcon
-                            id="show-thinking-icon"
-                            sx={{color: "white", fontSize: "0.85rem"}}
-                        />
-                    </LlmChatOptionsButton>
+                    <span id="show-thinking-span">
+                        <LlmChatOptionsButton
+                            enabled={showThinking}
+                            id="show-thinking-button"
+                            onClick={() => setShowThinking(!showThinking)}
+                            posRight={150}
+                            disabled={isAwaitingLlm}
+                        >
+                            <AccountTreeIcon
+                                id="show-thinking-icon"
+                                sx={{color: "white", fontSize: "0.85rem"}}
+                            />
+                        </LlmChatOptionsButton>
+                    </span>
                 </Tooltip>
                 <Tooltip
                     id="enable-autoscroll"
@@ -846,10 +856,10 @@ export const ChatCommon: FC<AgentChatCommonProps> = ({
                     onChange={(event) => {
                         setChatInput(event.target.value)
                     }}
-                    onKeyDown={(event) => {
+                    onKeyDown={async (event) => {
                         if (event.key === "Enter" && !event.shiftKey) {
                             event.preventDefault()
-                            handleSend(chatInput)
+                            await handleSend(chatInput)
                         }
                     }}
                     value={chatInput}

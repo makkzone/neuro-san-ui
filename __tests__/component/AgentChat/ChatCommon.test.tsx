@@ -33,7 +33,7 @@ jest.mock("../../../controller/llm/llm_chat", () => ({
 
 const TEST_USER = "testUser"
 
-describe("AgentChatCommon", () => {
+describe("ChatCommon", () => {
     let user: UserEvent
     beforeEach(() => {
         jest.clearAllMocks()
@@ -222,7 +222,7 @@ describe("AgentChatCommon", () => {
         const testResponseText = '"Response text from LLM"'
         const chatResponse: ChatResponse = ChatResponse.fromPartial({
             response: ChatMessage.fromPartial({
-                type: ChatMessageChatMessageType.AI,
+                type: ChatMessageChatMessageType.AGENT_FRAMEWORK,
                 text: testResponseText,
             }),
         })
