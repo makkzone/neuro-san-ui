@@ -223,7 +223,6 @@ export const ChatCommon: FC<ChatCommonProps> = ({
         setChatOutput((currentOutput) =>
             currentOutput.map((item) => {
                 if (isValidElement(item) && item.type === MUIAccordion) {
-                    // console.debug(`setting item with id ${item.id} to display: ${showThinking}`)
                     const itemAsAccordion = item as ReactElement<MUIAccordionProps>
                     return cloneElement(itemAsAccordion, {
                         sx: {
