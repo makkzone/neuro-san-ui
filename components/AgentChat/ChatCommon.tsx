@@ -94,6 +94,10 @@ interface ChatCommonProps {
      * Whether to clear the chat window and history when the user starts chatting with a new agent or network.
      */
     readonly clearChatOnNewAgent?: boolean
+    /**
+     * Extra parameters to send to the server to be forwarded to the agent or used by the server.
+     */
+    readonly extraParams?: Record<string, unknown>
 }
 
 const EMPTY = {}
@@ -144,6 +148,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     legacyAgentEndpoint,
     agentPlaceholders = EMPTY,
     clearChatOnNewAgent = false,
+    extraParams,
 }) => {
     // User LLM chat input
     const [chatInput, setChatInput] = useState<string>("")
@@ -606,7 +611,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         handleChunk,
                         controller?.current.signal,
                         legacyAgentEndpoint,
-                        {requestType: targetAgent},
+                        extraParams,
                         query,
                         chatHistory.current
                     )
