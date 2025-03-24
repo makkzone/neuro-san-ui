@@ -711,16 +711,24 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     return (
         <Box
             id={`llm-chat-${id}`}
-            sx={{marginTop: "1rem", marginBottom: "1rem"}}
+            sx={{
+                display: "flex",
+                flexDirection: "column",
+                flexGrow: 1,
+                height: "100%",
+            }}
         >
             <Box
                 id="llm-response-div"
                 sx={{
                     ...divStyle,
-                    height: "60vh",
+                    display: "flex",
+                    flexGrow: 1,
+                    height: "100%",
                     margin: "10px",
                     position: "relative",
                     marginTop: "1rem",
+                    overflowY: "auto",
                 }}
             >
                 <Tooltip
@@ -782,13 +790,13 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         borderWidth: "1px",
                         borderRadius: "0.5rem",
                         fontSize: "smaller",
-                        height: "100%",
                         resize: "none",
-                        overflowY: "scroll", // Enable vertical scrollbar
+                        overflowY: "auto", // Enable vertical scrollbar
                         paddingBottom: "60px",
                         paddingTop: "7.5px",
                         paddingLeft: "15px",
                         paddingRight: "15px",
+                        width: "100%",
                     }}
                     tabIndex={-1}
                 >
