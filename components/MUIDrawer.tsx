@@ -67,7 +67,7 @@ export const MUIDrawer: FC<MUIDrawerProps> = ({id, anchor = "right", children, i
             </Toolbar>
             <Box
                 id={`${id}-box`}
-                sx={{flex: 1, overflow: "hidden"}}
+                sx={{flex: 1, overflow: "auto"}}
             >
                 {children}
             </Box>

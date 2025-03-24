@@ -709,7 +709,12 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                 )
             }
 
+            // Display prominent "Final Answer" message if we have one
             if (lastAIMessage.current) {
+                // Legacy agents text is a bit messy and doesn't add a blank line, so we add it here
+                if (targetAgent in LegacyAgentType) {
+                    updateOutput("    \n\n")
+                }
                 updateOutput(processLogLine(lastAIMessage.current, ChatMessageChatMessageType.AI, true, "Final Answer"))
             }
 
