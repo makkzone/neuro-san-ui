@@ -13,17 +13,22 @@ interface FormattedMarkdownProps {
     /**
      * The id for the div that will contain the formatted markdown.
      */
-    id: string
+    readonly id: string
 
     /**
      * The list of nodes to format. Each node can be a string or a react node.
      */
-    nodesList: ReactNode[]
+    readonly nodesList: ReactNode[]
 
     /**
      * The style to use for the syntax highlighter. @see SyntaxHighlighterThemes
      */
-    style: SyntaxHighlighterProps["style"]
+    readonly style: SyntaxHighlighterProps["style"]
+
+    /**
+     * Whether to wrap long lines in the markdown.
+     */
+    readonly wrapLongLines: boolean
 }
 
 /**
@@ -38,9 +43,10 @@ export const FormattedMarkdown = (props: FormattedMarkdownProps): ReactElement<F
      * Get the formatted output for a given string. The string is assumed to be in markdown format.
      * @param stringToFormat The string to format.
      * @param index The index of the string in the nodes list. Used as "salt" to generate a unique key.
+     * @param wrapLongLines Whether to wrap long lines in the markdown.
      * @returns The formatted markdown.
      */
-    const getFormattedMarkdown = (stringToFormat: string, index: number): JSX.Element => (
+    const getFormattedMarkdown = (stringToFormat: string, index: number, wrapLongLines: boolean): JSX.Element => (
         // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
         <ReactMarkdown
             key={`${hashString(stringToFormat)}-${index}`}
@@ -64,6 +70,7 @@ export const FormattedMarkdown = (props: FormattedMarkdownProps): ReactElement<F
                             id={`code-${className}`}
                             {...rest}
                             className={className}
+                            style={wrapLongLines ? {whiteSpace: "pre-wrap", wordBreak: "break-word"} : {}}
                         >
                             {children}
                         </code>
@@ -109,7 +116,7 @@ export const FormattedMarkdown = (props: FormattedMarkdownProps): ReactElement<F
         } else {
             // Not a string node. Process any aggregated text nodes
             if (currentTextNodes.length > 0) {
-                const concatenatedText = getFormattedMarkdown(currentTextNodes.join(""), i)
+                const concatenatedText = getFormattedMarkdown(currentTextNodes.join(""), i, props.wrapLongLines)
                 formattedOutput.push(concatenatedText)
                 currentTextNodes = []
             }
@@ -124,7 +131,11 @@ export const FormattedMarkdown = (props: FormattedMarkdownProps): ReactElement<F
 
     // Process any remaining text nodes
     if (currentTextNodes.length > 0) {
-        const concatenatedText = getFormattedMarkdown(currentTextNodes.join(""), props.nodesList.length)
+        const concatenatedText = getFormattedMarkdown(
+            currentTextNodes.join(""),
+            props.nodesList.length,
+            props.wrapLongLines
+        )
         formattedOutput.push(concatenatedText)
     }
 

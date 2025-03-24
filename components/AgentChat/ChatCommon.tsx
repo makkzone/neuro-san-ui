@@ -829,6 +829,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         id={`${id}-formatted-markdown`}
                         nodesList={chatOutput}
                         style={highlighterTheme}
+                        wrapLongLines={shouldWrapOutput}
                     />
                     {isAwaitingLlm && (
                         <Box
