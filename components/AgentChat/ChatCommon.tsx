@@ -525,14 +525,29 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     // Enable Clear Chat button if not awaiting response and there is chat output to clear
     const enableClearChatButton = !isAwaitingLlm && chatOutput.length > 0
 
-    function handleChunk(chunk: string): void {
+    /**
+     * Extract the final answer from the response from a legacy agent
+     * @param response The response from the legacy agent
+     * @returns The final answer from the agent, if it exists or null if it doesn't
+     */
+    const extractFinalAnswer = (response: string) =>
+        /Final Answer: (?<finalAnswerText>.*)/su.exec(response)?.groups?.finalAnswerText
+
+    const handleChunk = (chunk: string): void => {
         // Give container a chance to process the chunk first
         const onChunkReceivedResult = onChunkReceived?.(chunk) ?? true
         succeeded.current = succeeded.current || onChunkReceivedResult
 
         // For legacy agents, we either get plain text or markdown. Just output it as-is.
         if (targetAgent in LegacyAgentType) {
+            // Display output as-is
             updateOutput(chunk)
+
+            // Check for Final Answer from legacy agent
+            const finalAnswerMatch = extractFinalAnswer(currentResponse.current)
+            if (finalAnswerMatch) {
+                lastAIMessage.current = finalAnswerMatch
+            }
             return
         }
 
