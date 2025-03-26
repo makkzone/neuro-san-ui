@@ -201,6 +201,9 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     */
     const chatContext = useRef<ChatContext>(null)
 
+    // Create a ref for the final answer element
+    const finalAnswerRef = useRef<HTMLDivElement>(null)
+
     const [showThinking, setShowThinking] = useState<boolean>(false)
 
     // Use hard-coded highlighter theme for now
@@ -256,6 +259,14 @@ export const ChatCommon: FC<ChatCommonProps> = ({
 
     // Auto scroll chat output window when new content is added
     useEffect(() => {
+        // Scroll the final answer into view
+        if (finalAnswerRef.current && !isAwaitingLlm) {
+            const offset = 50
+            const topPosition = finalAnswerRef.current.offsetTop - offset
+            chatOutputRef.current.scrollTop = topPosition
+            return
+        }
+
         if (autoScrollEnabledRef.current && chatOutputRef?.current) {
             chatOutputRef.current.scrollTop = chatOutputRef.current.scrollHeight
         }
@@ -485,6 +496,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
         setIsAwaitingLlm(false)
         setChatInput("")
         lastAIMessage.current = ""
+        finalAnswerRef.current = null
 
         // Get agent name, either from the enum (Neuro-san) or from the targetAgent string directly (legacy)
         const agentName = NeuroSanAgent[targetAgent] || targetAgent
@@ -718,7 +730,15 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                     updateOutput("    \n\n")
                 }
 
-                updateOutput(processLogLine(lastAIMessage.current, "Final Answer", ChatMessageChatMessageType.AI, true))
+                updateOutput(
+                    <div
+                        id="final-answer-div"
+                        ref={finalAnswerRef}
+                        style={{marginBottom: "1rem"}}
+                    >
+                        {processLogLine(lastAIMessage.current, "Final Answer", ChatMessageChatMessageType.AI, true)}
+                    </div>
+                )
             }
 
             // Add a blank line after response
