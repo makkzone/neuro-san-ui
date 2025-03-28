@@ -10,7 +10,7 @@
 # Currently we are targeting 16. Pass in via build argument
 ARG NODEJS_VERSION
 
-FROM node:$NODEJS_VERSION-bullseye-slim AS deps
+FROM node:$NODEJS_VERSION-bookworm-slim AS deps
 
 ENV NODE_ENV production
 
@@ -21,7 +21,7 @@ COPY proto ./proto
 RUN yarn install --production --silent --prefer-offline --frozen-lockfile --non-interactive
 
 # Rebuild the source code only when needed
-FROM node:$NODEJS_VERSION-bullseye-slim AS builder
+FROM node:$NODEJS_VERSION-bookworm-slim AS builder
 
 ENV NODE_ENV production
 
@@ -37,8 +37,8 @@ ENV UNILEAF_VERSION ${UNILEAF_VERSION}
 # Install protobuf compiler and lib
 RUN apt-get update && \
     apt-get install --quiet --assume-yes --no-install-recommends --no-install-suggests \
-      protobuf-compiler=3.12.4-1+deb11u1 libprotobuf-dev=3.12.4-1+deb11u1 ca-certificates=20210119 \
-      curl=7.74.0-1.3+deb11u14
+      protobuf-compiler=3.21.12-3 libprotobuf-dev=3.21.12-3 ca-certificates=20230311 \
+      curl=7.88.1-10+deb12u12
 
 # Deal with github pat in order to clone neuro-san repo
 # which is part of the do_typescript_generate script called below
