@@ -159,7 +159,7 @@ export default function NewBar(props: NavbarProps) {
             id={propsId}
             sx={{
                 alignItems: "center",
-                borderBottom: "1px solid var(--bs-gray-light)",
+                borderBottom: "var(--bs-border-width) var(--bs-border-style) var(--bs-gray-light)",
                 display: "flex",
                 justifyContent: "space-between",
                 paddingTop: "0.75rem",
