@@ -133,4 +133,5 @@ export default function AgentNetworkPage() {
 }
 
 AgentNetworkPage.authRequired = true
+AgentNetworkPage.isContainedInViewport = true
 AgentNetworkPage.pageContext = "Agent Network UI."

@@ -50,6 +50,8 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
 
     const includeBreadcrumbs = Component.withBreadcrumbs ?? true
 
+    const isContainedInViewport = Component.isContainedInViewport ?? false
+
     useEffect(() => {
         if (isReady) {
             // Set features in store
@@ -262,7 +264,11 @@ export default function LEAF({Component, pageProps: {session, ...pageProps}}): R
                         <Container
                             id="body-container"
                             maxWidth={false}
-                            sx={{flex: 1, paddingBottom: "5rem"}}
+                            sx={{
+                                flex: 1,
+                                height: isContainedInViewport ? "100%" : "auto",
+                                paddingBottom: "5rem",
+                            }}
                         >
                             {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
                             {includeBreadcrumbs && <NeuroAIBreadcrumbs />}
