@@ -65,47 +65,94 @@ const UserQueryContainer = styled("div")({
 // #endregion: Styled Components
 
 interface ChatCommonProps {
+    /**
+     * HTML id to use for the outer component
+     */
     readonly id: string
+
+    /**
+     * The current user name of the logged in user. Used for fetching things from APIs mainly
+     */
     readonly currentUser: string
+
+    /**
+     * Path to image for user avatar
+     */
     readonly userImage: string
+
+    /**
+     * Function to set the state of the component to indicate whether we are awaiting a response from the LLM
+     */
     readonly setIsAwaitingLlm: Dispatch<SetStateAction<boolean>>
+
+    /**
+     * Whether we are currently awaiting a response from the LLM
+     */
     readonly isAwaitingLlm: boolean
+
+    /**
+     * The agent to send the request to. See CombinedAgentType for the list of available agents.
+     */
     readonly targetAgent: CombinedAgentType
+
     /**
      * Special endpoint for legacy agents since they do not have a single unified endpoint like Neuro-san agents.
      */
     readonly legacyAgentEndpoint?: string
+
     /**
      * Optional extra callback for containers to do extra things with the chunks as they are received. Parent
      * returns true if it believes the chunk indicates that the interaction with the agent was successful and no
      * retries are necessary.
      */
     readonly onChunkReceived?: (chunk: string) => boolean
+
     /**
      * Will be called when the streaming is complete, whatever the reason for termination (normal or error)
      */
     readonly onStreamingComplete?: () => void
+
     /**
      * Optional callback to modify the query before sending it to the server. This is useful for adding extra
      * information to the query before sending it or totally modifying the user query before sending.
      */
     readonly onSend?: (query: string) => string
+
+    /**
+     * Lifted state for parent to manage the previous response from the agent.
+     */
     readonly setPreviousResponse?: (agent: CombinedAgentType, response: string) => void
+
+    /**
+     * Optional placeholders for input to agents.
+     */
     readonly agentPlaceholders?: Partial<Record<CombinedAgentType, string>>
+
     /**
      * Whether to clear the chat window and history when the user starts chatting with a new agent or network.
+     * Defaults to not clearing the chat.
      */
     readonly clearChatOnNewAgent?: boolean
+
     /**
      * Extra parameters to send to the server to be forwarded to the agent or used by the server.
      * @note This is only used for legacy agents to aid in UI consolidation, only Neuro-san agents.
      */
     readonly extraParams?: Record<string, unknown>
 
+    /**
+     * Background color for the chat window. Defaults to white. Helps when there are multiple chats on a single page.
+     */
     readonly backgroundColor?: string
 
+    /**
+     * If present, the chat window will have a title bar with this title.
+     */
     readonly title?: string
 
+    /**
+     * If present, the chat window will have a close button that will call this function when clicked.
+     */
     readonly onClose?: () => void
 }
 

@@ -4,6 +4,7 @@ import Grow from "@mui/material/Grow"
 import {FC, useState} from "react"
 
 import {CHATBOT_ENDPOINT} from "../../controller/llm/endpoints"
+import {useAuthentication} from "../../utils/authentication"
 import {ZIndexLayers} from "../../utils/zIndexLayers"
 import {ChatCommon} from "../AgentChat/ChatCommon"
 import {LegacyAgentType} from "../AgentChat/Types"
@@ -31,6 +32,9 @@ interface ChatBotProps {
 export const ChatBot: FC<ChatBotProps> = ({id, userAvatar, pageContext}) => {
     const [chatOpen, setChatOpen] = useState<boolean>(false)
     const [isAwaitingLlm, setIsAwaitingLlm] = useState<boolean>(false)
+    const {
+        user: {name: currentUser},
+    } = useAuthentication().data
 
     return (
         <>
@@ -59,7 +63,7 @@ export const ChatBot: FC<ChatBotProps> = ({id, userAvatar, pageContext}) => {
                 >
                     <ChatCommon
                         id="chatbot-window"
-                        currentUser="test"
+                        currentUser={currentUser}
                         setIsAwaitingLlm={setIsAwaitingLlm}
                         isAwaitingLlm={isAwaitingLlm}
                         targetAgent={LegacyAgentType.ChatBot}
