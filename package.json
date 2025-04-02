@@ -60,6 +60,7 @@
         "remark-gfm": "4.0.0",
         "remark-toc": "9.0.0",
         "sharp": "0.33.2",
+        "ts-proto": "1.172.0",
         "zustand": "4.4.7"
     },
     "devDependencies": {
@@ -106,7 +107,6 @@
         "tailwindcss": "3.4.1",
         "ts-jest": "29.2.5",
         "ts-node": "10.9.2",
-        "ts-proto": "1.172.0",
         "ts-prune": "0.10.3",
         "typescript": "5.3.3"
     },
