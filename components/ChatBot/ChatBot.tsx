@@ -45,6 +45,7 @@ export const ChatBot: FC<ChatBotProps> = ({id, userAvatar, pageContext}) => {
                 extraParams={{pageContext}}
                 backgroundColor="var(--bs-tertiary-blue)"
                 title="Cognizant Neuro AI Assistant"
+                onClose={() => setChatOpen(false)}
             />
         </Box>
     ) : (

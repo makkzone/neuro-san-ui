@@ -4,6 +4,7 @@
 import {AIMessage, BaseMessage, HumanMessage} from "@langchain/core/messages"
 import AccountTreeIcon from "@mui/icons-material/AccountTree"
 import ClearIcon from "@mui/icons-material/Clear"
+import CloseIcon from "@mui/icons-material/Close"
 import VerticalAlignBottomIcon from "@mui/icons-material/VerticalAlignBottom"
 import WrapTextIcon from "@mui/icons-material/WrapText"
 import {Box, Input, styled} from "@mui/material"
@@ -104,6 +105,8 @@ interface ChatCommonProps {
     readonly backgroundColor?: string
 
     readonly title?: string
+
+    readonly onClose?: () => void
 }
 
 const EMPTY = {}
@@ -157,6 +160,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     extraParams,
     backgroundColor,
     title,
+    onClose,
 }) => {
     // User LLM chat input
     const [chatInput, setChatInput] = useState<string>("")
@@ -778,10 +782,21 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         borderTopLeftRadius: "var(--bs-border-radius)",
                         borderTopRightRadius: "var(--bs-border-radius)",
                         color: "var(--bs-white)",
-                        padding: "0.75rem",
+                        padding: "0.5rem",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
                     }}
                 >
                     <Typography sx={{fontSize: "0.9rem"}}>{title}</Typography>
+                    {onClose && (
+                        <IconButton
+                            id="close-button"
+                            onClick={onClose}
+                        >
+                            <CloseIcon sx={{color: "var(--bs-white)"}} />
+                        </IconButton>
+                    )}
                 </Box>
             )}
             <Box
