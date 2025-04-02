@@ -43,31 +43,29 @@ export const ChatBot: FC<ChatBotProps> = ({id, userAvatar, pageContext}) => {
                 userImage={userAvatar}
                 legacyAgentEndpoint={CHATBOT_ENDPOINT}
                 extraParams={{pageContext}}
-                backgroundColor="#e0f7fa"
+                backgroundColor="var(--bs-tertiary-blue)"
                 title="Cognizant Neuro AI Assistant"
             />
         </Box>
     ) : (
         <Box
             sx={{
-                position: "fixed",
-                bottom: 16,
-                right: 16,
-                // display: "flex",
+                display: "flex",
                 alignItems: "center",
+                backgroundColor: "var(--bs-white)",
+                borderRadius: "50%",
+                bottom: 16,
+                boxShadow: 4,
+                cursor: "pointer",
+                height: 40,
                 justifyContent: "center",
                 maxWidth: 40,
-                height: 40,
-                backgroundColor: "white",
-                borderRadius: "50%",
-                boxShadow: 3,
-                cursor: "pointer",
+                padding: "1rem",
+                position: "fixed",
+                right: 16,
             }}
         >
-            <ContactSupportIcon
-                sx={{fontSize: 30}}
-                onClick={() => setChatOpen(!chatOpen)}
-            />
+            <ContactSupportIcon onClick={() => setChatOpen(true)} />
         </Box>
     )
 }

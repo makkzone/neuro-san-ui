@@ -9,9 +9,9 @@ import WrapTextIcon from "@mui/icons-material/WrapText"
 import {Box, Input, styled} from "@mui/material"
 import CircularProgress from "@mui/material/CircularProgress"
 import IconButton from "@mui/material/IconButton"
-import Typography from "@mui/material/Typography"
 import InputAdornment from "@mui/material/InputAdornment"
 import Tooltip from "@mui/material/Tooltip"
+import Typography from "@mui/material/Typography"
 import {jsonrepair} from "jsonrepair"
 import NextImage from "next/image"
 import {
@@ -269,8 +269,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
         // Scroll the final answer into view
         if (finalAnswerRef.current && !isAwaitingLlm) {
             const offset = 50
-            const topPosition = finalAnswerRef.current.offsetTop - offset
-            chatOutputRef.current.scrollTop = topPosition
+            chatOutputRef.current.scrollTop = finalAnswerRef.current.offsetTop - offset
             return
         }
 
@@ -775,16 +774,11 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             {title && (
                 <Box
                     sx={{
-                        // borderRadius: "0.5rem",
-                        alignContent: "center",
-                        alignItems: "center",
                         backgroundColor: "var(--bs-primary)",
                         borderTopLeftRadius: "var(--bs-border-radius)",
                         borderTopRightRadius: "var(--bs-border-radius)",
-                        color: "white",
-                        display: "flex",
-                        margin: "0",
-                        padding: "0.5rem",
+                        color: "var(--bs-white)",
+                        padding: "0.75rem",
                     }}
                 >
                     <Typography sx={{fontSize: "0.9rem"}}>{title}</Typography>
