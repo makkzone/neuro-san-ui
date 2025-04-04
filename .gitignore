@@ -11,8 +11,9 @@ yarn-error.log
 # Coverage directory used by tools like lcov
 coverage
 
-# Generated proto files
+# protobuf-related files
 generated
+proto/
 
 # IntelliJ IDE
 .idea
