@@ -10,7 +10,7 @@ steps:
   clone:
     title: "Cloning repository"
     type: "git-clone"
-    repo: "leaf-ai/unileaf"
+    repo: "leaf-ai/neuro-ui"
     git: "github"
     # Supply the tag, git sha or branch name via CF variable.
     revision: ${{UNILEAF_VERSION}}
