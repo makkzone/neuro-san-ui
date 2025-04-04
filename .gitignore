@@ -12,7 +12,7 @@ yarn-error.log
 coverage
 
 # protobuf-related files
-generated
+generated/
 proto/
 
 # IntelliJ IDE
