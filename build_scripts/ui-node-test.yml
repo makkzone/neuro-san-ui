@@ -3,9 +3,9 @@ steps:
     main_clone:
         title: "Cloning repository"
         type: "git-clone"
-        repo: "leaf-ai/neuro-ui"
+        repo: "${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}"
         git: "github"
-        revision: ${{UNILEAF_VERSION}}
+        revision: ${{VERSION}}
 
     prepare_for_build:
         description: "Do any common preparation for tests"
@@ -37,7 +37,7 @@ steps:
       description: Generate proto stubs for the frontend
       image: node:${{NODEJS_VERSION}}-alpine
       ### TODO adjust paths accordingly ####
-      working_directory: ${{CF_VOLUME_PATH}}/neuro-ui
+      working_directory: ${{CF_VOLUME_PATH}}/${{CF_REPO_NAME}}
       commands:
         - apk add --quiet --no-progress --upgrade bash protobuf-dev git
         - yarn install
@@ -51,7 +51,7 @@ steps:
       disable_push: true
       progress: "plain"
       dockerfile: ./Dockerfile
-      working_directory: ./
+      working_directory: ${{CF_VOLUME_PATH}}/${{CF_REPO_NAME}}
       build_arguments:
         - NODEJS_VERSION=${{NODEJS_VERSION}}
         - UNILEAF_VERSION=${{UNILEAF_VERSION}}
