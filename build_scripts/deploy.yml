@@ -25,7 +25,7 @@ steps:
   update_deployment_manifest:
     title: Deploy release to kubernetes
     image: python:${{DEFAULT_NEUROAI_PYTHON_VERSION}}-slim
-    working_directory: ${{CF_VOLUME_PATH}}/${{MANIFEST_PATH}}/utility_scripts
+    working_directory: ${{CF_VOLUME_PATH}}/${{MANIFEST_PATH}}
     commands:
         # The values for DEPLOY_ENV and UNILEAF_VERSION
         # are passed in as pipeline variables from other
