@@ -5,7 +5,7 @@ steps:
         type: "git-clone"
         repo: "${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}"
         git: "github"
-        revision: ${{VERSION}}
+        revision: "${{CF_REVISION}}"
 
     prepare_for_build:
         description: "Do any common preparation for tests"
