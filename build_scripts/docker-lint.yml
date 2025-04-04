@@ -1,0 +1,18 @@
+version: "1.0"
+
+steps:
+
+    clone-repo:
+        type: git-clone
+        title: "Clone ${{CF_REPO_NAME}} repo"
+        repo: "${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}"
+        git: github
+        revision: "${{CF_REVISION}}"
+
+    lint-dockerfiles:
+        title: "Run hadolint on any and all files with Dockerfile in their name"
+        type: "freestyle"
+        image: hadolint/hadolint:v2.12.1-beta-alpine
+        working_directory: ${{CF_VOLUME_PATH}}/${{CF_REPO_NAME}}
+        commands:
+          - find . -type f -name '*Dockerfile*' -exec hadolint {} \;

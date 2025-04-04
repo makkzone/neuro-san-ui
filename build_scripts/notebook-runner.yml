@@ -1,0 +1,185 @@
+version: "1.0"
+steps:
+    clone-repo:
+        type: git-clone
+        title: "Clone repo"
+        repo: "leaf-ai/unileaf"
+        git: github
+        revision: ${{VERSION}}
+
+    set-env-vars:
+        type: freestyle
+        title: "Set up environment"
+        image: alpine:3.19.1
+        commands:
+            - cf_export ARTIFACT_DIR="${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}"
+            # The unileaf root in our saved docker image
+            - export APP_HOME=/home/leaf-ai/unileaf
+            - cf_export APP_HOME
+            - export FIXTURES=unileaf/tests/fixtures
+            # The paths to the various golden notebooks
+            - cf_export CONOX_GOLDEN="${CF_VOLUME_PATH}/${FIXTURES}/conox/conox_notebook_golden.ipynb"
+            - cf_export DIABETES_GOLDEN="${CF_VOLUME_PATH}/${FIXTURES}/diabetes/diabetes_notebook_golden.ipynb"
+            - cf_export HEART_FAILURE_GOLDEN="${CF_VOLUME_PATH}/${FIXTURES}/heart_failure/heart_failure_notebook_golden.ipynb"
+            - cf_export CONOX_RULES_GOLDEN="${CF_VOLUME_PATH}/${FIXTURES}/conox/conox_rule_based_notebook_golden.ipynb"
+            - cf_export DIABETES_RULES_GOLDEN="${CF_VOLUME_PATH}/${FIXTURES}/diabetes/diabetes_rule_based_notebook_golden.ipynb"
+            - cf_export HEART_FAILURE_RULES_GOLDEN="${CF_VOLUME_PATH}/${FIXTURES}/heart_failure/heart_failure_rule_based_notebook_golden.ipynb"
+            - cf_export LLM_DATAOPS_GOLDEN="${CF_VOLUME_PATH}/${FIXTURES}/llm_dataops/llm_dataops_notebook_golden.ipynb"
+            # In the golden notebooks, the data file path is hardcoded to this value
+            # for all notebooks
+            - cf_export GOLDEN_DATA_FILE_NAME="project_Test_Project_experiment_Test_Experiment_run_test_run_id_original_dataset.csv"
+            # For troubleshooting, report the code version we are using in this pipeline
+            - echo "Using unileaf git sha ${{VERSION}}"
+
+    get-openai-api-key-from-vault:
+        # In order to run the notebooks, we need an openai api key.
+        title: "Get openai api key"
+        type: "freestyle"
+        image: "vault:1.12.0"
+        commands:
+          - >-
+            vault login -address=${{VAULT}} -method=github token=${{VAULT_LOGIN}}
+            | grep -Ev "(token |token_accessor)"
+          - export OPENAI_API_KEY=$(vault kv get -address=${{VAULT}} -field=key /secret/open-ai/api)
+          - cf_export OPENAI_API_KEY --mask
+
+    generate-requirements:
+        # In this step, we use the unit test infrastructure to
+        # generate the version-matched requirements file. Hence, we
+        # use the docker image that is created during the nightly
+        # integration tests.
+        type: freestyle
+        title: "Generate requirements file"
+        image: "${{IMAGE_LOCATION}}:${{VERSION}}"
+        working_directory: /home/leaf-ai/unileaf
+        commands: 
+            - mkdir ${ARTIFACT_DIR}
+            - export PYTHONPATH="${{APP_HOME}}:$PYTHONPATH"
+            - cd build_scripts  && python generate_requirements.py --build_version ${{VERSION}} --artifacts_dir .
+            - export REQS_FILE="${{ARTIFACT_DIR}}/${{VERSION}}_requirements.txt"
+            - mv requirements.txt ${REQS_FILE}
+            - cat ${REQS_FILE}
+            - cf_export REQS_FILE
+
+    get-wheel-versions:
+        # The requirements file contains pip install commands for 
+        # specific wheel versions. This step figures out which wheel versions
+        # we need in order to download the correct versions from AWS S3.
+        type: freestyle
+        title: "Determine Required Wheel Versions From Requirements File"
+        image: alpine:3.19.1
+        commands:
+          - cf_export UNILEAF_UTIL_WHEEL=$(grep "unileaf_util" ${REQS_FILE} | sed -n 's/.*\(unileaf_util-[0-9]*\.[0-9]*\.[0-9]*-py[0-9]*-none-any\.whl\).*/\1/p')
+
+          - cf_export ESP_SDK_WHEEL=$(grep "esp_sdk" ${REQS_FILE} | sed -n 's/.*\(esp_sdk-[0-9]*\.[0-9]*\.[0-9]*-py[0-9]*-none-any\.whl\).*/\1/p')
+
+          - cf_export RIO_WHEEL=$(grep "rio" ${REQS_FILE} | sed -n 's/.*\(rio-[0-9]*\.[0-9]*\.[0-9]*-py[0-9]*-none-any\.whl\).*/\1/p')
+
+    download-wheel-files-from-s3:
+        type: freestyle
+        title: "Download the Required Wheel Files from S3"
+        image: "amazon/aws-cli:2.15.31"
+        commands:
+          - aws s3 cp s3://leaf-unileaf-wheels/esp_sdk/${ESP_SDK_WHEEL} .
+          - aws s3 cp s3://leaf-unileaf-wheels/unileaf_util/${UNILEAF_UTIL_WHEEL} .
+          - aws s3 cp s3://leaf-unileaf-wheels/rio/${RIO_WHEEL} .
+
+    download-data-files-from-s3:
+        # This step is using a hardcoded list to get the data files from 
+        # AWS S3. TODO: convert this step to use notebook generator code
+        # to download the datafiles from the experiment flow.
+        type: freestyle
+        title: "Download the Required Data Files from S3"
+        image: "amazon/aws-cli:2.15.31"
+        commands:
+          - aws s3 cp s3://leaf-unileaf-dev-artifacts/data/CoNox/conox.csv .
+          - mv conox.csv "${{ARTIFACT_DIR}}/conox-${{GOLDEN_DATA_FILE_NAME}}"
+
+          - aws s3 cp s3://leaf-unileaf-dev-artifacts/data/Diabetes/processed_data_categorical.csv .
+          - mv processed_data_categorical.csv "${{ARTIFACT_DIR}}/diabetes-${{GOLDEN_DATA_FILE_NAME}}"
+
+          - aws s3 cp s3://leaf-unileaf-dev-artifacts/data/HeartFailure/dataset.csv .
+          - mv dataset.csv "${{ARTIFACT_DIR}}/heart_failure-${{GOLDEN_DATA_FILE_NAME}}"
+
+    run-golden-notebooks-phase-1:
+        type: freestyle
+        title: "Run a notebook"
+        # We don't use slim here because we need gcc and friends
+        # to build pandas until such time as there is a supported
+        # version of pandas for python 3.12
+        image: "python:${{DEFAULT_NEUROAI_PYTHON_VERSION}}"
+        commands:
+          - python -m pip install jupyter ipython papermill
+          - pip install -r ${REQS_FILE}
+        # This section runs the golden notebooks in parallel. This does consume
+        # a lot of memory, but currently the 6 notebooks can run and complete within
+        # our CF memory constraints.
+        # Each golden notebook is hardcoded with the same path for the data file.
+        # Since the steps below run in parallel, we have to change the notebook to
+        # point to a specific datafile, which is accomplished with the sed command.
+        scale:
+          conox-golden:
+            title: "Conox: run golden notebook"
+            commands:
+              - sed -i "s|${GOLDEN_DATA_FILE_NAME}|${{ARTIFACT_DIR}}/conox-${{GOLDEN_DATA_FILE_NAME}}|g" ${CONOX_GOLDEN}
+              - papermill ${CONOX_GOLDEN} output_notebook.ipynb --kernel python3
+
+          diabetes-golden:
+            title: "Diabetes: run golden notebook"
+            commands:
+              - sed -i "s|${GOLDEN_DATA_FILE_NAME}|${{ARTIFACT_DIR}}/diabetes-${{GOLDEN_DATA_FILE_NAME}}|g" ${DIABETES_GOLDEN}
+              - papermill ${DIABETES_GOLDEN} output_notebook.ipynb --kernel python3
+
+    run-golden-notebooks-phase-2:
+        type: freestyle
+        title: "Run a notebook"
+        image: "python:${{DEFAULT_NEUROAI_PYTHON_VERSION}}"
+        commands:
+          - python -m pip install jupyter ipython papermill
+          - pip install -r ${REQS_FILE}
+        scale:
+          heart-failure-golden:
+            title: "Heart Failure: run golden notebook"
+            commands:
+              - sed -i "s|${GOLDEN_DATA_FILE_NAME}|${{ARTIFACT_DIR}}/heart_failure-${{GOLDEN_DATA_FILE_NAME}}|g" ${HEART_FAILURE_GOLDEN}
+              - papermill ${HEART_FAILURE_GOLDEN} output_notebook.ipynb --kernel python3
+
+          conox-rules-golden:
+            title: "Conox Rules: run golden notebook"
+            commands:
+              - sed -i "s|${GOLDEN_DATA_FILE_NAME}|${{ARTIFACT_DIR}}/conox-${{GOLDEN_DATA_FILE_NAME}}|g" ${CONOX_RULES_GOLDEN}
+              - papermill ${CONOX_RULES_GOLDEN} output_notebook.ipynb --kernel python3
+
+    run-golden-notebooks-phase-3:
+        type: freestyle
+        title: "Run a notebook"
+        image: "python:${{DEFAULT_NEUROAI_PYTHON_VERSION}}"
+        commands:
+          - python -m pip install jupyter ipython papermill
+          - pip install -r ${REQS_FILE}
+        scale:
+          diabetes-rules-golden:
+            title: "Diabetes Rules: run golden notebook"
+            commands:
+              - sed -i "s|${GOLDEN_DATA_FILE_NAME}|${{ARTIFACT_DIR}}/diabetes-${{GOLDEN_DATA_FILE_NAME}}|g" ${DIABETES_RULES_GOLDEN}
+              - papermill ${DIABETES_RULES_GOLDEN} output_notebook.ipynb --kernel python3
+
+          heart-failure-rules-golden:
+            title: "Heart Failure Rules: run golden notebook"
+            commands:
+              - sed -i "s|${GOLDEN_DATA_FILE_NAME}|${{ARTIFACT_DIR}}/heart_failure-${{GOLDEN_DATA_FILE_NAME}}|g" ${HEART_FAILURE_RULES_GOLDEN}
+              - papermill ${HEART_FAILURE_RULES_GOLDEN} output_notebook.ipynb --kernel python3
+
+    run-golden-notebooks-phase-4:
+        type: freestyle
+        title: "Run a notebook"
+        image: "python:${{DEFAULT_NEUROAI_PYTHON_VERSION}}"
+        commands:
+          - python -m pip install jupyter ipython papermill
+          - pip install -r ${REQS_FILE}
+        scale:
+          llm-dataops-golden:
+            title: "LLM Dataops: run golden notebook"
+            commands:
+              - sed -i "s|${GOLDEN_DATA_FILE_NAME}|${{ARTIFACT_DIR}}/conox-${{GOLDEN_DATA_FILE_NAME}}|g" ${LLM_DATAOPS_GOLDEN}
+              - papermill ${LLM_DATAOPS_GOLDEN} output_notebook.ipynb --kernel python3

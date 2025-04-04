@@ -1,0 +1,73 @@
+# Copyright (C) 2019-2021 Cognizant Digital Business, Evolutionary AI.
+# All Rights Reserved.
+# Issued under the Academic Public License.
+#
+# You can be released from the terms, and requirements of the Academic Public
+# License by purchasing a commercial license.
+# Purchase of a commercial license is mandatory for any use of the
+# ENN-release SDK Software in commercial settings.
+#
+# END COPYRIGHT
+
+version: '1.0'
+steps:
+    clone-unileaf:
+        title: "Clone unileaf repo"
+        type: "git-clone"
+        repo: "leaf-ai/unileaf"
+        # Supply the branch name or specific git sha via CF variable.
+        # We will default to main but this gives us flexibility for testing.
+        # Eventually this will be unneccesary with full CI/CD.
+        revision: ${{UNILEAF_REVISION}}
+        
+    determine_latest_git_sha:
+        title: "Determine Latest Git Sha"
+        description: "Find the current git sha for use later in pipeline"
+        type: "freestyle"
+        image: alpine/git:v2.30.0
+        working_directory: ${{CF_VOLUME_PATH}}
+        commands:
+          - cd ${{CF_VOLUME_PATH}}/unileaf
+          - cf_export UNILEAF_VERSION=`git rev-parse HEAD`
+          
+    # When codefresh sets the CF_RELEASE_TAG, this task will run
+    # and switch the tag variables to their production values.
+    set_tag_variables_release:
+        title: "Change variables for release build"
+        image: alpine:3.13.1
+        commands:
+          - cf_export UNILEAF_VERSION=${{CF_RELEASE_TAG}}
+        when:
+          condition:
+            all:
+              # This is idiomatic Codefresh for detecting if ${{CF_RELEASE_TAG}} has a value. Set tag value
+              # on Github release triggers, and this variable gets populated only for Github releases.
+              release_tag: 'includes("${{CF_RELEASE_TAG}}", "{{CF_RELEASE_TAG}}") == false'
+              
+    create-git-creds:
+        title: "Create credential for use in docker secret build step"
+        type: "freestyle"
+        image: alpine/git
+        working_directory: ${{CF_VOLUME_PATH}}/unileaf
+        commands:
+        
+            - cp requirements.txt with_creds_requirements.txt
+            - sed -i 's/${LEAF_SOURCE_CREDENTIALS}/${{LEAF_SOURCE_CREDENTIALS}}/g' with_creds_requirements.txt
+                        
+    build:
+        title: "Building Docker image"
+        type: "build"
+        image_name: "leaf/unileaf-data-profiler"
+        working_directory: ${{CF_VOLUME_PATH}}/unileaf
+        tag: ${{UNILEAF_VERSION}}
+        dockerfile: "backend/dataprofiler/Dockerfile"
+        buildkit: true
+
+        # Docker BuildKit has different output. This progress plain allows
+        # us to see the 'old' style output which is useful.
+        progress: "plain"
+        # The src refers to our secret file on the host system. Within the
+        # dockerfile we refer to the secret by id. By not providing a dst
+        # the file ends up at the docker default of /run/secrets/<id>
+        secrets:
+            - id=with_creds_requirements,src=with_creds_requirements.txt

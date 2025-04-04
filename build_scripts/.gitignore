@@ -1,0 +1,2 @@
+# Ignore any wheel files that get built in this directory
+*.whl

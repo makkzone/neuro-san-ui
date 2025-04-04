@@ -1,0 +1,21 @@
+version: "1.0"
+
+steps:
+  clone-repo:
+    type: git-clone
+    title: "Clone unileaf repo"
+    repo: "leaf-ai/unileaf"
+    git: github
+    revision: "main"
+
+  clean-up-fga:
+    title: "Clean up any errant fga stores"
+    type: "freestyle"
+    image:  "ubuntu:22.04"
+    working_directory: "${{CF_VOLUME_PATH}}/unileaf"
+    commands:
+       - apt-get update --yes
+       - apt-get install git wget build-essential jq --yes
+       - ./backend/pmdserver/authorization/open_fga/install_fga_cli.sh
+       - ./backend/pmdserver/authorization/open_fga/delete_turd_stores.sh
+

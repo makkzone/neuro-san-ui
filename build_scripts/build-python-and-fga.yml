@@ -1,0 +1,32 @@
+version: "1.0"
+steps:
+  clone:
+    title: "Clone repo"
+    type: "git-clone"
+    repo: "leaf-ai/unileaf"
+    revision: "main"
+
+  build:
+    title: "Building Docker image"
+    type: "build"
+    image_name: "python-and-fga"
+    working_directory: "${{CF_VOLUME_PATH}}/unileaf"
+    # Here we purposely hard code the python version because
+    # this image must be built before we take a new python version
+    # for the entire neuro ai service stack. This image gets built and 
+    # pushed once and is consumed as the starting FROM for the service
+    # containers. The tag is immutable so we won't accidently overwrite
+    # the existing image(s).
+    tag: "3.12-${{FGA_VERSION}}"
+    dockerfile: "build_scripts/python-and-fga-Dockerfile"
+    buildkit: true
+    build_arguments:
+      - FGA_VERSION=${{FGA_VERSION}}
+
+  display-fga-version:
+    title: "Display version of fga"
+    type: "freestyle"
+    image: ${{build}}
+    commands:
+      - fga --version
+
