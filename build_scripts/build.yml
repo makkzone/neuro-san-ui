@@ -52,7 +52,7 @@ steps:
       working_directory: ./
       build_arguments:
         - NODEJS_VERSION=${{NODEJS_VERSION}}
-        - UNILEAF_VERSION=${{VERSION}}
+        - VERSION=${{VERSION}}
       tag: "${{VERSION}}"
       secrets:
         - id=LEAF_SOURCE_CREDENTIALS,src=${{TEMP_DIR_OUTSIDE_CONTAINER}}/LEAF_SOURCE_CREDENTIALS.txt
