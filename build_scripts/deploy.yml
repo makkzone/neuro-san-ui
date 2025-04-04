@@ -10,7 +10,7 @@ steps:
   clone:
     title: "Cloning repository"
     type: "git-clone"
-    repo: "leaf-ai/unileaf"
+    repo: "leaf-ai/neuro-ui"
     git: "github"
     # Supply the tag, git sha or branch name via CF variable.
     revision: ${{UNILEAF_VERSION}}
@@ -25,7 +25,7 @@ steps:
   update_deployment_manifest:
     title: Deploy release to kubernetes
     image: python:${{DEFAULT_NEUROAI_PYTHON_VERSION}}-slim
-    working_directory: ${{CF_VOLUME_PATH}}/${{MANIFEST_PATH}}/utility_scripts
+    working_directory: ${{CF_VOLUME_PATH}}/${{MANIFEST_PATH}}
     commands:
         # The values for DEPLOY_ENV and UNILEAF_VERSION
         # are passed in as pipeline variables from other
@@ -37,7 +37,7 @@ steps:
         - >-
           python3 deploy_to_cluster.py 
           --file-path ../values-${{DEPLOY_ENV}}.yaml 
-          --new-version ${{UNILEAF_VERSION}}
+          --tag-overwrite uiNode=${{UNILEAF_VERSION}}
 
   commit_and_push:
     title: Commit changes and push
