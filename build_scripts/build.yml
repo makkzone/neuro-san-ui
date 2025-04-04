@@ -44,12 +44,3 @@ steps:
         - NODEJS_VERSION=${{NODEJS_VERSION}}
         - UNILEAF_VERSION=${{UNILEAF_VERSION}}
       tag: "${{UNILEAF_VERSION}}"
-
-    clean_up:
-      description: "Clean up after ourselves"
-      type: "freestyle"
-      image: alpine:3.13.1
-      commands:
-        # Clean up anything senstive we do not want to leak between builds
-        - rm -rf ${{TEMP_DIR_OUTSIDE_CONTAINER}}
-
