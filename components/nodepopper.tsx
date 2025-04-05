@@ -1,5 +1,5 @@
 import {ClickAwayListener} from "@mui/base/ClickAwayListener"
-import {Popper, PopperPlacementType} from "@mui/material"
+import {Button, Popper, PopperPlacementType} from "@mui/material"
 import {CSSProperties, ReactNode, useState} from "react"
 
 import {ZIndexLayers} from "../utils/zIndexLayers"
@@ -27,7 +27,7 @@ const NodePopper = ({
 }) => {
     const [isOpen, setIsOpen] = useState(false)
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-    const {btnContent, onClick: btnClick, id: btnId, ...restBtnProps} = buttonProps
+    const {btnContent, onClick: btnClick, id: btnId} = buttonProps
     const {id: popperId, ...restPopperProps} = popperProps
 
     const handleClick = (event) => {
@@ -45,14 +45,12 @@ const NodePopper = ({
 
     return (
         <>
-            <button
-                type="button"
+            <Button
                 id={btnId}
                 onClick={handleClick}
-                {...restBtnProps}
             >
                 {btnContent}
-            </button>
+            </Button>
             <ClickAwayListener // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 mouseEvent="onPointerUp"
                 touchEvent="onTouchStart"

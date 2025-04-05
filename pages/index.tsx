@@ -14,8 +14,10 @@ import {getTitleBase} from "../utils/title"
 
 // #region: Styled Components
 const OuterContainer = styled("div")({
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
     width: "100%",
-    minHeight: "75vh",
     overflow: "auto",
 })
 
@@ -56,15 +58,18 @@ const LaunchButton = styled("div")({
     fontWeight: "bold",
     fontSize: "1.25rem",
     borderRadius: "1000px",
-    padding: "1rem 2rem",
+    padding: "1.25rem 2rem",
     background: "#26efe9",
     textAlign: "center",
-    width: "350px",
+    width: "270px",
 })
 
 const HeaderLineFive = styled("h5")({
-    color: "var(--bs-white)",
-    fontWeight: "bold",
+    color: "var(--bs-white) !important",
+})
+
+const SplashLink = styled("a")({
+    marginBottom: "0.3rem",
 })
 
 const NeuroAIDescriptionBox = styled(Box)({
@@ -123,7 +128,14 @@ export default function Index(): ReactElement {
     }
 
     return (
-        <div id="splash-page__container">
+        <div
+            id="splash-page__container"
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+            }}
+        >
             {emailDialogOpen && (
                 <ConfirmationModal
                     content={CONTACT_US_CONFIRMATION_DIALOG_TEXT}
@@ -166,7 +178,7 @@ export default function Index(): ReactElement {
                         <HeaderLineOne id="header-line">
                             <div
                                 id="headline-eyebrow"
-                                className="d-block text-white mb-8"
+                                style={{marginBottom: "2rem"}}
                             >
                                 {isGeneric ? GENERIC_LOGO : LOGO}
                             </div>
@@ -275,7 +287,7 @@ export default function Index(): ReactElement {
                             id="additional-links-divider"
                             className="link-divider"
                         />
-                        <a
+                        <SplashLink
                             id="learn-more-link"
                             className="splash-link"
                             href="https://www.cognizant.com/us/en/services/ai/ai-lab"
@@ -283,8 +295,8 @@ export default function Index(): ReactElement {
                             rel="noopener noreferrer"
                         >
                             About
-                        </a>
-                        <a
+                        </SplashLink>
+                        <SplashLink
                             id="contact-us-footer-link"
                             className="splash-link"
                             href={null}
@@ -293,7 +305,7 @@ export default function Index(): ReactElement {
                             rel="noopener noreferrer"
                         >
                             Contact Us
-                        </a>
+                        </SplashLink>
                     </div>
                     <div
                         id="services-links"
@@ -304,7 +316,7 @@ export default function Index(): ReactElement {
                             id="additional-links-divider"
                             className="link-divider"
                         />
-                        <a
+                        <SplashLink
                             id="ai-innovation-studios-link"
                             className="splash-link"
                             href="https://portal-innovationstudio-apps-prod-we-001.azurewebsites.net/"
@@ -312,8 +324,8 @@ export default function Index(): ReactElement {
                             rel="noopener noreferrer"
                         >
                             AI Innovation Studios
-                        </a>
-                        <a
+                        </SplashLink>
+                        <SplashLink
                             id="neuro-it-ops-link"
                             className="splash-link"
                             href="https://www.cognizant.com/us/en/services/neuro-intelligent-automation/neuro-ai-it-operations"
@@ -321,8 +333,8 @@ export default function Index(): ReactElement {
                             rel="noopener noreferrer"
                         >
                             Neuro IT Ops
-                        </a>
-                        <a
+                        </SplashLink>
+                        <SplashLink
                             id="flowsource-link"
                             className="splash-link"
                             href="https://www.cognizant.com/us/en/services/software-engineering-services/flowsource"
@@ -330,8 +342,8 @@ export default function Index(): ReactElement {
                             rel="noopener noreferrer"
                         >
                             Flowsource
-                        </a>
-                        <a
+                        </SplashLink>
+                        <SplashLink
                             id="skygrade-link"
                             className="splash-link"
                             href="https://www.cognizant.com/us/en/services/cloud-solutions/cognizant-skygrade"
@@ -339,8 +351,8 @@ export default function Index(): ReactElement {
                             rel="noopener noreferrer"
                         >
                             Skygrade
-                        </a>
-                        <a
+                        </SplashLink>
+                        <SplashLink
                             id="cdit-link"
                             className="splash-link"
                             href="https://cditoolkit.cognizant.com"
@@ -348,7 +360,7 @@ export default function Index(): ReactElement {
                             rel="noopener noreferrer"
                         >
                             Cognizant Data And Intelligence Toolkit
-                        </a>
+                        </SplashLink>
                     </div>
                 </div>
             </footer>

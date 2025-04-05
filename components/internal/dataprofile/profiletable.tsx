@@ -1,3 +1,4 @@
+import BorderColorIcon from "@mui/icons-material/BorderColor"
 import DeleteOutline from "@mui/icons-material/DeleteOutline"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
@@ -12,7 +13,7 @@ import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import {ReactElement, MouseEvent as ReactMouseEvent, useEffect, useState} from "react"
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd"
-import {AiFillEdit, AiFillWarning} from "react-icons/ai"
+import {AiFillWarning} from "react-icons/ai"
 
 import {reasonToHumanReadable} from "../../../controller/datasources/conversion"
 import {DataTagFieldCAOType, DataTagFieldDataType, DataTagFieldValued, Profile} from "../../../generated/metadata"
@@ -266,7 +267,7 @@ export default function ProfileTable(props: ProfileTableProps) {
                             ))}
                         </select>
                         {updatePermission ? (
-                            <button
+                            <Button
                                 id={`${field}-set-current-category-values`}
                                 onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
                                     // Don't want to submit form here!
@@ -278,12 +279,11 @@ export default function ProfileTable(props: ProfileTableProps) {
                                     setShowFieldEditor(true)
                                 }}
                             >
-                                <AiFillEdit
+                                <BorderColorIcon // Misleading name - this icon is a pencil with a line below
                                     id={`${field}-set-current-category-values-fill`}
-                                    size="14"
-                                    style={{cursor: "pointer"}}
+                                    sx={{fontSize: "0.9rem"}}
                                 />
-                            </button>
+                            </Button>
                         ) : null}
                     </span>
                 ) : (

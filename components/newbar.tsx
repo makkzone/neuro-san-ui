@@ -1,8 +1,9 @@
+import BorderColorIcon from "@mui/icons-material/BorderColor"
 import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
 import Tooltip from "@mui/material/Tooltip"
 import Link, {LinkProps} from "next/link"
 import {ReactElement, useState} from "react"
-import {AiFillEdit} from "react-icons/ai"
 import {BsFillPlusSquareFill} from "react-icons/bs"
 import {MdOutlineShare} from "react-icons/md"
 
@@ -126,17 +127,17 @@ export default function NewBar(props: NavbarProps) {
                     id={`${idPrefix}-title`}
                 >
                     {props.Title}
-                    <button
+                    <Button
                         id={`${idPrefix}-button`}
                         onClick={() => {
                             setEditing(true)
                         }}
                     >
-                        <AiFillEdit
+                        <BorderColorIcon // Misleading name - this icon is a pencil with a line below
                             id={`${idPrefix}-button-fill-edit`}
-                            size="14"
+                            sx={{fontSize: "0.9rem"}}
                         />
-                    </button>
+                    </Button>
                     <div id="info-tip">{props.InfoTip}</div>
                 </h3>
             )

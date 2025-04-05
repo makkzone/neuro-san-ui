@@ -7,6 +7,17 @@ import {createTheme} from "@mui/material"
  */
 export const APP_THEME = createTheme({
     components: {
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    "&:hover": {
+                        // TODO: May still want this for some buttons like "Cancel" in the modals,
+                        // but it was causing issues with icons.
+                        backgroundColor: "transparent",
+                    },
+                },
+            },
+        },
         MuiDialog: {
             styleOverrides: {
                 paper: {

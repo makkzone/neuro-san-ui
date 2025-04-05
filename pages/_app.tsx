@@ -253,7 +253,10 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
     if (pathname === "/") {
         // Main page is special
         body = (
-            <div id="body-div">
+            <div
+                id="body-div"
+                style={{height: "100%"}}
+            >
                 <Component
                     id="body-component"
                     {...pageProps}
