@@ -3,6 +3,7 @@ import {FlatCompat} from "@eslint/eslintrc"
 import js from "@eslint/js"
 import stylisticTs from "@stylistic/eslint-plugin-ts"
 import typescriptEslint from "@typescript-eslint/eslint-plugin"
+// @ts-expect-error: parser has no types, but works
 import tsParser from "@typescript-eslint/parser"
 import enforceIdsInJsx from "eslint-plugin-enforce-ids-in-jsx"
 import jest from "eslint-plugin-jest"
@@ -10,6 +11,7 @@ import reactHooks from "eslint-plugin-react-hooks"
 import globals from "globals"
 import path from "node:path"
 import {fileURLToPath} from "node:url"
+import next from '@next/eslint-plugin-next'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -34,7 +36,7 @@ export default [
         },
     },
     {
-        ignores: ["**/generated/", ".next", "eslint.config.mjs"],
+        ignores: [".next", "coverage", "generated", "eslint.config.mjs"],
     },
     ...fixupConfigRules(
         compat.extends(
@@ -45,8 +47,9 @@ export default [
             "plugin:jest/recommended",
             "plugin:react/all",
             "plugin:react/jsx-runtime",
+            "plugin:@next/next/recommended",
             "prettier"
-        )
+        ),
     ),
     {
         plugins: {
@@ -55,6 +58,7 @@ export default [
             jest: fixupPluginRules(jest),
             "react-hooks": fixupPluginRules(reactHooks),
             "@stylistic/ts": stylisticTs,
+            next: fixupPluginRules(next),
         },
 
         languageOptions: {
@@ -265,6 +269,8 @@ export default [
                 },
             ],
 
+            // Rules we're not ready to enable yet
+            "@typescript-eslint/no-unnecessary-boolean-literal-compare": "off",
             "@typescript-eslint/member-ordering": "off",
             "@typescript-eslint/no-inferrable-types": "off",
             "no-nested-ternary": "off",
@@ -409,6 +415,15 @@ export default [
             "require-await": "off",
             "sort-keys": "off",
             "spaced-comment": "off",
+        },
+    },
+    // overrides
+    {
+        // Rules we don't care about for tests
+        files: ["__tests__/**/*.{js,ts,jsx,tsx}", "__tests__/*.{js,ts,jsx,tsx}"],
+        rules: {
+            "enforce-ids-in-jsx/missing-ids": "off",
+            "@next/next/no-img-element": "off"
         },
     },
 ]

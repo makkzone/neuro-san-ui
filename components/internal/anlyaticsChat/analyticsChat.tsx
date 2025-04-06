@@ -11,6 +11,7 @@ import InputAdornment from "@mui/material/InputAdornment"
 import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import {omit} from "lodash"
+import NextImage from "next/image"
 import {ReactElement, useEffect, useRef, useState} from "react"
 import {MdOutlineWrapText} from "react-icons/md"
 
@@ -85,7 +86,7 @@ export function AnalyticsChat(props: AnalyticsChatProps): ReactElement {
     // Create img tag from data in Uint8Array format
     function getImage(): JSX.Element {
         return (
-            <img
+            <NextImage
                 id="plot-img"
                 src={`data:image/png;base64,${imageData}`}
                 alt="plot"

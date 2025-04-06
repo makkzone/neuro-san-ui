@@ -347,7 +347,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
         isFinalAnswer?: boolean
     ): ReactNode => {
         // extract the parts of the line
-        let repairedJson: string = null
+        let repairedJson: string
 
         try {
             // Attempt to parse as JSON
@@ -359,7 +359,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             JSON.parse(repairedJson)
 
             repairedJson = repairedJson.replace(/\\n/gu, "\n").replace(/\\"/gu, "'")
-        } catch (e) {
+        } catch {
             // Not valid JSON
             repairedJson = null
         }
@@ -484,7 +484,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
 
             try {
                 agentFunction = await getAgentFunction(currentUser, targetAgent as NeuroSanAgent)
-            } catch (e) {
+            } catch {
                 // For now, just return. May be a legacy agent without a functional description in Neuro-San.
                 return
             }

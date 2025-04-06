@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-shadow, testing-library/no-manual-cleanup
+// eslint-disable-next-line no-shadow
 import {act, cleanup, fireEvent, render, screen, waitFor} from "@testing-library/react"
 import user from "@testing-library/user-event"
 import {Position} from "reactflow"
