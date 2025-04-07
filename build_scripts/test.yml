@@ -46,7 +46,7 @@ steps:
     fail_fast: true
     commands:
       - apk add --quiet --no-progress --upgrade bash protobuf-dev git
-      - ./grpc/do_typescript_generate.sh
+      - ./build_scripts/do_typescript_generate.sh
 
   run_eslint:
     title: Run eslint on Typescript sources

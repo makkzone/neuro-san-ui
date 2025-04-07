@@ -31,7 +31,7 @@ steps:
         - apk add --quiet --no-progress --upgrade bash protobuf-dev git
         - yarn install
         - yarn --cwd embed install
-        - ./grpc/do_typescript_generate.sh
+        - ./build_scripts/do_typescript_generate.sh
 
     ui-node-build:
       title: Build ui-node Docker image
