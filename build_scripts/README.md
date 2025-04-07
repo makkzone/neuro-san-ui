@@ -44,7 +44,7 @@ Since all the images for a given version were built in the previous Staging buil
 be the exact version string just tested on staging.
 
 There is one additional manual step to perform before deploying to production. Our system depends on a SQS queue 
-to send traning jobs to our worker cluster. If a job is running during deployment, that run will be lost/orphaned, 
+to send training jobs to our worker cluster. If a job is running during deployment, that run will be lost/orphaned, 
 so we aim to avoid this situation. To do that, we simply check the SQS queue and ensure nothing is in the queue, 
 or wait if there is something in the queue. To check the queue, access the AWS console, SQS Queues and look in 
 `us-west-2` and `us-east-2` for the `sqs_studioml_gorunner_cpu_production_0` queue. 
