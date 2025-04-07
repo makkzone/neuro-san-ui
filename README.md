@@ -10,9 +10,9 @@ Note: Previously the project was known as UniLEAF and that name is still used in
 
 ## Set Up Prerequisites
 
-- Install [NodeJS](https://nodejs.org/) on your development machine. At time of writing Node 18 is the current LTS version.
+- Install [NodeJS](https://nodejs.org/) on your development machine. At time of writing Node 22 is the current LTS version.
     - Example on mac: `brew install node@18`
-    - For Ubuntu, see this link: https://joshtronic.com/2022/04/24/how-to-install-nodejs-18-on-ubuntu-2004-lts/
+    - For Ubuntu, see this link: https://joshtronic.com/2024/05/26/ubuntu-nodejs-22-install/
     - Make sure that the node executable is in your path. You can do this by typing `node --version`.
 - Install the protobuf compiler. This is needed to generate the protocol buffer files for the UI.
   Instructions for various platforms are [here](https://grpc.io/docs/protoc-installation/).
@@ -21,14 +21,15 @@ Note: Previously the project was known as UniLEAF and that name is still used in
     - For Ubuntu, see this link: https://classic.yarnpkg.com/lang/en/docs/cli/self-update/
     - Make sure that the yarn executable is in your path. You can do this by typing `yarn --version`.
 - Clone the repository:
-    - `git clone git@github.com:leaf-ai/unileaf.git`
-- Install app dependencies.
-    - `cd unileaf/nextfront && yarn install && cd ..`
-- Generate the protocol buffer files for the UI. This is done by running the following command in the `nextfront` directory:
+    - `git clone git@github.com:leaf-ai/neuro-ui.git`
+- Install all dependencies including dev dependencies
+    - `yarn install`
+- Generate the protocol buffer files for the UI. This is done by running the following command in the project root
+  directory:
     - `yarn generate`
-    - This command will generate the necessary files in the `nextfront/generated` directory.
-    - To view the files: `ls nextfront/generated`
-- In your `nextfront` directory, create a file named `.env` which contains the following keys.  
+    - This command will generate the necessary files in the `generated` directory.
+    - To view the files: `ls generated`
+- In your project root directory, create a file named `.env` which contains the following keys.  
   Ask a current UI developer for the redacted values or get them self-serve from the leaf-team-vault server (see below).
 
 ```bash
@@ -104,7 +105,7 @@ DEBUG='*,-send,-compression,-babel,-next:*' UNILEAF_VERSION=$(git branch --show-
 You can also set the `DEBUG` variable to a list of modules to only see output for those modules, for example:
 
 ```bash
-export DEBUG="new_project,flow"
+export DEBUG="app,flow"
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -114,7 +115,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 Now you've made it this far, try a simple change within the UI. Here's an example:
 
 1. Navigate to the page for any Project within Neuro AI, using the `http://localhost:3000` URL mentioned above.
-1. Open `nextfront/pages/projects/[projectID]/index.tsx`
+1. Open `./pages/projects/[projectID]/index.tsx`
 1. Add a message at the appropriate place in the tsx file (somewhere within the `return` statement, inside the `<>`  
    fragment).
     ```typescript
@@ -122,7 +123,9 @@ Now you've made it this far, try a simple change within the UI. Here's an exampl
         ;`Hello world! The current project ID is ${projectId}`
     }
     ```
-1. Your change appears immediately in the UI for the Project page, without relaunching any services or recompiling, thanks to
-   [Hot Module Replacement](https://webpack.js.org/guides/hot-module-replacement/) in Webpack which is used by NextJS. If you don't see your change, try holding down `Shift` and clicking the browser refresh button -- this bypasses the browser cache.
+1. Your change appears immediately in the UI for the Project page, without relaunching any services or recompiling, 
+   thanks to [Hot Module Replacement](https://webpack.js.org/guides/hot-module-replacement/) in Webpack which is used 
+   by NextJS. If you don't see your change, try holding down `Shift` and clicking the browser refresh button -- 
+   this bypasses the browser cache.
 
 ### Congratulations, you are now a UI developer!

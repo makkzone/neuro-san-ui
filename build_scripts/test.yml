@@ -1,6 +1,4 @@
 # This pipeline runs the lint and unit tests on the ui code.
-# The pipeline is designed to be triggered at any commit in
-# the unileaf/nextfront directory.
 
 version: '1.0'
 steps:

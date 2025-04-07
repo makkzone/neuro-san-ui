@@ -1,6 +1,6 @@
 {
-    "name": "nextfront",
-    "version": "0.0.1",
+    "name": "neuro-ui",
+    "version": "1.0.0",
     "private": true,
     "scripts": {
         "about:dev": "echo 'Starts the UI in dev mode on port 3000 on the local system'",
