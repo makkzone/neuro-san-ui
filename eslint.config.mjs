@@ -1,5 +1,6 @@
 import {fixupConfigRules, fixupPluginRules} from "@eslint/compat"
 import {FlatCompat} from "@eslint/eslintrc"
+import eslintPluginImport from "eslint-plugin-import"
 import js from "@eslint/js"
 import stylisticTs from "@stylistic/eslint-plugin-ts"
 import typescriptEslint from "@typescript-eslint/eslint-plugin"
@@ -11,7 +12,11 @@ import reactHooks from "eslint-plugin-react-hooks"
 import globals from "globals"
 import path from "node:path"
 import {fileURLToPath} from "node:url"
-import next from '@next/eslint-plugin-next'
+import next from "@next/eslint-plugin-next"
+import eslintConfigPrettier from "eslint-config-prettier/flat"
+import eslintPluginReact from "eslint-plugin-react"
+import jestDom from "eslint-plugin-jest-dom"
+import testingLibrary from "eslint-plugin-testing-library"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -21,6 +26,8 @@ const compat = new FlatCompat({
     allConfig: js.configs.all,
 })
 
+// Has to be exported for ESLint to use it
+// ts-prune-ignore-next
 export default [
     {
         settings: {
@@ -49,18 +56,25 @@ export default [
             "plugin:react/jsx-runtime",
             "plugin:@next/next/recommended",
             "prettier"
-        ),
+        )
     ),
     {
         plugins: {
+            "@stylistic/ts": stylisticTs,
             "@typescript-eslint": fixupPluginRules(typescriptEslint),
             "enforce-ids-in-jsx": enforceIdsInJsx,
-            jest: fixupPluginRules(jest),
             "react-hooks": fixupPluginRules(reactHooks),
-            "@stylistic/ts": stylisticTs,
+            jest: fixupPluginRules(jest),
             next: fixupPluginRules(next),
+            import: fixupPluginRules(eslintPluginImport),
+            react: fixupPluginRules(eslintPluginReact),
+            "jest-dom": fixupPluginRules(jestDom),
+            "testing-library": fixupPluginRules(testingLibrary),
         },
-
+        linterOptions: {
+            reportUnusedDisableDirectives: "error",
+            reportUnusedInlineConfigs: "error",
+        },
         languageOptions: {
             globals: {
                 ...globals.jest,
@@ -423,7 +437,15 @@ export default [
         files: ["__tests__/**/*.{js,ts,jsx,tsx}", "__tests__/*.{js,ts,jsx,tsx}"],
         rules: {
             "enforce-ids-in-jsx/missing-ids": "off",
-            "@next/next/no-img-element": "off"
+            "@next/next/no-img-element": "off",
         },
     },
+    {
+        files: ["**/__tests__/**/*.{js,ts,jsx,tsx}"],
+        rules: {
+            "testing-library/no-container": "warn",
+            "testing-library/no-debugging-utils": "warn",
+        },
+    },
+    eslintConfigPrettier,
 ]
