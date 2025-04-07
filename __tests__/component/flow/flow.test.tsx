@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-shadow
-import {act, cleanup, fireEvent, render, screen, waitFor} from "@testing-library/react"
+import {act, fireEvent, render, screen, waitFor} from "@testing-library/react"
 import user from "@testing-library/user-event"
 import {Position} from "reactflow"
 
@@ -225,8 +225,6 @@ describe("Flow Test", () => {
 
         // Fake re-rendering the flow with the new node. Here we are acting as the container for the Flow,
         // so it's on us to "remember" the state of the flow and pass it back in when we re-render.
-        // Clean up the old flow rendering
-        cleanup()
 
         // Render the modified flow
         const flowWithNewNode = createFlow(true, nodeAddCall)

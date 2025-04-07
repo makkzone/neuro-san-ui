@@ -19,7 +19,7 @@ yarn lint --version  # Display version for troubleshooting
 
 # Run EsLint. As of today (Oct 2022) we run "clean" with zero errors and zero warnings. Any newly-introduced issues
 # will result in a non-zero exit code and presumably fail the build.
-yarn lint  --report-unused-disable-directives-severity "error" --max-warnings 0 2>&1
+yarn lint --max-warnings 0 2>&1
 
 # Exit code is whatever code 'yarn lint' reported.
 

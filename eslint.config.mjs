@@ -63,13 +63,13 @@ export default [
             "@stylistic/ts": stylisticTs,
             "@typescript-eslint": fixupPluginRules(typescriptEslint),
             "enforce-ids-in-jsx": enforceIdsInJsx,
+            "jest-dom": fixupPluginRules(jestDom),
             "react-hooks": fixupPluginRules(reactHooks),
+            "testing-library": fixupPluginRules(testingLibrary),
+            import: fixupPluginRules(eslintPluginImport),
             jest: fixupPluginRules(jest),
             next: fixupPluginRules(next),
-            import: fixupPluginRules(eslintPluginImport),
             react: fixupPluginRules(eslintPluginReact),
-            "jest-dom": fixupPluginRules(jestDom),
-            "testing-library": fixupPluginRules(testingLibrary),
         },
         linterOptions: {
             reportUnusedDisableDirectives: "error",
@@ -360,16 +360,6 @@ export default [
             "init-declarations": "off",
             "line-comment-position": "off",
             "lines-around-comment": "off",
-
-            "max-len": [
-                "error",
-                {
-                    code: 120,
-                    ignoreUrls: true,
-                    ignorePattern: "^import .*",
-                },
-            ],
-
             "max-lines": "off",
             "max-lines-per-function": "off",
             "max-params": "off",
@@ -443,9 +433,35 @@ export default [
     {
         files: ["**/__tests__/**/*.{js,ts,jsx,tsx}"],
         rules: {
-            "testing-library/no-container": "warn",
-            "testing-library/no-debugging-utils": "warn",
+            // Enable some extra rules for safety
+            "testing-library/await-async-queries": "error",
+            "testing-library/no-await-sync-queries": "error",
+            "testing-library/no-dom-import": "error",
+            "testing-library/no-manual-cleanup": "error",
+
+            // Sorry testing-library: these are too useful to disable.
+            "testing-library/no-container": "off",
+            "testing-library/no-debugging-utils": "off",
+            "testing-library/no-node-access": "off",
+
+            // Don't care about these rules in tests
+            "@next/next/no-img-element": "off",
+            "enforce-ids-in-jsx/missing-ids": "off",
+            "react/display-name": "off",
+            "react/no-array-index-key": "off",
         },
     },
     eslintConfigPrettier,
+    {
+        rules: {
+            "max-len": [
+                "error",
+                {
+                    code: 120,
+                    ignoreUrls: true,
+                    ignorePattern: "^import .*",
+                },
+            ],
+        },
+    },
 ]
