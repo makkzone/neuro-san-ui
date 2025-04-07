@@ -5,10 +5,10 @@
 # pipeline and then the generic 'deploy' pipeline.
 
 # The resulting behavior is: 
-# - A merge to main builds all the images and deploys 
-#   them to dev environment, with short git sha as the version.
-# - A release builds all the images and deploys them to
-#   staging environment, with the user-friendly semantic version tag as the version.
+# - A merge to main builds the image and deploys 
+#   it tothe  dev environment, with short git SHA as the version.
+# - A release builds the image and deploys it to the staging environment, with the user-friendly semantic version 
+#  tag as the version.
 
 version: '1.0'
 steps:
@@ -42,7 +42,7 @@ steps:
           deploy_tagged_builds_only: 'includes("${{CF_RELEASE_TAG}}", "{{CF_RELEASE_TAG}}") == false'
 
   call_build_pipeline:
-    title: "Run build-all-images pipeline"
+    title: "Run build pipeline"
     type: codefresh-run
     arguments:
       PIPELINE_ID: neuro-ui/build
