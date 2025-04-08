@@ -6,7 +6,13 @@
  * @param resetModules If true, reset the module registry before each test. This slows tests down but is useful for
  * tests that touch global module state or environment variables. Use thoughtfully.
  */
-export const withStrictMocks = (resetModules: boolean) => {
+type StrictMockOptions = {
+    resetModules?: boolean
+}
+
+export const withStrictMocks = (options: StrictMockOptions = {}) => {
+    const {resetModules = false} = options
+
     beforeEach(() => {
         jest.clearAllMocks()
         jest.resetAllMocks()

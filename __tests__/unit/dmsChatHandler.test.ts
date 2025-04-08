@@ -23,7 +23,7 @@ const resetEnv = () => {
 describe("handler", () => {
     let request: RequestOptions
 
-    withStrictMocks(true)
+    withStrictMocks({resetModules: true})
 
     beforeEach(() => {
         request = {
