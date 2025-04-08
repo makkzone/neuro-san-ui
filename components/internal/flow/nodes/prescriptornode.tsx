@@ -1028,9 +1028,9 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
         return (
             <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 buttonProps={{
-                    id: `${flowPrefix}-gr-settings-button`,
-                    style: {height: 0, marginTop: "0.25rem"},
                     btnContent: <GrSettingsOption id={`${flowPrefix}-gr-settings-option`} />,
+                    btnSxProps: {height: 0, marginTop: "0.25rem"},
+                    id: `${flowPrefix}-gr-settings-button`,
                 }}
                 popperProps={{
                     id: `${flowPrefix}-gr-settings-popper`,
@@ -1082,8 +1082,8 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
             <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 buttonProps={{
                     btnContent: caoType === DataTagFieldCAOType.CONTEXT ? "C" : "A",
+                    btnSxProps: {height: 0, position: "absolute", ...position, bottom: "1.7rem"},
                     id: `${flowPrefix}-context-button`,
-                    style: {height: 0, position: "absolute", top: "1.25rem", ...position},
                 }}
                 popperProps={{
                     id: `${flowPrefix}-context-popper`,
@@ -1236,8 +1236,8 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                     }}
                 >
                     {getConfigPopup()}
-                    {getFieldsPopup(DataTagFieldCAOType.CONTEXT, {left: "-1rem"})}
-                    {getFieldsPopup(DataTagFieldCAOType.ACTION, {right: "-1rem"})}
+                    {getFieldsPopup(DataTagFieldCAOType.CONTEXT, {left: "-2.2rem"})}
+                    {getFieldsPopup(DataTagFieldCAOType.ACTION, {right: "-2.2rem"})}
                 </div>
             </CardContent>
         )

@@ -52,14 +52,14 @@ const CAOButtons = (props) => {
         <>
             <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 buttonProps={{
-                    id: `${flowPrefix}-context-button${idExtension}`,
-                    style: {
-                        left: "-1rem",
+                    btnContent: "C",
+                    btnSxProps: {
+                        left: "-2.2rem",
                         height: 0,
                         position: "absolute",
-                        top: "0.5rem",
+                        top: "1rem",
                     },
-                    btnContent: "C",
+                    id: `${flowPrefix}-context-button${idExtension}`,
                 }}
                 popperProps={{
                     id: `${flowPrefix}-context-popper${idExtension}`,
@@ -117,14 +117,14 @@ const CAOButtons = (props) => {
             </NodePopper>
             <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 buttonProps={{
-                    id: `${flowPrefix}-actions-button${idExtension}`,
-                    style: {
-                        bottom: "1.5rem",
+                    btnContent: "A",
+                    btnSxProps: {
+                        bottom: "0.55rem",
                         height: 0,
-                        left: "-1rem",
+                        left: "-2.2rem",
                         position: "absolute",
                     },
-                    btnContent: "A",
+                    id: `${flowPrefix}-actions-button${idExtension}`,
                 }}
                 popperProps={{
                     id: `${flowPrefix}-actions-popper${idExtension}`,
@@ -183,14 +183,14 @@ const CAOButtons = (props) => {
             </NodePopper>
             <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 buttonProps={{
-                    id: `${flowPrefix}-outcomes-button${idExtension}`,
-                    style: {
+                    btnContent: "O",
+                    btnSxProps: {
                         height: 0,
                         position: "absolute",
-                        right: "-1rem",
-                        top: "1.25rem",
+                        right: "-2.1rem",
+                        top: "1.7rem",
                     },
-                    btnContent: "O",
+                    id: `${flowPrefix}-outcomes-button${idExtension}`,
                 }}
                 popperProps={{
                     id: `${flowPrefix}-outcomes-popper${idExtension}`,

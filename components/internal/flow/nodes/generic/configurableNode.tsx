@@ -234,13 +234,13 @@ const ConfigurableNodeComponent: FC<NodeProps<ConfigurableNodeData>> = (props) =
                     >
                         <NodePopper // eslint-disable-line enforce-ids-in-jsx/missing-ids
                             buttonProps={{
-                                id: `${flowPrefix}-show-config-button${idExtension}`,
-                                style: {height: 0, marginTop: "0.25rem"},
                                 btnContent: (
                                     <GrSettingsOption
                                         id={`${flowPrefix}-show-config-button-settings-option${idExtension}`}
                                     />
                                 ),
+                                btnSxProps: {height: 0, marginTop: "0.25rem"},
+                                id: `${flowPrefix}-show-config-button${idExtension}`,
                             }}
                             popperProps={{
                                 id: `${flowPrefix}-show-config-popper${idExtension}`,
