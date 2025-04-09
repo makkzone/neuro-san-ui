@@ -2,7 +2,6 @@
  * Component tests for the project sharing dialog.
  */
 
-// eslint-disable-next-line no-shadow
 import {fireEvent, render, screen, waitFor} from "@testing-library/react"
 import {userEvent} from "@testing-library/user-event"
 

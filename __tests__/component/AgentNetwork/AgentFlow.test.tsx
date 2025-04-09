@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-shadow
 import {render, screen} from "@testing-library/react"
 import {default as userEvent, UserEvent} from "@testing-library/user-event"
 import {ReactFlowProvider} from "reactflow"

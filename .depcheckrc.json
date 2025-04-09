@@ -8,7 +8,6 @@
         "depcheck",
         "eslint-config-next",
         "eslint-formatter-summary",
-        "eslint-import-resolver-typescript",
         "jest",
         "jest-environment-jsdom",
         "prettier",

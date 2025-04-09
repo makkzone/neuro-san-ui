@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-shadow
 import {render, screen} from "@testing-library/react"
 
 import {PageLoader} from "../../components/pageLoader"

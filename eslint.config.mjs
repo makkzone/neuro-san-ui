@@ -2,7 +2,6 @@ import {fixupConfigRules, fixupPluginRules} from "@eslint/compat"
 import {FlatCompat} from "@eslint/eslintrc"
 import js from "@eslint/js"
 import next from "@next/eslint-plugin-next"
-import stylisticTs from "@stylistic/eslint-plugin-ts"
 import typescriptEslint from "@typescript-eslint/eslint-plugin"
 // @ts-expect-error: parser has no types, but works
 import tsParser from "@typescript-eslint/parser"
@@ -27,22 +26,12 @@ const compat = new FlatCompat({
     allConfig: js.configs.all,
 })
 
-// Has to be exported for ESLint to use it
-// ts-prune-ignore-next
-export default [
+const config = [
     {
         settings: {
             react: {
                 version: "detect",
             },
-            /*
-            Per ChatGPT: 
-            "eslint-plugin-import is trying to parse an ESM module (likely @stylistic/eslint-plugin-ts) 
-            using CommonJS expectations. This happens because ESLint’s parser and import plugin may not fully 
-            support ESM for imported plugins without special setup."
-            It recommends adding this setting which seems to fix the issue.
-             */
-            "import/core-modules": ["@stylistic/eslint-plugin-ts"],
         },
         languageOptions: {
             globals: {
@@ -56,21 +45,27 @@ export default [
     },
     ...fixupConfigRules(
         compat.extends(
+            // This enables *all* base ESLint rules. We selectively disable those we are not yet ready for in the
+            // "rules" section below.
             "eslint:all",
             "plugin:@next/next/recommended",
+            // See: https://nextjs.org/docs/pages/building-your-application/configuring/eslint
+            "plugin:@next/next/core-web-vitals",
             "plugin:@typescript-eslint/all",
             "plugin:import/recommended",
             "plugin:import/typescript",
             "plugin:jest/recommended",
             "plugin:react-hooks/recommended",
             "plugin:react/all",
+            // This next one has to be included or else the React rules will complain that "React is not in scope".
+            // But those rules are wrong -- as of React 17, "React" automatically gets included in the transpilation
+            // process and doesn't *need* to be in scope.
             "plugin:react/jsx-runtime",
             "prettier"
         )
     ),
     {
         plugins: {
-            "@stylistic/ts": stylisticTs,
             "@typescript-eslint": fixupPluginRules(typescriptEslint),
             "enforce-ids-in-jsx": enforceIdsInJsx,
             "jest-dom": fixupPluginRules(jestDom),
@@ -86,6 +81,8 @@ export default [
             reportUnusedInlineConfigs: "error",
         },
         languageOptions: {
+            // Define these globals to avoid false positives from the no-undef rule, which we want to enable as it's
+            // useful
             globals: {
                 ...globals.jest,
                 React: "readonly",
@@ -113,13 +110,14 @@ export default [
         },
 
         rules: {
+            // Want to enforce this on all compoments, which the default setting does not do.
             "enforce-ids-in-jsx/missing-ids": [
                 "warn",
                 {
                     target: ["all"],
                 },
             ],
-
+            // Turn on some optional, stricter settings for this rule
             "react/jsx-key": [
                 "error",
                 {
@@ -135,7 +133,7 @@ export default [
                     allowExpressions: true,
                 },
             ],
-
+            // Want to allow short circuit like foo && useFoo(foo)
             "no-unused-expressions": [
                 "error",
                 {
@@ -144,24 +142,28 @@ export default [
                 },
             ],
 
+            // Disallow this syntax -- confusing
             "logical-assignment-operators": ["error", "never"],
+
+            // We want to allow TODO: and FIXME: type comments in the code
             "no-warning-comments": "off",
 
-            "max-statements-per-line": [
-                "error",
-                {
-                    max: 2,
-                },
-            ],
-
+            // We exempt a couple of identifiers that are too ubiquitous and useful to disallow
+            // Other than that, prevent and shadowing of outer scope variables and system globals
             "no-shadow": [
                 "error",
                 {
                     builtinGlobals: true,
-                    allow: ["event", "model"],
+                    allow: ["event", "model", "screen"],
                 },
             ],
 
+            // Some extra rules that are enabled by eslint:all but somehow end up getting disabled -- maybe conflict
+            // with other plugins we're using?
+            // Also the place for rules we want to explicitly enable.
+            //
+            // How to see which rules are enabled: ./node_modules/.bin/eslint --print-config jest.config.ts
+            // In any case, more rules keep us safe, so explicitly enable them here.
             "@typescript-eslint/array-type": "error",
 
             "@typescript-eslint/no-unused-expressions": [
@@ -180,7 +182,8 @@ export default [
                     properties: "never",
                 },
             ],
-
+            // Enforce === and !== everywhere, except for null checks which are a special case (== tests for both null
+            // and undefined which is useful)
             eqeqeq: [
                 "error",
                 "always",
@@ -191,6 +194,9 @@ export default [
 
             "prefer-template": "error",
 
+            // Enforce double quotes (already handled by prettier) _and_ prevent backtick expressions with no
+            // interpolation
+            // See: https://github.com/prettier/eslint-config-prettier "special rules" "quotes"
             quotes: [
                 "error",
                 "double",
@@ -235,8 +241,13 @@ export default [
             "react/no-object-type-as-default-prop": "error",
             "react/self-closing-comp": "error",
             "valid-typeof": "error",
-            "import/no-deprecated": "error",
 
+            // Plugins for tidying imports. They seem to work harmoniously together with these settings.
+            // Note: sorting is done by "from" path, not by symbol name.
+            // See here for explanation: https://github.com/lydell/eslint-plugin-simple-import-sort?tab=readme-ov-file#why-sort-on-from
+            // Note: there are other rules this plugin can enforce but not included in the default set. We may want to
+            // look into enabling the ones we want later. Doc: https://github.com/import-js/eslint-plugin-import/tree/main
+            "import/no-deprecated": "error",
             "import/order": [
                 "error",
                 {
@@ -269,6 +280,8 @@ export default [
             "import/no-unresolved": [
                 "error",
                 {
+                    // Was causing false positives in CI. Needs to be investigated. Probably related to it being used
+                    // in a subdirectory with its own package.json.
                     ignore: ["dotenv"],
                 },
             ],
@@ -286,13 +299,24 @@ export default [
 
             // Rules we're not ready to enable yet
             "@typescript-eslint/no-unnecessary-boolean-literal-compare": "off",
+
+            // Conflicts with react/sort-comp
             "@typescript-eslint/member-ordering": "off",
+            // We like being explicit about types even when "obvious"
             "@typescript-eslint/no-inferrable-types": "off",
+            // Controversial, but it's hard to do JSX without these. Probably should be policed in code reviews.
             "no-nested-ternary": "off",
+            // Deprecated rule: see https://eslint.org/docs/latest/rules/no-return-await
             "no-return-await": "off",
+            // Not needed -- Typescript handles these.
+            // Reference: https://typescript-eslint.io/linting/troubleshooting/performance-troubleshooting/
             "import/no-named-as-default-member": "off",
             "import/default": "off",
             "import/namespace": "off",
+
+            // End permanently off category
+
+            // Rules from the various plugins and base ESLint that we are not yet ready to enable
             "@typescript-eslint/await-thenable": "off",
             "@typescript-eslint/consistent-indexed-object-style": "off",
             "@typescript-eslint/consistent-type-assertions": "off",
@@ -447,8 +471,12 @@ export default [
     },
     eslintConfigPrettier,
     {
+        // re-enable these rules _after_ prettier since prettier disables them
         rules: {
-            // re-enable this rule _after_ prettier since prettier disables it
+            // TODO: eventually these "formatting" rules should be replaced by stylistic as they are deprecated
+            // by eslint, but still function for now.
+            // See: https://eslint.org/blog/2023/10/deprecating-formatting-rules/
+
             "max-len": [
                 "error",
                 {
@@ -458,7 +486,11 @@ export default [
                 },
             ],
 
-            "@stylistic/ts/quotes": [
+            "newline-per-chained-call": "error",
+
+            // Enforce double quotes (already handled by prettier) _and_ prevent backtick expressions with no
+            // interpolation See: https://github.com/prettier/eslint-config-prettier "special rules" "quotes"
+            quotes: [
                 "error",
                 "double",
                 {
@@ -466,7 +498,20 @@ export default [
                     allowTemplateLiterals: false,
                 },
             ],
+            // Would like to leave this at the default setting (max = 1) but that excludes functional incantations that
+            // we would like to allow such as nodes.forEach(node => {node.doSomething})
+            // See: https://github.com/eslint/eslint/issues/9210
+            "max-statements-per-line": ["error", {max: 2}],
 
+            "no-new-native-nonconstructor": "error",
+            "no-class-assign": "error",
+            "import/no-anonymous-default-export": "error",
+            "@typescript-eslint/no-empty-interface": "error",
+            "@typescript-eslint/no-unnecessary-boolean-literal-compare": "error",
         },
     },
 ]
+
+// Has to be exported for ESLint to use it
+// ts-prune-ignore-next
+export default config
