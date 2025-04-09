@@ -57,13 +57,14 @@ export default [
     ...fixupConfigRules(
         compat.extends(
             "eslint:all",
+            "plugin:@next/next/recommended",
             "plugin:@typescript-eslint/all",
             "plugin:import/recommended",
             "plugin:import/typescript",
             "plugin:jest/recommended",
+            "plugin:react-hooks/recommended",
             "plugin:react/all",
             "plugin:react/jsx-runtime",
-            "plugin:@next/next/recommended",
             "prettier"
         )
     ),
@@ -172,15 +173,6 @@ export default [
             ],
 
             "@typescript-eslint/prefer-for-of": "error",
-
-            "@stylistic/ts/quotes": [
-                "error",
-                "double",
-                {
-                    avoidEscape: true,
-                    allowTemplateLiterals: false,
-                },
-            ],
 
             camelcase: [
                 "error",
@@ -433,22 +425,15 @@ export default [
     // overrides
     {
         // Rules we don't care about for tests
-        files: ["__tests__/**/*.{js,ts,jsx,tsx}", "__tests__/*.{js,ts,jsx,tsx}"],
+        files: ["__tests__/**/*.{js,ts,jsx,tsx}"],
         rules: {
-            "enforce-ids-in-jsx/missing-ids": "off",
-            "@next/next/no-img-element": "off",
-        },
-    },
-    {
-        files: ["**/__tests__/**/*.{js,ts,jsx,tsx}"],
-        rules: {
-            // Enable some extra rules for safety
+            // Extra rules for Jest tests
             "testing-library/await-async-queries": "error",
             "testing-library/no-await-sync-queries": "error",
             "testing-library/no-dom-import": "error",
             "testing-library/no-manual-cleanup": "error",
 
-            // Sorry testing-library: these are too useful to disable.
+            // Sorry testing-library: these are too useful to block.
             "testing-library/no-container": "off",
             "testing-library/no-debugging-utils": "off",
             "testing-library/no-node-access": "off",
@@ -463,6 +448,7 @@ export default [
     eslintConfigPrettier,
     {
         rules: {
+            // re-enable this rule _after_ prettier since prettier disables it
             "max-len": [
                 "error",
                 {
@@ -471,6 +457,16 @@ export default [
                     ignorePattern: "^import .*",
                 },
             ],
+
+            "@stylistic/ts/quotes": [
+                "error",
+                "double",
+                {
+                    avoidEscape: true,
+                    allowTemplateLiterals: false,
+                },
+            ],
+
         },
     },
 ]
