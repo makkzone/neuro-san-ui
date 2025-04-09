@@ -34,5 +34,11 @@ export const APP_THEME = createTheme({
         button: {
             textTransform: "none",
         },
+
+        h3: {
+            fontSize: "2rem",
+            fontWeight: 400,
+            marginBottom: "0.75rem",
+        },
     },
 })

@@ -2,7 +2,6 @@ import "reactflow/dist/style.css"
 
 import "../styles/updatenode.css"
 import "../styles/globals.css"
-import "../styles/splashpage.css"
 import "../styles/rundialog.css"
 
 import {Container, CssBaseline, ThemeProvider} from "@mui/material"
@@ -255,7 +254,13 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
         body = (
             <div
                 id="body-div"
-                style={{height: "100%"}}
+                style={{
+                    // eslint-disable-next-line max-len, quotes, @typescript-eslint/quotes
+                    background: `linear-gradient(0deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("/NeuroAI_SC_BH1.webp")`,
+                    backgroundSize: "cover",
+                    paddingBottom: "2rem",
+                    height: "100%",
+                }}
             >
                 <Component
                     id="body-component"

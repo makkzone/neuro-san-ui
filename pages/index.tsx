@@ -47,9 +47,10 @@ const NavbarMiddleSection = styled("div")({
 })
 
 const HeaderLineOne = styled("h1")({
+    color: "var(--bs-white)",
+    fontWeight: 400,
     margin: "0",
     marginTop: "6rem",
-    color: "var(--bs-white)",
 })
 
 const LaunchButton = styled("div")({
@@ -66,10 +67,24 @@ const LaunchButton = styled("div")({
 
 const HeaderLineFive = styled("h5")({
     color: "var(--bs-white) !important",
+    fontWeight: "bold",
+})
+
+const LinkDivider = styled("div")({
+    border: "1px solid rgb(38 239 233)",
+    marginBottom: "1.2rem",
+    width: "2.4rem",
 })
 
 const SplashLink = styled("a")({
-    marginBottom: "0.3rem",
+    color: "rgb(120, 115, 115)",
+    display: "block",
+    marginBottom: "0.37rem",
+    width: "fit-content",
+
+    "&:hover": {
+        color: "var(--bs-white)",
+    },
 })
 
 const NeuroAIDescriptionBox = styled(Box)({
@@ -274,22 +289,31 @@ export default function Index(): ReactElement {
                     </div>
                 </Marginer>
             </OuterContainer>
-            <footer id="footer">
-                <div id="footer_divider" />
-
-                <div id="additional-links-container">
+            <footer
+                id="footer"
+                style={{
+                    borderTop: "1px solid rgb(190, 199, 199)",
+                    marginLeft: "2rem",
+                    marginRight: "2rem",
+                }}
+            >
+                <div
+                    id="additional-links-container"
+                    style={{
+                        columnGap: "60px",
+                        display: "flex",
+                        marginLeft: "1.5rem",
+                        marginTop: "25px",
+                    }}
+                >
                     <div
                         id="team-links"
                         className="more-links"
                     >
                         <HeaderLineFive id="additional-links-header">Team</HeaderLineFive>
-                        <div
-                            id="additional-links-divider"
-                            className="link-divider"
-                        />
+                        <LinkDivider id="additional-links-divider" />
                         <SplashLink
                             id="learn-more-link"
-                            className="splash-link"
                             href="https://www.cognizant.com/us/en/services/ai/ai-lab"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -298,7 +322,6 @@ export default function Index(): ReactElement {
                         </SplashLink>
                         <SplashLink
                             id="contact-us-footer-link"
-                            className="splash-link"
                             href={null}
                             onClick={() => setEmailDialogOpen(true)}
                             target="_blank"
@@ -307,18 +330,11 @@ export default function Index(): ReactElement {
                             Contact Us
                         </SplashLink>
                     </div>
-                    <div
-                        id="services-links"
-                        className="more-links"
-                    >
+                    <div id="services-links">
                         <HeaderLineFive id="additional-links-header">Services</HeaderLineFive>
-                        <div
-                            id="additional-links-divider"
-                            className="link-divider"
-                        />
+                        <LinkDivider id="additional-links-divider" />
                         <SplashLink
                             id="ai-innovation-studios-link"
-                            className="splash-link"
                             href="https://portal-innovationstudio-apps-prod-we-001.azurewebsites.net/"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -327,7 +343,6 @@ export default function Index(): ReactElement {
                         </SplashLink>
                         <SplashLink
                             id="neuro-it-ops-link"
-                            className="splash-link"
                             href="https://www.cognizant.com/us/en/services/neuro-intelligent-automation/neuro-ai-it-operations"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -336,7 +351,6 @@ export default function Index(): ReactElement {
                         </SplashLink>
                         <SplashLink
                             id="flowsource-link"
-                            className="splash-link"
                             href="https://www.cognizant.com/us/en/services/software-engineering-services/flowsource"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -345,7 +359,6 @@ export default function Index(): ReactElement {
                         </SplashLink>
                         <SplashLink
                             id="skygrade-link"
-                            className="splash-link"
                             href="https://www.cognizant.com/us/en/services/cloud-solutions/cognizant-skygrade"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -354,7 +367,6 @@ export default function Index(): ReactElement {
                         </SplashLink>
                         <SplashLink
                             id="cdit-link"
-                            className="splash-link"
                             href="https://cditoolkit.cognizant.com"
                             target="_blank"
                             rel="noopener noreferrer"

@@ -2,6 +2,7 @@ import BorderColorIcon from "@mui/icons-material/BorderColor"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Tooltip from "@mui/material/Tooltip"
+import Typography from "@mui/material/Typography"
 import Link, {LinkProps} from "next/link"
 import {ReactElement, useState} from "react"
 import {BsFillPlusSquareFill} from "react-icons/bs"
@@ -42,24 +43,24 @@ export default function NewBar(props: NavbarProps) {
                     id={`${idPrefix}-link`}
                     {...props.LinkComponentProps}
                 >
-                    <h3
+                    <Typography
                         id={`${idPrefix}-link-heading`}
-                        className="h3"
+                        variant="h3"
                     >
                         <BsFillPlusSquareFill id={`${idPrefix}-link-square-fill`} />
-                    </h3>
+                    </Typography>
                 </Link>
             )
         } else if (props.handleLinkCallback) {
             // If a link has been provided
             newButton = (
-                <h3
+                <Typography
                     id={`${idPrefix}-link`}
-                    className="h3"
                     onClick={props.handleLinkCallback}
+                    variant="h3"
                 >
                     <BsFillPlusSquareFill id={`${idPrefix}-link-square-fill`} />
-                </h3>
+                </Typography>
             )
         } else if (props.ButtonComponent) {
             newButton = props.ButtonComponent
@@ -70,9 +71,10 @@ export default function NewBar(props: NavbarProps) {
     let sharingButton = null
     if (props.handleSharingCallback) {
         sharingButton = (
-            <h3
+            <Typography
                 id="share-item"
                 style={{marginLeft: "auto"}}
+                variant="h3"
             >
                 <Tooltip // eslint-disable-line enforce-ids-in-jsx/missing-ids
                     enterDelay={1000}
@@ -88,7 +90,7 @@ export default function NewBar(props: NavbarProps) {
                         />
                     </span>
                 </Tooltip>
-            </h3>
+            </Typography>
         )
     }
 
@@ -97,7 +99,10 @@ export default function NewBar(props: NavbarProps) {
     if (props.EditableCallback) {
         if (editing) {
             title = (
-                <h3 id={`${idPrefix}-title`}>
+                <Typography
+                    id={`${idPrefix}-title`}
+                    variant="h3"
+                >
                     <input
                         type="text"
                         id={`${idPrefix}-input`}
@@ -118,13 +123,14 @@ export default function NewBar(props: NavbarProps) {
                             }
                         }}
                     />
-                </h3>
+                </Typography>
             )
         } else {
             title = (
-                <h3
-                    style={{display: "flex"}}
+                <Typography
                     id={`${idPrefix}-title`}
+                    style={{display: "flex"}}
+                    variant="h3"
                 >
                     {props.Title}
                     <Button
@@ -140,18 +146,24 @@ export default function NewBar(props: NavbarProps) {
                         />
                     </Button>
                     <div id="info-tip">{props.InfoTip}</div>
-                </h3>
+                </Typography>
             )
         }
     } else {
         title = (
-            <h3
-                style={{display: "flex"}}
+            <Typography
                 id={`${idPrefix}-title`}
+                style={{display: "flex"}}
+                variant="h3"
             >
                 {props.Title}
-                <div id="info-tip">{props.InfoTip}</div>
-            </h3>
+                <div
+                    id="info-tip"
+                    style={{marginLeft: "0.25rem"}}
+                >
+                    {props.InfoTip}
+                </div>
+            </Typography>
         )
     }
 
