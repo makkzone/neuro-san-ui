@@ -97,7 +97,7 @@ jest.mock("next/config", () => () => ({
 
 // Cheesy mock implementation of structuredClone since it's not available in jsdom
 // See: https://github.com/jsdom/jsdom/issues/3363
-global.structuredClone = (val) => JSON.parse(JSON.stringify(val))
+global.structuredClone = (val: object) => JSON.parse(JSON.stringify(val))
 
 /* Have to mock these up due to https://github.com/remarkjs/react-markdown/issues/635
  Summary from that ticket:
@@ -131,6 +131,9 @@ jest.mock(
 )
 
 /* eslint-enable react/display-name, react/no-multi-comp */
+
+// Doesn't play nicely with jest
+jest.mock("pretty-bytes", () => jest.fn((bytes) => `${bytes} bytes`))
 
 // Not available in JSDom. See: https://github.com/jsdom/jsdom/issues/1695
 window.HTMLElement.prototype.scrollIntoView = jest.fn()
