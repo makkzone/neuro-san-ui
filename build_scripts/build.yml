@@ -19,8 +19,8 @@ steps:
                 | grep -Ev "(token |token_accessor)"
             
             - EPHEMERAL_TOKEN=$(vault read -address=${{VAULT}} -field=token /github-secrets/token/repo-read)
-            - cf_export EPHEMERAL_LEAF_SOURCE_CREDENTIALS="x-access-token:${EPHEMERAL_TOKEN}"
-            - cf_export LEAF_SOURCE_CREDENTIALS="${EPHEMERAL_TOKEN}"
+            - cf_export EPHEMERAL_LEAF_SOURCE_CREDENTIALS="x-access-token:${EPHEMERAL_TOKEN}" --mask
+            - cf_export LEAF_SOURCE_CREDENTIALS="${EPHEMERAL_TOKEN}" --mask
             
     generate_proto_stubs_for_ui:
       title: Generate proto stubs for ui
@@ -30,7 +30,8 @@ steps:
       commands:
         - apk add --quiet --no-progress --upgrade bash protobuf-dev git
         - yarn install
-        - ./grpc/do_typescript_generate.sh
+        - yarn --cwd embed install
+        - ./build_scripts/do_typescript_generate.sh
 
     ui-node-build:
       title: Build ui-node Docker image

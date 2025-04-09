@@ -1,6 +1,6 @@
 {
-    "name": "nextfront",
-    "version": "0.0.1",
+    "name": "neuro-ui",
+    "version": "1.0.0",
     "private": true,
     "scripts": {
         "about:dev": "echo 'Starts the UI in dev mode on port 3000 on the local system'",
@@ -22,7 +22,7 @@
         "about:check-format": "Runs prettier to check if the code is formatted correctly",
         "commit-check": "yarn run tsc ; yarn run ts-prune --error ; yarn run check-format --write ; ../build_scripts/run_eslint.sh ; yarn run unit_test ; yarn run depcheck",
         "check-format": "prettier --check .",
-        "generate": "cp -r ../proto . && ./grpc/do_typescript_generate.sh"
+        "generate": "cp -r ../proto . && build_scripts/do_typescript_generate.sh"
     },
     "dependencies": {
         "@emotion/react": "11.13.3",

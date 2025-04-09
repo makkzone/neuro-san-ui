@@ -11,8 +11,8 @@
 # 3) Get a Personal Access Token from Github and set it in the LEAF_SOURCE_CREDENTIALS environment variable.
 # This token must have at least read access to the leaf-ai/neuro-san repository.
 #
-# This script must be run from the nextfront directory, which is in line with the Docker build which runs from the
-# nextfront directory.
+# This script must be run from the project root directory, which is in line with the Docker build which runs from the
+# project root directory.
 #
 
 # See https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html for what these do

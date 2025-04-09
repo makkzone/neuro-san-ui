@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
 #
-# This script runs the ESLint linter on the current directory and all subdirectories. Corollary: given our project
-# structure, the caller should have changed directory to nextfront where the UI code lives first.
+# This script runs the ESLint linter on the current directory and all subdirectories.
 # It will lint all javascript-ish and Typescript-ish type source files.
 #
-# For now we have an error and warning threshold (the status quo) and if a checkin causes more errors or warnings
+# We have an error and warning threshold (the status quo) and if a check-in causes more errors or warnings
 # to be generated than this threshold, this script will complain and exist with non-zero status, breaking the build.
 # On failure, warnings and errors are spewed to stdout to help diagnose what went wrong. On success, the script is
 # silent.
