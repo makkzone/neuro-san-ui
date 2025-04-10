@@ -1,6 +1,7 @@
-// eslint-disable-next-line no-shadow, testing-library/no-manual-cleanup
-import {act, cleanup, fireEvent, render, screen, waitFor} from "@testing-library/react"
-import user from "@testing-library/user-event"
+// We actually need "cleanup" in this test, due to the odd rendering/state model of the Flow class. Needs revisiting.
+// eslint-disable-next-line testing-library/no-manual-cleanup
+import {cleanup, render, screen, waitFor} from "@testing-library/react"
+import {default as userEvent, UserEvent} from "@testing-library/user-event"
 import {Position} from "reactflow"
 
 import {EdgeType} from "../../../components/internal/flow/edges/types"
@@ -169,6 +170,11 @@ jest.mock("../../../controller/datatag/fetchdatataglist", () => {
 const MUI_BUTTON_CLASS = "MuiButton-root"
 
 describe("Flow Test", () => {
+    let user: UserEvent
+    beforeEach(() => {
+        user = userEvent.setup()
+    })
+
     let setParentState: jest.Mock
 
     function createFlow(
@@ -197,7 +203,7 @@ describe("Flow Test", () => {
         setParentState.mockReset()
 
         // Click the button to add the node
-        fireEvent.click(addNodeButton)
+        await user.click(addNodeButton)
 
         // Should be no popup warnings or errors
         expect(sendNotification).not.toHaveBeenCalled()
@@ -358,7 +364,7 @@ describe("Flow Test", () => {
         const addPrescriptorButton = screen.getByText("Add Prescriptor")
 
         // Click the button
-        addPrescriptorButton.click()
+        await user.click(addPrescriptorButton)
 
         // Should have refused to add the prescriptor node
         expect(setParentState).toHaveBeenLastCalledWith([expect.objectContaining({type: "datanode"})])
@@ -378,7 +384,7 @@ describe("Flow Test", () => {
         const addUncertaintyNodeButton = screen.getByText("Add Uncertainty Model")
 
         // Click the button
-        addUncertaintyNodeButton.click()
+        await user.click(addUncertaintyNodeButton)
 
         // Should have refused to add the prescriptor node
         expect(setParentState).toHaveBeenLastCalledWith([expect.objectContaining({type: "datanode"})])
@@ -431,11 +437,8 @@ describe("Flow Test", () => {
         const addPredictorButton = screen.getByText("Add Predictor")
         expect(addPredictorButton).toBeInTheDocument()
 
-        // Without this act() an ugly warning is issued by React. React testing library is supposed to auto
-        // wrap things in act() but it doesn't seem to be working here.
-        act(() => {
-            addPredictorButton.click()
-        })
+        await user.click(addPredictorButton)
+
         expect(sendNotification).not.toHaveBeenCalled()
 
         await waitFor(() => {
@@ -485,7 +488,7 @@ describe("Flow Test", () => {
         expect(llmMenuButton).toBeInTheDocument()
 
         // click it
-        fireEvent.click(llmMenuButton)
+        await user.click(llmMenuButton)
 
         // Get the add Analytics node button
         const addAnalyticsButton = screen.getByText("Analytics")
@@ -507,12 +510,12 @@ describe("Flow Test", () => {
         const llmMenuButton = screen.getByText("Add LLM ▼")
         expect(llmMenuButton).toBeInTheDocument()
 
-        // click it
-        fireEvent.click(llmMenuButton)
+        // click it to expand the menu
+        await user.click(llmMenuButton)
 
         // Get the add Activation node button
-        const addAnalyticsButton = screen.getByText("Activation")
-        expect(addAnalyticsButton).toBeInTheDocument()
+        const addActivationButton = screen.getByText("Activation")
+        expect(addActivationButton).toBeInTheDocument()
 
         await clickToAddNode(
             [
@@ -525,7 +528,7 @@ describe("Flow Test", () => {
                 "predictoredge",
             ],
             "react-flow__node-activation_node",
-            addAnalyticsButton,
+            addActivationButton,
             "activation_node"
         )
     })

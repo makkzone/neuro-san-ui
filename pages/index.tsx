@@ -217,6 +217,7 @@ export default function Index(): ReactElement {
                             <Link
                                 id="of-link"
                                 href={`/opportunityFinder?${buildQueryString()}`}
+                                /* eslint-disable-next-line @typescript-eslint/no-deprecated */
                                 legacyBehavior={true} // Need this so we can "open in new tab"
                                 passHref
                             >
@@ -247,6 +248,7 @@ export default function Index(): ReactElement {
                                 id="orchestrator-link"
                                 // Use the URL object form of `href` to pass along the query string
                                 href={`/projects?${buildQueryString()}`}
+                                /* eslint-disable-next-line @typescript-eslint/no-deprecated */
                                 legacyBehavior={true}
                                 passHref
                             >
@@ -271,6 +273,7 @@ export default function Index(): ReactElement {
                                 id="agent-network-link"
                                 // Use the URL object form of `href` to pass along the query string
                                 href={`/agentNetwork?${buildQueryString()}`}
+                                /* eslint-disable-next-line @typescript-eslint/no-deprecated */
                                 legacyBehavior={true}
                                 passHref
                             >

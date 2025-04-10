@@ -13,12 +13,10 @@ See: https://stackoverflow.com/questions/68468203/why-am-i-getting-textencoder-i
 // eslint-disable-next-line no-shadow
 import {TextDecoder, TextEncoder} from "util"
 
-// eslint-disable-next-line no-undef
 Object.defineProperty(globalThis, "crypto", {
     value: webcrypto,
 })
 
-// eslint-disable-next-line no-undef
 Object.defineProperties(globalThis, {
     ReadableStream: {value: ReadableStream},
 })
@@ -32,16 +30,13 @@ global.TextDecoder = TextDecoder
 // See: https://github.com/xyflow/xyflow/issues/716#issuecomment-1246602067
 // eslint-disable-next-line no-shadow
 class ResizeObserver {
-    // eslint-disable-next-line no-undef
     callback: globalThis.ResizeObserverCallback
 
-    // eslint-disable-next-line no-undef
     constructor(callback: globalThis.ResizeObserverCallback) {
         this.callback = callback
     }
 
     observe(target: Element) {
-        // eslint-disable-next-line no-undef
         this.callback([{target} as globalThis.ResizeObserverEntry], this)
     }
 
@@ -102,7 +97,7 @@ jest.mock("next/config", () => () => ({
 
 // Cheesy mock implementation of structuredClone since it's not available in jsdom
 // See: https://github.com/jsdom/jsdom/issues/3363
-global.structuredClone = (val) => JSON.parse(JSON.stringify(val))
+global.structuredClone = (val: object) => JSON.parse(JSON.stringify(val))
 
 /* Have to mock these up due to https://github.com/remarkjs/react-markdown/issues/635
  Summary from that ticket:
@@ -136,6 +131,9 @@ jest.mock(
 )
 
 /* eslint-enable react/display-name, react/no-multi-comp */
+
+// Doesn't play nicely with jest
+jest.mock("pretty-bytes", () => jest.fn((bytes) => `${bytes} bytes`))
 
 // Not available in JSDom. See: https://github.com/jsdom/jsdom/issues/1695
 window.HTMLElement.prototype.scrollIntoView = jest.fn()

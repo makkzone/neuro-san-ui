@@ -15,7 +15,7 @@ export const chatMessageFromChunk = (chunk: string): ChatMessage => {
     let chatResponse: ChatResponse
     try {
         chatResponse = JSON.parse(chunk).result
-    } catch (e) {
+    } catch {
         return null
     }
     const chatMessage: ChatMessage = chatResponse?.response
@@ -46,7 +46,7 @@ export const tryParseJson: (chunk: string) => null | object | string = (chunk: s
         return chunk
     }
 
-    let chatMessageJson: object = null
+    let chatMessageJson: object
     const chatMessageText = chatMessage.text
 
     // LLM sometimes wraps the JSON in markdown code blocks, so we need to remove them before parsing

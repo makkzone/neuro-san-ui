@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-shadow
 import {fireEvent, render, screen, waitFor} from "@testing-library/react"
 
 import LLMDropdownMenu from "../../components/internal/flow/LLMDropdownMenu"

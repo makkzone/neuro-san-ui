@@ -1,6 +1,5 @@
 import {AgentType as NeuroSanAgentType} from "../../generated/metadata"
 
-// eslint-disable-next-line no-shadow
 export enum LegacyAgentType {
     OpportunityFinder = "OpportunityFinder",
     ScopingAgent = "ScopingAgent",

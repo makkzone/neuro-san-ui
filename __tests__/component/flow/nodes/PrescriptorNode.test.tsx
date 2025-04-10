@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-shadow
 import {fireEvent, render, screen} from "@testing-library/react"
 
 import Prescriptornode from "../../../../components/internal/flow/nodes/prescriptornode"

@@ -2,7 +2,6 @@
  * Component tests for top nav bar
  */
 
-// eslint-disable-next-line no-shadow
 import {render, screen} from "@testing-library/react"
 import {UserEvent, default as userEvent} from "@testing-library/user-event"
 
