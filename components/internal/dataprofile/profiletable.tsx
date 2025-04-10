@@ -94,7 +94,12 @@ export default function ProfileTable(props: ProfileTableProps) {
                 id={header}
                 key={header}
                 scope="col"
-                className="py-3 text-center text-xs font-medium text-gray-500"
+                style={{
+                    fontSize: "0.75rem",
+                    paddingTop: "0.75rem",
+                    paddingBottom: "0.75rem",
+                    textAlign: "center",
+                }}
             >
                 {header}
             </th>
@@ -138,13 +143,13 @@ export default function ProfileTable(props: ProfileTableProps) {
                 <select
                     id={`${field}-esp-type-select`}
                     name={`${field}-espType`}
-                    value={fields[field].espType}
-                    className="w-18"
                     onChange={(event) => {
                         const profileCopy = {...profile}
                         profileCopy.dataTag.fields[field].espType = DataTagFieldCAOType[event.target.value]
                         setProfile(profileCopy)
                     }}
+                    style={{width: "4.5rem"}}
+                    value={fields[field].espType}
                 >
                     <option
                         id={`${field}-esp-type-context`}
@@ -303,13 +308,20 @@ export default function ProfileTable(props: ProfileTableProps) {
                 {isContinuous(field) ? (
                     <Box id={`${field}-min-range-data`}>
                         <Input
+                            disabled={!updatePermission}
                             id={`${field}-min-range-control`}
-                            className="m-0 p-0 mx-auto"
-                            sx={{width: "16ch", backgroundColor: "var(--bs-white)"}}
+                            sx={{
+                                backgroundColor: "var(--bs-white)",
+                                marginTop: 0,
+                                marginBottom: 0,
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                                padding: 0,
+                                width: "16ch",
+                            }}
                             name={`${field}-min-range`}
                             type="number"
                             value={fields[field].range[0]}
-                            disabled={!updatePermission}
                             onChange={(event) => {
                                 const profileCopy = {...profile}
                                 profileCopy.dataTag.fields[field].range[0] = parseFloat(event.target.value)
@@ -327,18 +339,25 @@ export default function ProfileTable(props: ProfileTableProps) {
                 {isContinuous(field) ? (
                     <Box id={`${field}-max-range-group`}>
                         <Input
-                            id={`${field}-max-range-control`}
-                            className="m-0 p-0 mx-auto"
-                            sx={{width: "16ch", backgroundColor: "var(--bs-white)"}}
-                            name={`${field}-max-range`}
-                            type="number"
-                            value={fields[field].range[1]}
                             disabled={!updatePermission}
+                            id={`${field}-max-range-control`}
+                            name={`${field}-max-range`}
                             onChange={(event) => {
                                 const profileCopy = {...profile}
                                 profileCopy.dataTag.fields[field].range[1] = parseFloat(event.target.value)
                                 setProfile(profileCopy)
                             }}
+                            sx={{
+                                backgroundColor: "var(--bs-white)",
+                                marginTop: 0,
+                                marginBottom: 0,
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                                padding: 0,
+                                width: "16ch",
+                            }}
+                            type="number"
+                            value={fields[field].range[1]}
                         />
                     </Box>
                 ) : (
@@ -687,17 +706,25 @@ export default function ProfileTable(props: ProfileTableProps) {
                 >
                     <table
                         id="profile-table"
-                        className="min-w-full divide-y divide-gray-200"
+                        style={{
+                            borderCollapse: "collapse",
+                            borderBottom: "1px solid #e5e7eb",
+                            minWidth: "100%",
+                        }}
                     >
                         <thead
                             id="profile-table-header"
-                            className="bg-gray-50"
+                            style={{color: "var(--bs-gray-500"}}
                         >
                             <tr id="profile-table-header-elements">{tableHeaderElements}</tr>
                         </thead>
                         <tbody
                             id="profile-table-all-rows"
-                            className="bg-white divide-y divide-gray-200"
+                            style={{
+                                backgroundColor: "var(--bs-white)",
+                                borderCollapse: "collapse",
+                                borderBottom: "var(--bs-border-width) var(--bs-border-style) var(--bs-gray-500)",
+                              }}
                         >
                             {allRows}
                         </tbody>
