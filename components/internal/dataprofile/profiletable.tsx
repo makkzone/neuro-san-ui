@@ -131,7 +131,13 @@ export default function ProfileTable(props: ProfileTableProps) {
         <tr
             id={field}
             key={field}
-            style={{backgroundColor: caoColorCoding[fields[field].espType], height: "1rem", padding: 0, margin: 0}}
+            style={{
+                backgroundColor: caoColorCoding[fields[field].espType],
+                borderBottom: "var(--bs-border-width) var(--bs-border-style) var(--bs-gray-dark)",
+                height: "1rem",
+                margin: 0,
+                padding: 0,
+            }}
         >
             {/*Field name*/}
             <TableCell id={`${field}-name`}>
@@ -714,18 +720,16 @@ export default function ProfileTable(props: ProfileTableProps) {
                     >
                         <thead
                             id="profile-table-header"
-                            style={{color: "var(--bs-gray-500"}}
-                        >
-                            <tr id="profile-table-header-elements">{tableHeaderElements}</tr>
-                        </thead>
-                        <tbody
-                            id="profile-table-all-rows"
                             style={{
-                                backgroundColor: "var(--bs-white)",
                                 borderCollapse: "collapse",
-                                borderBottom: "var(--bs-border-width) var(--bs-border-style) var(--bs-gray-500)",
-                              }}
+                                borderBottom: "var(--bs-border-width) var(--bs-border-style) var(--bs-black)",
+                            }}
                         >
+                            <tr id="profile-table-header-elements">
+                                {tableHeaderElements}
+                            </tr>
+                        </thead>
+                        <tbody id="profile-table-all-rows">
                             {allRows}
                         </tbody>
                     </table>
