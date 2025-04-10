@@ -1,5 +1,4 @@
 import {styled} from "@mui/material"
-import Badge from "@mui/material/Badge"
 import Box from "@mui/material/Box"
 import NextImage from "next/legacy/image"
 import Link from "next/link"
