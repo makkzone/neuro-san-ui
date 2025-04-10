@@ -725,13 +725,9 @@ export default function ProfileTable(props: ProfileTableProps) {
                                 borderBottom: "var(--bs-border-width) var(--bs-border-style) var(--bs-black)",
                             }}
                         >
-                            <tr id="profile-table-header-elements">
-                                {tableHeaderElements}
-                            </tr>
+                            <tr id="profile-table-header-elements">{tableHeaderElements}</tr>
                         </thead>
-                        <tbody id="profile-table-all-rows">
-                            {allRows}
-                        </tbody>
+                        <tbody id="profile-table-all-rows">{allRows}</tbody>
                     </table>
                 </Box>
             </Box>
