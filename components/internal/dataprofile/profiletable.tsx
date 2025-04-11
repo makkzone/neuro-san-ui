@@ -25,7 +25,7 @@ import {MUIAlert} from "../../MUIAlert"
 
 // #region: Styled Components
 const TableCell = styled("td")({
-    color: "#111827",
+    color: "var(--bs-primary)",
     fontSize: "0.75rem",
     fontWeight: 500,
     paddingBottom: "0.75rem",

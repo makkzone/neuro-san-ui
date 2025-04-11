@@ -1038,6 +1038,7 @@ const PrescriptorNodeComponent: FC<NodeProps<PrescriptorNodeData>> = (props) => 
                         border: "4px solid var(--bs-border-color)",
                         borderRadius: "0.5rem",
                         backgroundColor: "var(--bs-white)",
+                        // TODO: Update this box shadow
                         boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
                         margin: 0,
                         overflowY: "scroll",
