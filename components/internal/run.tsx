@@ -514,7 +514,7 @@ export default function RunPage(props: RunProps): ReactElement {
     }
 
     const plotDiv = []
-    
+
     if (predictorPlotData && !isLoadingPlotData) {
         const predictors = FlowQueries.getPredictorNodes(flow)
         plotDiv.push(
