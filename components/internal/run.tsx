@@ -28,6 +28,7 @@ import {fetchLlmRules} from "../../controller/rules/rules"
 import {fetchRunArtifact, fetchRuns} from "../../controller/run/fetch"
 import {constructRunMetricsForRunPlot} from "../../controller/run/results"
 import {Artifact, Run, Runs} from "../../controller/run/types"
+import {StyledMarkdownContainer} from "../../styles/StyledMarkdownContainer"
 import {useAuthentication} from "../../utils/authentication"
 import {AuthorizationInfo} from "../../utils/authorization"
 import decode from "../../utils/conversion"
@@ -42,7 +43,6 @@ import NewBar from "../newbar"
 import {NotificationType, sendNotification} from "../notification"
 import {PageLoader} from "../pageLoader"
 import {MultiPareto} from "../pareto/multi_pareto"
-import {StyledMarkdownContainer} from "../../styles/StyledMarkdownContainer"
 
 interface TabPanelProps {
     id: string
