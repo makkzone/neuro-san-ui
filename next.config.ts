@@ -73,6 +73,9 @@ const nextConfig: import("next").NextConfig = {
 
     poweredByHeader: false,
 
+    // Disable dev tools icon
+    devIndicators: false,
+
     async headers() {
         return [
             {
@@ -87,26 +90,7 @@ const nextConfig: import("next").NextConfig = {
         includePaths: [path.join(__dirname, "styles")],
     },
 
-    transpilePackages: [
-        "@ant-design/pro-editor",
-        "@ant-design/icons",
-        "@ant-design/icons-svg",
-        "echarts",
-        "echarts-gl",
-        "rc-pagination",
-        "rc-picker",
-        "rc-table",
-        "rc-tree",
-        "rc-util",
-        "zrender",
-    ],
-
-    compiler: {
-        // Prevent errors like "webpack Warning: Prop `className` did not match. Server: ..."
-        // See: https://nextjs.org/docs/architecture/nextjs-compiler#styled-components
-        // ssr and displayName are configured by default
-        styledComponents: true,
-    },
+    transpilePackages: ["echarts", "echarts-gl", "zrender"],
 }
 
 // Seems to need to be exported for NextJS to pick it up
