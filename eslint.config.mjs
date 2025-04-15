@@ -449,32 +449,8 @@ const config = [
             "sort-keys": "off",
             "spaced-comment": "off",
             "unicorn/consistent-existence-index-check": "off",
-            "unicorn/escape-case": "off",
             "unicorn/no-await-expression-member": "off",
-            "unicorn/no-for-loop": "off",
-            "unicorn/no-lonely-if": "off",
             "unicorn/no-static-only-class": "off",
-            "unicorn/no-unused-properties": "off",
-            "unicorn/no-useless-length-check": "off",
-            "unicorn/prefer-array-flat": "off",
-            "unicorn/prefer-array-some": "off",
-            "unicorn/prefer-blob-reading-methods": "off",
-            "unicorn/prefer-code-point": "off",
-            "unicorn/prefer-dom-node-append": "off",
-            "unicorn/prefer-dom-node-dataset": "off",
-            "unicorn/prefer-dom-node-remove": "off",
-            "unicorn/prefer-math-min-max": "off",
-            "unicorn/prefer-negative-index": "off",
-            "unicorn/prefer-top-level-await": "off",
-            "unicorn/text-encoding-identifier-case": "off",
-            "unicorn/no-object-as-default-parameter": "off",
-            "unicorn/prefer-add-event-listener": "off",
-            "unicorn/prefer-includes": "off",
-            "unicorn/new-for-builtins": "off",
-            "unicorn/no-console-spaces": "off",
-            "unicorn/no-instanceof-builtins": "off",
-            "unicorn/prefer-module": "off",
-            "unicorn/prefer-structured-clone": "off",
             "unicorn/prefer-set-has": "off",
             "unicorn/prefer-string-raw": "off",
             "unicorn/no-useless-undefined": "off",
@@ -505,9 +481,8 @@ const config = [
             "unicorn/prevent-abbreviations": "off",
         },
     },
-    // overrides
     {
-        // Rules we don't care about for tests
+        // Test-specific rule configuration
         files: ["__tests__/**/*.{js,ts,jsx,tsx}"],
         rules: {
             // Extra rules for Jest tests
