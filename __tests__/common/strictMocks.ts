@@ -14,6 +14,7 @@ export const withStrictMocks = (options: StrictMockOptions = {}) => {
     const {resetModules = false} = options
 
     beforeEach(() => {
+        jest.clearAllMocks()
         jest.resetAllMocks()
         jest.restoreAllMocks()
         if (resetModules) {
