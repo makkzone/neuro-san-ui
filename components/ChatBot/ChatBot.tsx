@@ -3,8 +3,8 @@ import Box from "@mui/material/Box"
 import Grow from "@mui/material/Grow"
 import {FC, useState} from "react"
 
-import {BUILD_TARGET} from "../../const"
 import {CHATBOT_ENDPOINT} from "../../controller/llm/endpoints"
+import useEnvironmentStore from "../../state/environment"
 import {useAuthentication} from "../../utils/authentication"
 import {ZIndexLayers} from "../../utils/zIndexLayers"
 import {ChatCommon} from "../AgentChat/ChatCommon"
@@ -36,9 +36,10 @@ export const ChatBot: FC<ChatBotProps> = ({id, userAvatar, pageContext}) => {
     const {
         user: {name: currentUser},
     } = useAuthentication().data
+    const {buildTarget} = useEnvironmentStore()
 
     return (
-        BUILD_TARGET === "all" && (
+        buildTarget === "all" && (
             <>
                 <Grow
                     id={`chatbot-window-animation-${id}`}

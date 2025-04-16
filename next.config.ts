@@ -51,7 +51,6 @@ const nextConfig: import("next").NextConfig = {
 
     publicRuntimeConfig: {
         unileafVersion: process.env.UNILEAF_VERSION || "unknown",
-        buildTarget: process.env.BUILD_TARGET || "all",
     },
 
     output: "standalone",

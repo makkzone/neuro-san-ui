@@ -12,7 +12,6 @@ import {ReactElement, MouseEvent as ReactMouseEvent, useState} from "react"
 
 import {ConfirmationModal} from "./confirmationModal"
 import {
-    BUILD_TARGET,
     CONTACT_US_CONFIRMATION_DIALOG_TEXT,
     CONTACT_US_CONFIRMATION_DIALOG_TITLE,
     DEFAULT_USER_IMAGE,
@@ -65,7 +64,7 @@ function Navbar(props: NavbarProps): ReactElement {
     const {currentUser, setCurrentUser, setPicture, oidcProvider} = useUserInfoStore()
 
     // Access environment info
-    const {auth0ClientId, auth0Domain, supportEmailAddress} = useEnvironmentStore()
+    const {auth0ClientId, auth0Domain, buildTarget, supportEmailAddress} = useEnvironmentStore()
 
     const authenticationType = currentUser ? `ALB using ${oidcProvider}` : "NextAuth"
 
@@ -147,7 +146,7 @@ function Navbar(props: NavbarProps): ReactElement {
                     id="build-text"
                     sx={{...MENU_ITEM_TEXT_PROPS}}
                 >
-                    Build: <strong id="build-strong">{`${UNILEAF_VERSION} (${BUILD_TARGET})`}</strong>
+                    Build: <strong id="build-strong">{`${UNILEAF_VERSION} (${buildTarget})`}</strong>
                 </Typography>
             </Grid>
 
@@ -180,7 +179,7 @@ function Navbar(props: NavbarProps): ReactElement {
                     open={helpMenuOpen}
                     onClose={handleCloseHelpMenu}
                 >
-                    {BUILD_TARGET === "all" && [
+                    {buildTarget === "all" && [
                         <MenuItem
                             id="user-guide"
                             key="user-guide"
