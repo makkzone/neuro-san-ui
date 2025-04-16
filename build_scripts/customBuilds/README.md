@@ -13,14 +13,14 @@ depending on the build target chosen.
 For example, you might want to create a build that only includes the Neuro-san/MAA UI part of the application and
 excludes other features. This is possible with the customer builds feature.
 
-If you do not specify a custom build target, the default build target is used which includes the entire application.
-
 It is anticipated that custom builds will be handled via "set-and-forget" in CI. This README is to give you some
 more in-depth information in case you need to troubleshoot or understand the process better, or create your own custom
 build.
 
 ## Using Custom Builds
 The environment variable `BUILD_TARGET` is used both at build time and runtime to create custom builds.
+If you do not specify a custom build target, the default build target `all` is used which includes the entire 
+application: all pages and all features.
 
 ### Build time
 Normally, this procedure would be performed automatically by CI, but if you need to perform it manually for whatever
@@ -28,7 +28,7 @@ reason, use these instructions.
 
 1. Choose one of the custom builds from the `build_scripts/customBuilds` directory. The file names are in the format
 `customBuildName.txt`, for example, `neuroSan.txt`. In this case your custom build is `neuroSan`. This is the value
-you will use later for `BUILD_TARGET`.
+you will use later for `BUILD_TARGET`, without the `.txt` extension.
 1. Ensure your working directory is clean with no local modifications
     ```bash
     git status
@@ -37,7 +37,7 @@ you will use later for `BUILD_TARGET`.
     that are not part of the custom build.
 1. Run the command to prepare your working directory for the build:
     ```bash
-    BUILD_TARGET=<your_custom_build_name> ./build_scripts/customBuilds/prune_working_dir.sh
+    BUILD_TARGET=<your_custom_build_name> ./build_scripts/customBuilds/prepare_custom_build.sh
     ```
 1. Now you can build the project as you normally would. For example, if you are using Docker, you can run:
     ```bash
@@ -51,6 +51,8 @@ git reset --hard HEAD
 ### Runtime
 The custom build target is set at runtime using the environment variable `BUILD_TARGET`. This can be done either in
 "dev" mode or in "production mode", for example using the previously-created Docker build.
+
+> 📝 NOTE: use the same value for `BUILD_TARGET` as you used at build time.
 
 #### Dev mode
 Sample command line:
@@ -122,7 +124,12 @@ This is a simple solution that works for most cases. Wildcards may be supported 
 Camel case is recommended as it is a common convention in the JavaScript community. For example, `myCustomBuild`.
 
 ### Why do I need to specify `BUILD_TARGET` both at build time and runtime?
-At build time, `BUILD_TARGET` is used by the prune script to determine which files and directories to exclude from the
-build. At runtime, `BUILD_TARGET` is used to determine which features (buttons, menu items, widgets etc.) to show
-and hide in the application. At build time, `BUILD_TARGET` acts on a coarser level, excluding entire files and 
-directories; at runtime, `BUILD_TARGET` acts on a finer level, showing and hiding individual features.
+At build time, `BUILD_TARGET` is used by the `prepare_custom_build.sh` script to determine which files and directories 
+to exclude from the build. At runtime, `BUILD_TARGET` is used to determine which features 
+(buttons, menu items, widgets etc.) to show and hide in the application. At build time, `BUILD_TARGET` acts on a 
+coarser level, excluding entire files and directories; at runtime, `BUILD_TARGET` acts on a finer level, showing and 
+hiding individual features.
+
+### Do I need to use the same value for `BUILD_TARGET` at build time and runtime?
+Yes, you should use the same value for `BUILD_TARGET` at both build time and runtime. Otherwise undefined behavior
+may result.

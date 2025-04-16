@@ -21,8 +21,8 @@ check_clean_working_dir() {
 check_build_target() {
   local build_target="$1"
   
-  # If there isn't a file named build_target under the pruneLists directory, exit with an error
-  if [ ! -f "build_scripts/customBuilds/pruneLists/${build_target}.txt" ]; then
+  # If there isn't a file named build_target under the buildTargets directory, exit with an error
+  if [ ! -f "build_scripts/customBuilds/buildTargets/${build_target}.txt" ]; then
     echo "Error: No build target found for ${build_target}"
     exit 2
   fi
@@ -30,7 +30,7 @@ check_build_target() {
 
 prune_files() {
   local build_target="$1"
-  local file="build_scripts/customBuilds/pruneLists/${build_target}.txt"
+  local file="build_scripts/customBuilds/buildTargets/${build_target}.txt"
   
   echo "Pruning files for build target: ${build_target}"
   
