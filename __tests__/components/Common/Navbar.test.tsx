@@ -37,7 +37,7 @@ jest.mock("next-auth/react", () => {
 jest.mock("../../../state/environment", () => ({
     ...jest.requireActual("../../../state/environment"),
     __esModule: true,
-    default: jest.fn(() => ({supportEmailAddress: MOCK_EMAIL_ADDRESS})),
+    default: jest.fn(() => ({buildTarget: "all", supportEmailAddress: MOCK_EMAIL_ADDRESS})),
 }))
 
 describe("navbar", () => {

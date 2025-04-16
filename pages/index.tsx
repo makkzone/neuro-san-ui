@@ -150,7 +150,6 @@ export default function Index(): ReactElement {
             .join("&")
     }
 
-    console.debug("In index page, BUILD_TARGET is", buildTarget)
     return (
         <div
             id="splash-page__container"

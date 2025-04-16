@@ -27,7 +27,10 @@ describe("Index Page", () => {
     beforeEach(() => {
         jest.clearAllMocks()
         ;(useFeaturesStore as unknown as jest.Mock).mockReturnValue({isGeneric: false})
-        ;(useEnvironmentStore as unknown as jest.Mock).mockReturnValue({supportEmailAddress: "support@example.com"})
+        ;(useEnvironmentStore as unknown as jest.Mock).mockReturnValue({
+            buildTarget: "all",
+            supportEmailAddress: "support@example.com",
+        })
         ;(useRouter as jest.Mock).mockReturnValue({
             query: {key: "value"},
         })
