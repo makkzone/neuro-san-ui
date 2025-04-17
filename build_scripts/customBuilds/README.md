@@ -65,7 +65,7 @@ only contains the items expected in your custom build.
 Note that the application shows the custom build version in the title bar where the usual app version is shown, for 
 example:
 ```text
-Build: DS-separate-builds (myCustomBuild)
+Build: 1.0.0.1 (myCustomBuild)
 ```
 where `myCustomBuild` is the name of the custom build you specified in `BUILD_TARGET`.
 

@@ -51,7 +51,7 @@ prune_files() {
     full_path=$(realpath -m "$path" 2>/dev/null)
       
     echo "Deleting: $full_path"
-    #  rm -rf -- "$full_path"
+    rm -rf -- "$full_path"
   done < "$file"
     
 }
