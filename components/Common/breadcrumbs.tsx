@@ -35,7 +35,7 @@ const NeuroAIBreadcrumbs = () => {
             >
                 <Link
                     id="breadcrumb-link-home"
-                    href="/public"
+                    href="/"
                     style={{
                         color: "var(--bs-black)",
                     }}
