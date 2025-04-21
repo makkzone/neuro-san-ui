@@ -1,34 +1,24 @@
+import type {components} from "../../generated/neuro-san/NeuroSanClient"
 import {capitalize, startCase} from "lodash"
 
 import {AgentErrorProps} from "./Types"
-import {ChatResponse} from "../../generated/neuro_san/api/grpc/agent"
-import {ChatMessage, ChatMessageChatMessageType} from "../../generated/neuro_san/api/grpc/chat"
 
+type ChatResponse = components["schemas"]["ChatResponse"]
+type ChatMessage = components["schemas"]["ChatMessage"]
 // We ignore any messages that are not of these types
-const KNOWN_MESSAGE_TYPES = [
-    ChatMessageChatMessageType.AI,
-    ChatMessageChatMessageType.AGENT,
-    ChatMessageChatMessageType.AGENT_FRAMEWORK,
-]
 
 export const chatMessageFromChunk = (chunk: string): ChatMessage => {
     let chatResponse: ChatResponse
     try {
-        chatResponse = JSON.parse(chunk).result
+        chatResponse = JSON.parse(chunk)
+        console.debug(`Parsed chat response: ${JSON.stringify(chatResponse)}`)
     } catch {
         return null
     }
-    const chatMessage: ChatMessage = chatResponse?.response
-
-    const messageType: ChatMessageChatMessageType = chatMessage?.type
-
-    // Check if it's a message type we know how to handle
-    if (!KNOWN_MESSAGE_TYPES.includes(messageType)) {
-        return null
-    }
+    const chatMessage: ChatMessage = chatResponse.response
 
     // Have to use fromJSON to convert from "wire format" to "Typescript format", like foo_bar -> fooBar.
-    return ChatMessage.fromJSON(chatMessage)
+    return chatMessage
 }
 
 /**
@@ -41,8 +31,9 @@ export const chatMessageFromChunk = (chunk: string): ChatMessage => {
  * @throws If we failed to parse JSON but got anything other than a SyntaxError, we rethrow it as-is.
  */
 export const tryParseJson: (chunk: string) => null | object | string = (chunk: string) => {
-    const chatMessage = chatMessageFromChunk(chunk)
+    const chatMessage: ChatMessage = chatMessageFromChunk(chunk)
     if (!chatMessage) {
+        console.debug(`Failed to parse chat message from chunk: ${chunk}`)
         return chunk
     }
 
@@ -51,15 +42,19 @@ export const tryParseJson: (chunk: string) => null | object | string = (chunk: s
 
     // LLM sometimes wraps the JSON in markdown code blocks, so we need to remove them before parsing
     const chatMessageCleaned = chatMessageText?.replace(/```json/gu, "").replace(/```/gu, "")
+    if (!chatMessageCleaned?.includes("{") && !chatMessageCleaned?.includes("[")) {
+        return chatMessageText?.replace(/\\n/gu, "\n").replace(/\\"/gu, "'")
+    }
 
     try {
         chatMessageJson = JSON.parse(chatMessageCleaned)
         return chatMessageJson
     } catch (error) {
+        console.debug(`Failed to parse chat message JSON: ${error}`)
         // Not JSON-like, so just return it as is, except we replace escaped newlines with actual newlines
         // Also replace escaped double quotes with single quotes
         if (error instanceof SyntaxError) {
-            return chatMessageText.replace(/\\n/gu, "\n").replace(/\\"/gu, "'")
+            return chatMessageText?.replace(/\\n/gu, "\n").replace(/\\"/gu, "'")
         } else {
             // Not an expected error, so rethrow it for someone else to figure out.
             throw error

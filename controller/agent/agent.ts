@@ -1,27 +1,26 @@
 /**
  * Controller module for interacting with the Agent LLM API.
  */
+import {ConnectivityResponse} from "../../components/AgentChat/Types"
+import type {components} from "../../generated/neuro-san/NeuroSanClient"
 
-import {AgentChatRequest, AgentConnectivityRequest, AgentFunctionRequest, AgentType} from "../../generated/metadata"
-import {
-    ChatFilterType,
-    ChatRequest,
-    ChatResponse,
-    ConnectivityResponse,
-    FunctionResponse,
-} from "../../generated/neuro_san/api/grpc/agent"
-import {ChatContext, ChatMessage, ChatMessageChatMessageType} from "../../generated/neuro_san/api/grpc/chat"
+import {AgentConnectivityRequest, AgentFunctionRequest, AgentType} from "../../generated/metadata"
 import useEnvironmentStore from "../../state/environment"
 import {sendLlmRequest} from "../llm/llm_chat"
 
-// API path for the agent chat endpoint
-const CHAT_PATH = "api/v1/agent/streaming_chat"
+type ChatContext = components["schemas"]["ChatContext"]
+type ChatRequest = components["schemas"]["ChatRequest"]
+type ChatResponse = components["schemas"]["ChatResponse"]
+type ChatMessage = components["schemas"]["ChatMessage"]
+type ConciergeResponse = components["schemas"]["ConciergeResponse"]
 
-// API path for the agent connectivity endpoint
-const CONNECTIVITY_PATH = "api/v1/agent/connectivity"
+export async function getAgentNetworks(): Promise<string[]> {
+    const path = "https://neuro-san.decisionai.ml/api/v1/list"
 
-// API path for the agent function endpoint
-const AGENT_FUNCTION_PATH = "api/v1/agent/function"
+    const response = await fetch(path)
+    const conciergeResponse: ConciergeResponse = (await response.json()) as ConciergeResponse
+    return conciergeResponse.agents.map((network) => network.agent_name)
+}
 
 /**
  * Send a chat query to the Agent LLM API. This opens a session with the agent network.
@@ -44,34 +43,27 @@ export async function sendChatQuery(
     callback: (chunk: string) => void,
     chatContext: ChatContext
 ): Promise<ChatResponse> {
-    const baseUrl = useEnvironmentStore.getState().backendApiUrl
-    const fetchUrl = `${baseUrl}/${CHAT_PATH}`
-
     // Create request
-    const userMessage: ChatMessage = ChatMessage.fromPartial({
-        type: ChatMessageChatMessageType.HUMAN,
+    const userMessage: ChatMessage = {
+        type: 2,
         text: userInput,
-    })
-
-    const agentChatRequest: AgentChatRequest = {
-        user: {login: requestUser},
-        request: ChatRequest.fromPartial({
-            userMessage,
-            chatContext,
-            chatFilter: {chatFilterType: ChatFilterType.MAXIMAL},
-        }),
-        targetAgent: targetAgent,
     }
 
-    // Convert to JSON (wire) format
-    const requestJSON = AgentChatRequest.toJSON(agentChatRequest)
+    const agentChatRequest: ChatRequest = {
+        sly_data: {login: requestUser},
+        user_message: userMessage,
+        chat_filter: {chat_filter_type: 2},
+        chat_context: chatContext,
+    }
 
-    // Convert to k-v pairs as required by sendLlmRequest
-    const requestRecord: Record<string, unknown> = Object.entries(requestJSON).reduce(
+    // https://neuro-san.decisionai.ml/api/v1/telco_network_support/streaming_chat
+    const fetchUrl = `https://neuro-san.decisionai.ml/api/v1/${targetAgent.toLocaleLowerCase()}/streaming_chat`
+    const requestRecord: Record<string, unknown> = Object.entries(agentChatRequest).reduce(
         (acc, [key, value]) => (value ? {...acc, [key]: value} : acc),
         {}
     )
 
+    // decode from base64
     return sendLlmRequest(callback, signal, fetchUrl, requestRecord, null)
 }
 
@@ -84,8 +76,7 @@ export async function sendChatQuery(
  * Caller is responsible for try-catch.
  */
 export async function getConnectivity(requestUser: string, targetAgent: AgentType): Promise<ConnectivityResponse> {
-    const baseUrl = useEnvironmentStore.getState().backendApiUrl
-    const fetchUrl = `${baseUrl}/${CONNECTIVITY_PATH}`
+    const fetchUrl = `https://neuro-san.decisionai.ml/api/v1/${targetAgent.toLocaleLowerCase()}/connectivity`
 
     const connectivityRequest: AgentConnectivityRequest = {
         targetAgent: targetAgent,
@@ -93,15 +84,14 @@ export async function getConnectivity(requestUser: string, targetAgent: AgentTyp
         request: undefined,
     }
 
-    // Convert to JSON (wire) format
-    const requestJSON = AgentConnectivityRequest.toJSON(connectivityRequest)
+    console.debug(`connectivityRequest: ${JSON.stringify(connectivityRequest)}`)
 
     const response = await fetch(fetchUrl, {
-        method: "POST",
+        method: "GET",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestJSON),
+        // body: JSON.stringify(connectivityRequest),
     })
 
     if (!response.ok) {
@@ -110,7 +100,7 @@ export async function getConnectivity(requestUser: string, targetAgent: AgentTyp
     }
 
     const result = await response.json()
-    return ConnectivityResponse.fromJSON(result)
+    return result
 }
 
 /**

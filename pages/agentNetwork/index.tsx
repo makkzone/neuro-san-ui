@@ -3,14 +3,13 @@ import {useEffect, useState} from "react"
 import {ReactFlowProvider} from "reactflow"
 
 import {ChatCommon} from "../../components/AgentChat/ChatCommon"
+import {ConnectivityInfo, ConnectivityResponse, Origin} from "../../components/AgentChat/Types"
 import {chatMessageFromChunk, cleanUpAgentName} from "../../components/AgentChat/Utils"
 import AgentFlow from "../../components/AgentNetwork/AgentFlow"
 import Sidebar from "../../components/AgentNetwork/Sidebar"
 import {NotificationType, sendNotification} from "../../components/Common/notification"
 import {getConnectivity} from "../../controller/agent/agent"
 import {AgentType} from "../../generated/metadata"
-import {ConnectivityInfo, ConnectivityResponse} from "../../generated/neuro_san/api/grpc/agent"
-import {Origin} from "../../generated/neuro_san/api/grpc/chat"
 import {useAuthentication} from "../../utils/authentication"
 
 // Main function.
@@ -35,8 +34,8 @@ export default function AgentNetworkPage() {
         ;(async () => {
             try {
                 const connectivity: ConnectivityResponse = await getConnectivity(userName, selectedNetwork)
-                const agentsInNetworkSorted = connectivity.connectivityInfo.sort((a, b) =>
-                    a.origin.localeCompare(b.origin)
+                const agentsInNetworkSorted: ConnectivityInfo[] = connectivity.connectivity_info.sort((a, b) =>
+                    a?.origin.localeCompare(b?.origin)
                 )
                 setAgentsInNetwork(agentsInNetworkSorted)
             } catch (e) {
@@ -51,8 +50,8 @@ export default function AgentNetworkPage() {
     const onChunkReceived = (chunk: string) => {
         // Obtain origin info if present
         const chatMessage = chatMessageFromChunk(chunk)
-        if (chatMessage?.origin.length > 0) {
-            setOriginInfo(chatMessage.origin)
+        if (chatMessage?.origin?.length > 0) {
+            setOriginInfo(chatMessage?.origin)
         }
 
         return true

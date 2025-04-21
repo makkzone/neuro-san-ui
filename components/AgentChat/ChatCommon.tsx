@@ -37,14 +37,24 @@ import {FormattedMarkdown} from "./FormattedMarkdown"
 import {AGENT_GREETINGS} from "./Greetings"
 import {SendButton} from "./SendButton"
 import {HLJS_THEMES} from "./SyntaxHighlighterThemes"
-import {CombinedAgentType, LegacyAgentType} from "./Types"
+import {
+    ChatContext,
+    ChatMessage,
+    CombinedAgentType,
+    ConnectivityInfo,
+    ConnectivityResponse,
+    FunctionResponse,
+    isLegacyAgentType,
+    LegacyAgentType,
+} from "./Types"
 import {chatMessageFromChunk, checkError, cleanUpAgentName, tryParseJson} from "./Utils"
 import {DEFAULT_USER_IMAGE} from "../../const"
 import {getAgentFunction, getConnectivity, sendChatQuery} from "../../controller/agent/agent"
 import {sendLlmRequest} from "../../controller/llm/llm_chat"
 import {AgentType as NeuroSanAgent} from "../../generated/metadata"
-import {ConnectivityInfo, ConnectivityResponse, FunctionResponse} from "../../generated/neuro_san/api/grpc/agent"
-import {ChatContext, ChatMessage, ChatMessageChatMessageType} from "../../generated/neuro_san/api/grpc/chat"
+// import {ConnectivityInfo, ConnectivityResponse, FunctionResponse} from "../../generated/neuro_san/api/grpc/agent"
+// import {ChatContext, ChatMessage, ChatMessageChatMessageType} from "../../generated/neuro_san/api/grpc/chat"
+import {ChatMessageChatMessageType} from "../../generated/neuro_san/api/grpc/chat"
 import {hashString, hasOnlyWhitespace} from "../../utils/text"
 import {getTitleBase} from "../../utils/title"
 import {LlmChatOptionsButton} from "../Common/LlmChatOptionsButton"
@@ -91,9 +101,9 @@ interface ChatCommonProps {
     readonly isAwaitingLlm: boolean
 
     /**
-     * The agent to send the request to. See CombinedAgentType for the list of available agents.
+     * The agent to send the request to.
      */
-    readonly targetAgent: CombinedAgentType
+    readonly targetAgent: string
 
     /**
      * Special endpoint for legacy agents since they do not have a single unified endpoint like Neuro-san agents.
@@ -343,9 +353,19 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     const processLogLine = (
         logLine: string,
         summary: string,
-        messageType?: ChatMessageChatMessageType,
+        messageType: number,
         isFinalAnswer?: boolean
     ): ReactNode => {
+        console.debug(
+            "processLogLine: ",
+            logLine,
+            " summary: ",
+            summary,
+            " isFinalAnswer: ",
+            isFinalAnswer,
+            "messageType: ",
+            messageType
+        )
         // extract the parts of the line
         let repairedJson: string
 
@@ -365,7 +385,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
         }
 
         const hashedSummary = hashString(summary)
-        const isAIMessage = messageType === ChatMessageChatMessageType.AI
+        const isAIMessage = messageType === "AI"
 
         if (isAIMessage && !isFinalAnswer) {
             lastAIMessage.current = logLine
@@ -515,7 +535,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                                         id="connectivity-list"
                                         style={{marginTop: "1rem"}}
                                     >
-                                        {renderConnectivityInfo(connectivity?.connectivityInfo)}
+                                        {renderConnectivityInfo(connectivity?.connectivity_info)}
                                     </ul>,
                                 ],
                             },
@@ -624,10 +644,10 @@ export const ChatCommon: FC<ChatCommonProps> = ({
         }
 
         // It's a ChatMessage. Does it have chat context? Only AGENT_FRAMEWORK messages can have chat context.
-        if (chatMessage.type === ChatMessageChatMessageType.AGENT_FRAMEWORK && chatMessage.chatContext) {
+        if (chatMessage.type === 101 && chatMessage.chat_context) {
             // Save the chat context, potentially overwriting any previous ones we received during this session.
             // We only care about the last one received.
-            chatContext.current = chatMessage.chatContext
+            chatContext.current = chatMessage.chat_context
 
             // Nothing more to do with this message. It's just a message to give us the chat context, so return
             return
@@ -642,8 +662,9 @@ export const ChatCommon: FC<ChatCommonProps> = ({
         // It's a Neuro-san agent. Should be a ChatMessage at this point since all Neuro-san agents should return
         // ChatMessages.
         const parsedResult: null | object | string = tryParseJson(chunk)
+        console.debug(`Parsed result: ${parsedResult} type is ${typeof parsedResult}`)
         if (typeof parsedResult === "string") {
-            updateOutput(processLogLine(parsedResult, agentName, chatMessage.type))
+            updateOutput(processLogLine(parsedResult, agentName, chatMessage?.type))
         } else if (typeof parsedResult === "object") {
             // Does it have the error block?
             const errorMessage = checkError(parsedResult)
@@ -677,7 +698,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
 
                 // check if targetAgent is Neuro-san agent type. We have to use a different "send" function
                 // for those.
-                if (targetAgent in NeuroSanAgent) {
+                if (!isLegacyAgentType(targetAgent)) {
                     // It's a Neuro-san agent.
 
                     // Send the chat query to the server. This will block until the stream ends from the server

@@ -3,8 +3,12 @@ import List from "@mui/material/List"
 import ListItemButton from "@mui/material/ListItemButton"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import ListItemText from "@mui/material/ListItemText"
-import {FC, useEffect, useRef} from "react"
+import {FC, useEffect, useRef, useState} from "react"
 
+import {getAgentNetworks} from "../../controller/agent/agent"
+import {isSuperUser} from "../../controller/authorize/superuser"
+import {fetchProjects} from "../../controller/projects/fetch"
+import {Projects} from "../../controller/projects/types"
 import {AgentType} from "../../generated/metadata"
 import {ZIndexLayers} from "../../utils/zIndexLayers"
 import {cleanUpAgentName} from "../AgentChat/Utils"
@@ -21,12 +25,24 @@ interface SidebarProps {
 // These aren't real agents, so don't show them to the user
 export const BLOCK_AGENT_TYPES = [AgentType.UNRECOGNIZED, AgentType.UNKNOWN_AGENT]
 
-const NETWORKS = Object.values(AgentType)
-    .filter((agent) => !BLOCK_AGENT_TYPES.includes(agent))
-    .sort((a, b) => a.localeCompare(b))
+// const NETWORKS = Object.values(AgentType)
+//     .filter((agent) => !BLOCK_AGENT_TYPES.includes(agent))
+//     .sort((a, b) => a.localeCompare(b))
 
 const Sidebar: FC<SidebarProps> = ({id, selectedNetwork, setSelectedNetwork, isAwaitingLlm}) => {
     const selectedNetworkRef = useRef<HTMLDivElement | null>(null)
+
+    const [networks, setNetworks] = useState<string[]>([])
+
+    useEffect(() => {
+        async function getNetworks() {
+            const networksTmp: string[] = await getAgentNetworks()
+            const sortedNetworks = networksTmp.sort((a, b) => a.localeCompare(b))
+            setNetworks(sortedNetworks)
+        }
+
+        getNetworks()
+    }, [])
 
     // Make sure selected network in the list is always in view
     useEffect(() => {
@@ -73,7 +89,7 @@ const Sidebar: FC<SidebarProps> = ({id, selectedNetwork, setSelectedNetwork, isA
                 id={`${id}-network-list`}
                 sx={{padding: 0, margin: 0}}
             >
-                {NETWORKS.map((network) => (
+                {networks?.map((network) => (
                     <ListItemButton
                         id={`${network}-btn`}
                         key={network}
