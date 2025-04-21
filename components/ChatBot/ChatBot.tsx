@@ -3,6 +3,7 @@ import Box from "@mui/material/Box"
 import Grow from "@mui/material/Grow"
 import {FC, useState} from "react"
 
+import {ALL_BUILD_TARGET} from "../../const"
 import {CHATBOT_ENDPOINT} from "../../controller/llm/endpoints"
 import useEnvironmentStore from "../../state/environment"
 import {useAuthentication} from "../../utils/authentication"
@@ -39,7 +40,7 @@ export const ChatBot: FC<ChatBotProps> = ({id, userAvatar, pageContext}) => {
     const {buildTarget} = useEnvironmentStore()
 
     return (
-        buildTarget === "all" && (
+        buildTarget === ALL_BUILD_TARGET && (
             <>
                 <Grow
                     id={`chatbot-window-animation-${id}`}

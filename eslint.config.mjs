@@ -473,7 +473,7 @@ const config = [
     },
     {
         // Want to allow devDependencies in these files
-        files: ["next.config.ts", "webpack.config.*"],
+        files: ["next.config.ts"],
         rules: {
             "import/no-extraneous-dependencies": [
                 "error",

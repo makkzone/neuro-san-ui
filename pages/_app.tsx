@@ -20,7 +20,7 @@ import NeuroAIBreadcrumbs from "../components/Common/breadcrumbs"
 import Navbar from "../components/Common/navbar"
 import {Snackbar} from "../components/Common/Snackbar"
 import ErrorBoundary from "../components/ErrorPage/errorboundary"
-import {GENERIC_LOGO, LOGO} from "../const"
+import {ALL_BUILD_TARGET, GENERIC_LOGO, LOGO} from "../const"
 import useEnvironmentStore from "../state/environment"
 import useFeaturesStore from "../state/features"
 import useUserInfoStore from "../state/userInfo"
@@ -144,7 +144,7 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
 
             // Set build target
             const buildTarget = data.buildTarget
-            setBuildTarget(buildTarget || "all")
+            setBuildTarget(buildTarget || ALL_BUILD_TARGET)
         }
 
         void getEnvironment()

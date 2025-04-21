@@ -1,6 +1,8 @@
 import httpStatus from "http-status"
 import {NextApiRequest, NextApiResponse} from "next"
 
+import {ALL_BUILD_TARGET} from "../../../const"
+
 // Possible values returned by this API. Note that not all will necessarily be set
 interface EnvironmentResponse {
     readonly auth0ClientId: string
@@ -56,7 +58,7 @@ export default function handler(_req: NextApiRequest, res: NextApiResponse<Parti
 
     const enableProjectSharing = Boolean(process.env.ENABLE_PROJECT_SHARING || false)
 
-    const buildTarget = process.env.BUILD_TARGET || "all"
+    const buildTarget = process.env.BUILD_TARGET || ALL_BUILD_TARGET
 
     res.status(httpStatus.OK).json({
         backendApiUrl,

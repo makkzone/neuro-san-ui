@@ -12,6 +12,7 @@ import {ReactElement, MouseEvent as ReactMouseEvent, useState} from "react"
 
 import {ConfirmationModal} from "./confirmationModal"
 import {
+    ALL_BUILD_TARGET,
     CONTACT_US_CONFIRMATION_DIALOG_TEXT,
     CONTACT_US_CONFIRMATION_DIALOG_TITLE,
     DEFAULT_USER_IMAGE,
@@ -179,7 +180,7 @@ function Navbar(props: NavbarProps): ReactElement {
                     open={helpMenuOpen}
                     onClose={handleCloseHelpMenu}
                 >
-                    {buildTarget === "all" && [
+                    {buildTarget === ALL_BUILD_TARGET && [
                         <MenuItem
                             id="user-guide"
                             key="user-guide"
