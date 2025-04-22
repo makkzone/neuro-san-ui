@@ -71,8 +71,18 @@ prune_files() {
     
 }
 
+precheck(){
+  if ! command -v realpath >/dev/null; then
+    echo "⚠️ realpath not found, using fallback path resolution"
+    full_path="$(cd "$(dirname "$path")" && pwd)/$(basename "$path")"
+  else
+    full_path=$(realpath -m "$path" 2>/dev/null)
+  fi
+}
+
 # Main entry point of the script
 main() {
+  precheck
   check_clean_working_dir
   check_env_var
   check_build_target "${BUILD_TARGET}"
