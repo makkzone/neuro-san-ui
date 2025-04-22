@@ -63,9 +63,10 @@ prune_files() {
   echo "Pruning files for build target: ${build_target}"
   
   while IFS= read -r path || [[ -n "$path" ]]; do
+    echo "➡️ Raw path: '$path'"
     # Skip empty lines
     [[ -z "$path" ]] && continue
-  
+     
     # Skip lines starting with #
     [[ "$path" =~ ^# ]] && continue
     
