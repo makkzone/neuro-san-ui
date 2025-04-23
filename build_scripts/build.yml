@@ -67,4 +67,4 @@ steps:
       build_arguments:
         - NODEJS_VERSION=${{NODEJS_VERSION}}
         - UNILEAF_VERSION=${{UNILEAF_VERSION}}
-      tag: "${TAG}"
+      tag: "${{TAG}}"
