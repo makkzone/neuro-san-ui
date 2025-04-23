@@ -100,7 +100,6 @@
         "node-mocks-http": "1.16.2",
         "openapi-typescript": "^7.6.1",
         "prettier": "3.4.2",
-        "swagger-typescript-api": "13.0.28",
         "ts-jest": "29.2.5",
         "ts-node": "10.9.2",
         "ts-prune": "0.10.3",
