@@ -510,10 +510,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             }
 
             try {
-                const connectivity: ConnectivityResponse = await getConnectivity(
-                    currentUser,
-                    targetAgent as NeuroSanAgent
-                )
+                const connectivity: ConnectivityResponse = await getConnectivity(targetAgent as NeuroSanAgent)
                 updateOutput(
                     <MUIAccordion
                         id={`${id}-agent-details`}

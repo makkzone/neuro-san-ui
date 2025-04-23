@@ -9,7 +9,6 @@ import AgentFlow from "../../components/AgentNetwork/AgentFlow"
 import Sidebar from "../../components/AgentNetwork/Sidebar"
 import {NotificationType, sendNotification} from "../../components/Common/notification"
 import {getConnectivity} from "../../controller/agent/agent"
-import {AgentType} from "../../generated/metadata"
 import {useAuthentication} from "../../utils/authentication"
 
 // Main function.
@@ -28,21 +27,24 @@ export default function AgentNetworkPage() {
 
     const [agentsInNetwork, setAgentsInNetwork] = useState<ConnectivityInfo[]>([])
 
-    const [selectedNetwork, setSelectedNetwork] = useState<AgentType>(AgentType.TELCO_NETWORK_SUPPORT)
+    const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null)
 
     useEffect(() => {
         ;(async () => {
-            try {
-                const connectivity: ConnectivityResponse = await getConnectivity(userName, selectedNetwork)
-                const agentsInNetworkSorted: ConnectivityInfo[] = connectivity.connectivity_info.sort((a, b) =>
-                    a?.origin.localeCompare(b?.origin)
-                )
-                setAgentsInNetwork(agentsInNetworkSorted)
-            } catch (e) {
-                sendNotification(
-                    NotificationType.error,
-                    `Failed to get connectivity info for ${cleanUpAgentName(selectedNetwork)}. Error: ${e}`
-                )
+            if (selectedNetwork) {
+                try {
+                    const connectivity: ConnectivityResponse = await getConnectivity(selectedNetwork)
+                    const agentsInNetworkSorted: ConnectivityInfo[] = connectivity.connectivity_info.sort((a, b) =>
+                        a?.origin.localeCompare(b?.origin)
+                    )
+                    setAgentsInNetwork(agentsInNetworkSorted)
+                    // setSelectedNetwork(agentsInNetworkSorted[0]?.origin)
+                } catch (e) {
+                    sendNotification(
+                        NotificationType.error,
+                        `Failed to get connectivity info for ${cleanUpAgentName(selectedNetwork)}. Error: ${e}`
+                    )
+                }
             }
         })()
     }, [selectedNetwork])
