@@ -1,11 +1,9 @@
 /**
  * Controller module for interacting with the Agent LLM API.
  */
-import {ConnectivityResponse} from "../../components/AgentChat/Types"
 import type {components} from "../../generated/neuro-san/NeuroSanClient"
 
-import {AgentConnectivityRequest, AgentFunctionRequest, AgentType} from "../../generated/metadata"
-import useEnvironmentStore from "../../state/environment"
+import {ConnectivityResponse, FunctionResponse} from "../../components/AgentChat/Types"
 import {sendLlmRequest} from "../llm/llm_chat"
 
 type ChatContext = components["schemas"]["ChatContext"]
@@ -14,9 +12,10 @@ type ChatResponse = components["schemas"]["ChatResponse"]
 type ChatMessage = components["schemas"]["ChatMessage"]
 type ConciergeResponse = components["schemas"]["ConciergeResponse"]
 
-export async function getAgentNetworks(): Promise<string[]> {
-    const path = "https://neuro-san.decisionai.ml/api/v1/list"
+const BASE_API_PATH = "https://neuro-san.decisionai.ml"
 
+export async function getAgentNetworks(): Promise<string[]> {
+    const path = `${BASE_API_PATH}/api/v1/list`
     const response = await fetch(path)
     const conciergeResponse: ConciergeResponse = (await response.json()) as ConciergeResponse
     return conciergeResponse.agents.map((network) => network.agent_name)
@@ -39,7 +38,7 @@ export async function sendChatQuery(
     signal: AbortSignal,
     userInput: string,
     requestUser: string,
-    targetAgent: AgentType,
+    targetAgent: string,
     callback: (chunk: string) => void,
     chatContext: ChatContext
 ): Promise<ChatResponse> {
@@ -56,42 +55,30 @@ export async function sendChatQuery(
         chat_context: chatContext,
     }
 
-    // https://neuro-san.decisionai.ml/api/v1/telco_network_support/streaming_chat
-    const fetchUrl = `https://neuro-san.decisionai.ml/api/v1/${targetAgent.toLocaleLowerCase()}/streaming_chat`
+    const fetchUrl = `${BASE_API_PATH}/api/v1/${targetAgent.toLocaleLowerCase()}/streaming_chat`
     const requestRecord: Record<string, unknown> = Object.entries(agentChatRequest).reduce(
         (acc, [key, value]) => (value ? {...acc, [key]: value} : acc),
         {}
     )
 
-    // decode from base64
     return sendLlmRequest(callback, signal, fetchUrl, requestRecord, null)
 }
 
 /**
  * Gets information on what a specified agent is connected to (other agents and tools)
- * @param requestUser The user making the request
  * @param targetAgent The agent to get connectivity information for
  * @returns The connectivity info as a <code>ConnectivityResponse</code> object
  * @throws Various exceptions if anything goes wrong such as network issues or invalid agent type.
  * Caller is responsible for try-catch.
  */
-export async function getConnectivity(requestUser: string, targetAgent: AgentType): Promise<ConnectivityResponse> {
-    const fetchUrl = `https://neuro-san.decisionai.ml/api/v1/${targetAgent.toLocaleLowerCase()}/connectivity`
-
-    const connectivityRequest: AgentConnectivityRequest = {
-        targetAgent: targetAgent,
-        user: {login: requestUser},
-        request: undefined,
-    }
-
-    console.debug(`connectivityRequest: ${JSON.stringify(connectivityRequest)}`)
+export async function getConnectivity(targetAgent: string): Promise<ConnectivityResponse> {
+    const fetchUrl = `${BASE_API_PATH}/api/v1/${targetAgent.toLocaleLowerCase()}/connectivity`
 
     const response = await fetch(fetchUrl, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
         },
-        // body: JSON.stringify(connectivityRequest),
     })
 
     if (!response.ok) {
@@ -110,25 +97,14 @@ export async function getConnectivity(requestUser: string, targetAgent: AgentTyp
  * @returns The function info as a <code>FunctionResponse</code> object
  * @throws Various exceptions if anything goes wrong such as network issues or invalid agent type.
  */
-export async function getAgentFunction(requestUser: string, targetAgent: AgentType): Promise<FunctionResponse> {
-    const baseUrl = useEnvironmentStore.getState().backendApiUrl
-    const fetchUrl = `${baseUrl}/${AGENT_FUNCTION_PATH}`
-
-    const request: AgentFunctionRequest = {
-        targetAgent: targetAgent,
-        user: {login: requestUser},
-        request: undefined,
-    }
-
-    // Convert to JSON (wire) format
-    const requestJSON = AgentFunctionRequest.toJSON(request)
+export async function getAgentFunction(_requestUser: string, targetAgent: string): Promise<FunctionResponse> {
+    const fetchUrl = `${BASE_API_PATH}/api/v1/${targetAgent.toLocaleLowerCase()}/funmction`
 
     const response = await fetch(fetchUrl, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestJSON),
     })
 
     if (!response.ok) {
@@ -136,5 +112,5 @@ export async function getAgentFunction(requestUser: string, targetAgent: AgentTy
     }
 
     const result = await response.json()
-    return FunctionResponse.fromJSON(result)
+    return result
 }

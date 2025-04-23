@@ -44,7 +44,7 @@ const getParentAgents = (agentsInNetwork: ConnectivityInfo[]): ConnectivityInfo[
 const getChildAgents = (parentAgents: ConnectivityInfo[]): Set<string> => {
     const childAgentsSet = new Set<string>()
     parentAgents.forEach((agent) => {
-        agent.tools.forEach((tool) => {
+        agent?.tools?.forEach((tool) => {
             childAgentsSet.add(tool)
         })
     })
