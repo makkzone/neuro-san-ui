@@ -46,7 +46,7 @@ steps:
       title: Set Image Tag
       description: Keep current tag the same for full builds, append for custom builds
       image: alpine:3.21.3
-      shell: bash
+      shell: sh
       commands:
         - |
           if [ -z "${{BUILD_TARGET}}" ] || [ "${{BUILD_TARGET}}" = "all" ]; then
