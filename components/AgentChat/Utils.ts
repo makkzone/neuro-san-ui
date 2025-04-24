@@ -1,11 +1,7 @@
-import type {components} from "../../generated/neuro-san/NeuroSanClient"
+import {ChatMessage, ChatResponse} from "../../components/AgentChat/Types"
 import {capitalize, startCase} from "lodash"
 
 import {AgentErrorProps} from "./Types"
-
-type ChatResponse = components["schemas"]["ChatResponse"]
-type ChatMessage = components["schemas"]["ChatMessage"]
-// We ignore any messages that are not of these types
 
 export const chatMessageFromChunk = (chunk: string): ChatMessage => {
     let chatResponse: ChatResponse
