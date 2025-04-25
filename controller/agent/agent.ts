@@ -101,7 +101,7 @@ export async function getAgentFunction(_requestUser: string, targetAgent: string
     const fetchUrl = `${NEURO_SAN_SERVER_URL}/api/v1/${targetAgent.toLocaleLowerCase()}/function`
 
     const response = await fetch(fetchUrl, {
-        method: "POST",
+        method: "GET",
         headers: {
             "Content-Type": "application/json",
         },

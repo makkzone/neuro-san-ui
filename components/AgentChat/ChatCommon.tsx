@@ -465,7 +465,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                             id={`${info.origin}-tools`}
                             style={{marginLeft: "8px"}}
                         >
-                            {info.tools.map((tool) => (
+                            {info?.tools?.map((tool) => (
                                 <li
                                     id={tool}
                                     key={tool}
