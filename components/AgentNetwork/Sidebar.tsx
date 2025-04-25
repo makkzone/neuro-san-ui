@@ -3,35 +3,23 @@ import List from "@mui/material/List"
 import ListItemButton from "@mui/material/ListItemButton"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import ListItemText from "@mui/material/ListItemText"
-import {FC, useEffect, useRef, useState} from "react"
+import {FC, useEffect, useRef} from "react"
 
-import {getAgentNetworks} from "../../controller/agent/agent"
 import {ZIndexLayers} from "../../utils/zIndexLayers"
 import {cleanUpAgentName} from "../AgentChat/Utils"
 
 // #region: Types
 interface SidebarProps {
     id: string
+    isAwaitingLlm: boolean
+    networks: string[]
     selectedNetwork: string
     setSelectedNetwork: (network: string) => void
-    isAwaitingLlm: boolean
 }
 // #endregion: Types
 
-const Sidebar: FC<SidebarProps> = ({id, selectedNetwork, setSelectedNetwork, isAwaitingLlm}) => {
+const Sidebar: FC<SidebarProps> = ({id, isAwaitingLlm, networks, selectedNetwork, setSelectedNetwork}) => {
     const selectedNetworkRef = useRef<HTMLDivElement | null>(null)
-
-    const [networks, setNetworks] = useState<string[]>([])
-
-    useEffect(() => {
-        async function getNetworks() {
-            const networksTmp: string[] = await getAgentNetworks()
-            const sortedNetworks = networksTmp.sort((a, b) => a.localeCompare(b))
-            setNetworks(sortedNetworks)
-        }
-
-        getNetworks()
-    }, [])
 
     // Make sure selected network in the list is always in view
     useEffect(() => {

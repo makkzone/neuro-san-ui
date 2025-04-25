@@ -8,7 +8,7 @@ import {chatMessageFromChunk, cleanUpAgentName} from "../../components/AgentChat
 import AgentFlow from "../../components/AgentNetwork/AgentFlow"
 import Sidebar from "../../components/AgentNetwork/Sidebar"
 import {NotificationType, sendNotification} from "../../components/Common/notification"
-import {getConnectivity} from "../../controller/agent/agent"
+import {getAgentNetworks, getConnectivity} from "../../controller/agent/agent"
 import {useAuthentication} from "../../utils/authentication"
 
 // Main function.
@@ -23,11 +23,24 @@ export default function AgentNetworkPage() {
     // Stores whether are currently awaiting LLM response (for knowing when to show spinners)
     const [isAwaitingLlm, setIsAwaitingLlm] = useState(false)
 
+    const [networks, setNetworks] = useState<string[]>([])
+
     const [originInfo, setOriginInfo] = useState<Origin[]>([])
 
     const [agentsInNetwork, setAgentsInNetwork] = useState<ConnectivityInfo[]>([])
 
     const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null)
+
+    useEffect(() => {
+        async function getNetworks() {
+            const networksTmp: string[] = await getAgentNetworks()
+            const sortedNetworks = networksTmp.sort((a, b) => a.localeCompare(b))
+            setNetworks(sortedNetworks)
+            setSelectedNetwork(sortedNetworks[0])
+        }
+
+        getNetworks()
+    }, [])
 
     useEffect(() => {
         ;(async () => {
@@ -88,6 +101,7 @@ export default function AgentNetworkPage() {
             >
                 <Sidebar
                     id="multi-agent-accelerator-sidebar"
+                    networks={networks}
                     selectedNetwork={selectedNetwork}
                     setSelectedNetwork={setSelectedNetwork}
                     isAwaitingLlm={isAwaitingLlm}

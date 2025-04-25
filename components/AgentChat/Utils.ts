@@ -1,7 +1,6 @@
-import {ChatMessage, ChatResponse} from "../../components/AgentChat/Types"
 import {capitalize, startCase} from "lodash"
 
-import {AgentErrorProps} from "./Types"
+import {AgentErrorProps, ChatMessage, ChatResponse} from "./Types"
 
 export const chatMessageFromChunk = (chunk: string): ChatMessage => {
     let chatResponse: ChatResponse
