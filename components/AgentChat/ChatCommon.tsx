@@ -492,6 +492,11 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             // Introduce the agent to the user
             introduceAgent()
 
+            // if not neuro san agent, just return since we won't get connectivity info
+            if (targetAgent in isLegacyAgentType) {
+                return
+            }
+
             // It is a Neuro-san agent, so get the function and connectivity info
             let agentFunction: FunctionResponse
 
