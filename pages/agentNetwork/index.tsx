@@ -52,7 +52,6 @@ export default function AgentNetworkPage() {
                         a?.origin.localeCompare(b?.origin)
                     )
                     setAgentsInNetwork(agentsInNetworkSorted)
-                    // setSelectedNetwork(agentsInNetworkSorted[0]?.origin)
                 } catch (e) {
                     sendNotification(
                         NotificationType.error,
