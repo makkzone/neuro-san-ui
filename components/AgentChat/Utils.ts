@@ -35,12 +35,6 @@ export const tryParseJson: (chunk: string) => null | object | string = (chunk: s
     let chatMessageJson: object
     const chatMessageText = chatMessage.text
 
-    // LLM sometimes wraps the JSON in markdown code blocks, so we need to remove them before parsing
-    const chatMessageCleaned = chatMessageText?.replace(/```json/gu, "").replace(/```/gu, "")
-    if (!chatMessageCleaned?.includes("{") && !chatMessageCleaned?.includes("[")) {
-        return chatMessageText?.replace(/\\n/gu, "\n").replace(/\\"/gu, "'")
-    }
-
     try {
         chatMessageJson = JSON.parse(chatMessageCleaned)
         return chatMessageJson
