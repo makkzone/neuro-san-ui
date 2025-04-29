@@ -1,6 +1,6 @@
+import {ConnectivityInfo} from "../../../components/AgentChat/Types"
 import {DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS} from "../../../components/AgentNetwork/const"
 import {layoutLinear, layoutRadial} from "../../../components/AgentNetwork/GraphLayouts"
-import {ConnectivityInfo} from "../../../generated/neuro_san/api/grpc/agent"
 
 describe("GraphLayouts", () => {
     beforeEach(() => {

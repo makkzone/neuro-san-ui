@@ -51,7 +51,6 @@ import {chatMessageFromChunk, checkError, cleanUpAgentName, tryParseJson} from "
 import {DEFAULT_USER_IMAGE} from "../../const"
 import {getAgentFunction, getConnectivity, sendChatQuery} from "../../controller/agent/agent"
 import {sendLlmRequest} from "../../controller/llm/llm_chat"
-import {ChatMessageChatMessageType} from "../../generated/neuro_san/api/grpc/chat"
 import {hashString, hasOnlyWhitespace} from "../../utils/text"
 import {getTitleBase} from "../../utils/title"
 import {LlmChatOptionsButton} from "../Common/LlmChatOptionsButton"
@@ -385,7 +384,8 @@ export const ChatCommon: FC<ChatCommonProps> = ({
         }
 
         const hashedSummary = hashString(summary)
-        const isAIMessage = messageType === ChatMessageChatMessageType.AI
+        // TODO: fix when enum types are available
+        const isAIMessage = messageType === 4
 
         if (isAIMessage && !isFinalAnswer) {
             lastAIMessage.current = logLine
@@ -815,7 +815,8 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         ref={finalAnswerRef}
                         style={{marginBottom: "1rem"}}
                     >
-                        {processLogLine(lastAIMessage.current, "Final Answer", ChatMessageChatMessageType.AI, true)}
+                        {/*TODO: fix when enum types are available*/}
+                        {processLogLine(lastAIMessage.current, "Final Answer", 4, true)}
                     </div>
                 )
             }

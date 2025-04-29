@@ -2,9 +2,9 @@ import {render, screen} from "@testing-library/react"
 import {default as userEvent, UserEvent} from "@testing-library/user-event"
 import {ReactFlowProvider} from "reactflow"
 
+import {ConnectivityInfo} from "../../../components/AgentChat/Types"
 import {cleanUpAgentName} from "../../../components/AgentChat/Utils"
 import AgentFlow from "../../../components/AgentNetwork/AgentFlow"
-import {ConnectivityInfo} from "../../../generated/neuro_san/api/grpc/agent"
 
 const TEST_AGENT_MATH_GUY = "Math Guy"
 const TEST_AGENT_MUSIC_NERD = "Music Nerd"
@@ -57,7 +57,7 @@ describe("AgentFlow", () => {
                 <AgentFlow
                     id="test-flow-id"
                     agentsInNetwork={network}
-                    originInfo={[{tool: "agent1", instantiationIndex: 1}]}
+                    originInfo={[{tool: "agent1", instantiation_index: 1}]}
                     selectedNetwork={TEST_AGENT_MATH_GUY}
                 />
             </ReactFlowProvider>
@@ -75,7 +75,7 @@ describe("AgentFlow", () => {
                 <AgentFlow
                     id="test-flow-id"
                     agentsInNetwork={network}
-                    originInfo={[{tool: "agent2", instantiationIndex: 1}]}
+                    originInfo={[{tool: "agent2", instantiation_index: 1}]}
                     selectedNetwork={TEST_AGENT_MUSIC_NERD}
                 />
             </ReactFlowProvider>
@@ -90,7 +90,7 @@ describe("AgentFlow", () => {
                 <AgentFlow
                     id="test-flow-id"
                     agentsInNetwork={network}
-                    originInfo={[{tool: "agent3", instantiationIndex: 1}]}
+                    originInfo={[{tool: "agent3", instantiation_index: 1}]}
                     selectedNetwork={TEST_AGENT_MUSIC_NERD_PRO}
                 />
             </ReactFlowProvider>
@@ -139,7 +139,7 @@ describe("AgentFlow", () => {
                 <AgentFlow
                     id="test-flow-id"
                     agentsInNetwork={network}
-                    originInfo={[{tool: "agent1", instantiationIndex: 1}]}
+                    originInfo={[{tool: "agent1", instantiation_index: 1}]}
                     selectedNetwork={TEST_AGENT_MATH_GUY}
                 />
             </ReactFlowProvider>
