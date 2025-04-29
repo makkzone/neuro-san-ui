@@ -36,6 +36,7 @@ describe("Main App Component", () => {
         const oldFetch = window.fetch
         window.fetch = mockFetch({
             backendApiUrl: "dummyURL",
+            backendNeuroSanApiUrl: "dummyNeuroSanURL",
             auth0ClientId: "dummyClientId",
             auth0Domain: "dummyDomain",
             supportEmailAddress: "test@example.com",

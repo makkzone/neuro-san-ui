@@ -115,7 +115,6 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
             } else {
                 // Cache backend neuro-san API URL in feature store
                 debug(`Received backend API URL from NodeJS server. Setting to ${data.backendNeuroSanApiUrl}`)
-                console.log("data.backendNeuroSanApiUrl", data.backendNeuroSanApiUrl)
                 setBackendNeuroSanApiUrl(data.backendNeuroSanApiUrl)
             }
 
