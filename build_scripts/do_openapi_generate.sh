@@ -12,4 +12,8 @@ set -o pipefail
 #export NEURO_SAN_SERVER_URL="https://neuro-san.decisionai.ml"
 export NEURO_SAN_SERVER_URL=https://neuro-san-dev.decisionai.ml
 
-yarn openapi-typescript "${NEURO_SAN_SERVER_URL}/api/v1/docs" -o ./generated/neuro-san/NeuroSanClient.d.ts
+yarn openapi-typescript "${NEURO_SAN_SERVER_URL}/api/v1/docs" \
+  --enum true \
+  --immutable true \
+  --make-paths-enum \
+  -o ./generated/neuro-san/NeuroSanClient.d.ts 

@@ -1,11 +1,12 @@
 import {AgentErrorProps, ChatResponse} from "../../../components/AgentChat/Types"
 import {chatMessageFromChunk, checkError, tryParseJson} from "../../../components/AgentChat/Utils"
+import {ChatMessageType} from "../../../generated/neuro-san/NeuroSanClient"
 
 describe("AgentChat/Utils/chatMessageFromChunk", () => {
     it("Should reject unknown message types", () => {
         const chunk: ChatResponse = {
             response: {
-                type: "UNKNOWN",
+                type: ChatMessageType.UNKNOWN,
             },
         }
 
@@ -16,7 +17,7 @@ describe("AgentChat/Utils/chatMessageFromChunk", () => {
     it("Should correctly handle known message types", () => {
         const chunk: ChatResponse = {
             response: {
-                type: "AI",
+                type: ChatMessageType.AI,
                 text: "This is a test message",
             },
         }
@@ -24,7 +25,7 @@ describe("AgentChat/Utils/chatMessageFromChunk", () => {
         const chatMessage = chatMessageFromChunk(JSON.stringify(chunk))
         expect(chatMessage).not.toBeNull()
 
-        expect(chatMessage.type).toEqual("AI")
+        expect(chatMessage.type).toEqual(ChatMessageType.AI)
         expect(chatMessage.text).toEqual("This is a test message")
     })
 })
@@ -33,7 +34,7 @@ describe("AgentChat/Utils/tryParseJson", () => {
     it("Should return an object for valid JSON", () => {
         const chunk: ChatResponse = {
             response: {
-                type: "AGENT",
+                type: ChatMessageType.AGENT,
                 text: JSON.stringify({foo: 42}),
             },
         }
@@ -50,7 +51,7 @@ describe("AgentChat/Utils/tryParseJson", () => {
     it("Should return text cleaned up for non-JSON", () => {
         const chunk: ChatResponse = {
             response: {
-                type: "AGENT",
+                type: ChatMessageType.AGENT,
                 text: 'This is a test string with embedded newline \\n and escaped double quote \\"',
             },
         }

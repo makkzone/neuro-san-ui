@@ -48,9 +48,9 @@ export default function AgentNetworkPage() {
             if (selectedNetwork) {
                 try {
                     const connectivity: ConnectivityResponse = await getConnectivity(selectedNetwork)
-                    const agentsInNetworkSorted: ConnectivityInfo[] = connectivity.connectivity_info.sort((a, b) =>
-                        a?.origin.localeCompare(b?.origin)
-                    )
+                    const agentsInNetworkSorted: ConnectivityInfo[] = connectivity.connectivity_info
+                        .concat()
+                        .sort((a, b) => a?.origin.localeCompare(b?.origin))
                     setAgentsInNetwork(agentsInNetworkSorted)
                 } catch (e) {
                     sendNotification(
@@ -65,8 +65,8 @@ export default function AgentNetworkPage() {
     const onChunkReceived = (chunk: string) => {
         // Obtain origin info if present
         const chatMessage = chatMessageFromChunk(chunk)
-        if (chatMessage?.origin?.length > 0) {
-            setOriginInfo(chatMessage?.origin)
+        if (chatMessage && chatMessage.origin?.length > 0) {
+            setOriginInfo([...chatMessage.origin])
         }
 
         return true

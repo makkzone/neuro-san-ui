@@ -1,9 +1,10 @@
 import {capitalize, startCase} from "lodash"
 
-import {AgentErrorProps, ChatMessage, ChatMessageType, ChatResponse} from "./Types"
+import {AgentErrorProps, ChatMessage, ChatResponse} from "./Types"
+import {ChatMessageType} from "../../generated/neuro-san/NeuroSanClient"
 
 // We ignore any messages that are not of these types
-const KNOWN_MESSAGE_TYPES: ChatMessageType[] = ["AI", "AGENT", "AGENT_FRAMEWORK"]
+const KNOWN_MESSAGE_TYPES = [ChatMessageType.AI, ChatMessageType.AGENT, ChatMessageType.AGENT_FRAMEWORK]
 
 export const chatMessageFromChunk = (chunk: string): ChatMessage => {
     let chatResponse: ChatResponse

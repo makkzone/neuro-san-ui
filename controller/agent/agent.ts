@@ -10,12 +10,29 @@ import {
     ConnectivityResponse,
     FunctionResponse,
 } from "../../components/AgentChat/Types"
+import {ApiPaths, ChatFilterChat_filter_type, ChatMessageType} from "../../generated/neuro-san/NeuroSanClient"
 import useEnvironmentStore from "../../state/environment"
 import {sendLlmRequest} from "../llm/llm_chat"
 
+/**
+ * Insert the target agent name into the path. The paths Api enum contains values like:
+ * <code>"/api/v1/:agent_name/connectivity"</code> so unfortunately we need to do a replace() to insert the target
+ * agent.
+ * @param targetAgent The target agent to send the request to.
+ * @param path The API path to insert the target agent into.
+ * @returns The path with the target agent name inserted.
+ */
+const insertTargetAgent = (targetAgent: string, path: string) => {
+    return path.replace(":agent_name", targetAgent.toLocaleLowerCase())
+}
+
+/**
+ * Get the list of available agent networks from the concierge service.
+ * @returns A promise that resolves to an array of agent network names.
+ */
 export async function getAgentNetworks(): Promise<string[]> {
     const backendNeuroSanApiUrl = useEnvironmentStore.getState().backendNeuroSanApiUrl
-    const path = `${backendNeuroSanApiUrl}/api/v1/list`
+    const path = `${backendNeuroSanApiUrl}${ApiPaths.ConciergeService_List}`
     const response = await fetch(path)
     const conciergeResponse: ConciergeResponse = (await response.json()) as ConciergeResponse
     return conciergeResponse.agents.map((network) => network.agent_name)
@@ -46,19 +63,19 @@ export async function sendChatQuery(
 
     // Create request
     const userMessage: ChatMessage = {
-        type: "HUMAN",
+        type: ChatMessageType.HUMAN,
         text: userInput,
     }
 
     const agentChatRequest: ChatRequest = {
-        // TODO: Type 'string' is not assignable to type 'never'.
         sly_data: slyData,
         user_message: userMessage,
-        chat_filter: {chat_filter_type: "MAXIMAL"},
+        // eslint-disable-next-line camelcase
+        chat_filter: {chat_filter_type: ChatFilterChat_filter_type.MAXIMAL},
         chat_context: chatContext,
     }
 
-    const fetchUrl = `${backendNeuroSanApiUrl}/api/v1/${targetAgent.toLocaleLowerCase()}/streaming_chat`
+    const fetchUrl = `${backendNeuroSanApiUrl}${insertTargetAgent(targetAgent, ApiPaths.AgentService_StreamingChat)}`
     const requestRecord: Record<string, unknown> = Object.entries(agentChatRequest).reduce(
         (acc, [key, value]) => (value ? {...acc, [key]: value} : acc),
         {}
@@ -76,7 +93,7 @@ export async function sendChatQuery(
  */
 export async function getConnectivity(targetAgent: string): Promise<ConnectivityResponse> {
     const backendNeuroSanApiUrl = useEnvironmentStore.getState().backendNeuroSanApiUrl
-    const fetchUrl = `${backendNeuroSanApiUrl}/api/v1/${targetAgent.toLocaleLowerCase()}/connectivity`
+    const fetchUrl = `${backendNeuroSanApiUrl}${insertTargetAgent(targetAgent, ApiPaths.AgentService_Connectivity)}`
 
     const response = await fetch(fetchUrl, {
         method: "GET",
@@ -101,7 +118,7 @@ export async function getConnectivity(targetAgent: string): Promise<Connectivity
  */
 export async function getAgentFunction(targetAgent: string): Promise<FunctionResponse> {
     const backendNeuroSanApiUrl = useEnvironmentStore.getState().backendNeuroSanApiUrl
-    const fetchUrl = `${backendNeuroSanApiUrl}/api/v1/${targetAgent.toLocaleLowerCase()}/function`
+    const fetchUrl = `${backendNeuroSanApiUrl}${insertTargetAgent(targetAgent, ApiPaths.AgentService_Function)}`
 
     const response = await fetch(fetchUrl, {
         method: "GET",

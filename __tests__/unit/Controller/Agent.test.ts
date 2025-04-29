@@ -1,6 +1,8 @@
 import {ChatRequest} from "../../../components/AgentChat/Types"
 import {sendChatQuery} from "../../../controller/agent/agent"
 import {sendLlmRequest} from "../../../controller/llm/llm_chat"
+// eslint-disable-next-line camelcase
+import {ChatFilterChat_filter_type, ChatMessageType} from "../../../generated/neuro-san/NeuroSanClient"
 
 jest.mock("../../../controller/llm/llm_chat")
 
@@ -32,9 +34,10 @@ describe("Controller/Agent/sendChatQuery", () => {
 
         const expectedRequestParams: ChatRequest = {
             chat_context: {chat_histories: []},
-            chat_filter: {chat_filter_type: "MAXIMAL"},
+            // eslint-disable-next-line camelcase
+            chat_filter: {chat_filter_type: ChatFilterChat_filter_type.MAXIMAL},
             user_message: {
-                type: "HUMAN",
+                type: ChatMessageType.HUMAN,
                 text: testQuery,
             },
             sly_data: {login: testUser} as unknown as Record<string, never>,

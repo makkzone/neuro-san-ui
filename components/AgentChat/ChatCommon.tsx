@@ -533,7 +533,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                                         id="connectivity-list"
                                         style={{marginTop: "1rem"}}
                                     >
-                                        {renderConnectivityInfo(connectivity?.connectivity_info)}
+                                        {renderConnectivityInfo(connectivity?.connectivity_info.concat())}
                                     </ul>,
                                 ],
                             },
