@@ -8,6 +8,8 @@ set -o errtrace
 set -o nounset
 set -o pipefail
 
-export NEURO_SAN_SERVER_URL="https://neuro-san.decisionai.ml"
+# TBD which one to use
+#export NEURO_SAN_SERVER_URL="https://neuro-san.decisionai.ml"
+export NEURO_SAN_SERVER_URL=https://neuro-san-dev.decisionai.ml
 
 yarn openapi-typescript "${NEURO_SAN_SERVER_URL}/api/v1/docs" -o ./generated/neuro-san/NeuroSanClient.d.ts

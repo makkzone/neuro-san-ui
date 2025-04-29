@@ -504,7 +504,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             let agentFunction: FunctionResponse
 
             try {
-                agentFunction = await getAgentFunction(currentUser, targetAgent)
+                agentFunction = await getAgentFunction(targetAgent)
             } catch {
                 // For now, just return. May be a legacy agent without a functional description in Neuro-San.
                 return
