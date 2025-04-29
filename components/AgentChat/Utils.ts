@@ -1,6 +1,9 @@
 import {capitalize, startCase} from "lodash"
 
-import {AgentErrorProps, ChatMessage, ChatResponse} from "./Types"
+import {AgentErrorProps, ChatMessage, ChatMessageType, ChatResponse} from "./Types"
+
+// We ignore any messages that are not of these types
+const KNOWN_MESSAGE_TYPES: ChatMessageType[] = ["AI", "AGENT", "AGENT_FRAMEWORK"]
 
 export const chatMessageFromChunk = (chunk: string): ChatMessage => {
     let chatResponse: ChatResponse
@@ -9,12 +12,16 @@ export const chatMessageFromChunk = (chunk: string): ChatMessage => {
     } catch {
         return null
     }
-    const chatMessage: ChatMessage = chatResponse.response
+    const chatMessage: ChatMessage = chatResponse?.response
 
-    // TODO: filter out unknown message types like we did with previous API
+    const messageType: ChatMessageType = chatMessage?.type
 
-    // Have to use fromJSON to convert from "wire format" to "Typescript format", like foo_bar -> fooBar.
-    return chatMessage
+    // Check if it's a message type we know how to handle
+    if (!KNOWN_MESSAGE_TYPES.includes(messageType)) {
+        return null
+    }
+
+    return chatResponse.response
 }
 
 /**

@@ -32,3 +32,6 @@ export type ConnectivityInfo = components["schemas"]["ConnectivityInfo"]
 export type FunctionResponse = components["schemas"]["FunctionResponse"]
 export type ConnectivityResponse = components["schemas"]["ConnectivityResponse"]
 export type Origin = components["schemas"]["Origin"]
+
+export type ChatMessageType = NonNullable<components["schemas"]["ChatMessage"]["type"]>
+export type ChatFilterType = NonNullable<components["schemas"]["ChatFilter"]["chat_filter_type"]>

@@ -46,7 +46,7 @@ export async function sendChatQuery(
 
     // Create request
     const userMessage: ChatMessage = {
-        type: 2,
+        type: "HUMAN",
         text: userInput,
     }
 
@@ -54,7 +54,7 @@ export async function sendChatQuery(
         // TODO: Type 'string' is not assignable to type 'never'.
         sly_data: slyData,
         user_message: userMessage,
-        chat_filter: {chat_filter_type: 2},
+        chat_filter: {chat_filter_type: "MAXIMAL"},
         chat_context: chatContext,
     }
 
@@ -90,18 +90,16 @@ export async function getConnectivity(targetAgent: string): Promise<Connectivity
         throw new Error(`Failed to send connectivity request: ${response.statusText}`)
     }
 
-    const result = await response.json()
-    return result
+    return response.json()
 }
 
 /**
  * Get the function of a specified agent meaning its brief description
- * @param requestUser The user making the request
  * @param targetAgent The agent to get the function for
  * @returns The function info as a <code>FunctionResponse</code> object
  * @throws Various exceptions if anything goes wrong such as network issues or invalid agent type.
  */
-export async function getAgentFunction(_requestUser: string, targetAgent: string): Promise<FunctionResponse> {
+export async function getAgentFunction(targetAgent: string): Promise<FunctionResponse> {
     const backendNeuroSanApiUrl = useEnvironmentStore.getState().backendNeuroSanApiUrl
     const fetchUrl = `${backendNeuroSanApiUrl}/api/v1/${targetAgent.toLocaleLowerCase()}/function`
 
@@ -116,6 +114,5 @@ export async function getAgentFunction(_requestUser: string, targetAgent: string
         throw new Error(`Failed to send agent function request: ${response.statusText}`)
     }
 
-    const result = await response.json()
-    return result
+    return response.json()
 }
