@@ -29,7 +29,6 @@ steps:
       commands:
         - apk add --quiet --no-progress --upgrade bash protobuf-dev git
         - yarn install
-        - yarn --cwd embed install
         - ./build_scripts/do_typescript_generate.sh
         - ./build_scripts/do_openapi_generate.sh
 

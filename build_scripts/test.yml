@@ -36,7 +36,6 @@ steps:
     commands:
       - yarn --version
       - yarn install
-      - yarn --cwd embed install
 
   generate_typescript_api_stubs:
     title: Generate Typescript stubs for APIs
