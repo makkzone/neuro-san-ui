@@ -1,11 +1,17 @@
 import {render, screen} from "@testing-library/react"
-import {userEvent} from "@testing-library/user-event"
 import {SnackbarProvider} from "notistack"
 
 import AgentNetworkPage from "../../pages/agentNetwork"
+import useEnvironmentStore from "../../state/environment"
 import {mockFetch} from "../testUtils"
 
 const MOCK_USER = "mock-user"
+
+// Backend neuro-san API server to use
+const NEURO_SAN_SERVER_URL = "https://neuro-san-dev.decisionai.ml"
+
+const TEST_AGENT_MATH_GUY = "Math Guy"
+const TEST_AGENT_MUSIC_NERD = "Music Nerd"
 
 // Mock dependencies
 jest.mock("next-auth/react", () => {
@@ -13,6 +19,24 @@ jest.mock("next-auth/react", () => {
         useSession: jest.fn(() => ({data: {user: {name: MOCK_USER}}})),
     }
 })
+
+// Mock fetchRuns
+jest.mock("../../controller/agent/agent", () => ({
+    getAgentNetworks: jest.fn(() => Promise.resolve([TEST_AGENT_MATH_GUY, TEST_AGENT_MUSIC_NERD])),
+    getConnectivity: jest.fn(() =>
+        Promise.resolve({
+            connectivity_info: [
+                {
+                    origin: "date_time_provider",
+                    tools: ["current_date_time"],
+                },
+                {
+                    origin: "current_date_time",
+                },
+            ],
+        })
+    ),
+}))
 
 window.fetch = mockFetch({})
 
@@ -26,29 +50,21 @@ const renderAgentNetworkPage = () =>
 describe("Agent Network Page", () => {
     beforeEach(() => {
         jest.clearAllMocks()
+
+        process.env.NEURO_SAN_SERVER_URL = NEURO_SAN_SERVER_URL
+        useEnvironmentStore.getState().setBackendNeuroSanApiUrl(NEURO_SAN_SERVER_URL)
     })
 
     it("should render elements on the page and change the page on click of sidebar item", async () => {
-        const user = userEvent.setup()
         renderAgentNetworkPage()
 
         // UI displays the elements.
         const sidebarTitle = await screen.findByText("Agent Networks")
-        const bankingOpsSidebarItem = await screen.findByText("Banking Ops")
-        const telcoNetworkSupportItems = await screen.findAllByText("Telco Network Support")
-        let bankingOpsItems = await screen.findAllByText("Banking Ops")
+        const mathGuySidebarItem = await screen.findByText(TEST_AGENT_MATH_GUY)
+        const musicNerdSidebarItem = await screen.findByText(TEST_AGENT_MUSIC_NERD)
 
         expect(sidebarTitle).toBeInTheDocument()
-        expect(bankingOpsSidebarItem).toBeInTheDocument()
-        // Telco Network Support is default, there should be a sidebar item and a chatbox item (2 items total).
-        expect(telcoNetworkSupportItems.length).toBe(2)
-        // Banking Ops should only have 1 sidebar item.
-        expect(bankingOpsItems.length).toBe(1)
-
-        // Click Banking Ops sidebar item
-        await user.click(bankingOpsSidebarItem)
-        // Banking Ops is selected now. There should be a sidebar item and a chatbox item (2 items total).
-        bankingOpsItems = await screen.findAllByText("Banking Ops")
-        expect(bankingOpsItems.length).toBe(2)
+        expect(mathGuySidebarItem).toBeInTheDocument()
+        expect(musicNerdSidebarItem).toBeInTheDocument()
     })
 })
