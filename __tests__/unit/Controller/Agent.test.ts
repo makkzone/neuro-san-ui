@@ -1,7 +1,5 @@
 import {sendChatQuery} from "../../../controller/agent/agent"
 import {sendLlmRequest} from "../../../controller/llm/llm_chat"
-import {ChatFilterType} from "../../../generated/neuro_san/api/grpc/agent"
-import {ChatMessageChatMessageType} from "../../../generated/neuro_san/api/grpc/chat"
 
 jest.mock("../../../controller/llm/llm_chat")
 
@@ -26,22 +24,21 @@ describe("Controller/Agent/sendChatQuery", () => {
             {
                 chat_histories: [],
             },
-            {}
+            // TODO: ugly cast due to how openapi-typescript generates `object` types. What to do here?
+            {login: testUser} as unknown as Record<string, never>
         )
         expect(sendLlmRequest).toHaveBeenCalledTimes(1)
 
         const expectedRequestParams = {
-            request: {
-                chat_context: {},
-                chat_filter: {chat_filter_type: ChatFilterType.MAXIMAL},
-                user_message: {
-                    type: ChatMessageChatMessageType.HUMAN,
-                    text: testQuery,
-                },
+            chat_context: {chat_histories: []},
+            // TODO: use enum types here when available
+            chat_filter: {chat_filter_type: 2},
+            user_message: {
+                // TODO: use enum types here when available
+                type: 2,
+                text: testQuery,
             },
-            target_agent: TEST_AGENT_MATH_GUY,
-            // TODO: Need to figure this one out
-            user: {login: testUser},
+            sly_data: {login: testUser},
         }
 
         expect(sendLlmRequest).toHaveBeenCalledWith(
