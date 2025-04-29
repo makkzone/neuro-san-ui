@@ -51,6 +51,7 @@ import {chatMessageFromChunk, checkError, cleanUpAgentName, tryParseJson} from "
 import {DEFAULT_USER_IMAGE} from "../../const"
 import {getAgentFunction, getConnectivity, sendChatQuery} from "../../controller/agent/agent"
 import {sendLlmRequest} from "../../controller/llm/llm_chat"
+import {ChatMessageType} from "../../generated/neuro-san/NeuroSanClient"
 import {hashString, hasOnlyWhitespace} from "../../utils/text"
 import {getTitleBase} from "../../utils/title"
 import {LlmChatOptionsButton} from "../Common/LlmChatOptionsButton"
@@ -352,7 +353,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     const processLogLine = (
         logLine: string,
         summary: string,
-        messageType: number | string,
+        messageType: ChatMessageType,
         isFinalAnswer?: boolean
     ): ReactNode => {
         console.debug(
@@ -384,8 +385,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
         }
 
         const hashedSummary = hashString(summary)
-        // TODO: fix when enum types are available
-        const isAIMessage = messageType === 4
+        const isAIMessage = messageType === ChatMessageType.AI
 
         if (isAIMessage && !isFinalAnswer) {
             lastAIMessage.current = logLine
@@ -815,8 +815,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         ref={finalAnswerRef}
                         style={{marginBottom: "1rem"}}
                     >
-                        {/*TODO: fix when enum types are available*/}
-                        {processLogLine(lastAIMessage.current, "Final Answer", 4, true)}
+                        {processLogLine(lastAIMessage.current, "Final Answer", ChatMessageType.AI, true)}
                     </div>
                 )
             }
