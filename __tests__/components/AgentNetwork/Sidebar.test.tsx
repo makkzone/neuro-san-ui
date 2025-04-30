@@ -3,12 +3,16 @@ import {UserEvent, default as userEvent} from "@testing-library/user-event"
 
 import {cleanUpAgentName} from "../../../components/AgentChat/Utils"
 import Sidebar from "../../../components/AgentNetwork/Sidebar"
+import {withStrictMocks} from "../../common/strictMocks"
 
 const TEST_AGENT_MATH_GUY = "Math Guy"
 const TEST_AGENT_MUSIC_NERD = "Music Nerd"
 
 describe("SideBar", () => {
     let user: UserEvent
+
+    withStrictMocks()
+
     beforeEach(() => {
         jest.clearAllMocks()
         user = userEvent.setup()

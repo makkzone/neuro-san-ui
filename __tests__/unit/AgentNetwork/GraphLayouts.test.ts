@@ -1,8 +1,11 @@
 import {ConnectivityInfo} from "../../../components/AgentChat/Types"
 import {DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS} from "../../../components/AgentNetwork/const"
 import {layoutLinear, layoutRadial} from "../../../components/AgentNetwork/GraphLayouts"
+import {withStrictMocks} from "../../common/strictMocks"
 
 describe("GraphLayouts", () => {
+    withStrictMocks()
+
     beforeEach(() => {
         jest.clearAllMocks()
     })

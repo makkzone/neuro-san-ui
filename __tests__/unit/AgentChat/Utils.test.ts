@@ -1,8 +1,11 @@
 import {AgentErrorProps, ChatResponse} from "../../../components/AgentChat/Types"
 import {chatMessageFromChunk, checkError, tryParseJson} from "../../../components/AgentChat/Utils"
 import {ChatMessageType} from "../../../generated/neuro-san/NeuroSanClient"
+import {withStrictMocks} from "../../common/strictMocks"
 
 describe("AgentChat/Utils/chatMessageFromChunk", () => {
+    withStrictMocks()
+
     it("Should reject unknown message types", () => {
         const chunk: ChatResponse = {
             response: {
@@ -31,6 +34,8 @@ describe("AgentChat/Utils/chatMessageFromChunk", () => {
 })
 
 describe("AgentChat/Utils/tryParseJson", () => {
+    withStrictMocks()
+
     it("Should return an object for valid JSON", () => {
         const chunk: ChatResponse = {
             response: {
@@ -64,6 +69,8 @@ describe("AgentChat/Utils/tryParseJson", () => {
 })
 
 describe("AgentChat/Utils/checkError", () => {
+    withStrictMocks()
+
     it("Should return detect an error block", () => {
         const errorText = "This is a test error"
         const traceText = "This is a test trace"

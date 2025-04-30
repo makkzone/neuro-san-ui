@@ -5,6 +5,7 @@ import {ReactFlowProvider} from "reactflow"
 import {ConnectivityInfo} from "../../../components/AgentChat/Types"
 import {cleanUpAgentName} from "../../../components/AgentChat/Utils"
 import AgentFlow from "../../../components/AgentNetwork/AgentFlow"
+import {withStrictMocks} from "../../common/strictMocks"
 
 const TEST_AGENT_MATH_GUY = "Math Guy"
 const TEST_AGENT_MUSIC_NERD = "Music Nerd"
@@ -12,6 +13,8 @@ const TEST_AGENT_MUSIC_NERD_PRO = "Music Nerd Pro"
 
 describe("AgentFlow", () => {
     let user: UserEvent
+
+    withStrictMocks()
 
     beforeEach(() => {
         jest.clearAllMocks()
