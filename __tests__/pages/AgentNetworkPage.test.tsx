@@ -49,12 +49,12 @@ const renderAgentNetworkPage = () =>
     )
 
 describe("Agent Network Page", () => {
-    beforeEach(() => {
-        jest.clearAllMocks()
-
+    beforeAll(() => {
         process.env.NEURO_SAN_SERVER_URL = NEURO_SAN_SERVER_URL
         useEnvironmentStore.getState().setBackendNeuroSanApiUrl(NEURO_SAN_SERVER_URL)
     })
+    
+    beforeEach(() => jest.clearAllMocks())
 
     afterAll(() => delete process.env.NEURO_SAN_SERVER_URL)
 
