@@ -1,4 +1,4 @@
-import {render, screen, waitFor} from "@testing-library/react"
+import {render, screen} from "@testing-library/react"
 import {userEvent} from "@testing-library/user-event"
 import {SnackbarProvider} from "notistack"
 
@@ -53,7 +53,7 @@ describe("Agent Network Page", () => {
         process.env.NEURO_SAN_SERVER_URL = NEURO_SAN_SERVER_URL
         useEnvironmentStore.getState().setBackendNeuroSanApiUrl(NEURO_SAN_SERVER_URL)
     })
-    
+
     beforeEach(() => jest.clearAllMocks())
 
     afterAll(() => delete process.env.NEURO_SAN_SERVER_URL)
@@ -64,7 +64,7 @@ describe("Agent Network Page", () => {
 
         // UI displays the elements.
         const sidebarTitle = await screen.findByText("Agent Networks")
-        // Make sure Math Guy is rendered first. Without this line, the test case fails.
+        // await until the first Math Guy is rendered. Without this line, the test case fails.
         await screen.findByText(TEST_AGENT_MATH_GUY)
         // Get Math Guy items.
         const mathGuyItems = await screen.findAllByText(TEST_AGENT_MATH_GUY)
@@ -76,7 +76,7 @@ describe("Agent Network Page", () => {
         expect(sidebarTitle).toBeInTheDocument()
 
         // Math Guy is default, there should be a sidebar item and a chatbox item (2 items total).
-        await waitFor(() => expect(mathGuyItems.length).toBe(2))
+        expect(mathGuyItems.length).toBe(2)
         expect(musicNerdItem).toBeInTheDocument()
         // Music Nerd should only have 1 sidebar item.
         expect(musicNerdItems.length).toBe(1)
