@@ -71,7 +71,7 @@ describe("Agent Network Page", () => {
         // Check that the sidebar title is present.
         expect(sidebarTitle).toBeInTheDocument()
 
-        // Click Music Nerd sidebar item
+        // Click Math Guy sidebar item
         await user.click(mathGuyItem) // TODO: Why is this click required?
         // Math Guy is default, there should be a sidebar item and a chatbox item (2 items total).
         expect(mathGuyItems.length).toBe(2)
