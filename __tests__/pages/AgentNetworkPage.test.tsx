@@ -1,4 +1,4 @@
-import {render, screen} from "@testing-library/react"
+import {render, screen, waitFor} from "@testing-library/react"
 import {userEvent} from "@testing-library/user-event"
 import {SnackbarProvider} from "notistack"
 
@@ -63,25 +63,26 @@ describe("Agent Network Page", () => {
 
         // UI displays the elements.
         const sidebarTitle = await screen.findByText("Agent Networks")
-        const mathGuyItem = await screen.findByText(TEST_AGENT_MATH_GUY)
+        // Make sure Math Guy is rendered first. Without this line, the test case fails.
+        await screen.findByText(TEST_AGENT_MATH_GUY)
+        // Get Math Guy items.
         const mathGuyItems = await screen.findAllByText(TEST_AGENT_MATH_GUY)
+        // Get Music Nerd items.
         const musicNerdItem = await screen.findByText(TEST_AGENT_MUSIC_NERD)
         let musicNerdItems = await screen.findAllByText(TEST_AGENT_MUSIC_NERD)
 
         // Check that the sidebar title is present.
         expect(sidebarTitle).toBeInTheDocument()
 
-        // Click Math Guy sidebar item
-        await user.click(mathGuyItem) // TODO: Why is this click required?
         // Math Guy is default, there should be a sidebar item and a chatbox item (2 items total).
-        expect(mathGuyItems.length).toBe(2)
+        await waitFor(() => expect(mathGuyItems.length).toBe(2))
         expect(musicNerdItem).toBeInTheDocument()
         // Music Nerd should only have 1 sidebar item.
         expect(musicNerdItems.length).toBe(1)
 
         // Click Music Nerd sidebar item
         await user.click(musicNerdItem)
-        // Music Nerd is selected now. There should be a sidebar item and a chatbox item (2 items total).
+        // Music Nerd is selected now. There should be a sidebar item and a chatbox item (2 items total).n
         musicNerdItems = await screen.findAllByText(TEST_AGENT_MUSIC_NERD)
         expect(musicNerdItems.length).toBe(2)
     })
