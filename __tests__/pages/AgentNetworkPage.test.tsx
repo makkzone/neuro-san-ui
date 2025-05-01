@@ -63,7 +63,7 @@ describe("Agent Network Page", () => {
 
         // UI displays the elements.
         const sidebarTitle = await screen.findByText("Agent Networks")
-        const mathGuyItem = await screen.findByText(TEST_AGENT_MUSIC_NERD)
+        const mathGuyItem = await screen.findByText(TEST_AGENT_MATH_GUY)
         const mathGuyItems = await screen.findAllByText(TEST_AGENT_MATH_GUY)
         const musicNerdItem = await screen.findByText(TEST_AGENT_MUSIC_NERD)
         let musicNerdItems = await screen.findAllByText(TEST_AGENT_MUSIC_NERD)
