@@ -29,8 +29,6 @@ describe("SideBar", () => {
             />
         )
 
-        // TODO: Mock the getNetworks call
-
         // Make sure the heading is present
         expect(screen.getByText("Agent Networks")).toBeInTheDocument()
 

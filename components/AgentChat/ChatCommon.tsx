@@ -606,8 +606,12 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             if (targetAgent === AgentType.OPPORTUNITY_FINDER_PIPELINE) {
                 try {
                     agentFunction = await getAgentFunctionNeuroSanIndirect(currentUser, targetAgent as AgentType)
-                } catch {
-                    // TODO: Should we report an error?
+                } catch (error: any) {
+                    // Surface error and return
+                    sendNotification(
+                        NotificationType.error,
+                        error.message,
+                    )
                     return
                 }
 
