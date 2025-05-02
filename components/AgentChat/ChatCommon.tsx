@@ -350,7 +350,8 @@ export const ChatCommon: FC<ChatCommonProps> = ({
         }
     }, [chatOutput])
 
-    /* This function is required for Opportunity Finder > Orchestration
+    /**
+     * This function is required for Opportunity Finder > Orchestration.
      * We cannot call the Neuro-san API directly yet, so we need to use the old API.
      * Ideally this function should be removed once we have the new API in place. */
     /**
