@@ -606,7 +606,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             if (targetAgent === AgentType.OPPORTUNITY_FINDER_PIPELINE) {
                 try {
                     agentFunction = await getAgentFunctionNeuroSanIndirect(currentUser, targetAgent as AgentType)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } catch (error: any) {
                     // Surface error and return (any allows us to access `message` property)
                     sendNotification(NotificationType.error, error?.message)
