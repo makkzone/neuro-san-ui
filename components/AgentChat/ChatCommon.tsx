@@ -756,9 +756,10 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                 // But don't want to spam output by logging errors for every bad message.
                 return
             }
-
+            console.log("chatMessage.type", chatMessage.type)
             // It's a ChatMessage. Does it have chat context? Only AGENT_FRAMEWORK messages can have chat context.
             if (chatMessage.type === GrpcChatMessageChatMessageType.AGENT_FRAMEWORK && chatMessage.chatContext) {
+                console.log("chatMessage.chatContext", chatMessage.chatContext)
                 // Save the chat context, potentially overwriting any previous ones we received during this session.
                 // We only care about the last one received.
                 grpcChatContext.current = chatMessage.chatContext
