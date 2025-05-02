@@ -353,7 +353,8 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     /**
      * This function is required for Opportunity Finder > Orchestration.
      * We cannot call the Neuro-san API directly yet, so we need to use the old API.
-     * Ideally this function should be removed once we have the new API in place. */
+     * Ideally this function should be removed once we have the new API in place.
+     */
     /**
      * Process a log line from the agent and format it nicely using the syntax highlighter and Accordion components.
      * By the time we get to here, it's assumed things like errors and termination conditions have already been handled.
