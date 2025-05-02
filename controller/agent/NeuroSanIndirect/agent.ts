@@ -78,7 +78,10 @@ export async function sendChatQueryLegacyNeuroSanIndirect(
  * @returns The function info as a <code>FunctionResponse</code> object
  * @throws Various exceptions if anything goes wrong such as network issues or invalid agent type.
  */
-export async function getAgentFunctionNeuroSanIndirect(requestUser: string, targetAgent: AgentType): Promise<GrpcFunctionResponse> {
+export async function getAgentFunctionNeuroSanIndirect(
+    requestUser: string,
+    targetAgent: AgentType
+): Promise<GrpcFunctionResponse> {
     const baseUrl = useEnvironmentStore.getState().backendApiUrl
     const fetchUrl = `${baseUrl}/${AGENT_FUNCTION_PATH}`
 

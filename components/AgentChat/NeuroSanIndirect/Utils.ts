@@ -1,8 +1,5 @@
 import {ChatResponse} from "../../../generated/neuro_san/api/grpc/agent"
-import {
-    ChatMessage as GrpcChatMessage,
-    ChatMessageChatMessageType,
-} from "../../../generated/neuro_san/api/grpc/chat"
+import {ChatMessageChatMessageType, ChatMessage as GrpcChatMessage} from "../../../generated/neuro_san/api/grpc/chat"
 
 // We ignore any messages that are not of these types
 const KNOWN_MESSAGE_TYPES = [
