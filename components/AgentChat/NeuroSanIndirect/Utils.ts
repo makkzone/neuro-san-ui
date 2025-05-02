@@ -1,3 +1,7 @@
+/* This file is required for Opportunity Finder > Orchestration
+ * We cannot call the Neuro-san API directly yet, so we need to use the old API.
+ * Ideally this file should be removed once we have the new API in place. */
+
 import {ChatResponse} from "../../../generated/neuro_san/api/grpc/agent"
 import {ChatMessageChatMessageType, ChatMessage as GrpcChatMessage} from "../../../generated/neuro_san/api/grpc/chat"
 

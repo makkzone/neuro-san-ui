@@ -1,5 +1,10 @@
+
+/* This file is required for Opportunity Finder > Orchestration
+ * We cannot call the Neuro-san API directly yet, so we need to use the old API.
+ * Ideally this file should be removed once we have the new API in place. */
+
 /**
- * Controller module for interacting with the Agent LLM API.
+ * Controller module for interacting with the Agent LLM API (Neuro-san indirect version).
  */
 
 import {AgentChatRequest, AgentFunctionRequest, AgentType} from "../../../generated/metadata"
