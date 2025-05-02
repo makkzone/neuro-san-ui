@@ -53,6 +53,7 @@
         "remark-toc": "9.0.0",
         "sharp": "0.33.2",
         "ts-proto": "1.172.0",
+        "uuid": "11.1.0",
         "zustand": "4.4.7"
     },
     "devDependencies": {
