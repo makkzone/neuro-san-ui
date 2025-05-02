@@ -1,8 +1,6 @@
 // eslint-disable-next-line max-classes-per-file
 import "@testing-library/jest-dom"
 import failOnConsole from "jest-fail-on-console"
-// Work around for crypto not being available in jsdom environment. See: https://github.com/jsdom/jsdom/issues/1612
-import {webcrypto} from "node:crypto"
 // eslint-disable-next-line no-shadow
 import {ReadableStream} from "node:stream/web"
 import {createElement} from "react"
@@ -12,10 +10,6 @@ See: https://stackoverflow.com/questions/68468203/why-am-i-getting-textencoder-i
  */
 // eslint-disable-next-line no-shadow
 import {TextDecoder, TextEncoder} from "util"
-
-Object.defineProperty(globalThis, "crypto", {
-    value: webcrypto,
-})
 
 Object.defineProperties(globalThis, {
     ReadableStream: {value: ReadableStream},

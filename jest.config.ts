@@ -22,7 +22,7 @@ const config: Config.InitialOptions = {
             },
         ],
     },
-    verbose: true,
+    verbose: false,
     setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
     testEnvironment: "jest-environment-jsdom",
     collectCoverage: true,
