@@ -1,29 +1,28 @@
 import {components} from "../../generated/neuro-san/NeuroSanClient"
-  
-    export enum LegacyAgentType {
-        OpportunityFinder = "OpportunityFinder",
-        ScopingAgent = "ScopingAgent",
-        DataGenerator = "DataGenerator",
-        DMSChat = "DMSChat",
-        ChatBot = "ChatBot",
-    }
+	
+export enum LegacyAgentType {
+	OpportunityFinder = "OpportunityFinder",
+	ScopingAgent = "ScopingAgent",
+	DataGenerator = "DataGenerator",
+	DMSChat = "DMSChat",
+	ChatBot = "ChatBot",
+}
 
-    export const isLegacyAgentType = (agent: string) => {
-        return Object.keys(LegacyAgentType).includes(agent)
-    }
+export const isLegacyAgentType = (agent: string) => {
+	return Object.keys(LegacyAgentType).includes(agent)
+}
 
-    export type CombinedAgentType = LegacyAgentType | string
+export type CombinedAgentType = LegacyAgentType | string
 
-    /**
-     * Models the error we receive from neuro-san agents.
-     */
-    export interface AgentErrorProps {
-        error: string
-        traceback?: string
-        tool?: string
-    }
+/**
+ * Models the error we receive from neuro-san agents.
+ */
+export interface AgentErrorProps {
+	error: string
+	traceback?: string
+	tool?: string
+}
 
-  
 export type AgentInfo = components["schemas"]["AgentInfo"]
 export type ChatContext = components["schemas"]["ChatContext"]
 export type ChatFilter = components["schemas"]["ChatFilter"]
