@@ -7,7 +7,7 @@ describe("PageLoader", () => {
     withStrictMocks()
 
     const pageLoaderComponent = <PageLoader id="mock-page-loader" />
-    
+
     it("should render a page loader", async () => {
         render(pageLoaderComponent)
 

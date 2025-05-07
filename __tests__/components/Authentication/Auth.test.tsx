@@ -14,7 +14,7 @@ jest.mock("next-auth/react", () => {
 const mockedUseSession = jest.mocked(useSession)
 describe("Auth Component", () => {
     withStrictMocks()
-    
+
     const renderMockAuth = () => (
         <Auth>
             <div>Mock Auth</div>

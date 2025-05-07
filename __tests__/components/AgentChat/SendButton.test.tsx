@@ -7,7 +7,7 @@ import {withStrictMocks} from "../../common/strictMocks"
 describe("SendButton", () => {
     let user: UserEvent
     const handleClick = jest.fn()
-    
+
     withStrictMocks()
 
     beforeEach(() => {

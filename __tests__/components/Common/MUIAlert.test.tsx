@@ -6,7 +6,7 @@ import {withStrictMocks} from "../../common/strictMocks"
 
 describe("MUIAlert Component", () => {
     withStrictMocks()
-    
+
     const DefaultMUIAlert = (
         <MUIAlert
             id="test-alert"

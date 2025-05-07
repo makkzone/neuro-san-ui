@@ -6,7 +6,7 @@ import {withStrictMocks} from "../../common/strictMocks"
 
 describe("MUIAccordion", () => {
     withStrictMocks()
-    
+
     const defaultProps = {
         id: "test-accordion",
         items: [

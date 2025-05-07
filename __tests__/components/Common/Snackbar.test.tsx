@@ -13,7 +13,7 @@ jest.mock("notistack", () => ({
 
 describe("Snackbar Component", () => {
     withStrictMocks()
-    
+
     const mockCloseSnackbar = jest.fn()
 
     const renderSnackbar = (props?) =>

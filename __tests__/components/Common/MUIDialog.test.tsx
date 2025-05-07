@@ -6,7 +6,7 @@ import {withStrictMocks} from "../../common/strictMocks"
 
 describe("Dialog", () => {
     withStrictMocks()
-    
+
     const onClose = jest.fn()
 
     it("should render Dialog title, close button, and body when open", async () => {

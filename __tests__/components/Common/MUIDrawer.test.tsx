@@ -7,7 +7,7 @@ import {withStrictMocks} from "../../common/strictMocks"
 // TODO: Test different anchor positions?
 describe("MUIDrawer Component", () => {
     withStrictMocks()
-    
+
     const mockOnClose = jest.fn()
 
     it("renders correctly with given props", () => {

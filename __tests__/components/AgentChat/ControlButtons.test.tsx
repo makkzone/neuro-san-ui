@@ -6,7 +6,7 @@ import {withStrictMocks} from "../../common/strictMocks"
 
 describe("ControlButtons", () => {
     withStrictMocks()
-    
+
     let user: UserEvent
     const mockClearChat = jest.fn()
     const mockHandleSend = jest.fn()
