@@ -22,12 +22,6 @@ steps:
             - cf_export EPHEMERAL_LEAF_SOURCE_CREDENTIALS="x-access-token:${EPHEMERAL_TOKEN}" --mask
             - cf_export LEAF_SOURCE_CREDENTIALS="${EPHEMERAL_TOKEN}" --mask
 
-    generate_openapi_types:
-      title: Generate Typescript types for OpenAPI
-      image: node:${{NODEJS_VERSION}}-alpine
-      working_directory: ${{CF_VOLUME_PATH}}/neuro-ui
-      commands:
-        - npx tsx ./openAPIUtils/GenerateOpenAPITypes.ts
             
     generate_typescript_api_stubs:
       title: Generate Typescript stubs for APIs
@@ -39,6 +33,13 @@ steps:
         - ./build_scripts/do_typescript_generate.sh
         - ./build_scripts/do_openapi_generate.sh
 
+    generate_openapi_types:
+      title: Generate Typescript types for OpenAPI
+      image: node:${{NODEJS_VERSION}}-alpine
+      working_directory: ${{CF_VOLUME_PATH}}/neuro-ui
+      commands:
+        - npx tsx ./openAPIUtils/GenerateOpenAPITypes.ts
+        
     prebuild:
       title: Run prebuild step for custom build
       description: Pare down the code to build sub-sets of the ui
