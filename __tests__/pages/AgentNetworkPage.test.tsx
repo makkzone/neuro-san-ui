@@ -16,6 +16,8 @@ const NEURO_SAN_SERVER_URL = "https://neuro-san-dev.decisionai.ml"
 const TEST_AGENT_MATH_GUY = "Math Guy"
 const TEST_AGENT_MUSIC_NERD = "Music Nerd"
 
+const mockUseSession = useSession as jest.Mock;
+
 // Mock dependencies
 jest.mock("next-auth/react", () => {
     return {
@@ -59,10 +61,7 @@ describe("Agent Network Page", () => {
     })
 
     beforeEach(() => {
-        ;(useSession as unknown as jest.Mock).mockReturnValue({
-            data: {user: {name: MOCK_USER}},
-            status: "authenticated",
-        })
+        mockUseSession.mockReturnValue({data: {user: {name: MOCK_USER}}})
 
         const mockGetAgentNetworks = jest.requireMock("../../controller/agent/agent").getAgentNetworks
         mockGetAgentNetworks.mockResolvedValue([TEST_AGENT_MATH_GUY, TEST_AGENT_MUSIC_NERD])
