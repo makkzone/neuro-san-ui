@@ -16,7 +16,7 @@ const NEURO_SAN_SERVER_URL = "https://neuro-san-dev.decisionai.ml"
 const TEST_AGENT_MATH_GUY = "Math Guy"
 const TEST_AGENT_MUSIC_NERD = "Music Nerd"
 
-const mockUseSession = useSession as jest.Mock;
+const mockUseSession = useSession as jest.Mock
 
 // Mock dependencies
 jest.mock("next-auth/react", () => {
