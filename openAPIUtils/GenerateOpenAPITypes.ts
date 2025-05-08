@@ -14,7 +14,7 @@ const staticHeader = fs.readFileSync(staticTypesPath, "utf8")
 const reservedNames = ["Function"]
 
 const project = new Project()
-const sourceFile = project.addSourceFileAtPath(path.resolve(__dirname, "../generated/neuro-san/NeuroSanClient.d.ts"))
+const sourceFile = project.addSourceFileAtPath(path.resolve(__dirname, "../generated/neuro-san/NeuroSanClient.ts"))
 
 const interfaceDecl = sourceFile.getInterfaceOrThrow("components")
 const schemasProp = interfaceDecl.getPropertyOrThrow("schemas")
