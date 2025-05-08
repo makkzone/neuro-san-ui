@@ -22,7 +22,7 @@ jest.mock("next-auth/react", () => {
 })
 
 // Mock fetchRuns
-jest.mock("../../controller/agent/agent", () => ({
+jest.mock("../../controller/agent/Agent", () => ({
     getAgentNetworks: jest.fn(() => Promise.resolve([TEST_AGENT_MATH_GUY, TEST_AGENT_MUSIC_NERD])),
     getConnectivity: jest.fn(() =>
         Promise.resolve({

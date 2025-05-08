@@ -5,7 +5,7 @@ Unit tests for the various small utility modules
 import decode from "../../utils/conversion"
 import {arraysEqual, omitDeep} from "../../utils/objects"
 import sortByTime from "../../utils/sort"
-import {removeItemOnce} from "../../utils/transformation"
+import {removeItemOnce} from "../../utils/Transformation"
 
 describe("Various utilities", () => {
     it("removes first item from an array", async () => {

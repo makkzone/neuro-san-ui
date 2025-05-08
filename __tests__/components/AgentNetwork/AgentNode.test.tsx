@@ -26,7 +26,7 @@ describe("AgentNode", () => {
                 yPos={0}
                 dragging={false}
                 data={{
-                    agentName: agentName,
+                    agentName,
                     getOriginInfo: () => [],
                     isFrontman: false,
                     depth: 1,

@@ -8,7 +8,7 @@ import {ReactElement, MouseEvent as ReactMouseEvent, useEffect, useState} from "
 import {ConfirmationModal} from "../components/Common/confirmationModal"
 import {CONTACT_US_CONFIRMATION_DIALOG_TEXT, CONTACT_US_CONFIRMATION_DIALOG_TITLE, GENERIC_LOGO, LOGO} from "../const"
 import useEnvironmentStore from "../state/environment"
-import useFeaturesStore from "../state/features"
+import useFeaturesStore from "../state/Features"
 import {getTitleBase} from "../utils/title"
 
 // #region: Styled Components

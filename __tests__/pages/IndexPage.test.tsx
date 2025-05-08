@@ -5,11 +5,11 @@ import {useRouter} from "next/router"
 import {ALL_BUILD_TARGET} from "../../const"
 import Index from "../../pages/index"
 import useEnvironmentStore from "../../state/environment"
-import useFeaturesStore from "../../state/features"
+import useFeaturesStore from "../../state/Features"
 
 // Mock dependencies
-jest.mock("../../state/features", () => ({
-    ...jest.requireActual("../../state/features"),
+jest.mock("../../state/Features", () => ({
+    ...jest.requireActual("../../state/Features"),
     __esModule: true,
     default: jest.fn(() => ({enableProjectSharing: true})),
 }))

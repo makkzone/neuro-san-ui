@@ -10,7 +10,7 @@ describe("Make sure protobuf files generated", () => {
         const message: ChatMessage = {
             type: ChatMessageChatMessageType.HUMAN,
             text: "Hello, World!",
-            imageData: imageData,
+            imageData,
         }
 
         expect(message).toBeDefined()
