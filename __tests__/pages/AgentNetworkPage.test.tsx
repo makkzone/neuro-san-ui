@@ -88,13 +88,11 @@ describe("Agent Network Page", () => {
 
         // Ensure Math Guy (default network) elements are rendered.
         // Should be 2 Math Guy items (1 in sidebar, 1 in chat window)
-        let mathGuyItems: HTMLElement[]
         await waitFor(() => {
-            mathGuyItems = screen.getAllByText(TEST_AGENT_MATH_GUY)
-            expect(mathGuyItems).toHaveLength(2)
+            expect(screen.getAllByText(TEST_AGENT_MATH_GUY)).toHaveLength(2)
         })
 
-        // Find sidebar
+        // Find sidebar. Will fail if <> 1 found
         await screen.findByText("Agent Networks")
 
         // Ensure Music Nerd is initially shown once. Will fail if <> 1 found
