@@ -38,7 +38,7 @@ steps:
       working_directory: ${{CF_VOLUME_PATH}}/neuro-ui
       commands:
         - yarn install
-        - npx tsx ./openAPIUtils/GenerateOpenAPITypes.ts
+        - npx tsx ./build_scripts/GenerateOpenAPITypes.ts
 
     prebuild:
       title: Run prebuild step for custom build
