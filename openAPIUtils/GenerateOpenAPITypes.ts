@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url)
 // eslint-disable-next-line no-shadow
 const __dirname = dirname(__filename)
 
-const staticTypesPath = path.resolve(__dirname, "./StaticAgentTypes.ts")
+const staticTypesPath = path.resolve(__dirname, "../components/AgentChat/Types.ts")
 const staticHeader = fs.readFileSync(staticTypesPath, "utf8")
 const reservedNames = ["Function"]
 
