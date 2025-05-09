@@ -15,17 +15,13 @@ const autoGenComment = `
  * Do not make direct changes to the file.
  */`
 
-const staticTypesPath = path.resolve(__dirname, "../components/AgentChat/Types.ts")
-const staticHeader = fs.readFileSync(staticTypesPath, "utf8")
+const componentsImport = "import {components} from './NeuroSanClient'"
 const reservedNames = ["Function"]
-
 const project = new Project()
 const sourceFile = project.addSourceFileAtPath(path.resolve(__dirname, "../generated/neuro-san/NeuroSanClient.ts"))
-
 const interfaceDecl = sourceFile.getInterfaceOrThrow("components")
 const schemasProp = interfaceDecl.getPropertyOrThrow("schemas")
 const schemasType = schemasProp.getType().getApparentProperties()
-
 const lines = schemasType.map((prop) => {
     const schemaType = prop.getName()
     const exportName = reservedNames.includes(schemaType) ? `_${schemaType}` : schemaType
@@ -33,12 +29,7 @@ const lines = schemasType.map((prop) => {
 })
 
 // Remove ts and eslint directive comments
-const fileContent = [autoGenComment, staticHeader, ...lines, ""]
-    .join("\n")
-    .replaceAll("// @ts-prune-ignore-next", "")
-    .replace("// @ts-expect-error TS2307: Module not found", "")
-    .replace("// eslint-disable-next-line @typescript-eslint/no-unused-vars", "")
-    .replace(/\n{3,}/gu, "\n\n") // Collapse 3+ newlines into just 2
+const fileContent = [autoGenComment, componentsImport, ...lines, ""].join("\n")
 
 fs.writeFileSync(path.resolve(__dirname, "../generated/neuro-san/OpenAPITypes.ts"), fileContent)
 
