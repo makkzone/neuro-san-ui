@@ -4,7 +4,7 @@
  */
 
 // @ts-expect-error TS2307: Module not found
-// eslint-disable-next-line import/no-unresolved, @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {components} from "../../generated/neuro-san/NeuroSanClient"
 
 // @ts-prune-ignore-next
