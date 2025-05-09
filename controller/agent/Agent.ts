@@ -13,7 +13,7 @@ import {
     FunctionResponse,
 } from "../../generated/neuro-san/OpenAPITypes"
 import useEnvironmentStore from "../../state/environment"
-import {sendLlmRequest} from "../llm/llm_chat"
+import {sendLlmRequest} from "../llm/LlmChat"
 
 /**
  * Insert the target agent name into the path. The paths Api enum contains values like:

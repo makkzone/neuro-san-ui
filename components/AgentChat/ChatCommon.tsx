@@ -40,12 +40,12 @@ import {SendButton} from "./SendButton"
 import {HLJS_THEMES} from "./SyntaxHighlighterThemes"
 import {chatMessageFromChunk, checkError, cleanUpAgentName, tryParseJson} from "./Utils"
 import {DEFAULT_USER_IMAGE} from "../../const"
-import {getAgentFunction, getConnectivity, sendChatQuery} from "../../controller/agent/agent"
+import {getAgentFunction, getConnectivity, sendChatQuery} from "../../controller/agent/Agent"
 import {
     getAgentFunctionNeuroSanIndirect,
     sendChatQueryLegacyNeuroSanIndirect,
-} from "../../controller/agent/NeuroSanIndirect/agent"
-import {sendLlmRequest} from "../../controller/llm/llm_chat"
+} from "../../controller/agent/NeuroSanIndirect/Agent"
+import {sendLlmRequest} from "../../controller/llm/LlmChat"
 import {AgentType} from "../../generated/metadata"
 import {ChatMessageType} from "../../generated/neuro-san/NeuroSanClient"
 import {

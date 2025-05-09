@@ -7,7 +7,7 @@ import {ALL_BUILD_TARGET} from "../../const"
 import {CHATBOT_ENDPOINT} from "../../controller/llm/endpoints"
 import {LegacyAgentType} from "../../generated/neuro-san/OpenAPITypes"
 import useEnvironmentStore from "../../state/environment"
-import {useAuthentication} from "../../utils/authentication"
+import {useAuthentication} from "../../utils/Authentication"
 import {ZIndexLayers} from "../../utils/zIndexLayers"
 import {ChatCommon} from "../AgentChat/ChatCommon"
 
