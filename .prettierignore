@@ -1,4 +1,5 @@
 generated
 **/coverage/
-build_scripts/
+build_scripts/**
+!build_scripts/GenerateOpenAPITypes.ts
 proto/

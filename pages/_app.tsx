@@ -20,9 +20,8 @@ import NeuroAIBreadcrumbs from "../components/Common/breadcrumbs"
 import Navbar from "../components/Common/Navbar"
 import {Snackbar} from "../components/Common/Snackbar"
 import ErrorBoundary from "../components/ErrorPage/ErrorBoundary"
-import {ALL_BUILD_TARGET, GENERIC_LOGO, LOGO} from "../const"
+import {ALL_BUILD_TARGET, LOGO} from "../const"
 import useEnvironmentStore from "../state/environment"
-import useFeaturesStore from "../state/Features"
 import useUserInfoStore from "../state/UserInfo"
 import {APP_THEME} from "../theme"
 import {UserInfoResponse} from "./api/userInfo/types"
@@ -47,7 +46,6 @@ const debug = debugModule("app")
 // Has to be export default for NextJS so tell ts-prune to ignore
 // ts-prune-ignore-next
 export default function NeuroAI({Component, pageProps: {session, ...pageProps}}: ExtendedAppProps): ReactElement {
-    const {isGeneric, setEnableProjectSharing} = useFeaturesStore()
     const {
         backendApiUrl,
         backendNeuroSanApiUrl,
@@ -63,23 +61,11 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
     // access user info store
     const {currentUser, setCurrentUser, picture, setPicture, setOidcProvider} = useUserInfoStore()
 
-    const {query, isReady, pathname} = useRouter()
+    const {pathname} = useRouter()
 
     const includeBreadcrumbs = Component.withBreadcrumbs ?? true
 
     const isContainedInViewport = Component.isContainedInViewport ?? false
-
-    useEffect(() => {
-        if (isReady) {
-            // Set features in store
-            const featureFlags = {
-                isGeneric: "generic" in query,
-            }
-
-            debug(`Setting feature flags to ${JSON.stringify(featureFlags, null, 2)}`)
-            useFeaturesStore.setState(featureFlags)
-        }
-    }, [isReady])
 
     useEffect(() => {
         async function getEnvironment() {
@@ -107,7 +93,6 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
             setAuth0Domain(data.auth0Domain)
             setSupportEmailAddress(data.supportEmailAddress)
             setEnableAuthorizeAPI(data.enableAuthorizeAPI)
-            setEnableProjectSharing(data.enableProjectSharing || false)
             setBuildTarget(data.buildTarget || ALL_BUILD_TARGET)
         }
 
@@ -250,7 +235,7 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
                     <ErrorBoundary id="error_boundary">
                         <Navbar
                             id="nav-bar"
-                            Logo={isGeneric ? GENERIC_LOGO : LOGO}
+                            Logo={LOGO}
                         />
                         <Container
                             id="body-container"
