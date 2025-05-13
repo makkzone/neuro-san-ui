@@ -10,11 +10,9 @@ import {
     ALL_BUILD_TARGET,
     CONTACT_US_CONFIRMATION_DIALOG_TEXT,
     CONTACT_US_CONFIRMATION_DIALOG_TITLE,
-    GENERIC_LOGO,
     LOGO,
 } from "../const"
 import useEnvironmentStore from "../state/environment"
-import useFeaturesStore from "../state/Features"
 import {getTitleBase} from "../utils/title"
 
 // #region: Styled Components
@@ -122,9 +120,6 @@ const NeuroAIToolsContainer = styled(Box)({
 // Has to be export default for NextJS so tell ts-prune to ignore
 // ts-prune-ignore-next
 export default function Index(): ReactElement {
-    // Get "generic branding" flag from store
-    const {isGeneric} = useFeaturesStore()
-
     const router = useRouter()
 
     // Access environment info
@@ -192,26 +187,24 @@ export default function Index(): ReactElement {
             <OuterContainer id="outer-container">
                 <BodyContent id="body-content">
                     <Navbar id="nav-bar">
-                        {!isGeneric && (
-                            <>
-                                <NavbarLogo id="logo">
-                                    <Link
-                                        id="splash-logo-link"
-                                        href="https://www.cognizant.com/us/en"
-                                        target="_blank"
-                                    >
-                                        <NextImage
-                                            id="logo-img"
-                                            width="200"
-                                            height="45"
-                                            src="/cognizant-logo-white.svg"
-                                            alt=""
-                                        />
-                                    </Link>
-                                </NavbarLogo>
-                                <NavbarMiddleSection id="nav-bar-middle" />
-                            </>
-                        )}
+                        <>
+                            <NavbarLogo id="logo">
+                                <Link
+                                    id="splash-logo-link"
+                                    href="https://www.cognizant.com/us/en"
+                                    target="_blank"
+                                >
+                                    <NextImage
+                                        id="logo-img"
+                                        width="200"
+                                        height="45"
+                                        src="/cognizant-logo-white.svg"
+                                        alt=""
+                                    />
+                                </Link>
+                            </NavbarLogo>
+                            <NavbarMiddleSection id="nav-bar-middle" />
+                        </>
                     </Navbar>
                     <div id="main-div">
                         <HeaderLineOne id="header-line">
@@ -219,7 +212,7 @@ export default function Index(): ReactElement {
                                 id="headline-eyebrow"
                                 style={{marginBottom: "2rem"}}
                             >
-                                {isGeneric ? GENERIC_LOGO : LOGO}
+                                {LOGO}
                             </div>
                         </HeaderLineOne>
                         {buildTarget === ALL_BUILD_TARGET && (

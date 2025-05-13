@@ -5,15 +5,9 @@ import {useRouter} from "next/router"
 import {ALL_BUILD_TARGET} from "../../const"
 import Index from "../../pages/index"
 import useEnvironmentStore from "../../state/environment"
-import useFeaturesStore from "../../state/Features"
 import {withStrictMocks} from "../common/strictMocks"
 
 // Mock dependencies
-jest.mock("../../state/Features", () => ({
-    ...jest.requireActual("../../state/Features"),
-    __esModule: true,
-    default: jest.fn(() => ({enableProjectSharing: true})),
-}))
 
 jest.mock("../../state/environment", () => ({
     __esModule: true,
@@ -29,7 +23,6 @@ describe("Index Page", () => {
     withStrictMocks()
 
     beforeEach(() => {
-        ;(useFeaturesStore as unknown as jest.Mock).mockReturnValue({isGeneric: false})
         ;(useEnvironmentStore as unknown as jest.Mock).mockReturnValue({
             buildTarget: ALL_BUILD_TARGET,
             supportEmailAddress: "support@example.com",
@@ -50,13 +43,6 @@ describe("Index Page", () => {
         expect(screen.getByText("Find opportunities")).toBeInTheDocument()
         expect(screen.getByText("Build models")).toBeInTheDocument()
         expect(screen.getByText("Explore reference networks")).toBeInTheDocument()
-    })
-
-    it("renders the generic branding when isGeneric is true", () => {
-        ;(useFeaturesStore as unknown as jest.Mock).mockReturnValue({isGeneric: true})
-        render(<Index />)
-
-        expect(screen.getByText("Autopilot")).toBeInTheDocument()
     })
 
     it("opens the email dialog when 'Contact Us' is clicked", async () => {

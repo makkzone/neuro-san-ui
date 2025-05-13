@@ -30,19 +30,6 @@ const compat = new FlatCompat({
 const config = [
     eslintPluginUnicorn.configs.all,
     {
-        settings: {
-            react: {
-                version: "detect",
-            },
-        },
-        languageOptions: {
-            globals: {
-                ...globals.browser,
-                ...globals.node,
-            },
-        },
-    },
-    {
         ignores: [".next", "coverage", "generated", "embed"],
     },
     ...fixupConfigRules(
@@ -72,7 +59,6 @@ const config = [
             "enforce-ids-in-jsx": enforceIdsInJsx,
             "jest-dom": fixupPluginRules(jestDom),
             "react-hooks": fixupPluginRules(reactHooks),
-            "testing-library": fixupPluginRules(testingLibrary),
             import: fixupPluginRules(eslintPluginImport),
             jest: fixupPluginRules(jest),
             next: fixupPluginRules(next),
@@ -86,6 +72,8 @@ const config = [
             // Define these globals to avoid false positives from the no-undef rule, which we want to enable as it's
             // useful
             globals: {
+                ...globals.browser,
+                ...globals.node,
                 ...globals.jest,
                 React: "readonly",
                 JSX: "readonly",
@@ -105,6 +93,9 @@ const config = [
         },
 
         settings: {
+            react: {
+                version: "detect",
+            },
             "import/resolver": {
                 typescript: true,
                 node: true,
@@ -284,14 +275,7 @@ const config = [
             "import/no-self-import": "error",
             "import/no-useless-path-segments": "error",
 
-            "import/no-unresolved": [
-                "error",
-                {
-                    // Was causing false positives in CI. Needs to be investigated. Probably related to it being used
-                    // in a subdirectory with its own package.json.
-                    ignore: ["dotenv"],
-                },
-            ],
+            "import/no-unresolved": "error",
 
             "sort-imports": [
                 "error",
@@ -487,7 +471,16 @@ const config = [
     {
         // Test-specific rule configuration
         files: ["__tests__/**/*.{js,ts,jsx,tsx}"],
+
+        // Pull in RTL plugin
+        ...testingLibrary.configs["flat/react"],
         rules: {
+            // Pull in RTL rules
+            ...testingLibrary.configs["flat/react"].rules,
+
+            // Indicate that the findBy calls are implicit assertions
+            "jest/expect-expect": ["error", {assertFunctionNames: ["expect", "screen.findBy*"]}],
+
             // Extra rules for Jest tests
             "testing-library/await-async-queries": "error",
             "testing-library/no-await-sync-queries": "error",
@@ -504,18 +497,6 @@ const config = [
             "enforce-ids-in-jsx/missing-ids": "off",
             "react/display-name": "off",
             "react/no-array-index-key": "off",
-        },
-    },
-    {
-        // Want to allow devDependencies in these files
-        files: ["next.config.ts"],
-        rules: {
-            "import/no-extraneous-dependencies": [
-                "error",
-                {
-                    devDependencies: true, // allow in these files
-                },
-            ],
         },
     },
     eslintConfigPrettier,

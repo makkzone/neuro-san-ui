@@ -1,8 +1,7 @@
 import Box from "@mui/material/Box"
 import {ReactElement} from "react"
 
-import {GENERIC_LOGO, LOGO} from "../../const"
-import useFeaturesStore from "../../state/Features"
+import {LOGO} from "../../const"
 import NeuroAIBreadcrumbs from "../Common/breadcrumbs"
 import Navbar from "../Common/Navbar"
 
@@ -12,14 +11,11 @@ import Navbar from "../Common/Navbar"
  * @param errorText Error text to be displayed
  */
 export default function ErrorPage({id, errorText}): ReactElement {
-    // Get "generic branding" flag
-    const {isGeneric} = useFeaturesStore()
-
     return (
         <>
             <Navbar
                 id="navbar-id"
-                Logo={isGeneric ? GENERIC_LOGO : LOGO}
+                Logo={LOGO}
             />
             <Box
                 id={id}

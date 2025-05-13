@@ -4,7 +4,6 @@ const {publicRuntimeConfig} = getConfig()
 
 // Name to use for application
 export const LOGO: string = "Neuro AI"
-export const GENERIC_LOGO: string = "Autopilot"
 
 // Build version (passed in from build system)
 export const UNILEAF_VERSION: string = publicRuntimeConfig.unileafVersion
