@@ -8,6 +8,7 @@ import {withStrictMocks} from "../../common/strictMocks"
 const TEST_AGENT_MATH_GUY = "Math Guy"
 const TEST_AGENT_MUSIC_NERD = "Music Nerd"
 
+// TODO: Add more tests based on adding the settings popover
 describe("SideBar", () => {
     let user: UserEvent
 
