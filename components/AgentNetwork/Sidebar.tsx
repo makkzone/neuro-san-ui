@@ -101,6 +101,7 @@ const Sidebar: FC<SidebarProps> = ({id, isAwaitingLlm, networks, selectedNetwork
                 >
                     Agent Networks
                     <Button
+                        aria-label="Agent Network Settings"
                         id="agent-network-settings-btn"
                         onClick={handleSettingsClick}
                         sx={{display: "inline-block", minWidth: "40px"}}
