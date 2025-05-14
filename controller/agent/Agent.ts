@@ -14,6 +14,7 @@ import {
 } from "../../generated/neuro-san/OpenAPITypes"
 import useEnvironmentStore from "../../state/environment"
 import {sendLlmRequest} from "../llm/LlmChat"
+import {useLocalStorage} from "../../utils/use_local_storage"
 
 /**
  * Insert the target agent name into the path. The paths Api enum contains values like:
@@ -26,14 +27,33 @@ import {sendLlmRequest} from "../llm/LlmChat"
 const insertTargetAgent = (targetAgent: string, path: string) => {
     return path.replace(":agent_name", targetAgent.toLocaleLowerCase())
 }
+/**
+ * Get neuro-san API requests. Check local storage first, otherwise use what's stored in the environment store.
+ * @param targetAgent The target agent to send the request to.
+ * @param path The API path to insert the target agent into.
+ * @returns The URL to use for neuro-san API requests.
+ */
+const getUrlToUse = () => {
+    let urlToUse
+    const customUrlLocalStorage = window.localStorage.getItem("customAgentNetworkURL")
+    const backendNeuroSanApiUrl = useEnvironmentStore.getState().backendNeuroSanApiUrl
+    if (customUrlLocalStorage && customUrlLocalStorage !== "null") {
+        urlToUse = customUrlLocalStorage.replaceAll('"', "")
+    } else {
+        urlToUse = backendNeuroSanApiUrl
+    }
+
+    return urlToUse
+}
 
 /**
  * Get the list of available agent networks from the concierge service.
  * @returns A promise that resolves to an array of agent network names.
  */
 export async function getAgentNetworks(): Promise<string[]> {
-    const backendNeuroSanApiUrl = useEnvironmentStore.getState().backendNeuroSanApiUrl
-    const path = `${backendNeuroSanApiUrl}${ApiPaths.ConciergeService_List}`
+    const urlToUse = getUrlToUse()
+    const path = `${urlToUse}${ApiPaths.ConciergeService_List}`
+    console.log(path)
     const response = await fetch(path)
     const conciergeResponse: ConciergeResponse = (await response.json()) as ConciergeResponse
     return conciergeResponse.agents.map((network) => network.agent_name)
@@ -60,7 +80,7 @@ export async function sendChatQuery(
     chatContext: ChatContext,
     slyData: Record<string, never>
 ): Promise<ChatResponse> {
-    const backendNeuroSanApiUrl = useEnvironmentStore.getState().backendNeuroSanApiUrl
+    const urlToUse = getUrlToUse()
 
     // Create request
     const userMessage: ChatMessage = {
@@ -76,7 +96,7 @@ export async function sendChatQuery(
         chat_context: chatContext,
     }
 
-    const fetchUrl = `${backendNeuroSanApiUrl}${insertTargetAgent(targetAgent, ApiPaths.AgentService_StreamingChat)}`
+    const fetchUrl = `${urlToUse}${insertTargetAgent(targetAgent, ApiPaths.AgentService_StreamingChat)}`
     const requestRecord: Record<string, unknown> = Object.entries(agentChatRequest).reduce(
         (acc, [key, value]) => (value ? {...acc, [key]: value} : acc),
         {}
@@ -93,8 +113,8 @@ export async function sendChatQuery(
  * Caller is responsible for try-catch.
  */
 export async function getConnectivity(targetAgent: string): Promise<ConnectivityResponse> {
-    const backendNeuroSanApiUrl = useEnvironmentStore.getState().backendNeuroSanApiUrl
-    const fetchUrl = `${backendNeuroSanApiUrl}${insertTargetAgent(targetAgent, ApiPaths.AgentService_Connectivity)}`
+    const urlToUse = getUrlToUse()
+    const fetchUrl = `${urlToUse}${insertTargetAgent(targetAgent, ApiPaths.AgentService_Connectivity)}`
 
     const response = await fetch(fetchUrl, {
         method: "GET",
@@ -118,8 +138,8 @@ export async function getConnectivity(targetAgent: string): Promise<Connectivity
  * @throws Various exceptions if anything goes wrong such as network issues or invalid agent type.
  */
 export async function getAgentFunction(targetAgent: string): Promise<FunctionResponse> {
-    const backendNeuroSanApiUrl = useEnvironmentStore.getState().backendNeuroSanApiUrl
-    const fetchUrl = `${backendNeuroSanApiUrl}${insertTargetAgent(targetAgent, ApiPaths.AgentService_Function)}`
+    const urlToUse = getUrlToUse()
+    const fetchUrl = `${urlToUse}${insertTargetAgent(targetAgent, ApiPaths.AgentService_Function)}`
 
     const response = await fetch(fetchUrl, {
         method: "GET",

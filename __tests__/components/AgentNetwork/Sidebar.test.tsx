@@ -13,8 +13,24 @@ describe("SideBar", () => {
 
     withStrictMocks()
 
+    const windowLocation = window.location
     beforeEach(() => {
+        // https://www.joshmcarthur.com/til/2022/01/19/assert-windowlocation-properties-with-jest.html
+        Object.defineProperty(window, "location", {
+            value: {
+                ...new URL(window.location.href),
+                reload: jest.fn(), // Mock window.location.reload
+            },
+            configurable: true,
+        })
         user = userEvent.setup()
+    })
+
+    afterEach(() => {
+        Object.defineProperty(window, "location", {
+            value: windowLocation,
+            configurable: true,
+        })
     })
 
     it("Should render correctly", async () => {
@@ -33,7 +49,7 @@ describe("SideBar", () => {
         expect(screen.getByText("Agent Networks")).toBeInTheDocument()
 
         // Ensure the settings button is rendered
-        const settingsButton = screen.getByRole("button", {name: /agent network settings/ui})
+        const settingsButton = screen.getByRole("button", {name: /agent network settings/iu})
         expect(settingsButton).toBeInTheDocument()
 
         // Clicking on a network should call the setSelectedNetwork function
@@ -55,19 +71,20 @@ describe("SideBar", () => {
             />
         )
 
-        const settingsButton = screen.getByRole("button", {name: /agent network settings/ui})
+        const settingsButton = screen.getByRole("button", {name: /agent network settings/iu})
         // Open Settings popover
         await user.click(settingsButton)
 
         // Ensure the popover is displayed
-        expect(screen.getAllByText(/custom agent network url/ui).length).toBe(2)
+        expect(screen.getAllByText(/custom agent network url/iu).length).toBe(2)
 
         const urlInput = screen.getByLabelText("Custom Agent Network URL")
+        await user.clear(urlInput)
         await user.type(urlInput, "https://example.com")
 
         // Ensure the input value is updated
         expect(urlInput).toHaveValue("https://example.com")
-        
+
         const saveButton = screen.getByRole("button", {name: /save/i})
         await user.click(saveButton)
 
@@ -91,14 +108,15 @@ describe("SideBar", () => {
             />
         )
 
-        const settingsButton = screen.getByRole("button", {name: /agent network settings/ui})
+        const settingsButton = screen.getByRole("button", {name: /agent network settings/iu})
         // Open Settings popover
         await user.click(settingsButton)
 
         const urlInput = screen.getByLabelText("Custom Agent Network URL")
+        await user.clear(urlInput)
         await user.type(urlInput, "https://example.com")
 
-        const resetButton = screen.getByRole("button", {name: /reset/i})
+        const resetButton = screen.getByRole("button", {name: /reset/iu})
         await user.click(resetButton)
 
         // Open the Settings popover again and ensure the input value is reset

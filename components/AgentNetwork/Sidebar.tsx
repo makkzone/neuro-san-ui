@@ -9,6 +9,7 @@ import Popover from "@mui/material/Popover"
 import TextField from "@mui/material/TextField"
 import {FC, useEffect, useRef, useState} from "react"
 
+import {useLocalStorage} from "../../utils/use_local_storage"
 import {ZIndexLayers} from "../../utils/zIndexLayers"
 import {cleanUpAgentName} from "../AgentChat/Utils"
 
@@ -24,10 +25,10 @@ interface SidebarProps {
 
 const Sidebar: FC<SidebarProps> = ({id, isAwaitingLlm, networks, selectedNetwork, setSelectedNetwork}) => {
     const selectedNetworkRef = useRef<HTMLDivElement | null>(null)
-
-    const [customURL, setCustomURL] = useState<string>("")
     const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLButtonElement | null>(null)
     const isSettingsPopoverOpen = Boolean(settingsAnchorEl)
+    const [customUrlLocalStorage, setCustomUrlLocalStorage] = useLocalStorage("customAgentNetworkURL", null)
+    const [customURL, setCustomURL] = useState<string>(customUrlLocalStorage || "")
 
     const handleSettingsClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setSettingsAnchorEl(event.currentTarget)
@@ -42,15 +43,25 @@ const Sidebar: FC<SidebarProps> = ({id, isAwaitingLlm, networks, selectedNetwork
     }
 
     const saveSettings = () => {
-        // TODO: Reload component with new URL
-        // console.log("saveSettings", customURL)
+        // TODO: Reload component with new URL.
+        let tempUrl = customURL
+        if (tempUrl.endsWith("/")) {
+            tempUrl = tempUrl.slice(0, -1)
+        }
+        if (!tempUrl.startsWith("http://") && !tempUrl.startsWith("https://")) {
+            tempUrl = `https://${tempUrl}`
+        }
+        setCustomUrlLocalStorage(tempUrl)
         handleSettingsClose()
+        window.location.reload()
     }
 
     const resetSettings = () => {
-        // TODO: Reload component with default URL
+        // TODO: Reload component with default URL.
         setCustomURL("")
+        setCustomUrlLocalStorage(null)
         handleSettingsClose()
+        window.location.reload()
     }
 
     const handleSettingsSaveEnterKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -106,7 +117,7 @@ const Sidebar: FC<SidebarProps> = ({id, isAwaitingLlm, networks, selectedNetwork
                         onClick={handleSettingsClick}
                         sx={{display: "inline-block", minWidth: "40px"}}
                     >
-                        <SettingsIcon id="agent-network-settings-icon"/>
+                        <SettingsIcon id="agent-network-settings-icon" />
                     </Button>
                 </h2>
                 <List
@@ -150,8 +161,8 @@ const Sidebar: FC<SidebarProps> = ({id, isAwaitingLlm, networks, selectedNetwork
                             paddingTop: "0.5rem",
                             paddingLeft: "0.5rem",
                             paddingRight: "0.5rem",
-                        }
-                    }
+                        },
+                    },
                 }}
             >
                 <TextField
@@ -175,21 +186,21 @@ const Sidebar: FC<SidebarProps> = ({id, isAwaitingLlm, networks, selectedNetwork
                         marginLeft: "0.5rem",
                         marginTop: "2px",
                         "&:hover": {
-                            backgroundColor:  "var(--bs-primary)",
+                            backgroundColor: "var(--bs-primary)",
                         },
                     }}
-                    variant="contained" 
+                    variant="contained"
                 >
                     Save
                 </Button>
                 <Button
-                    id="agent-network-settings-save-btn"
+                    id="agent-network-settings-reset-btn"
                     onClick={resetSettings}
                     sx={{
                         marginLeft: "0.35rem",
                         marginTop: "2px",
                     }}
-                    variant="text" 
+                    variant="text"
                 >
                     Reset
                 </Button>
