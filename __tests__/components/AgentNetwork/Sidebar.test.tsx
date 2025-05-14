@@ -18,6 +18,8 @@ describe("SideBar", () => {
         // https://www.joshmcarthur.com/til/2022/01/19/assert-windowlocation-properties-with-jest.html
         Object.defineProperty(window, "location", {
             value: {
+                // Temporary
+                // eslint-disable-next-line @typescript-eslint/no-misused-spread
                 ...new URL(window.location.href),
                 reload: jest.fn(), // Mock window.location.reload
             },
@@ -59,7 +61,7 @@ describe("SideBar", () => {
         expect(selectedNetworkMock).toHaveBeenCalledWith(TEST_AGENT_MATH_GUY)
     })
 
-    it("Should open the popover, update the custom URL input field, and save when the save button is clicked", async () => {
+    it("Should open the popover, update the URL field, and save when the save button is clicked", async () => {
         const selectedNetworkMock = jest.fn()
         render(
             <Sidebar
@@ -85,7 +87,7 @@ describe("SideBar", () => {
         // Ensure the input value is updated
         expect(urlInput).toHaveValue("https://example.com")
 
-        const saveButton = screen.getByRole("button", {name: /save/i})
+        const saveButton = screen.getByRole("button", {name: /save/iu})
         await user.click(saveButton)
 
         // Ensure the popover is closed after saving

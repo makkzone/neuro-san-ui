@@ -14,7 +14,6 @@ import {
 } from "../../generated/neuro-san/OpenAPITypes"
 import useEnvironmentStore from "../../state/environment"
 import {sendLlmRequest} from "../llm/LlmChat"
-import {useLocalStorage} from "../../utils/use_local_storage"
 
 /**
  * Insert the target agent name into the path. The paths Api enum contains values like:
