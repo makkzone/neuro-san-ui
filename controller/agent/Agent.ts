@@ -52,7 +52,6 @@ const getUrlToUse = () => {
 export async function getAgentNetworks(): Promise<string[]> {
     const urlToUse = getUrlToUse()
     const path = `${urlToUse}${ApiPaths.ConciergeService_List}`
-    console.log(path)
     const response = await fetch(path)
     const conciergeResponse: ConciergeResponse = (await response.json()) as ConciergeResponse
     return conciergeResponse.agents.map((network) => network.agent_name)
