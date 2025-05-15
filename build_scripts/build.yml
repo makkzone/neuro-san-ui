@@ -60,9 +60,9 @@ steps:
           VERSION="${{DISPLAY_VERSION:-${{UNILEAF_VERSION}}}}"
 
           if [ -z "${{BUILD_TARGET}}" ] || [ "${{BUILD_TARGET}}" = "all" ]; then
-            export TAG="$VERSION"
+            export TAG="${VERSION}"
           else
-            export TAG="$VERSION-${{BUILD_TARGET}}"
+            export TAG="${VERSION}-${{BUILD_TARGET}}"
           fi
           cf_export TAG
 
