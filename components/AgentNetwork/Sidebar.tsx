@@ -12,18 +12,27 @@ import {FC, useEffect, useRef, useState} from "react"
 import {useLocalStorage} from "../../utils/use_local_storage"
 import {ZIndexLayers} from "../../utils/zIndexLayers"
 import {cleanUpAgentName} from "../AgentChat/Utils"
+import {NotificationType, sendNotification} from "../Common/notification"
 
 // #region: Types
 interface SidebarProps {
     id: string
     isAwaitingLlm: boolean
     networks: string[]
+    onCustomUrlChange: () => void
     selectedNetwork: string
     setSelectedNetwork: (network: string) => void
 }
 // #endregion: Types
 
-const Sidebar: FC<SidebarProps> = ({id, isAwaitingLlm, networks, selectedNetwork, setSelectedNetwork}) => {
+const Sidebar: FC<SidebarProps> = ({
+    id,
+    isAwaitingLlm,
+    networks,
+    onCustomUrlChange,
+    selectedNetwork,
+    setSelectedNetwork,
+}) => {
     const selectedNetworkRef = useRef<HTMLDivElement | null>(null)
     const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLButtonElement | null>(null)
     const isSettingsPopoverOpen = Boolean(settingsAnchorEl)
@@ -43,7 +52,6 @@ const Sidebar: FC<SidebarProps> = ({id, isAwaitingLlm, networks, selectedNetwork
     }
 
     const saveSettings = () => {
-        // TODO: Reload component with new URL.
         let tempUrl = customURL
         if (tempUrl.endsWith("/")) {
             tempUrl = tempUrl.slice(0, -1)
@@ -53,15 +61,16 @@ const Sidebar: FC<SidebarProps> = ({id, isAwaitingLlm, networks, selectedNetwork
         }
         setCustomUrlLocalStorage(tempUrl)
         handleSettingsClose()
-        window.location.reload()
+        onCustomUrlChange()
+        sendNotification(NotificationType.success, "Agent server address updated and data reloaded.")
     }
 
     const resetSettings = () => {
-        // TODO: Reload component with default URL.
         setCustomURL("")
         setCustomUrlLocalStorage(null)
         handleSettingsClose()
-        window.location.reload()
+        onCustomUrlChange()
+        sendNotification(NotificationType.success, "Agent server address reset and data reloaded.")
     }
 
     const handleSettingsSaveEnterKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -167,11 +176,11 @@ const Sidebar: FC<SidebarProps> = ({id, isAwaitingLlm, networks, selectedNetwork
             >
                 <TextField
                     autoComplete="off"
-                    label="Custom Agent Network URL"
+                    label="Agent server address"
                     id="agent-network-settings-url"
                     onChange={handleURLChange}
                     onKeyUp={handleSettingsSaveEnterKey}
-                    placeholder="https://example.com"
+                    placeholder="https://my_server_address:port.com"
                     size="small"
                     sx={{marginBottom: "0.5rem", minWidth: "300px"}}
                     type="url"

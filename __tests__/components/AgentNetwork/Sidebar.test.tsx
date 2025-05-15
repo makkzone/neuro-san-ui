@@ -1,5 +1,6 @@
-import {render, screen} from "@testing-library/react"
+import {render, screen, waitFor} from "@testing-library/react"
 import {UserEvent, default as userEvent} from "@testing-library/user-event"
+import {SnackbarProvider} from "notistack"
 
 import {cleanUpAgentName} from "../../../components/AgentChat/Utils"
 import Sidebar from "../../../components/AgentNetwork/Sidebar"
@@ -11,41 +12,33 @@ const TEST_AGENT_MUSIC_NERD = "Music Nerd"
 describe("SideBar", () => {
     let user: UserEvent
 
+    const defaultProps = {
+        id: "test-flow-id",
+        networks: [TEST_AGENT_MATH_GUY, TEST_AGENT_MUSIC_NERD],
+        selectedNetwork: TEST_AGENT_MATH_GUY,
+        setSelectedNetwork: jest.fn(),
+        onCustomUrlChange: jest.fn(),
+        isAwaitingLlm: false,
+    }
+
+    const renderSidebarComponent = (overrides = {}) => {
+        const props = {...defaultProps, ...overrides}
+        render(
+            <SnackbarProvider>
+                <Sidebar {...props} />
+            </SnackbarProvider>
+        )
+        return props
+    }
+
     withStrictMocks()
 
-    const windowLocation = window.location
     beforeEach(() => {
-        // https://www.joshmcarthur.com/til/2022/01/19/assert-windowlocation-properties-with-jest.html
-        Object.defineProperty(window, "location", {
-            value: {
-                // Temporary
-                // eslint-disable-next-line @typescript-eslint/no-misused-spread
-                ...new URL(window.location.href),
-                reload: jest.fn(), // Mock window.location.reload
-            },
-            configurable: true,
-        })
         user = userEvent.setup()
     })
 
-    afterEach(() => {
-        Object.defineProperty(window, "location", {
-            value: windowLocation,
-            configurable: true,
-        })
-    })
-
     it("Should render correctly", async () => {
-        const selectedNetworkMock = jest.fn()
-        render(
-            <Sidebar
-                id="test-flow-id"
-                networks={[TEST_AGENT_MATH_GUY, TEST_AGENT_MUSIC_NERD]}
-                selectedNetwork={TEST_AGENT_MATH_GUY}
-                setSelectedNetwork={selectedNetworkMock}
-                isAwaitingLlm={false}
-            />
-        )
+        const {setSelectedNetwork} = renderSidebarComponent()
 
         // Make sure the heading is present
         expect(screen.getByText("Agent Networks")).toBeInTheDocument()
@@ -57,30 +50,21 @@ describe("SideBar", () => {
         // Clicking on a network should call the setSelectedNetwork function
         const network = screen.getByText(cleanUpAgentName(TEST_AGENT_MATH_GUY))
         await user.click(network)
-        expect(selectedNetworkMock).toHaveBeenCalledTimes(1)
-        expect(selectedNetworkMock).toHaveBeenCalledWith(TEST_AGENT_MATH_GUY)
+
+        // setSelectedNetwork should be called
+        expect(setSelectedNetwork).toHaveBeenCalledTimes(1)
+        expect(setSelectedNetwork).toHaveBeenCalledWith(TEST_AGENT_MATH_GUY)
     })
 
     it("Should open the popover, update the URL field, and save when the save button is clicked", async () => {
-        const selectedNetworkMock = jest.fn()
-        render(
-            <Sidebar
-                id="test-flow-id"
-                networks={[TEST_AGENT_MATH_GUY, TEST_AGENT_MUSIC_NERD]}
-                selectedNetwork={TEST_AGENT_MATH_GUY}
-                setSelectedNetwork={selectedNetworkMock}
-                isAwaitingLlm={false}
-            />
-        )
+        const debugSpy = jest.spyOn(console, "debug").mockImplementation()
+        const {onCustomUrlChange} = renderSidebarComponent()
 
         const settingsButton = screen.getByRole("button", {name: /agent network settings/iu})
         // Open Settings popover
         await user.click(settingsButton)
 
-        // Ensure the popover is displayed
-        expect(screen.getAllByText(/custom agent network url/iu).length).toBe(2)
-
-        const urlInput = screen.getByLabelText("Custom Agent Network URL")
+        const urlInput = screen.getByLabelText("Agent server address")
         await user.clear(urlInput)
         await user.type(urlInput, "https://example.com")
 
@@ -96,30 +80,44 @@ describe("SideBar", () => {
         // Open the Settings popover again to check if the URL is saved
         await user.click(settingsButton)
         expect(screen.getByDisplayValue("https://example.com")).toBeInTheDocument()
+
+        // onCustomUrlChange should be called
+        expect(onCustomUrlChange).toHaveBeenCalledTimes(1)
+
+        // Assert the console.debug call
+        // TODO: We may not want this
+        await waitFor(() => {
+            expect(debugSpy).toHaveBeenCalledWith(
+                expect.stringContaining("Agent server address updated and data reloaded.")
+            )
+        })
     })
 
     it("Should reset the custom URL when the reset button is clicked", async () => {
-        const selectedNetworkMock = jest.fn()
-        render(
-            <Sidebar
-                id="test-flow-id"
-                networks={[TEST_AGENT_MATH_GUY, TEST_AGENT_MUSIC_NERD]}
-                selectedNetwork={TEST_AGENT_MATH_GUY}
-                setSelectedNetwork={selectedNetworkMock}
-                isAwaitingLlm={false}
-            />
-        )
+        const debugSpy = jest.spyOn(console, "debug").mockImplementation()
+        const {onCustomUrlChange} = renderSidebarComponent()
 
         const settingsButton = screen.getByRole("button", {name: /agent network settings/iu})
         // Open Settings popover
         await user.click(settingsButton)
 
-        const urlInput = screen.getByLabelText("Custom Agent Network URL")
+        const urlInput = screen.getByLabelText("Agent server address")
         await user.clear(urlInput)
         await user.type(urlInput, "https://example.com")
 
         const resetButton = screen.getByRole("button", {name: /reset/iu})
         await user.click(resetButton)
+
+        // onCustomUrlChange should be called
+        expect(onCustomUrlChange).toHaveBeenCalledTimes(1)
+
+        // Assert the console.debug call
+        // TODO: We may not want this
+        await waitFor(() => {
+            expect(debugSpy).toHaveBeenCalledWith(
+                expect.stringContaining("Agent server address reset and data reloaded.")
+            )
+        })
 
         // Open the Settings popover again and ensure the input value is reset
         await user.click(settingsButton)

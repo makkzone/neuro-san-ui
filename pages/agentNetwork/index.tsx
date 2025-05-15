@@ -31,6 +31,12 @@ export default function AgentNetworkPage() {
 
     const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null)
 
+    // Used if a custom agent network URL is set in the Settings popover in the Sidebar and we
+    // want to trigger a re-render so that the API calls use the new URL.
+    const [refreshKey, setRefreshKey] = useState<number>(0)
+
+    const onCustomUrlChange = () => setRefreshKey((prev) => prev + 1)
+
     useEffect(() => {
         async function getNetworks() {
             const networksTmp: string[] = await getAgentNetworks()
@@ -41,7 +47,7 @@ export default function AgentNetworkPage() {
         }
 
         getNetworks()
-    }, [])
+    }, [refreshKey])
 
     useEffect(() => {
         ;(async () => {
@@ -60,7 +66,7 @@ export default function AgentNetworkPage() {
                 }
             }
         })()
-    }, [selectedNetwork])
+    }, [refreshKey, selectedNetwork])
 
     const onChunkReceived = (chunk: string) => {
         // Obtain origin info if present
@@ -101,10 +107,11 @@ export default function AgentNetworkPage() {
             >
                 <Sidebar
                     id="multi-agent-accelerator-sidebar"
+                    isAwaitingLlm={isAwaitingLlm}
                     networks={networks}
+                    onCustomUrlChange={onCustomUrlChange}
                     selectedNetwork={selectedNetwork}
                     setSelectedNetwork={setSelectedNetwork}
-                    isAwaitingLlm={isAwaitingLlm}
                 />
             </Grid>
             <Grid
