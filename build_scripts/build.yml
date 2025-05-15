@@ -1,4 +1,8 @@
 version: '1.0'
+
+variables:
+  DISPLAY_VERSION: ""
+
 steps:
     main_clone:
         title: "Cloning repository"
