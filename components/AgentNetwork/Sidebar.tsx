@@ -188,6 +188,7 @@ const Sidebar: FC<SidebarProps> = ({
                     value={customURL}
                 />
                 <Button
+                    disabled={isAwaitingLlm}
                     id="agent-network-settings-save-btn"
                     onClick={saveSettings}
                     sx={{
@@ -203,6 +204,7 @@ const Sidebar: FC<SidebarProps> = ({
                     Save
                 </Button>
                 <Button
+                    disabled={isAwaitingLlm}
                     id="agent-network-settings-reset-btn"
                     onClick={resetSettings}
                     sx={{
