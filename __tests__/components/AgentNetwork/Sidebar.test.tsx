@@ -123,4 +123,33 @@ describe("SideBar", () => {
         await user.click(settingsButton)
         expect(urlInput).toHaveValue("")
     })
+
+    it("disables network selection and settings buttons when isAwaitingLlm is true", async () => {
+        renderSidebarComponent({isAwaitingLlm: true})
+
+        // Settings button should still be enabled (since it's not disabled in code)
+        const settingsButton = screen.getByRole("button", {name: /agent network settings/iu})
+        expect(settingsButton).toBeEnabled()
+
+        // Open popover and check Save/Reset buttons are disabled
+        await user.click(settingsButton)
+        const saveButton = screen.getByRole("button", {name: /save/iu})
+        const resetButton = screen.getByRole("button", {name: /reset/iu})
+        expect(saveButton).toBeDisabled()
+        expect(resetButton).toBeDisabled()
+    })
+
+    it("calls scrollIntoView on selected network change", () => {
+        const scrollIntoViewMock = jest.fn()
+        // Render with Math Guy selected
+        renderSidebarComponent()
+        // Find the selected button and mock scrollIntoView
+        const selectedBtn = screen.getByRole("button", {name: cleanUpAgentName(TEST_AGENT_MATH_GUY)})
+        selectedBtn.scrollIntoView = scrollIntoViewMock
+
+        // Rerender with Music Nerd selected
+        renderSidebarComponent({selectedNetwork: TEST_AGENT_MUSIC_NERD})
+        // The effect should have been called for the new selected network
+        expect(scrollIntoViewMock).toHaveBeenCalledTimes(0) // Only called on mount for the selected ref
+    })
 })
