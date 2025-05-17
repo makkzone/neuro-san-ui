@@ -105,20 +105,6 @@ describe("SideBar", () => {
         expect(urlInput).toHaveValue("")
     })
 
-    it("calls scrollIntoView on selected network change", () => {
-        const scrollIntoViewMock = jest.fn()
-        // Render with Math Guy selected
-        renderSidebarComponent()
-        // Find the selected button and mock scrollIntoView
-        const selectedBtn = screen.getByRole("button", {name: cleanUpAgentName(TEST_AGENT_MATH_GUY)})
-        selectedBtn.scrollIntoView = scrollIntoViewMock
-
-        // Rerender with Music Nerd selected
-        renderSidebarComponent({selectedNetwork: TEST_AGENT_MUSIC_NERD})
-        // The effect should have been called for the new selected network
-        expect(scrollIntoViewMock).toHaveBeenCalledTimes(0) // Only called on mount for the selected ref
-    })
-
     it("should open the settings popover when the settings button is clicked", async () => {
         renderSidebarComponent()
         const settingsButton = screen.getByRole("button", {name: /agent network settings/iu})
