@@ -677,4 +677,45 @@ describe("ChatCommon", () => {
         // Agent response should be in the DOM but with display: none
         expect(await screen.findByText(agentResponseText)).not.toBeVisible()
     })
+
+    it("Should clear chat output when clearChatOuput prop is set to true", async () => {
+        const {rerender} = render(
+            <ChatCommon
+                id=""
+                currentUser="testUser"
+                userImage=""
+                setIsAwaitingLlm={jest.fn()}
+                isAwaitingLlm={false}
+                targetAgent="Math Guy"
+                clearChatOuput={false}
+            />
+        )
+
+        // Simulate sending a message to populate chat output
+        const userInput = screen.getByPlaceholderText("Chat with Math Guy")
+        await user.type(userInput, "Hello!")
+        const sendButton = screen.getByRole("button", {name: "Send"})
+        await user.click(sendButton)
+
+        // The message should be present in the chat output
+        expect(screen.getByText("Hello!")).toBeInTheDocument()
+
+        // Now set clearChatOuput to true and rerender
+        rerender(
+            <ChatCommon
+                id=""
+                currentUser="testUser"
+                userImage=""
+                setIsAwaitingLlm={jest.fn()}
+                isAwaitingLlm={false}
+                targetAgent="Math Guy"
+                clearChatOuput={true}
+            />
+        )
+
+        // The chat output should be cleared
+        await waitFor(() => {
+            expect(screen.queryByText("Hello!")).not.toBeInTheDocument()
+        })
+    })
 })
