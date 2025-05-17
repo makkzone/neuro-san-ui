@@ -1,4 +1,4 @@
-import {enqueueSnackbar, SnackbarOrigin, /*SnackbarOrigin, */ VariantType} from "notistack"
+import {enqueueSnackbar, SnackbarOrigin, VariantType} from "notistack"
 import {renderToString} from "react-dom/server"
 
 export enum NotificationType {

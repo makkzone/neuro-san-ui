@@ -1,4 +1,4 @@
-import {render, screen, waitFor} from "@testing-library/react"
+import {render, screen} from "@testing-library/react"
 import {UserEvent, default as userEvent} from "@testing-library/user-event"
 import {SnackbarProvider} from "notistack"
 
@@ -57,7 +57,6 @@ describe("SideBar", () => {
     })
 
     it("Should open the popover, update the URL field, and save when the save button is clicked", async () => {
-        const debugSpy = jest.spyOn(console, "debug").mockImplementation()
         const {onCustomUrlChange} = renderSidebarComponent()
 
         const settingsButton = screen.getByRole("button", {name: /agent network settings/iu})
@@ -83,18 +82,9 @@ describe("SideBar", () => {
 
         // onCustomUrlChange should be called
         expect(onCustomUrlChange).toHaveBeenCalledTimes(1)
-
-        // Assert the console.debug call
-        // TODO: We may not want this
-        await waitFor(() => {
-            expect(debugSpy).toHaveBeenCalledWith(
-                expect.stringContaining("Agent server address updated and data reloaded.")
-            )
-        })
     })
 
     it("Should reset the custom URL when the reset button is clicked", async () => {
-        const debugSpy = jest.spyOn(console, "debug").mockImplementation()
         const {onCustomUrlChange} = renderSidebarComponent()
 
         const settingsButton = screen.getByRole("button", {name: /agent network settings/iu})
@@ -111,16 +101,7 @@ describe("SideBar", () => {
         // onCustomUrlChange should be called
         expect(onCustomUrlChange).toHaveBeenCalledTimes(1)
 
-        // Assert the console.debug call
-        // TODO: We may not want this
-        await waitFor(() => {
-            expect(debugSpy).toHaveBeenCalledWith(
-                expect.stringContaining("Agent server address reset and data reloaded.")
-            )
-        })
-
-        // Open the Settings popover again and ensure the input value is reset
-        await user.click(settingsButton)
+        // Ensure the input value is reset
         expect(urlInput).toHaveValue("")
     })
 

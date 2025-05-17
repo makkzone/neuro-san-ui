@@ -12,7 +12,6 @@ import {FC, useEffect, useRef, useState} from "react"
 import {useLocalStorage} from "../../utils/use_local_storage"
 import {ZIndexLayers} from "../../utils/zIndexLayers"
 import {cleanUpAgentName} from "../AgentChat/Utils"
-import {NotificationType, sendNotification} from "../Common/notification"
 
 // #region: Types
 interface SidebarProps {
@@ -62,15 +61,13 @@ const Sidebar: FC<SidebarProps> = ({
         setCustomUrlLocalStorage(tempUrl)
         handleSettingsClose()
         onCustomUrlChange()
-        sendNotification(NotificationType.success, "Agent server address updated and data reloaded.")
     }
 
     const resetSettings = () => {
+        // Clear input but don't close the popover
         setCustomURL("")
         setCustomUrlLocalStorage(null)
-        handleSettingsClose()
         onCustomUrlChange()
-        sendNotification(NotificationType.success, "Agent server address reset and data reloaded.")
     }
 
     const handleSettingsSaveEnterKey = (event: React.KeyboardEvent<HTMLDivElement>) => {

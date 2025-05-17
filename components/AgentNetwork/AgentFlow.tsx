@@ -72,7 +72,10 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
     // Create the flow layout depending on user preference
     useEffect(() => {
         if (agentsInNetwork?.length === 0) {
-            return
+            // If there are no agents, clear the nodes and edges.
+            // This is important when switching networks (i.e. testing a custom URL).
+            setNodes([])
+            setEdges([])
         }
 
         switch (layout) {

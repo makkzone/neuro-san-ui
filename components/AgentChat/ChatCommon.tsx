@@ -171,6 +171,11 @@ interface ChatCommonProps {
      * If present, the chat window will have a close button that will call this function when clicked.
      */
     readonly onClose?: () => void
+
+    /**
+     * Whether to clear the chat window immediately.
+     */
+    readonly clearChatOuput?: boolean
 }
 
 const EMPTY = {}
@@ -225,6 +230,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     backgroundColor,
     title,
     onClose,
+    clearChatOuput = false,
 }) => {
     // User LLM chat input
     const [chatInput, setChatInput] = useState<string>("")
@@ -348,6 +354,15 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             chatOutputRef.current.scrollTop = chatOutputRef.current.scrollHeight
         }
     }, [chatOutput])
+
+    useEffect(() => {
+        // Clear chat output if requested
+        if (clearChatOuput) {
+            setChatOutput([])
+            currentResponse.current = ""
+            setShowThinking(false)
+        }
+    }, [clearChatOuput])
 
     /**
      * This function is required for Opportunity Finder > Orchestration.

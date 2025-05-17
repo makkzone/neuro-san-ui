@@ -42,13 +42,32 @@ export default function AgentNetworkPage() {
     const {backendNeuroSanApiUrl} = useEnvironmentStore()
     const [customUrlLocalStorage] = useLocalStorage("customAgentNetworkURL", null)
 
+    const [clearChatOutput, setClearChatOutput] = useState<boolean>(false)
+
     useEffect(() => {
         async function getNetworks() {
-            const networksTmp: string[] = await getAgentNetworks()
-            const sortedNetworks = networksTmp.sort((a, b) => a.localeCompare(b))
-            setNetworks(sortedNetworks)
-            // Set the first network as the selected network
-            setSelectedNetwork(sortedNetworks[0])
+            try {
+                // TODO: Should we clear any existing snackbars? Or keep track of and clear existing ones?
+                // This is if they use an incorrect URL and then a valid URL, and error messages might still be shown.
+
+                const networksTmp: string[] = await getAgentNetworks()
+                const sortedNetworks = networksTmp.sort((a, b) => a.localeCompare(b))
+                setClearChatOutput(false)
+                setNetworks(sortedNetworks)
+                // Set the first network as the selected network
+                setSelectedNetwork(sortedNetworks[0])
+            } catch (e) {
+                const urlToUse = customUrlLocalStorage || backendNeuroSanApiUrl
+                sendNotification(
+                    NotificationType.error,
+                    // eslint-disable-next-line max-len
+                    `Unable to get list of Agent Networks. Verify that ${urlToUse} is a valid Multi-Agent Accelerator Server. Error: ${e}.`
+                )
+                setNetworks([])
+                setSelectedNetwork(null)
+                // Clear chat output as well, if network list does not load
+                setClearChatOutput(true)
+            }
         }
 
         getNetworks()
@@ -69,8 +88,9 @@ export default function AgentNetworkPage() {
                     sendNotification(
                         NotificationType.error,
                         // eslint-disable-next-line max-len
-                        `Unable to get agent list "${agentName}". Verify that ${urlToUse} is a valid Multi-Agent Accelerator Server. Error: ${e}.`
+                        `Unable to get agent list for "${agentName}". Verify that ${urlToUse} is a valid Multi-Agent Accelerator Server. Error: ${e}.`
                     )
+                    setAgentsInNetwork([])
                 }
             }
         })()
@@ -157,6 +177,7 @@ export default function AgentNetworkPage() {
                     onChunkReceived={onChunkReceived}
                     onStreamingComplete={onStreamingComplete}
                     clearChatOnNewAgent={true}
+                    clearChatOuput={clearChatOutput}
                 />
             </Grid>
         </Grid>
