@@ -60,8 +60,11 @@ describe("SideBar", () => {
         const {onCustomUrlChange} = renderSidebarComponent()
 
         const settingsButton = screen.getByRole("button", {name: /agent network settings/iu})
+        expect(screen.queryByLabelText("Agent server address")).not.toBeInTheDocument()
+
         // Open Settings popover
         await user.click(settingsButton)
+        expect(screen.getByLabelText("Agent server address")).toBeInTheDocument()
 
         const urlInput = screen.getByLabelText("Agent server address")
         await user.clear(urlInput)
@@ -103,14 +106,6 @@ describe("SideBar", () => {
 
         // Ensure the input value is reset
         expect(urlInput).toHaveValue("")
-    })
-
-    it("should open the settings popover when the settings button is clicked", async () => {
-        renderSidebarComponent()
-        const settingsButton = screen.getByRole("button", {name: /agent network settings/iu})
-        expect(screen.queryByLabelText("Agent server address")).not.toBeInTheDocument()
-        await user.click(settingsButton)
-        expect(screen.getByLabelText("Agent server address")).toBeInTheDocument()
     })
 
     it("should disable the settings button when isAwaitingLlm is true", () => {
