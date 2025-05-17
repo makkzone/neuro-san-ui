@@ -154,7 +154,6 @@ export default function AgentNetworkPage() {
                     <AgentFlow
                         agentsInNetwork={agentsInNetwork}
                         id="multi-agent-accelerator-agent-flow"
-                        key={refreshKey} // TODO: May not be necessary
                         originInfo={originInfo}
                         selectedNetwork={selectedNetwork}
                     />
