@@ -122,11 +122,17 @@ const Sidebar: FC<SidebarProps> = ({
                     Agent Networks
                     <Button
                         aria-label="Agent Network Settings"
+                        disabled={isAwaitingLlm}
                         id="agent-network-settings-btn"
                         onClick={handleSettingsClick}
                         sx={{display: "inline-block", minWidth: "40px"}}
                     >
-                        <SettingsIcon id="agent-network-settings-icon" />
+                        <SettingsIcon
+                            id="agent-network-settings-icon"
+                            sx={{
+                                color: isAwaitingLlm ? "rgba(0, 0, 0, 0.12)" : "var(--bs-secondary)",
+                            }}
+                        />
                     </Button>
                 </h2>
                 <List
@@ -188,7 +194,6 @@ const Sidebar: FC<SidebarProps> = ({
                     value={customURL}
                 />
                 <Button
-                    disabled={isAwaitingLlm}
                     id="agent-network-settings-save-btn"
                     onClick={saveSettings}
                     sx={{
@@ -204,7 +209,6 @@ const Sidebar: FC<SidebarProps> = ({
                     Save
                 </Button>
                 <Button
-                    disabled={isAwaitingLlm}
                     id="agent-network-settings-reset-btn"
                     onClick={resetSettings}
                     sx={{
