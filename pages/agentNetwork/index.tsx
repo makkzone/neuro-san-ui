@@ -61,6 +61,7 @@ export default function AgentNetworkPage() {
                 const urlToUse = customUrlLocalStorage || backendNeuroSanApiUrl
                 sendNotification(
                     NotificationType.error,
+                    "Connection error",
                     // eslint-disable-next-line max-len
                     `Unable to get list of Agent Networks. Verify that ${urlToUse} is a valid Multi-Agent Accelerator Server. Error: ${e}.`
                 )
@@ -88,6 +89,7 @@ export default function AgentNetworkPage() {
                     const urlToUse = customUrlLocalStorage || backendNeuroSanApiUrl
                     sendNotification(
                         NotificationType.error,
+                        "Connection error",
                         // eslint-disable-next-line max-len
                         `Unable to get agent list for "${agentName}". Verify that ${urlToUse} is a valid Multi-Agent Accelerator Server. Error: ${e}.`
                     )
