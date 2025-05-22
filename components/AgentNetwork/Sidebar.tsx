@@ -7,6 +7,7 @@ import ListItemIcon from "@mui/material/ListItemIcon"
 import ListItemText from "@mui/material/ListItemText"
 import Popover from "@mui/material/Popover"
 import TextField from "@mui/material/TextField"
+import Tooltip from "@mui/material/Tooltip"
 import {FC, useEffect, useRef, useState} from "react"
 
 import {ZIndexLayers} from "../../utils/zIndexLayers"
@@ -55,7 +56,7 @@ const Sidebar: FC<SidebarProps> = ({
         if (tempUrl.endsWith("/")) {
             tempUrl = tempUrl.slice(0, -1)
         }
-        if (!tempUrl.startsWith("http://") && !tempUrl.startsWith("https://")) {
+        if (tempUrl && !tempUrl.startsWith("http://") && !tempUrl.startsWith("https://")) {
             tempUrl = `https://${tempUrl}`
         }
         handleSettingsClose()
@@ -122,12 +123,18 @@ const Sidebar: FC<SidebarProps> = ({
                         onClick={handleSettingsClick}
                         sx={{display: "inline-block", minWidth: "40px"}}
                     >
-                        <SettingsIcon
-                            id="agent-network-settings-icon"
-                            sx={{
-                                color: isAwaitingLlm ? "rgba(0, 0, 0, 0.12)" : "var(--bs-secondary)",
-                            }}
-                        />
+                        <Tooltip
+                            id="agent-network-settings-tooltip"
+                            placement="top"
+                            title={customURL || null}
+                        >
+                            <SettingsIcon
+                                id="agent-network-settings-icon"
+                                sx={{
+                                    color: isAwaitingLlm ? "rgba(0, 0, 0, 0.12)" : "var(--bs-secondary)",
+                                }}
+                            />
+                        </Tooltip>
                     </Button>
                 </h2>
                 <List

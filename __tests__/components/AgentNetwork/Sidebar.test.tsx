@@ -6,6 +6,7 @@ import {cleanUpAgentName} from "../../../components/AgentChat/Utils"
 import Sidebar from "../../../components/AgentNetwork/Sidebar"
 import {withStrictMocks} from "../../common/strictMocks"
 
+const EDIT_EXAMPLE_URL = "https://edit-example.com"
 const TEST_AGENT_MATH_GUY = "Math Guy"
 const TEST_AGENT_MUSIC_NERD = "Music Nerd"
 
@@ -13,7 +14,7 @@ describe("SideBar", () => {
     let user: UserEvent
 
     const defaultProps = {
-        customURL: "https://neuro-san-example.com",
+        customURL: "",
         customURLCallback: jest.fn(),
         id: "test-flow-id",
         networks: [TEST_AGENT_MATH_GUY, TEST_AGENT_MUSIC_NERD],
@@ -69,10 +70,10 @@ describe("SideBar", () => {
 
         const urlInput = screen.getByLabelText("Agent server address")
         await user.clear(urlInput)
-        await user.type(urlInput, "https://example.com")
+        await user.type(urlInput, EDIT_EXAMPLE_URL)
 
         // Ensure the input value is updated
-        expect(urlInput).toHaveValue("https://example.com")
+        expect(urlInput).toHaveValue(EDIT_EXAMPLE_URL)
 
         const saveButton = screen.getByRole("button", {name: /save/iu})
         await user.click(saveButton)
@@ -82,7 +83,7 @@ describe("SideBar", () => {
 
         // Open the Settings popover again to check if the URL is saved
         await user.click(settingsButton)
-        expect(screen.getByDisplayValue("https://example.com")).toBeInTheDocument()
+        expect(screen.getByDisplayValue(EDIT_EXAMPLE_URL)).toBeInTheDocument()
 
         // onCustomUrlChange should be called
         expect(customURLCallback).toHaveBeenCalledTimes(1)
@@ -97,7 +98,7 @@ describe("SideBar", () => {
 
         const urlInput = screen.getByLabelText("Agent server address")
         await user.clear(urlInput)
-        await user.type(urlInput, "https://example.com")
+        await user.type(urlInput, EDIT_EXAMPLE_URL)
 
         const resetButton = screen.getByRole("button", {name: /reset/iu})
         await user.click(resetButton)
