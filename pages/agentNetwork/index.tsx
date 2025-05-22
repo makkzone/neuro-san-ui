@@ -6,7 +6,7 @@ import {ChatCommon} from "../../components/AgentChat/ChatCommon"
 import {chatMessageFromChunk, cleanUpAgentName} from "../../components/AgentChat/Utils"
 import AgentFlow from "../../components/AgentNetwork/AgentFlow"
 import Sidebar from "../../components/AgentNetwork/Sidebar"
-import {NotificationType, sendNotification} from "../../components/Common/notification"
+import {closeNotification, NotificationType, sendNotification} from "../../components/Common/notification"
 import {getAgentNetworks, getConnectivity} from "../../controller/agent/Agent"
 import {ConnectivityInfo, ConnectivityResponse, Origin} from "../../generated/neuro-san/OpenAPITypes"
 import useEnvironmentStore from "../../state/environment"
@@ -57,6 +57,7 @@ export default function AgentNetworkPage() {
                 setNetworks(sortedNetworks)
                 // Set the first network as the selected network
                 setSelectedNetwork(sortedNetworks[0])
+                closeNotification()
             } catch (e) {
                 const urlToUse = customUrlLocalStorage || backendNeuroSanApiUrl
                 sendNotification(
