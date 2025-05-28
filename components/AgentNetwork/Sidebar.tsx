@@ -1,4 +1,5 @@
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
+import HighlightOff from "@mui/icons-material/HighlightOff"
 import SettingsIcon from "@mui/icons-material/Settings"
 import SpokeOutlinedIcon from "@mui/icons-material/SpokeOutlined"
 import {styled} from "@mui/material"
@@ -66,6 +67,7 @@ const Sidebar: FC<SidebarProps> = ({
 
     const handleSettingsClose = () => {
         setSettingsAnchorEl(null)
+        setConnectionStatus("idle")
     }
 
     const handleURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,6 +78,7 @@ const Sidebar: FC<SidebarProps> = ({
         // Clear input but don't close the popover
         setCustomURLInput("")
         customURLCallback("")
+        setConnectionStatus("idle")
     }
 
     const handleSaveSettings = () => {
@@ -97,7 +100,7 @@ const Sidebar: FC<SidebarProps> = ({
     }
 
     const handleTestConnection = async () => {
-        const testConnectionResult = testConnection(customURLInput)
+        const testConnectionResult = await testConnection(customURLInput)
         if (testConnectionResult) {
             setConnectionStatus("success")
         } else {
@@ -262,12 +265,12 @@ const Sidebar: FC<SidebarProps> = ({
                             <>
                                 <CheckCircleOutlineIcon
                                     id="connection-status-success-icon"
-                                    sx={{color: "green", fontSize: "1.2rem", mr: 0.5}}
+                                    sx={{color: "var(--bs-green)", fontSize: "1.2rem", mr: 0.5}}
                                 />
                                 <Typography
                                     id="connection-status-success-msg"
                                     variant="body2"
-                                    color="green"
+                                    color="var(--bs-green)"
                                 >
                                     Connected successfully
                                 </Typography>
@@ -275,18 +278,14 @@ const Sidebar: FC<SidebarProps> = ({
                         )}
                         {connectionStatus === "error" && (
                             <>
-                                <Typography
-                                    id="connection-status-failed-x"
-                                    color="red"
-                                    fontWeight="bold"
-                                    fontSize="1.25rem"
-                                >
-                                    X
-                                </Typography>
+                                <HighlightOff
+                                    id="connection-status-error-icon"
+                                    sx={{color:"var(--bs-red)", fontSize: "1.2rem", mr: 0.5}}
+                                />
                                 <Typography
                                     id="connection-status-failed-msg"
                                     variant="body2"
-                                    color="red"
+                                    color="var(--bs-red)"
                                 >
                                     Connection failed
                                 </Typography>
