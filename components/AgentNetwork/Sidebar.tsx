@@ -31,6 +31,11 @@ const PrimaryButton = styled(Button)({
 // #endregion: Styled Components
 
 // #region: Types
+enum CONNECTION_STATUS {
+    IDLE = "idle",
+    SUCCESS = "success",
+    ERROR = "error",
+}
 
 interface SidebarProps {
     customURLCallback: (url: string) => void
@@ -57,15 +62,16 @@ const Sidebar: FC<SidebarProps> = ({
     const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLButtonElement | null>(null)
     const isSettingsPopoverOpen = Boolean(settingsAnchorEl)
     const [customURLInput, setCustomURLInput] = useState<string>(customURLLocalStorage || "")
-    const [connectionStatus, setConnectionStatus] = useState<"idle" | "success" | "error">("idle")
+    const [connectionStatus, setConnectionStatus] = useState<CONNECTION_STATUS>(CONNECTION_STATUS.IDLE)
 
     const handleSettingsClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        // On open of Settings popover, reset the connection status to idle
+        setConnectionStatus(CONNECTION_STATUS.IDLE)
         setSettingsAnchorEl(event.currentTarget)
     }
 
     const handleSettingsClose = () => {
         setSettingsAnchorEl(null)
-        setConnectionStatus("idle")
     }
 
     const handleURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,7 +82,7 @@ const Sidebar: FC<SidebarProps> = ({
         // Clear input but don't close the popover
         setCustomURLInput("")
         customURLCallback("")
-        setConnectionStatus("idle")
+        setConnectionStatus(CONNECTION_STATUS.IDLE)
         setSelectedNetwork(null)
     }
 
@@ -102,9 +108,9 @@ const Sidebar: FC<SidebarProps> = ({
     const handleTestConnection = async () => {
         const testConnectionResult = await testConnection(customURLInput)
         if (testConnectionResult) {
-            setConnectionStatus("success")
+            setConnectionStatus(CONNECTION_STATUS.SUCCESS)
         } else {
-            setConnectionStatus("error")
+            setConnectionStatus(CONNECTION_STATUS.ERROR)
         }
     }
 
@@ -118,6 +124,10 @@ const Sidebar: FC<SidebarProps> = ({
     const selectNetworkHandler = (network: string) => {
         setSelectedNetwork(network)
     }
+
+    const connectionStatusSuccess = connectionStatus === CONNECTION_STATUS.SUCCESS
+    const connectionStatusError = connectionStatus === CONNECTION_STATUS.ERROR
+    const connectionStatusIdle = connectionStatus === CONNECTION_STATUS.IDLE
 
     return (
         <>
@@ -226,6 +236,7 @@ const Sidebar: FC<SidebarProps> = ({
                     value={customURLInput}
                 />
                 <PrimaryButton
+                    disabled={!customURLInput || (customURLInput && (connectionStatusError || connectionStatusIdle))}
                     id="agent-network-settings-save-btn"
                     onClick={handleSaveSettings}
                     variant="contained"
@@ -233,6 +244,7 @@ const Sidebar: FC<SidebarProps> = ({
                     Save
                 </PrimaryButton>
                 <PrimaryButton
+                    disabled={!customURLInput}
                     id="agent-network-settings-test-btn"
                     onClick={handleTestConnection}
                     variant="contained"
@@ -240,6 +252,7 @@ const Sidebar: FC<SidebarProps> = ({
                     Test
                 </PrimaryButton>
                 <Button
+                    disabled={!customURLInput}
                     id="agent-network-settings-reset-btn"
                     onClick={handleResetSettings}
                     sx={{
@@ -250,7 +263,7 @@ const Sidebar: FC<SidebarProps> = ({
                 >
                     Reset
                 </Button>
-                {(connectionStatus === "success" || connectionStatus === "error") && (
+                {(connectionStatusSuccess || connectionStatusError) && (
                     <Box
                         id="connection-status-box"
                         display="flex"
@@ -260,7 +273,7 @@ const Sidebar: FC<SidebarProps> = ({
                             marginBottom: "0.75rem",
                         }}
                     >
-                        {connectionStatus === "success" && (
+                        {connectionStatusSuccess && (
                             <>
                                 <CheckCircleOutlineIcon
                                     id="connection-status-success-icon"
@@ -275,7 +288,7 @@ const Sidebar: FC<SidebarProps> = ({
                                 </Typography>
                             </>
                         )}
-                        {connectionStatus === "error" && (
+                        {connectionStatusError && (
                             <>
                                 <HighlightOff
                                     id="connection-status-error-icon"
