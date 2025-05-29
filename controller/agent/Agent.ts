@@ -32,7 +32,6 @@ const insertTargetAgent = (targetAgent: string, path: string) => {
  * @returns A promise that resolves to an array of agent network names.
  */
 export async function testConnection(url: string): Promise<boolean> {
-    debugger
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 2000) // 2s timeout
 
