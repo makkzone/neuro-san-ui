@@ -95,6 +95,7 @@ const Sidebar: FC<SidebarProps> = ({
         if (tempUrl && !tempUrl.startsWith("http://") && !tempUrl.startsWith("https://")) {
             tempUrl = `https://${tempUrl}`
         }
+        // Call setSelectedNetwork(null) otherwise it can cause issues when switching agent networks (i.e. for Save)
         setSelectedNetwork(null)
         handleSettingsClose()
         customURLCallback(tempUrl)
