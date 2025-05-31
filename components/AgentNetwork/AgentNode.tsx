@@ -47,10 +47,10 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
 
     const textColor =
         layout === "radial"
-            ? !isFrontman || isActiveAgent
+            ? !isFrontman
                 ? "var(--bs-white)"
                 : "var(--bs-primary)"
-            : isActiveAgent
+            : !isFrontman && isActiveAgent
               ? "var(--bs-white)"
               : "var(--bs-primary)"
 
