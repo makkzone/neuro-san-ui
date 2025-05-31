@@ -114,6 +114,23 @@ function Navbar(props: NavbarProps): ReactElement {
                 color: "var(--bs-white)",
             }}
         >
+            <Link
+                id="splash-logo-link"
+                href="https://www.cognizant.com/us/en"
+                style={{
+                    paddingTop: "0.1rem",
+                    paddingLeft: "0.5rem",
+                }}
+                target="_blank"
+            >
+                <NextImage
+                    id="logo-img"
+                    width="200"
+                    height="45"
+                    src="/cognizant-logo-white.svg"
+                    alt="Cognizant Logo"
+                />
+            </Link>
             {/*App title*/}
             <Grid id={propsId}>
                 <Typography
@@ -121,13 +138,21 @@ function Navbar(props: NavbarProps): ReactElement {
                     sx={{
                         ...MENU_ITEM_TEXT_PROPS,
                         color: "var(--bs-white)",
-                        marginLeft: "10px",
+                        marginLeft: "1rem",
+                        fontSize: "16px",
                         fontWeight: "bold",
                     }}
                 >
                     <Link
                         id="navbar-brand-link"
-                        style={{color: "var(--bs-white)"}}
+                        style={{
+                            fontWeight: 500,
+                            lineHeight: 1,
+                            fontSize: "1.1rem",
+                            color: "var(--bs-white)",
+                            position: "relative",
+                            bottom: "1px",
+                        }}
                         href={{
                             pathname: "/",
                             query: router.query,

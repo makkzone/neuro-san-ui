@@ -199,7 +199,7 @@ export default function Index(): ReactElement {
                                         width="200"
                                         height="45"
                                         src="/cognizant-logo-white.svg"
-                                        alt=""
+                                        alt="Cognizant Logo"
                                     />
                                 </Link>
                             </NavbarLogo>
@@ -299,7 +299,7 @@ export default function Index(): ReactElement {
                                 target="_blank"
                                 rel="noreferrer"
                             >
-                                Explore more
+                                Explore more.
                             </a>
                         </NeuroAIDescriptionBox>
                         <NeuroAIToolsContainer id="multi-agent-accelerator-container">

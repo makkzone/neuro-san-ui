@@ -11,6 +11,7 @@ export interface AgentNodeProps {
     getOriginInfo: () => Origin[]
     isFrontman: boolean
     depth: number
+    layout: string
 }
 
 // Node dimensions
@@ -24,7 +25,7 @@ export const NODE_WIDTH = 70
 export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentNodeProps>) => {
     // Unpack the node-specific data
     const data: AgentNodeProps = props.data
-    const {agentName, getOriginInfo, isFrontman, depth} = data
+    const {agentName, getOriginInfo, isFrontman, depth, layout} = data
 
     // Unpack the node-specific id
     const agentId = props.id
@@ -37,14 +38,21 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
 
     let backgroundColor: string
     if (isFrontman) {
-        backgroundColor = "var(--bs-secondary)"
+        backgroundColor = "var(--bs-accent3-light)"
     } else if (isActiveAgent) {
         backgroundColor = "var(--bs-red)"
     } else {
         backgroundColor = BACKGROUND_COLORS[(depth - 1) % BACKGROUND_COLORS.length]
     }
 
-    const textColor = isFrontman || isActiveAgent || depth >= 4 ? "var(--bs-white)" : "var(--bs-primary)"
+    const textColor =
+        layout === "radial"
+            ? !isFrontman || isActiveAgent
+                ? "var(--bs-white)"
+                : "var(--bs-primary)"
+            : isActiveAgent
+              ? "var(--bs-white)"
+              : "var(--bs-primary)"
 
     // Animation style for making active agent glow and pulse
     // TODO: more idiomatic MUI/style= way of doing this?

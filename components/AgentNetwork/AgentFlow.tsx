@@ -171,7 +171,7 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                 r={BASE_RADIUS + (i + 1) * LEVEL_SPACING}
                 stroke="var(--bs-gray-medium)"
                 fill="none"
-                opacity="1"
+                opacity="0.25"
             />
         ))
 
@@ -222,14 +222,16 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                     Depth
                 </Typography>
                 {/*Frontman legend is different since it uses a non-palette color*/}
+                {/*TODO: Could change this since we are using palette now, but will we keep that Cyan?*/}
+                {/*TODO: Color is also --bs-primary though so would need to have a conditional check.*/}
                 <Box
                     id={`${id}-legend-depth-0`}
                     key={0}
                     style={{
                         alignItems: "center",
-                        backgroundColor: "var(--bs-secondary)",
+                        backgroundColor: "var(--bs-accent3-light)",
                         borderRadius: "50%",
-                        color: "var(--bs-white)",
+                        color: "var(--bs-primary)",
                         display: "flex",
                         height: "15px",
                         justifyContent: "center",
@@ -254,7 +256,7 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                             alignItems: "center",
                             backgroundColor: BACKGROUND_COLORS[i],
                             borderRadius: "50%",
-                            color: i >= 4 ? "var(--bs-white)" : "var(--bs-primary)",
+                            color: "var(--bs-white)",
                             display: "flex",
                             height: "15px",
                             justifyContent: "center",
