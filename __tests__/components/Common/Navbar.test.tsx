@@ -27,21 +27,12 @@ jest.mock("next/image", () => ({
     },
 }))
 
+const mockRouterValues = {
+    pathname: "/projects",
+}
+
 jest.mock("next/router", () => ({
-    useRouter() {
-        return {
-            route: "/projects",
-            pathname: "",
-            asPath: "",
-            push: jest.fn(),
-            events: {
-                on: jest.fn(),
-                off: jest.fn(),
-            },
-            beforePopState: jest.fn(() => null),
-            prefetch: jest.fn(() => null),
-        }
-    },
+    useRouter: () => mockRouterValues,
 }))
 
 jest.mock("next-auth/react", () => {
@@ -81,6 +72,10 @@ describe("navbar", () => {
             value: windowLocation,
             configurable: true,
         })
+
+        Object.assign(mockRouterValues, {
+            pathname: "/projects",
+        })
     })
 
     it("should open a confirmation dialog when the contact us link is clicked", async () => {
@@ -106,10 +101,23 @@ describe("navbar", () => {
         expect(window.location.href).toEqual(`mailto:${MOCK_EMAIL_ADDRESS}`)
     })
 
-    it("renders the Navbar with the provided logo", () => {
+    it("renders the Navbar with the provided logo (Neuro® AI Decisioning)", () => {
         render(defaultNavbar)
 
-        const logoLink = screen.getByRole("link", {name: "mock-title"})
+        const logoLink = screen.getByRole("link", {name: "mock-title Descisioning"})
+        expect(logoLink).toBeInTheDocument()
+        expect(logoLink).toHaveAttribute("href", "/")
+    })
+
+    it("renders the Navbar with the provided logo (Neuro® AI Multi-Agent Accelerator)", () => {
+        // Temporarily pathname for this test
+        Object.assign(mockRouterValues, {
+            pathname: "/agentNetwork",
+        })
+
+        render(defaultNavbar)
+
+        const logoLink = screen.getByRole("link", {name: "mock-title Multi-Agent Accelerator"})
         expect(logoLink).toBeInTheDocument()
         expect(logoLink).toHaveAttribute("href", "/")
     })

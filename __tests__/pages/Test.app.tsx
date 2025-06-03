@@ -55,7 +55,7 @@ describe("Main App Component", () => {
             />
         )
 
-        expect(screen.getByText(LOGO)).toBeInTheDocument()
+        expect(screen.getByText(new RegExp(LOGO, "iu"))).toBeInTheDocument()
 
         window.fetch = oldFetch
     })
