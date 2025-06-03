@@ -100,7 +100,7 @@ const SplashLink = styled("a")({
 
 const SubHeaderTitle = styled(Box)({
     color: "var(--bs-white)",
-    fontSize: "1.75rem",
+    fontSize: "2rem",
     fontWeight: "bold",
     marginTop: "2.25rem",
 })
@@ -287,7 +287,11 @@ export default function Index(): ReactElement {
                         )}
                         <SubHeaderTitle
                             id="neuro-ai-maa-box"
-                            sx={{marginTop: "2.5rem"}}
+                            sx={{
+                                borderTop: "var(--bs-border-width) var(--bs-border-style) rgb(190, 199, 199)",
+                                marginTop: "2.5rem",
+                                paddingTop: "2.5rem",
+                            }}
                         >
                             {LOGO} Multi-Agent Accelerator
                         </SubHeaderTitle>
@@ -333,7 +337,7 @@ export default function Index(): ReactElement {
                 <footer
                     id="footer"
                     style={{
-                        borderTop: "1px solid rgb(190, 199, 199)",
+                        borderTop: "var(--bs-border-width) var(--bs-border-style) rgb(190, 199, 199)",
                         marginLeft: "2rem",
                         marginRight: "2rem",
                     }}
