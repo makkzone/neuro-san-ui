@@ -146,7 +146,6 @@ export const layoutRadial = (
                     getOriginInfo,
                     isFrontman,
                     depth,
-                    layout: "radial",
                 },
                 position: isFrontman ? {x: centerX, y: centerY} : {x, y},
             })
@@ -181,7 +180,6 @@ export const layoutLinear = (
                 agentName: cleanUpAgentName(originOfNode),
                 getOriginInfo,
                 isFrontman,
-                layout: "linear",
             },
             position: isFrontman ? {x: DEFAULT_FRONTMAN_X_POS, y: DEFAULT_FRONTMAN_Y_POS} : {x: 0, y: 0},
         })

@@ -45,6 +45,7 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
         backgroundColor = BACKGROUND_COLORS[depth % BACKGROUND_COLORS.length]
     }
 
+    // Text color varies based on if it's a layout that has depth or not (radial vs linear).
     const textColor =
         depth === undefined
             ? !isFrontman && isActiveAgent
