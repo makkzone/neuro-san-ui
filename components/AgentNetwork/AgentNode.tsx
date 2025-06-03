@@ -11,7 +11,6 @@ export interface AgentNodeProps {
     getOriginInfo: () => Origin[]
     isFrontman: boolean
     depth: number
-    layout: string
 }
 
 // Node dimensions
@@ -25,7 +24,7 @@ export const NODE_WIDTH = 70
 export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentNodeProps>) => {
     // Unpack the node-specific data
     const data: AgentNodeProps = props.data
-    const {agentName, getOriginInfo, isFrontman, depth, layout} = data
+    const {agentName, getOriginInfo, isFrontman, depth} = data
 
     // Unpack the node-specific id
     const agentId = props.id
@@ -37,20 +36,21 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
         .includes(agentId)
 
     let backgroundColor: string
+    // There's no depth for linear layout, so we just use the first color for both layouts (radial and linear).
     if (isFrontman) {
-        backgroundColor = "var(--bs-accent3-light)"
+        backgroundColor = BACKGROUND_COLORS[0]
     } else if (isActiveAgent) {
-        backgroundColor = "var(--bs-red)"
+        backgroundColor = "var(--bs-green)"
     } else {
-        backgroundColor = BACKGROUND_COLORS[(depth - 1) % BACKGROUND_COLORS.length]
+        backgroundColor = BACKGROUND_COLORS[depth % BACKGROUND_COLORS.length]
     }
 
     const textColor =
-        layout === "radial"
-            ? !isFrontman
+        depth === undefined
+            ? !isFrontman && isActiveAgent
                 ? "var(--bs-white)"
                 : "var(--bs-primary)"
-            : !isFrontman && isActiveAgent
+            : !isFrontman
               ? "var(--bs-white)"
               : "var(--bs-primary)"
 

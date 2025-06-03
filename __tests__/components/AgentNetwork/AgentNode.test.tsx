@@ -29,7 +29,6 @@ describe("AgentNode", () => {
                     getOriginInfo: () => [],
                     isFrontman: false,
                     depth: 1,
-                    layout: "radial",
                 }}
             />
         )
@@ -62,7 +61,6 @@ describe("AgentNode", () => {
                     getOriginInfo: () => [],
                     isFrontman: true,
                     depth: 3,
-                    layout: "radial",
                 }}
             />
         )
@@ -97,7 +95,6 @@ describe("AgentNode", () => {
                     getOriginInfo: () => [{tool: agentName, instantiationIndex: 1}],
                     isFrontman: false,
                     depth: 3,
-                    layout: "radial",
                 }}
             />
         )

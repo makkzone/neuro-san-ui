@@ -16,6 +16,7 @@ jest.mock("next/image", () => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     default: (props: any) => {
         const copyProps = {...props}
+        delete copyProps.priority
         delete copyProps.unoptimized
         return (
             <img

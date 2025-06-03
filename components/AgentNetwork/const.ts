@@ -9,6 +9,7 @@ export const LEVEL_SPACING = 100
 
 // Palette for progressive coloring of nodes based on depth
 export const BACKGROUND_COLORS = [
+    "var(--bs-accent3-light)",
     "var(--bs-accent2-dark)",
     "var(--bs-accent1-dark)",
     "var(--bs-primary)",

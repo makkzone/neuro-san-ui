@@ -127,6 +127,7 @@ function Navbar(props: NavbarProps): ReactElement {
                     id="logo-img"
                     width="200"
                     height="45"
+                    priority={true}
                     src="/cognizant-logo-white.svg"
                     alt="Cognizant Logo"
                 />
