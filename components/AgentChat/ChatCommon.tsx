@@ -80,6 +80,7 @@ const UserQueryContainer = styled("div", {
     display: "inline-flex",
     padding: "10px",
     backgroundColor: darkMode ? "black" : "var(--bs-white)",
+    color: darkMode ? "white" : "black",
 }))
 
 // #endregion: Styled Components
@@ -332,6 +333,8 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         sx: {
                             ...item.props.sx,
                             display: showThinking || item.key === finalAnswerKey?.current ? "block" : "none",
+                            backgroundColor: darkMode ? "black" : "white",
+                            color: darkMode ? "white" : "black",
                         },
                     })
                 }
