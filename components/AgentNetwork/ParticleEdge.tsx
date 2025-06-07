@@ -123,7 +123,10 @@ export const CanvasParticleEdge = ({sourceX, sourceY, targetX, targetY, sourcePo
                 y={y}
                 style={{pointerEvents: "none", overflow: "visible"}}
             >
-                <canvas id={`canvas-${x}-${y}`} ref={canvasRef} />
+                <canvas
+                    id={`canvas-${x}-${y}`}
+                    ref={canvasRef}
+                />
             </foreignObject>
             <path
                 id={`path-${edgePath}`}

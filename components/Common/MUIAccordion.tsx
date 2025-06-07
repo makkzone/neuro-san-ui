@@ -6,6 +6,8 @@ import MuiAccordionSummary, {accordionSummaryClasses, AccordionSummaryProps} fro
 import Typography from "@mui/material/Typography"
 import {FC, ReactNode, SyntheticEvent, useCallback, useState} from "react"
 
+import {usePreferences} from "../../state/Preferences"
+
 // #region: Styled Components
 const Accordion = styled((props: AccordionProps) => (
     <MuiAccordion
@@ -34,17 +36,12 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
         {...props}
     />
 ))(({theme}) => ({
-    backgroundColor: "rgba(0, 0, 0, 0.02)",
-
     [`& .${accordionSummaryClasses.expandIconWrapper}.${accordionSummaryClasses.expanded}`]: {
         transform: "rotate(90deg)",
     },
     [`& .${accordionSummaryClasses.content}`]: {
         marginLeft: theme.spacing(1),
     },
-    ...theme.applyStyles("dark", {
-        backgroundColor: "rgba(255, 255, 255, .05)",
-    }),
 }))
 
 const AccordionDetails = styled(MuiAccordionDetails)(({theme}) => ({
@@ -78,6 +75,9 @@ export const MUIAccordion: FC<MUIAccordionProps> = ({
     items,
     sx,
 }) => {
+    // Dark mode
+    const {darkMode} = usePreferences()
+
     const [expandedList, setExpandedList] = useState<number[]>(defaultExpandedPanelKey ? [defaultExpandedPanelKey] : [])
 
     const handleChange = useCallback(
@@ -115,7 +115,11 @@ export const MUIAccordion: FC<MUIAccordionProps> = ({
                         <AccordionSummary
                             aria-controls={`${baseIdAndPanelKey}-summary`}
                             id={`${baseIdAndPanelKey}-summary`}
-                            sx={{flexDirection: arrowPosition === "left" ? "row-reverse" : undefined}}
+                            sx={{
+                                backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-gray-background)",
+                                color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
+                                flexDirection: arrowPosition === "left" ? "row-reverse" : undefined,
+                            }}
                         >
                             <Typography
                                 component="span"
@@ -125,7 +129,14 @@ export const MUIAccordion: FC<MUIAccordionProps> = ({
                                 {title}
                             </Typography>
                         </AccordionSummary>
-                        <AccordionDetails id={`${baseIdAndPanelKey}-details`}>
+                        <AccordionDetails
+                            id={`${baseIdAndPanelKey}-details`}
+                            sx={{
+                                backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "rgba(0, 0, 0, 0.02)",
+                                borderColor: darkMode ? "var(--bs-white)" : "var(--bs-border-color)",
+                                color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
+                            }}
+                        >
                             <Typography
                                 component="span"
                                 id={`${baseIdAndPanelKey}-details-typography`}
