@@ -183,7 +183,7 @@ export default function AgentNetworkPage() {
                     onChunkReceived={onChunkReceived}
                     onStreamingComplete={onStreamingComplete}
                     clearChatOnNewAgent={true}
-                    backgroundColor={darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)"}
+                    backgroundColor={darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-secondary-blue)"}
                 />
             </Grid>
         </Grid>

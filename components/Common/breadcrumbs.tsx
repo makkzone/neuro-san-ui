@@ -6,7 +6,11 @@ import Link from "next/link"
 import {usePathname} from "next/navigation"
 import {FaChevronRight} from "react-icons/fa6"
 
+import {usePreferences} from "../../state/Preferences"
+
 const NeuroAIBreadcrumbs = () => {
+    // Dark mode
+    const {darkMode} = usePreferences()
     const pathname: string = usePathname()
     const urlPaths: string[] = pathname?.split("/").filter((path) => path !== "")
 
@@ -29,7 +33,7 @@ const NeuroAIBreadcrumbs = () => {
                     <FaChevronRight
                         id="breadcrumb-separator"
                         fontSize="small"
-                        color="var(--bs-white)"
+                        color={darkMode ? "var(--bs-white)" : "var(--bs-black)"}
                     />
                 }
             >
@@ -37,7 +41,7 @@ const NeuroAIBreadcrumbs = () => {
                     id="breadcrumb-link-home"
                     href="/"
                     style={{
-                        color: "var(--bs-white)",
+                        color: darkMode ? "var(--bs-white)" : "var(--bs-black)",
                     }}
                 >
                     Home
@@ -49,7 +53,7 @@ const NeuroAIBreadcrumbs = () => {
                             key={urlPath}
                             id={`breadcrumb-link__${urlPath}`}
                             style={{
-                                color: "var(--bs-white)",
+                                color: darkMode ? "var(--bs-white)" : "var(--bs-black)",
                                 textDecoration: "underlined",
                             }}
                             href={`/${redirectPath}`}
@@ -60,7 +64,7 @@ const NeuroAIBreadcrumbs = () => {
                 })}
                 <Typography
                     id="breadcrumb-link__current"
-                    sx={{color: "var(--bs-white)"}}
+                    sx={{color: darkMode ? "var(--bs-white)" : "var(--bs-gray-dark)"}}
                 >
                     {startCase(urlPaths?.at(-1))}
                 </Typography>

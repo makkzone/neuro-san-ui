@@ -668,6 +668,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                             marginTop: "1rem",
                             marginBottom: "1rem",
                             backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
+                            borderColor: darkMode ? "var(--bs-white)" : "var(--bs-border-color)",
                             color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
                         }}
                         items={[
