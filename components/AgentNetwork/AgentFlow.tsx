@@ -280,7 +280,7 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 connectionMode={ConnectionMode.Loose}
-                style={{backgroundColor: darkMode ? "black" : "white"}}
+                style={{backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)"}}
             >
                 {layout === "radial" && maxDepth > 0 && agentsInNetwork?.length && getLegend()}
                 {!isAwaitingLlm && <Background id={`${id}-background`} />}
@@ -294,7 +294,7 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                             left: "0px",
                             height: "auto",
                             width: "auto",
-                            backgroundColor: darkMode ? "black" : "var(--bs-white)",
+                            backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
                         }}
                         showInteractive={true}
                     >

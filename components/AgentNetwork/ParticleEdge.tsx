@@ -55,15 +55,7 @@ function createFunnelParticleOnPath(pathEl: SVGPathElement, color: string, canva
     return {update, draw, isAlive}
 }
 
-export const CanvasParticleEdge = ({
-    id,
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    sourcePosition,
-    targetPosition,
-}: EdgeProps) => {
+export const CanvasParticleEdge = ({sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition}: EdgeProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const pathRef = useRef<SVGPathElement>(null)
     const animationRef = useRef<number>()
@@ -87,7 +79,7 @@ export const CanvasParticleEdge = ({
     useEffect(() => {
         const canvas = canvasRef.current
         const pathEl = pathRef.current
-        if (!canvas || !pathEl) return
+        if (!canvas || !pathEl) return undefined
 
         const ctx = canvas.getContext("2d")
         const dpr = window.devicePixelRatio || 1

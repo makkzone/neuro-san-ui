@@ -12,6 +12,7 @@
     --bs-tertiary-blue: #e0f7fa; /* Not in the original file from brand team */
     --bs-green: #2db81f;
     --bs-black: var(--bs-primary);
+    --bs-dark-mode-dim: #161e27;
     --bs-pink: #f221b8;
     --bs-white: #ffffff;
     --bs-dark: var(--bs-primary);

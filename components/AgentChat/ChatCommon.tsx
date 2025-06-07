@@ -79,8 +79,8 @@ const UserQueryContainer = styled("div", {
     boxShadow: "0 0px 2px 0 rgba(0, 0, 0, 0.15)",
     display: "inline-flex",
     padding: "10px",
-    backgroundColor: darkMode ? "black" : "var(--bs-white)",
-    color: darkMode ? "white" : "black",
+    backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
+    color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
 }))
 
 // #endregion: Styled Components
@@ -333,8 +333,8 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         sx: {
                             ...item.props.sx,
                             display: showThinking || item.key === finalAnswerKey?.current ? "block" : "none",
-                            backgroundColor: darkMode ? "black" : "white",
-                            color: darkMode ? "white" : "black",
+                            backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
+                            color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
                         },
                     })
                 }
@@ -667,8 +667,8 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         sx={{
                             marginTop: "1rem",
                             marginBottom: "1rem",
-                            backgroundColor: darkMode ? "black" : "white",
-                            color: darkMode ? "white" : "black",
+                            backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
+                            color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
                         }}
                         items={[
                             {
@@ -1094,7 +1094,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         backgroundColor,
                         borderTopLeftRadius: "var(--bs-border-radius)",
                         borderTopRightRadius: "var(--bs-border-radius)",
-                        color: darkMode ? "var(--bs-white)" : "var(--bs-black)",
+                        color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
                         display: "flex",
                         justifyContent: "space-between",
                         paddingLeft: "1rem",
@@ -1127,7 +1127,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                 sx={{
                     ...divStyle,
                     border: "var(--bs-border-width) var(--bs-border-style)",
-                    borderColo: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
+                    borderColor: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
                     borderRadius: "var(--bs-border-radius)",
                     display: "flex",
                     flexGrow: 1,
@@ -1151,7 +1151,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         >
                             <AccountTreeIcon
                                 id="show-thinking-icon"
-                                sx={{color: "white", fontSize: "0.85rem"}}
+                                sx={{color: "var(--bs-white)", fontSize: "0.85rem"}}
                             />
                         </LlmChatOptionsButton>
                     </span>
@@ -1168,7 +1168,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                     >
                         <VerticalAlignBottomIcon
                             id="autoscroll-icon"
-                            sx={{color: "white", fontSize: "0.85rem"}}
+                            sx={{color: "var(--bs-white)", fontSize: "0.85rem"}}
                         />
                     </LlmChatOptionsButton>
                 </Tooltip>
@@ -1184,7 +1184,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                     >
                         <WrapTextIcon
                             id="wrap-icon"
-                            sx={{color: "white", fontSize: "0.85rem"}}
+                            sx={{color: "var(--bs-white)", fontSize: "0.85rem"}}
                         />
                     </LlmChatOptionsButton>
                 </Tooltip>
@@ -1264,10 +1264,10 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                     placeholder={agentPlaceholders[targetAgent] || `Chat with ${cleanUpAgentName(targetAgent)}`}
                     ref={chatInputRef}
                     sx={{
-                        backgroundColor: darkMode ? "black" : "var(--bs-white)",
+                        backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
                         border: "var(--bs-border-style) var(--bs-border-width) var(--bs-gray-light)",
                         borderRadius: "var(--bs-border-radius)",
-                        color: darkMode ? "var(--bs-white)" : "black",
+                        color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
                         display: "flex",
                         flexGrow: 1,
                         fontSize: "smaller",
