@@ -151,7 +151,7 @@ const Sidebar: FC<SidebarProps> = ({
                 <h2
                     id={`${id}-heading`}
                     style={{
-                        backgroundColor: darkMode ? "black" : "var(--bs-white)",
+                        backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
                         borderBottomColor: "var(--bs-gray-light)",
                         borderBottomStyle: "solid",
                         borderBottomWidth: "1px",

@@ -29,7 +29,7 @@ const NeuroAIBreadcrumbs = () => {
                     <FaChevronRight
                         id="breadcrumb-separator"
                         fontSize="small"
-                        color="white"
+                        color="var(--bs-white)"
                     />
                 }
             >
@@ -37,7 +37,7 @@ const NeuroAIBreadcrumbs = () => {
                     id="breadcrumb-link-home"
                     href="/"
                     style={{
-                        color: "white",
+                        color: "var(--bs-white)",
                     }}
                 >
                     Home
@@ -49,7 +49,7 @@ const NeuroAIBreadcrumbs = () => {
                             key={urlPath}
                             id={`breadcrumb-link__${urlPath}`}
                             style={{
-                                color: "white",
+                                color: "var(--bs-white)",
                                 textDecoration: "underlined",
                             }}
                             href={`/${redirectPath}`}
@@ -60,7 +60,7 @@ const NeuroAIBreadcrumbs = () => {
                 })}
                 <Typography
                     id="breadcrumb-link__current"
-                    sx={{color: "white"}}
+                    sx={{color: "var(--bs-white)"}}
                 >
                     {startCase(urlPaths?.at(-1))}
                 </Typography>

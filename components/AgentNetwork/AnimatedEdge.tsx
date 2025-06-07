@@ -71,7 +71,7 @@ export const AnimatedEdge: FC<EdgeProps<AnimatedEdgeProps>> = ({
                     />
                     <stop
                         offset="100%"
-                        stopColor="white"
+                        stopColor="var(--bs-white)"
                     />
                 </radialGradient>
             </defs>

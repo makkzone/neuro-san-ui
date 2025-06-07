@@ -248,7 +248,7 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
                                 flex: 1,
                                 height: isContainedInViewport ? "100%" : "auto",
                                 paddingBottom: "5rem",
-                                backgroundColor: darkMode ? "black" : "var(--bs-white)",
+                                backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
                             }}
                         >
                             {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}

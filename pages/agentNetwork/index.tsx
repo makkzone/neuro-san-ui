@@ -126,8 +126,8 @@ export default function AgentNetworkPage() {
                 marginTop: "1rem",
                 overflow: "hidden",
                 padding: "1rem",
-                background: darkMode ? "black" : "var(--bs-white)",
-                color: darkMode ? "var(--bs-white)" : "black",
+                background: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
+                color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
             }}
         >
             <Grid
@@ -183,7 +183,7 @@ export default function AgentNetworkPage() {
                     onChunkReceived={onChunkReceived}
                     onStreamingComplete={onStreamingComplete}
                     clearChatOnNewAgent={true}
-                    backgroundColor={darkMode ? "black" : "var(--bs-white)"}
+                    backgroundColor={darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)"}
                 />
             </Grid>
         </Grid>
