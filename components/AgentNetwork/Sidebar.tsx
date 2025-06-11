@@ -215,7 +215,7 @@ const Sidebar: FC<SidebarProps> = ({
                 id="agent-network-settings-popover"
                 open={isSettingsPopoverOpen}
                 anchorEl={settingsAnchorEl}
-                onClose={handleSettingsClose}
+                onClose={() => handleSettingsClose(true)}
                 anchorOrigin={{
                     vertical: "bottom",
                     horizontal: "left",
