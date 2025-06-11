@@ -222,4 +222,90 @@ describe("SideBar", () => {
 
         expect(setSelectedNetwork).toHaveBeenCalledWith(null)
     })
+
+    it("should close the popover and reset input when Cancel (outside click) is triggered", async () => {
+        renderSidebarComponent({customURLLocalStorage: EDIT_EXAMPLE_URL})
+
+        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
+        await user.click(settingsButton)
+        const urlInput = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
+        await user.clear(urlInput)
+        await user.type(urlInput, TOOLTIP_EXAMPLE_URL)
+
+        // Simulate clicking outside the popover (triggers onClose)
+        await user.click(document.body)
+
+        // Popover should close and input should reset to customURLLocalStorage
+        // Can't use document.body due to MuiBackdrop
+        await user.click(screen.getByRole("presentation").parentElement.querySelector(".MuiBackdrop-root"))
+
+        // Open again to check input value is reset
+        await user.click(settingsButton)
+        const urlInputAgain = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
+        expect(urlInputAgain).toHaveValue(EDIT_EXAMPLE_URL)
+    })
+
+    it("should allow saving with Enter key when Save is enabled", async () => {
+        ;(testConnection as jest.Mock).mockResolvedValue(true)
+        const {customURLCallback} = renderSidebarComponent()
+
+        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
+        await user.click(settingsButton)
+        const urlInput = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
+        await user.clear(urlInput)
+        await user.type(urlInput, EDIT_EXAMPLE_URL)
+
+        // Test connection to enable Save
+        await user.click(screen.getByRole("button", {name: /test/iu}))
+        const saveButton = screen.getByRole("button", {name: /save/iu})
+        expect(saveButton).toBeEnabled()
+
+        // Click in URL input to bring focus to it
+        await user.click(urlInput)
+
+        // Press Enter key
+        await user.keyboard("{Enter}")
+
+        // Popover should close
+        await waitFor(() => expect(screen.queryByLabelText(AGENT_SERVER_ADDRESS)).not.toBeInTheDocument())
+        expect(customURLCallback).toHaveBeenCalled()
+    })
+
+    it("should format URL before saving (add https:// if missing, remove trailing slash)", async () => {
+        ;(testConnection as jest.Mock).mockResolvedValue(true)
+        const {customURLCallback} = renderSidebarComponent()
+
+        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
+        await user.click(settingsButton)
+        const urlInput = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
+        await user.clear(urlInput)
+        await user.type(urlInput, "example.com/")
+
+        // Test connection to enable Save
+        await user.click(screen.getByRole("button", {name: /test/iu}))
+        await user.click(screen.getByRole("button", {name: /save/iu}))
+
+        // Should call with formatted URL
+        expect(customURLCallback).toHaveBeenCalledWith("https://example.com")
+    })
+
+    it("should scroll selected network into view when selectedNetwork changes", async () => {
+        const scrollIntoView = jest.fn()
+        // Mock ref
+        jest.spyOn(HTMLElement.prototype, "scrollIntoView").mockImplementation(scrollIntoView)
+        const {setSelectedNetwork} = renderSidebarComponent()
+
+        // Click the second network
+        const network = screen.getByText(cleanUpAgentName(TEST_AGENT_MUSIC_NERD))
+        await user.click(network)
+        expect(setSelectedNetwork).toHaveBeenCalledWith(TEST_AGENT_MUSIC_NERD)
+        // The scrollIntoView should have been called
+        expect(scrollIntoView).toHaveBeenCalled()
+    })
+
+    it("should not break if networks is empty", () => {
+        renderSidebarComponent({networks: []})
+        expect(screen.getByText("Agent Networks")).toBeInTheDocument()
+        expect(screen.queryByRole("button", {name: TEST_AGENT_MATH_GUY})).not.toBeInTheDocument()
+    })
 })
