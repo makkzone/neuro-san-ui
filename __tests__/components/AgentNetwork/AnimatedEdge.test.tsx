@@ -1,7 +1,7 @@
 import {render} from "@testing-library/react"
 import {Position} from "reactflow"
 
-import {AnimatedEdge} from "../../../components/AgentNetwork/AnimatedEdge"
+import {AnimatedEdge} from "../../../components/AgentNetwork/PlasmaEdge"
 import {withStrictMocks} from "../../common/strictMocks"
 
 describe("AnimatedEdge", () => {

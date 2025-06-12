@@ -25,10 +25,9 @@ import {
 
 import "reactflow/dist/style.css"
 import {AgentNode, AgentNodeProps, NODE_HEIGHT, NODE_WIDTH} from "./AgentNode"
-import {AnimatedEdge} from "./AnimatedEdge"
 import {BACKGROUND_COLORS, BASE_RADIUS, DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS, LEVEL_SPACING} from "./const"
 import {layoutLinear, layoutRadial} from "./GraphLayouts"
-import {CanvasParticleEdge} from "./ParticleEdge"
+import {PlasmaEdge} from "./PlasmaEdge"
 import {ConnectivityInfo, Origin} from "../../generated/neuro-san/OpenAPITypes"
 import {usePreferences} from "../../state/Preferences"
 
@@ -151,9 +150,9 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
 
     const edgeTypes: EdgeTypes = useMemo(
         () => ({
-            animatedEdge: CanvasParticleEdge,
+            animatedEdge: PlasmaEdge,
         }),
-        [AnimatedEdge]
+        [PlasmaEdge]
     )
 
     // Figure out the maximum depth of the network

@@ -28,7 +28,7 @@ function createFunnelParticleOnPath(pathEl: SVGPathElement, color: string, canva
         if (!basePoint) return
 
         const t = progress
-        const taper = Math.max(0, 1 - t)
+        const taper = Math.max(0.3, 1 - t)
         const amp = maxAmp * taper
 
         const delta = 1
@@ -55,7 +55,7 @@ function createFunnelParticleOnPath(pathEl: SVGPathElement, color: string, canva
     return {update, draw, isAlive}
 }
 
-export const CanvasParticleEdge = ({sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition}: EdgeProps) => {
+export const PlasmaEdge = ({sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition}: EdgeProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const pathRef = useRef<SVGPathElement>(null)
     const animationRef = useRef<number>()
