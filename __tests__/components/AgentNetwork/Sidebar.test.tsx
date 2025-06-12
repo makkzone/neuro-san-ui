@@ -7,7 +7,7 @@ import Sidebar from "../../../components/AgentNetwork/Sidebar"
 import {testConnection} from "../../../controller/agent/Agent"
 import {withStrictMocks} from "../../common/strictMocks"
 
-const AGENT_NETWORK_SETTINGS_NAME = {name: /agent network settings/iu}
+const AGENT_NETWORK_SETTINGS_NAME = {name: /Agent Network Settings/u}
 const AGENT_SERVER_ADDRESS = "Agent server address"
 const EDIT_EXAMPLE_URL = "https://edit.example.com"
 const TEST_AGENT_MATH_GUY = "Math Guy"
@@ -32,6 +32,11 @@ describe("SideBar", () => {
         isAwaitingLlm: false,
     }
 
+    /**
+     * This function renders the Sidebar component
+     * @param overrides An object of any prop overrides
+     * @return The props for the Sidebar component
+     */
     const renderSidebarComponent = (overrides = {}) => {
         const props = {...defaultProps, ...overrides}
         render(
@@ -40,6 +45,25 @@ describe("SideBar", () => {
             </SnackbarProvider>
         )
         return props
+    }
+
+    /**
+     * This function opens the Settings popover, clears the URL input and then optionally types a value into that input
+     * @param url The URL to add to the URL input
+     * @return An object with these elements: {settingsButton, urlInput}
+     */
+    const openPopoverAndTypeInInput = async (url?: string) => {
+        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
+        // Open Settings Popover
+        await user.click(settingsButton)
+        const urlInput = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
+        await user.clear(urlInput)
+
+        if (url) {
+            await user.type(urlInput, url)
+        }
+
+        return {settingsButton, urlInput}
     }
 
     withStrictMocks()
@@ -87,15 +111,17 @@ describe("SideBar", () => {
         const {customURLCallback} = renderSidebarComponent()
 
         const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
+
+        // Check that Settings popover is not open
         expect(screen.queryByLabelText(AGENT_SERVER_ADDRESS)).not.toBeInTheDocument()
 
         // Open Settings popover
         await user.click(settingsButton)
         await screen.findByLabelText(AGENT_SERVER_ADDRESS)
 
-        const testButton = screen.getByRole("button", {name: /test/iu})
-        const saveButton = screen.getByRole("button", {name: /save/iu})
-        const resetButton = screen.getByRole("button", {name: /reset/iu})
+        const testButton = screen.getByRole("button", {name: /Test/u})
+        const saveButton = screen.getByRole("button", {name: /Save/u})
+        const resetButton = screen.getByRole("button", {name: /Reset/u})
 
         // Test, Save, and Reset buttons should be disabled until the user types a URL
         expect(testButton).toBeDisabled()
@@ -138,15 +164,9 @@ describe("SideBar", () => {
     it("Should reset the custom URL when the Reset button in popover is clicked", async () => {
         const {customURLCallback} = renderSidebarComponent()
 
-        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
-        // Open Settings popover
-        await user.click(settingsButton)
+        const {urlInput} = await openPopoverAndTypeInInput(EDIT_EXAMPLE_URL)
 
-        const urlInput = screen.getByLabelText(AGENT_SERVER_ADDRESS)
-        await user.clear(urlInput)
-        await user.type(urlInput, EDIT_EXAMPLE_URL)
-
-        const resetButton = screen.getByRole("button", {name: /reset/iu})
+        const resetButton = screen.getByRole("button", {name: /Reset/u})
         await user.click(resetButton)
 
         // onCustomUrlChange should be called
@@ -160,14 +180,8 @@ describe("SideBar", () => {
         ;(testConnection as jest.Mock).mockResolvedValue(true)
         renderSidebarComponent()
 
-        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
-        // Open Settings popover
-        await user.click(settingsButton)
-
-        const input = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
-        await user.clear(input)
-        await user.type(input, EDIT_EXAMPLE_URL)
-        await user.click(screen.getByRole("button", {name: /test/iu}))
+        await openPopoverAndTypeInInput(EDIT_EXAMPLE_URL)
+        await user.click(screen.getByRole("button", {name: /Test/u}))
 
         // Check if Success icon is displayed
         await screen.findByTestId("CheckCircleOutlineIcon")
@@ -177,14 +191,8 @@ describe("SideBar", () => {
         ;(testConnection as jest.Mock).mockResolvedValue(false)
         renderSidebarComponent()
 
-        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
-        // Open Settings popover
-        await user.click(settingsButton)
-
-        const input = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
-        await user.clear(input)
-        await user.type(input, EDIT_EXAMPLE_URL)
-        await user.click(screen.getByRole("button", {name: /test/iu}))
+        await openPopoverAndTypeInInput(EDIT_EXAMPLE_URL)
+        await user.click(screen.getByRole("button", {name: /Test/u}))
 
         // Check if Error icon is displayed
         await screen.findByTestId("HighlightOffIcon")
@@ -193,14 +201,10 @@ describe("SideBar", () => {
     it("should disable Save and Reset buttons in popover when input is empty", async () => {
         renderSidebarComponent()
 
-        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
-        // Open Settings popover
-        await user.click(settingsButton)
+        await openPopoverAndTypeInInput()
 
-        const input = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
-        await user.clear(input)
-        const saveButton = screen.getByRole("button", {name: /save/iu})
-        const resetButton = screen.getByRole("button", {name: /reset/iu})
+        const saveButton = screen.getByRole("button", {name: /Save/u})
+        const resetButton = screen.getByRole("button", {name: /Reset/u})
         expect(saveButton).toBeDisabled()
         expect(resetButton).toBeDisabled()
     })
@@ -217,7 +221,7 @@ describe("SideBar", () => {
         const input = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
         await user.clear(input)
         await user.type(input, EDIT_EXAMPLE_URL)
-        const resetButton = screen.getByRole("button", {name: /reset/iu})
+        const resetButton = screen.getByRole("button", {name: /Reset/u})
         await user.click(resetButton)
 
         expect(setSelectedNetwork).toHaveBeenCalledWith(null)
@@ -226,11 +230,7 @@ describe("SideBar", () => {
     it("should close the popover and reset input when Cancel (outside click) is triggered", async () => {
         renderSidebarComponent({customURLLocalStorage: EDIT_EXAMPLE_URL})
 
-        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
-        await user.click(settingsButton)
-        const urlInput = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
-        await user.clear(urlInput)
-        await user.type(urlInput, TOOLTIP_EXAMPLE_URL)
+        const {settingsButton} = await openPopoverAndTypeInInput(TOOLTIP_EXAMPLE_URL)
 
         // Simulate clicking outside the popover (triggers onClose)
         await user.click(document.body)
@@ -249,15 +249,11 @@ describe("SideBar", () => {
         ;(testConnection as jest.Mock).mockResolvedValue(true)
         const {customURLCallback} = renderSidebarComponent()
 
-        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
-        await user.click(settingsButton)
-        const urlInput = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
-        await user.clear(urlInput)
-        await user.type(urlInput, EDIT_EXAMPLE_URL)
+        const {urlInput} = await openPopoverAndTypeInInput(EDIT_EXAMPLE_URL)
 
         // Test connection to enable Save
-        await user.click(screen.getByRole("button", {name: /test/iu}))
-        const saveButton = screen.getByRole("button", {name: /save/iu})
+        await user.click(screen.getByRole("button", {name: /Test/u}))
+        const saveButton = screen.getByRole("button", {name: /Save/u})
         expect(saveButton).toBeEnabled()
 
         // Click in URL input to bring focus to it
@@ -275,15 +271,11 @@ describe("SideBar", () => {
         ;(testConnection as jest.Mock).mockResolvedValue(true)
         const {customURLCallback} = renderSidebarComponent()
 
-        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
-        await user.click(settingsButton)
-        const urlInput = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
-        await user.clear(urlInput)
-        await user.type(urlInput, "example.com/")
+        await openPopoverAndTypeInInput("example.com/")
 
         // Test connection to enable Save
-        await user.click(screen.getByRole("button", {name: /test/iu}))
-        await user.click(screen.getByRole("button", {name: /save/iu}))
+        await user.click(screen.getByRole("button", {name: /Test/u}))
+        await user.click(screen.getByRole("button", {name: /Save/u}))
 
         // Should call with formatted URL
         expect(customURLCallback).toHaveBeenCalledWith("https://example.com")
