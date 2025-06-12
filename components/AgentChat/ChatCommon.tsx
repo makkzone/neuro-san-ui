@@ -75,12 +75,14 @@ import {NotificationType, sendNotification} from "../Common/notification"
 const UserQueryContainer = styled("div", {
     shouldForwardProp: (prop) => prop !== "darkMode",
 })<{darkMode?: boolean}>(({darkMode}) => ({
-    borderRadius: "8px",
-    boxShadow: "0 0px 2px 0 rgba(0, 0, 0, 0.15)",
+    backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
+    border: "var(--bs-border-width) var(--bs-border-style)",
+    borderColor: darkMode ? "var(--bs-white)" : "var(--bs-border-color)",
+    borderRadius: "var(--bs-border-radius)",
+    boxShadow: `0 0px 6px 0 ${darkMode ? "var(--bs-accent2-light)" : "rgba(var(--bs-primary-rgb), 0.15)"}`,
+    color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
     display: "inline-flex",
     padding: "10px",
-    backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
-    color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
 }))
 
 // #endregion: Styled Components
@@ -187,34 +189,37 @@ const EMPTY = {}
 // Avatar to use for agents in chat
 const AGENT_IMAGE = "/agent.svg"
 
-const getUserImageAndUserQuery = (
-    userQuery: string,
-    title: string,
-    userImage: string,
-    darkMode: boolean
-): ReactElement => (
-    // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-    <div style={{marginBottom: "1rem"}}>
-        {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-        <UserQueryContainer darkMode={darkMode}>
-            <NextImage
-                id="user-query-image"
-                src={userImage || DEFAULT_USER_IMAGE}
-                width={30}
-                height={30}
-                title={title}
-                alt=""
-                unoptimized={true}
-            />
-            <span
-                id="user-query"
-                style={{marginLeft: "0.625rem", marginTop: "0.125rem"}}
+const UserQueryDisplay = ({userQuery, title, userImage}: {userQuery: string; title: string; userImage: string}) => {
+    const {darkMode} = usePreferences()
+
+    return (
+        <div
+            id="user-query-div"
+            style={{marginBottom: "1rem"}}
+        >
+            <UserQueryContainer
+                darkMode={darkMode}
+                id="user-query-container"
             >
-                {userQuery}
-            </span>
-        </UserQueryContainer>
-    </div>
-)
+                <NextImage
+                    id="user-query-image"
+                    src={userImage || DEFAULT_USER_IMAGE}
+                    width={30}
+                    height={30}
+                    title={title}
+                    alt=""
+                    unoptimized={true}
+                />
+                <span
+                    id="user-query"
+                    style={{marginLeft: "0.625rem", marginTop: "0.125rem"}}
+                >
+                    {userQuery}
+                </span>
+            </UserQueryContainer>
+        </div>
+    )
+}
 
 /**
  * Common chat component for agent chat. This component is used by all agent chat components to provide a consistent
@@ -570,7 +575,13 @@ export const ChatCommon: FC<ChatCommonProps> = ({
      * Introduce the agent to the user with a friendly greeting
      */
     const introduceAgent = () => {
-        updateOutput(getUserImageAndUserQuery(cleanUpAgentName(targetAgent), targetAgent, AGENT_IMAGE, darkMode))
+        updateOutput(
+            <UserQueryDisplay
+                userQuery={cleanUpAgentName(targetAgent)}
+                title={targetAgent}
+                userImage={AGENT_IMAGE}
+            />
+        )
 
         // Random greeting
         const greeting = AGENT_GREETINGS[Math.floor(Math.random() * AGENT_GREETINGS.length)]
@@ -998,10 +1009,22 @@ export const ChatCommon: FC<ChatCommonProps> = ({
         // Note: we display the original user query, not the modified one. The modified one could be a monstrosity
         // that we generated behind their back. Ultimately, we shouldn't need to generate a fake query on behalf of the
         // user but currently we do for orchestration.
-        updateOutput(getUserImageAndUserQuery(query, currentUser, userImage, darkMode))
+        updateOutput(
+            <UserQueryDisplay
+                userQuery={query}
+                title={currentUser}
+                userImage={userImage}
+            />
+        )
 
         // Add ID block for agent
-        updateOutput(getUserImageAndUserQuery(cleanUpAgentName(targetAgent), targetAgent, AGENT_IMAGE, darkMode))
+        updateOutput(
+            <UserQueryDisplay
+                userQuery={cleanUpAgentName(targetAgent)}
+                title={targetAgent}
+                userImage={AGENT_IMAGE}
+            />
+        )
 
         // Set up the abort controller
         controller.current = new AbortController()
