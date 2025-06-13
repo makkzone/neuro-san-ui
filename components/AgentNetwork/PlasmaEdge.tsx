@@ -1,9 +1,12 @@
 import {useEffect, useRef} from "react"
 import {EdgeProps, getBezierPath} from "reactflow"
 
+// Prettier and ESlint conflict over this
+// eslint-disable-next-line newline-per-chained-call
+const GREEN = getComputedStyle(document.documentElement).getPropertyValue("--bs-green").trim()
+
 function createFunnelParticleOnPath(
     pathEl: SVGPathElement,
-    color: string,
     canvasOffset: {x: number; y: number},
     baseProgress?: number
 ) {
@@ -53,8 +56,8 @@ function createFunnelParticleOnPath(
         ctx.beginPath()
         ctx.globalAlpha = alpha * 0.9 * pulse
         ctx.shadowBlur = 8 + 8 * pulse // Lowered for performance
-        ctx.shadowColor = color
-        ctx.fillStyle = color
+        ctx.shadowColor = GREEN
+        ctx.fillStyle = GREEN
         ctx.arc(x, y, 2, 0, Math.PI * 2)
         ctx.fill()
         ctx.globalAlpha = 1
@@ -108,11 +111,11 @@ export const PlasmaEdge = ({sourceX, sourceY, targetX, targetY, sourcePosition, 
         const animate = () => {
             ctx.clearRect(0, 0, width, height)
 
-            for (let i = 0; i < PARTICLES_PER_FRAME; i++) {
+            for (let i = 0; i < PARTICLES_PER_FRAME; i += 1) {
                 if (particles.current.length < MAX_PARTICLES) {
                     const t = Math.random()
                     if (Math.random() < 1 - t) {
-                        particles.current.push(createFunnelParticleOnPath(pathEl, "#f221b8", canvasOffset, t))
+                        particles.current.push(createFunnelParticleOnPath(pathEl, canvasOffset, t))
                     }
                 }
             }
