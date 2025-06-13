@@ -48,7 +48,7 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
 
     const handleResize = useCallback(() => {
         fitView() // Adjusts the view to fit after resizing
-    }, [fitView])
+    }, [fitView, isAwaitingLlm])
 
     useEffect(() => {
         window.addEventListener("resize", handleResize)
@@ -281,7 +281,7 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                 connectionMode={ConnectionMode.Loose}
                 style={{backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)"}}
             >
-                {layout === "radial" && maxDepth > 0 && agentsInNetwork?.length && getLegend()}
+                {!isAwaitingLlm && layout === "radial" && maxDepth > 0 && agentsInNetwork?.length && getLegend()}
                 {!isAwaitingLlm && <Background id={`${id}-background`} />}
                 {!isAwaitingLlm && (
                     <Controls

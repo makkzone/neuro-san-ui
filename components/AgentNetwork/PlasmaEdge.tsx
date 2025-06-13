@@ -1,16 +1,21 @@
 import {useEffect, useRef} from "react"
 import {EdgeProps, getBezierPath} from "reactflow"
 
-function createFunnelParticleOnPath(pathEl: SVGPathElement, color: string, canvasOffset: {x: number; y: number}) {
+function createFunnelParticleOnPath(
+    pathEl: SVGPathElement,
+    color: string,
+    canvasOffset: {x: number; y: number},
+    baseProgress?: number
+) {
     const totalLength = pathEl.getTotalLength()
-    const baseProgress = Math.random() * 0.05
+    const progressStart = baseProgress !== undefined ? baseProgress : Math.random() * 0.05
     const speed = 0.02 + Math.random() * 0.003
     const life = 100
     const initialLife = life
 
-    let progress = baseProgress
+    let progress = progressStart
     let oscAngle = Math.random() * Math.PI * 2
-    const oscSpeed = 0.07 + Math.random() * 0.05
+    const oscSpeed = 0.1 + Math.random() * 0.05
     const maxAmp = 16 + Math.random() * 8
     let remainingLife = life
 
@@ -28,7 +33,7 @@ function createFunnelParticleOnPath(pathEl: SVGPathElement, color: string, canva
         if (!basePoint) return
 
         const t = progress
-        const taper = Math.max(0.3, 1 - t)
+        const taper = Math.max(0.25, 1 - t)
         const amp = maxAmp * taper
 
         const delta = 1
@@ -43,12 +48,18 @@ function createFunnelParticleOnPath(pathEl: SVGPathElement, color: string, canva
         const y = basePoint.y + offsetY - canvasOffset.y
 
         const alpha = Math.max(0, remainingLife / initialLife)
+        const pulse = 0.7 + 0.3 * Math.abs(Math.sin(oscAngle * 1.5))
+        ctx.save()
         ctx.beginPath()
-        ctx.globalAlpha = alpha * 0.9
+        ctx.globalAlpha = alpha * 0.9 * pulse
+        ctx.shadowBlur = 8 + 8 * pulse // Lowered for performance
+        ctx.shadowColor = color
         ctx.fillStyle = color
         ctx.arc(x, y, 2, 0, Math.PI * 2)
         ctx.fill()
         ctx.globalAlpha = 1
+        ctx.shadowBlur = 0
+        ctx.restore()
     }
 
     const isAlive = () => remainingLife > 0
@@ -87,16 +98,23 @@ export const PlasmaEdge = ({sourceX, sourceY, targetX, targetY, sourcePosition, 
         canvas.height = height * dpr
         canvas.style.width = `${width}px`
         canvas.style.height = `${height}px`
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
         ctx.scale(dpr, dpr)
 
         const canvasOffset = {x, y}
+        const MAX_PARTICLES = 250
+        const PARTICLES_PER_FRAME = 25
 
         const animate = () => {
             ctx.clearRect(0, 0, width, height)
 
-            // More particles = denser flow
-            for (let i = 0; i < 6; i += 1) {
-                particles.current.push(createFunnelParticleOnPath(pathEl, "cyan", canvasOffset))
+            for (let i = 0; i < PARTICLES_PER_FRAME; i++) {
+                if (particles.current.length < MAX_PARTICLES) {
+                    const t = Math.random()
+                    if (Math.random() < 1 - t) {
+                        particles.current.push(createFunnelParticleOnPath(pathEl, "#f221b8", canvasOffset, t))
+                    }
+                }
             }
 
             particles.current.forEach((p) => {

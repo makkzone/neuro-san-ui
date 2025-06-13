@@ -1,4 +1,5 @@
 import Grid from "@mui/material/Grid2"
+import Grow from "@mui/material/Grow"
 import {useEffect, useState} from "react"
 import {ReactFlowProvider} from "reactflow"
 
@@ -130,23 +131,28 @@ export default function AgentNetworkPage() {
                 color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
             }}
         >
-            <Grid
-                id="multi-agent-accelerator-grid-sidebar"
-                size={3.25}
-                sx={{
-                    height: "100%",
-                }}
+            <Grow
+                in={!isAwaitingLlm}
+                timeout={800}
             >
-                <Sidebar
-                    customURLLocalStorage={customURLLocalStorage}
-                    customURLCallback={customURLCallback}
-                    id="multi-agent-accelerator-sidebar"
-                    isAwaitingLlm={isAwaitingLlm}
-                    networks={networks}
-                    selectedNetwork={selectedNetwork}
-                    setSelectedNetwork={setSelectedNetwork}
-                />
-            </Grid>
+                <Grid
+                    id="multi-agent-accelerator-grid-sidebar"
+                    size={3.25}
+                    sx={{
+                        height: "100%",
+                    }}
+                >
+                    <Sidebar
+                        customURLLocalStorage={customURLLocalStorage}
+                        customURLCallback={customURLCallback}
+                        id="multi-agent-accelerator-sidebar"
+                        isAwaitingLlm={isAwaitingLlm}
+                        networks={networks}
+                        selectedNetwork={selectedNetwork}
+                        setSelectedNetwork={setSelectedNetwork}
+                    />
+                </Grid>
+            </Grow>
             <Grid
                 id="multi-agent-accelerator-grid-agent-flow"
                 size={8.25}
@@ -165,27 +171,32 @@ export default function AgentNetworkPage() {
                     />
                 </ReactFlowProvider>
             </Grid>
-            <Grid
-                id="multi-agent-accelerator-grid-agent-chat-common"
-                size={6.5}
-                sx={{
-                    height: "100%",
-                }}
+            <Grow
+                in={!isAwaitingLlm}
+                timeout={800}
             >
-                <ChatCommon
-                    neuroSanURL={neuroSanURL}
-                    id="agent-network-ui"
-                    currentUser={userName}
-                    userImage={userImage}
-                    setIsAwaitingLlm={setIsAwaitingLlm}
-                    isAwaitingLlm={isAwaitingLlm}
-                    targetAgent={selectedNetwork}
-                    onChunkReceived={onChunkReceived}
-                    onStreamingComplete={onStreamingComplete}
-                    clearChatOnNewAgent={true}
-                    backgroundColor={darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-secondary-blue)"}
-                />
-            </Grid>
+                <Grid
+                    id="multi-agent-accelerator-grid-agent-chat-common"
+                    size={6.5}
+                    sx={{
+                        height: "100%",
+                    }}
+                >
+                    <ChatCommon
+                        neuroSanURL={neuroSanURL}
+                        id="agent-network-ui"
+                        currentUser={userName}
+                        userImage={userImage}
+                        setIsAwaitingLlm={setIsAwaitingLlm}
+                        isAwaitingLlm={isAwaitingLlm}
+                        targetAgent={selectedNetwork}
+                        onChunkReceived={onChunkReceived}
+                        onStreamingComplete={onStreamingComplete}
+                        clearChatOnNewAgent={true}
+                        backgroundColor={darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-secondary-blue)"}
+                    />
+                </Grid>
+            </Grow>
         </Grid>
     )
 }
