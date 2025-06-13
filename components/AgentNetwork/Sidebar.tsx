@@ -58,11 +58,14 @@ const Sidebar: FC<SidebarProps> = ({
     selectedNetwork,
     setSelectedNetwork,
 }) => {
-    const selectedNetworkRef = useRef<HTMLDivElement | null>(null)
-    const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLButtonElement | null>(null)
-    const isSettingsPopoverOpen = Boolean(settingsAnchorEl)
     const [customURLInput, setCustomURLInput] = useState<string>(customURLLocalStorage || "")
     const [connectionStatus, setConnectionStatus] = useState<CONNECTION_STATUS>(CONNECTION_STATUS.IDLE)
+    const connectionStatusSuccess = connectionStatus === CONNECTION_STATUS.SUCCESS
+    const connectionStatusError = connectionStatus === CONNECTION_STATUS.ERROR
+    const saveEnabled = customURLInput && connectionStatus === CONNECTION_STATUS.SUCCESS
+    const selectedNetworkRef = useRef<HTMLDivElement | null>(null)
+    const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLButtonElement | null>(null)
+    const settingsPopoverOpen = Boolean(settingsAnchorEl)
 
     const handleSettingsClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         // On open of Settings popover, reset the connection status to idle
@@ -70,8 +73,12 @@ const Sidebar: FC<SidebarProps> = ({
         setSettingsAnchorEl(event.currentTarget)
     }
 
-    const handleSettingsClose = () => {
+    const handleSettingsClose = (cancel: boolean = false) => {
         setSettingsAnchorEl(null)
+        // If the user cancels, reset the custom URL input to the local storage value, or blank
+        if (cancel) {
+            setCustomURLInput(customURLLocalStorage || "")
+        }
     }
 
     const handleURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +109,7 @@ const Sidebar: FC<SidebarProps> = ({
     }
 
     const handleSettingsSaveEnterKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.key === "Enter") {
+        if (event.key === "Enter" && saveEnabled) {
             handleSaveSettings()
         }
     }
@@ -126,10 +133,6 @@ const Sidebar: FC<SidebarProps> = ({
     const selectNetworkHandler = (network: string) => {
         setSelectedNetwork(network)
     }
-
-    const connectionStatusSuccess = connectionStatus === CONNECTION_STATUS.SUCCESS
-    const connectionStatusError = connectionStatus === CONNECTION_STATUS.ERROR
-    const connectionStatusIdle = connectionStatus === CONNECTION_STATUS.IDLE
 
     return (
         <>
@@ -207,9 +210,9 @@ const Sidebar: FC<SidebarProps> = ({
             </aside>
             <Popover
                 id="agent-network-settings-popover"
-                open={isSettingsPopoverOpen}
+                open={settingsPopoverOpen}
                 anchorEl={settingsAnchorEl}
-                onClose={handleSettingsClose}
+                onClose={() => handleSettingsClose(true)}
                 anchorOrigin={{
                     vertical: "bottom",
                     horizontal: "left",
@@ -239,7 +242,7 @@ const Sidebar: FC<SidebarProps> = ({
                     value={customURLInput}
                 />
                 <PrimaryButton
-                    disabled={!customURLInput || (customURLInput && (connectionStatusError || connectionStatusIdle))}
+                    disabled={!saveEnabled}
                     id="agent-network-settings-save-btn"
                     onClick={handleSaveSettings}
                     variant="contained"
