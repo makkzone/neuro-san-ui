@@ -1,3 +1,4 @@
+import Box from "@mui/material/Box"
 import Grid from "@mui/material/Grid2"
 import Grow from "@mui/material/Grow"
 import {useEffect, useState} from "react"
@@ -129,6 +130,7 @@ export default function AgentNetworkPage() {
                 padding: "1rem",
                 background: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
                 color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
+                justifyContent: isAwaitingLlm ? "center" : "unset",
             }}
         >
             <Grow
@@ -139,6 +141,7 @@ export default function AgentNetworkPage() {
                     id="multi-agent-accelerator-grid-sidebar"
                     size={3.25}
                     sx={{
+                        display: isAwaitingLlm ? "none" : "block",
                         height: "100%",
                     }}
                 >
@@ -153,24 +156,41 @@ export default function AgentNetworkPage() {
                     />
                 </Grid>
             </Grow>
+
             <Grid
                 id="multi-agent-accelerator-grid-agent-flow"
-                size={8.25}
+                size={isAwaitingLlm ? undefined : 8.25}
                 sx={{
                     height: "100%",
+                    flexGrow: isAwaitingLlm ? 1 : 0,
+                    maxWidth: isAwaitingLlm ? "100%" : undefined,
+                    display: "flex",
+                    justifyContent: "center",
                 }}
             >
-                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
                 <ReactFlowProvider>
-                    <AgentFlow
-                        agentsInNetwork={agentsInNetwork}
-                        id="multi-agent-accelerator-agent-flow"
-                        originInfo={originInfo}
-                        selectedNetwork={selectedNetwork}
-                        isAwaitingLlm={isAwaitingLlm}
-                    />
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            width: "100%",
+                            height: "100%",
+                            maxWidth: 1000,
+                            margin: "0 auto",
+                        }}
+                    >
+                        <AgentFlow
+                            agentsInNetwork={agentsInNetwork}
+                            id="multi-agent-accelerator-agent-flow"
+                            originInfo={originInfo}
+                            selectedNetwork={selectedNetwork}
+                            isAwaitingLlm={isAwaitingLlm}
+                        />
+                    </Box>
                 </ReactFlowProvider>
             </Grid>
+
             <Grow
                 in={!isAwaitingLlm}
                 timeout={800}
@@ -178,9 +198,7 @@ export default function AgentNetworkPage() {
                 <Grid
                     id="multi-agent-accelerator-grid-agent-chat-common"
                     size={6.5}
-                    sx={{
-                        height: "100%",
-                    }}
+                    sx={{display: isAwaitingLlm ? "none" : "block", height: "100%"}}
                 >
                     <ChatCommon
                         neuroSanURL={neuroSanURL}
