@@ -272,7 +272,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     // Dark mode
     const {darkMode} = usePreferences()
 
-    const {atelierDuneDark, atelierDuneLight} = HLJS_THEMES
+    const {atelierDuneDark, a11yLight} = HLJS_THEMES
 
     // Hide/show existing accordions based on showThinking state
     useEffect(() => {
@@ -396,7 +396,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                                     <SyntaxHighlighter
                                         id="syntax-highlighter"
                                         language="json"
-                                        style={darkMode ? atelierDuneDark : atelierDuneLight}
+                                        style={darkMode ? atelierDuneDark : a11yLight}
                                         showLineNumbers={false}
                                         wrapLongLines={shouldWrapOutput}
                                     >
@@ -488,7 +488,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                                     <SyntaxHighlighter
                                         id="syntax-highlighter"
                                         language="json"
-                                        style={darkMode ? atelierDuneDark : atelierDuneLight}
+                                        style={darkMode ? atelierDuneDark : a11yLight}
                                         showLineNumbers={false}
                                         wrapLongLines={shouldWrapOutput}
                                     >
@@ -1166,7 +1166,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                     <FormattedMarkdown
                         id={`${id}-formatted-markdown`}
                         nodesList={chatOutput}
-                        style={darkMode ? atelierDuneDark : atelierDuneLight}
+                        style={darkMode ? atelierDuneDark : a11yLight}
                         wrapLongLines={shouldWrapOutput}
                     />
                     {isAwaitingLlm && (
