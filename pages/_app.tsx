@@ -4,7 +4,7 @@ import "../styles/updatenode.css"
 import "../styles/globals.css"
 import "../styles/rundialog.css"
 
-import {Container, CssBaseline, ThemeProvider} from "@mui/material"
+import {Container, createTheme, CssBaseline, ThemeProvider} from "@mui/material"
 import CircularProgress from "@mui/material/CircularProgress"
 import debugModule from "debug"
 import {AppProps} from "next/app"
@@ -24,7 +24,7 @@ import {ALL_BUILD_TARGET, LOGO} from "../const"
 import useEnvironmentStore from "../state/environment"
 import {usePreferences} from "../state/Preferences"
 import useUserInfoStore from "../state/UserInfo"
-import {APP_THEME} from "../theme"
+import {APP_THEME, BRAND_COLORS} from "../theme"
 import {UserInfoResponse} from "./api/userInfo/types"
 
 type BaseComponent = AppProps extends {Component: infer C} ? C : never
@@ -70,6 +70,21 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
 
     // Dark mode
     const {darkMode} = usePreferences()
+
+    const theme = createTheme({
+        ...APP_THEME,
+        palette: {
+            ...APP_THEME.palette,
+            mode: darkMode ? "dark" : "light",
+            background: {
+                default: darkMode ? BRAND_COLORS["bs-dark-mode-dim"] : BRAND_COLORS["bs-white"],
+            },
+            text: {
+                primary: darkMode ? BRAND_COLORS["bs-white"] : BRAND_COLORS["bs-primary"],
+                secondary: darkMode ? BRAND_COLORS["bs-gray-light"] : BRAND_COLORS["bs-gray-medium-dark"],
+            },
+        },
+    })
 
     useEffect(() => {
         async function getEnvironment() {
@@ -248,7 +263,6 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
                                 flex: 1,
                                 height: isContainedInViewport ? "100%" : "auto",
                                 paddingBottom: "5rem",
-                                backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
                             }}
                         >
                             {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
@@ -286,7 +300,7 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
                 />
             </Head>
             <ThemeProvider // eslint-disable-line enforce-ids-in-jsx/missing-ids
-                theme={APP_THEME}
+                theme={theme}
             >
                 {body}
             </ThemeProvider>

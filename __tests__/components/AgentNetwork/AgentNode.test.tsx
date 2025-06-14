@@ -27,7 +27,6 @@ describe("AgentNode", () => {
                 data={{
                     agentName,
                     getOriginInfo: () => [],
-                    isFrontman: false,
                     depth: 1,
                 }}
             />
@@ -42,7 +41,7 @@ describe("AgentNode", () => {
 
         // Regular node should not have animation
         const style = window.getComputedStyle(parentDiv)
-        expect(style.animation).toBe("none")
+        expect(style.animation).toBe("")
     })
 
     it("Should render in a different color if frontman", async () => {
@@ -59,7 +58,6 @@ describe("AgentNode", () => {
                 data={{
                     agentName: "testAgent",
                     getOriginInfo: () => [],
-                    isFrontman: true,
                     depth: 3,
                 }}
             />
@@ -93,7 +91,6 @@ describe("AgentNode", () => {
                 data={{
                     agentName: "testAgent",
                     getOriginInfo: () => [{tool: agentName, instantiationIndex: 1}],
-                    isFrontman: false,
                     depth: 3,
                 }}
             />

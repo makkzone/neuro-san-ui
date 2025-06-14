@@ -1,15 +1,14 @@
 import {useEffect, useRef} from "react"
 import {EdgeProps, getBezierPath} from "reactflow"
 
-// Prettier and ESlint conflict over this
-// eslint-disable-next-line newline-per-chained-call
-const GREEN = getComputedStyle(document.documentElement).getPropertyValue("--bs-green").trim()
-
 function createFunnelParticleOnPath(
     pathEl: SVGPathElement,
     canvasOffset: {x: number; y: number},
     baseProgress?: number
 ) {
+    // Prettier and ESlint conflict over this
+    // eslint-disable-next-line newline-per-chained-call
+    const green = getComputedStyle(document.documentElement).getPropertyValue("--bs-green").trim()
     const totalLength = pathEl.getTotalLength()
     const progressStart = baseProgress !== undefined ? baseProgress : Math.random() * 0.05
     const speed = 0.02 + Math.random() * 0.003
@@ -56,8 +55,8 @@ function createFunnelParticleOnPath(
         ctx.beginPath()
         ctx.globalAlpha = alpha * 0.9 * pulse
         ctx.shadowBlur = 8 + 8 * pulse // Lowered for performance
-        ctx.shadowColor = GREEN
-        ctx.fillStyle = GREEN
+        ctx.shadowColor = green
+        ctx.fillStyle = green
         ctx.arc(x, y, 2, 0, Math.PI * 2)
         ctx.fill()
         ctx.globalAlpha = 1

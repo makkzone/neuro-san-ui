@@ -133,7 +133,7 @@ export default function AgentNetworkPage() {
                 justifyContent: isAwaitingLlm ? "center" : "unset",
             }}
         >
-            <Grow
+            <Grow // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 in={!isAwaitingLlm}
                 timeout={800}
             >
@@ -168,8 +168,9 @@ export default function AgentNetworkPage() {
                     justifyContent: "center",
                 }}
             >
+                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
                 <ReactFlowProvider>
-                    <Box
+                    <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
                         sx={{
                             display: "flex",
                             justifyContent: "center",
@@ -191,7 +192,7 @@ export default function AgentNetworkPage() {
                 </ReactFlowProvider>
             </Grid>
 
-            <Grow
+            <Grow // eslint-disable-line enforce-ids-in-jsx/missing-ids
                 in={!isAwaitingLlm}
                 timeout={800}
             >

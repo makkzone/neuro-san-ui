@@ -6,11 +6,7 @@ import Link from "next/link"
 import {usePathname} from "next/navigation"
 import {FaChevronRight} from "react-icons/fa6"
 
-import {usePreferences} from "../../state/Preferences"
-
 const NeuroAIBreadcrumbs = () => {
-    // Dark mode
-    const {darkMode} = usePreferences()
     const pathname: string = usePathname()
     const urlPaths: string[] = pathname?.split("/").filter((path) => path !== "")
 
@@ -33,16 +29,12 @@ const NeuroAIBreadcrumbs = () => {
                     <FaChevronRight
                         id="breadcrumb-separator"
                         fontSize="small"
-                        color={darkMode ? "var(--bs-white)" : "var(--bs-black)"}
                     />
                 }
             >
                 <Link
                     id="breadcrumb-link-home"
                     href="/"
-                    style={{
-                        color: darkMode ? "var(--bs-white)" : "var(--bs-black)",
-                    }}
                 >
                     Home
                 </Link>
@@ -53,7 +45,6 @@ const NeuroAIBreadcrumbs = () => {
                             key={urlPath}
                             id={`breadcrumb-link__${urlPath}`}
                             style={{
-                                color: darkMode ? "var(--bs-white)" : "var(--bs-black)",
                                 textDecoration: "underlined",
                             }}
                             href={`/${redirectPath}`}
@@ -62,12 +53,7 @@ const NeuroAIBreadcrumbs = () => {
                         </Link>
                     )
                 })}
-                <Typography
-                    id="breadcrumb-link__current"
-                    sx={{color: darkMode ? "var(--bs-white)" : "var(--bs-gray-dark)"}}
-                >
-                    {startCase(urlPaths?.at(-1))}
-                </Typography>
+                <Typography id="breadcrumb-link__current">{startCase(urlPaths?.at(-1))}</Typography>
             </Breadcrumbs>
         </Grid>
     )
