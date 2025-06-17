@@ -61,8 +61,12 @@ export const ControlButtons: React.FC<ControlButtonsProps> = ({
                 disabled={!isAwaitingLlm}
                 id="stop-output-button"
                 onClick={() => handleStop()}
-                posBottom={8}
-                posRight={23}
+                // Custom bottom and right position values when awaiting LLM response for MAA UI (should revise for
+                // other chat implementations)
+                posBottom={isAwaitingLlm ? 0 : 8}
+                posRight={isAwaitingLlm ? 0 : 23}
+                // Set visibility to "visible" when awaiting LLM response to show the Stop button
+                sx={{visibility: isAwaitingLlm ? "visible" : "none"}}
             >
                 <StopCircle
                     fontSize="small"

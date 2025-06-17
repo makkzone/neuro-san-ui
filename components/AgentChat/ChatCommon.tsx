@@ -1212,7 +1212,15 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             </Box>
             <Box
                 id="user-input-div"
-                style={{...divStyle, display: "flex", margin: "10px", alignItems: "center", position: "relative"}}
+                style={{
+                    ...divStyle,
+                    alignItems: "center",
+                    // Display "none" when awaiting LLM response for MAA UI (should revise for other chat
+                    // implementations)
+                    display: isAwaitingLlm ? "none" : "flex",
+                    margin: "10px",
+                    position: "relative",
+                }}
             >
                 <Input
                     autoComplete="off"

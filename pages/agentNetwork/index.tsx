@@ -198,8 +198,18 @@ export default function AgentNetworkPage() {
             >
                 <Grid
                     id="multi-agent-accelerator-grid-agent-chat-common"
-                    size={6.5}
-                    sx={{display: isAwaitingLlm ? "none" : "block", height: "100%"}}
+                    // Shrink size when awaiting LLM response, but still need to set it to a small value so that the
+                    // Stop button is visible
+                    size={isAwaitingLlm ? 0.75 : 6.5}
+                    sx={{
+                        height: "100%",
+                        // For some reason an opacity is being set on this, and that needs to be overridden
+                        opacity: isAwaitingLlm ? "100% !important" : null,
+                        // Override transform otherwise Stop button will shrink
+                        transform: isAwaitingLlm ? "none !important" : null,
+                        // To show the Stop button while awaiting LLM response, set parent to hidden visibility
+                        visibility: isAwaitingLlm ? "hidden" : null,
+                    }}
                 >
                     <ChatCommon
                         neuroSanURL={neuroSanURL}
