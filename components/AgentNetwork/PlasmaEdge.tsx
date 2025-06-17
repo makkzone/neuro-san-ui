@@ -35,7 +35,7 @@ function createFunnelParticleOnPath(
         if (!basePoint) return
 
         const t = progress
-        const taper = Math.max(0.25, 1 - t)
+        const taper = Math.max(0.75, 1 - t)
         const amp = maxAmp * taper
 
         const delta = 1

@@ -44,8 +44,7 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
     }
 
     // Text color varies based on if it's a layout that has depth or not (radial vs linear).
-    const textColor =
-        depth === undefined ? (isActiveAgent ? "var(--bs-white)" : "var(--bs-primary)") : "var(--bs-white)"
+    const color = depth === undefined ? (isActiveAgent ? "var(--bs-white)" : "var(--bs-primary)") : "var(--bs-white)"
 
     // Animation style for making active agent glow and pulse
     // TODO: more idiomatic MUI/style= way of doing this?
@@ -57,6 +56,8 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
         }`
         : "none"
 
+    const boxShadow = isActiveAgent ? "0 0 30px 12px var(--bs-primary), 0 0 60px 24px var(--bs-primary)" : undefined
+
     return (
         <>
             <div
@@ -65,12 +66,8 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                     alignItems: "center",
                     backgroundColor,
                     borderRadius: "50%",
-                    // borderColor: "red",
-                    // borderWidth: 1,
-                    boxShadow: isActiveAgent
-                        ? "0 0 30px 12px var(--bs-primary), 0 0 60px 24px var(--bs-primary)"
-                        : undefined,
-                    color: textColor,
+                    boxShadow,
+                    color,
                     display: "flex",
                     height: NODE_HEIGHT,
                     justifyContent: "center",
