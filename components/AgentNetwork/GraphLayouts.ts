@@ -187,6 +187,13 @@ export const layoutLinear = (
                 getOriginInfo,
             },
             position: isFrontman ? {x: DEFAULT_FRONTMAN_X_POS, y: DEFAULT_FRONTMAN_Y_POS} : {x: 0, y: 0},
+            style: {
+                border: "none",
+                background: "transparent",
+                boxShadow: "none",
+                padding: 0,
+                margin: 0,
+            },
         })
 
         if (!isFrontman) {
@@ -224,6 +231,9 @@ export const layoutLinear = (
 
     dagre.layout(dagreGraph)
 
+    // Get x positions for the nodes in nodesTmp. Keep only unique values and sort numerically
+    const xPositions = Array.from(new Set(nodesTmp.map((node) => dagreGraph.node(node.id).x))).sort((a, b) => a - b)
+
     // Convert dagre's layout to what our flow graph needs
     nodesTmp.forEach((node) => {
         const nodeWithPosition = dagreGraph.node(node.id)
@@ -234,6 +244,9 @@ export const layoutLinear = (
             x: nodeWithPosition.x - nodeWidth / 2,
             y: nodeWithPosition.y - nodeHeight / 2,
         }
+
+        // Depth is index of x position in xPositions array
+        node.data.depth = xPositions.indexOf(nodeWithPosition.x)
     })
 
     return {nodes: nodesTmp, edges: edgesInNetwork}

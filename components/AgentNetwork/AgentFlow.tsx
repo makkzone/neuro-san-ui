@@ -282,7 +282,7 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                 connectionMode={ConnectionMode.Loose}
                 style={{backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)"}}
             >
-                {!isAwaitingLlm && layout === "radial" && maxDepth > 0 && agentsInNetwork?.length && getLegend()}
+                {!isAwaitingLlm && maxDepth > 0 && agentsInNetwork?.length && getLegend()}
                 {!isAwaitingLlm && <Background id={`${id}-background`} />}
                 {!isAwaitingLlm && (
                     <Controls

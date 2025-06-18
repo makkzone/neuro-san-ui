@@ -64,6 +64,7 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                 id={agentId}
                 style={{
                     alignItems: "center",
+                    animation: isActiveAgent ? "glow 2.0s infinite" : "none",
                     backgroundColor,
                     borderRadius: "50%",
                     boxShadow,
@@ -71,10 +72,11 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                     display: "flex",
                     height: NODE_HEIGHT,
                     justifyContent: "center",
+                    shapeOutside: "circle(50%)",
                     textAlign: "center",
                     width: NODE_WIDTH,
-                    animation: isActiveAgent ? "glow 2.0s infinite" : "none",
-                    shapeOutside: "circle(50%)",
+                    zIndex: 0, // Ensure node is below the text
+                    position: "relative", // Add this line
                 }}
             >
                 <style id={`${agentId}-glow-animation`}>{glowAnimation}</style>
@@ -98,19 +100,22 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                 <Typography
                     id={`${agentId}-name`}
                     sx={{
-                        fontSize: "11px",
-                        width: `${NODE_WIDTH}px`,
-                        textAlign: "center",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
+                        backgroundColor: "white",
                         display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        whiteSpace: "normal",
-                        wordBreak: "normal",
-                        overflowWrap: "normal",
+                        fontSize: "11px",
                         lineHeight: "1.2em",
                         maxHeight: "2.4em",
+                        overflow: "hidden",
+                        overflowWrap: "normal",
+                        textAlign: "center",
+                        textOverflow: "ellipsis",
+                        WebkitBoxOrient: "vertical",
+                        WebkitLineClamp: 2,
+                        whiteSpace: "normal",
+                        width: `${NODE_WIDTH}px`,
+                        wordBreak: "normal",
+                        zIndex: 10, // Ensure text is above the node
+                        position: "relative", // Add this line
                     }}
                 >
                     {agentName}
