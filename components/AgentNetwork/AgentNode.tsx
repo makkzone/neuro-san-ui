@@ -100,7 +100,6 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                 <Typography
                     id={`${agentId}-name`}
                     sx={{
-                        backgroundColor: "white",
                         display: "-webkit-box",
                         fontSize: "11px",
                         lineHeight: "1.2em",
