@@ -274,7 +274,6 @@ export default function Index(): ReactElement {
                                     Decisioning
                                 </SubHeaderTitle>
                                 <NeuroAIDescriptionBox id="neuro-ai-description-box">
-                                    Decisioning
                                     <Link
                                         id="orchestrator-link"
                                         // Use the URL object form of `href` to pass along the query string
@@ -288,9 +287,9 @@ export default function Index(): ReactElement {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             href={`/projects?${buildQueryString()}`}
-                                            style={{marginLeft: "0.3rem", marginRight: "0.3rem"}}
+                                            style={{marginRight: "0.3rem"}}
                                         >
-                                            platform
+                                            Platform
                                         </ActionLink>
                                     </Link>
                                     for building grounded decisioning agents,
