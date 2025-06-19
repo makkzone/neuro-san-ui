@@ -11,9 +11,18 @@ import Popover from "@mui/material/Popover"
 import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
-import {FC, useEffect, useRef, useState} from "react"
+import {
+    FC,
+    ChangeEvent as ReactChangeEvent,
+    KeyboardEvent as ReactKeyboardEvent,
+    MouseEvent as ReactMouseEvent,
+    useEffect,
+    useRef,
+    useState,
+} from "react"
 
-import {testConnection} from "../../controller/agent/Agent"
+import {testConnection, TestConnectionResult} from "../../controller/agent/Agent"
+import useEnvironmentStore from "../../state/environment"
 import {ZIndexLayers} from "../../utils/zIndexLayers"
 import {cleanUpAgentName} from "../AgentChat/Utils"
 
@@ -60,14 +69,16 @@ const Sidebar: FC<SidebarProps> = ({
 }) => {
     const [customURLInput, setCustomURLInput] = useState<string>(customURLLocalStorage || "")
     const [connectionStatus, setConnectionStatus] = useState<CONNECTION_STATUS>(CONNECTION_STATUS.IDLE)
+    const [testConnectionResult, setTestConnectionResult] = useState<TestConnectionResult | null>(null)
     const connectionStatusSuccess = connectionStatus === CONNECTION_STATUS.SUCCESS
     const connectionStatusError = connectionStatus === CONNECTION_STATUS.ERROR
-    const saveEnabled = customURLInput && connectionStatus === CONNECTION_STATUS.SUCCESS
+    const saveEnabled = customURLInput && connectionStatusSuccess
     const selectedNetworkRef = useRef<HTMLDivElement | null>(null)
     const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLButtonElement | null>(null)
     const settingsPopoverOpen = Boolean(settingsAnchorEl)
+    const {backendNeuroSanApiUrl} = useEnvironmentStore()
 
-    const handleSettingsClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleSettingsClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
         // On open of Settings popover, reset the connection status to idle
         setConnectionStatus(CONNECTION_STATUS.IDLE)
         setSettingsAnchorEl(event.currentTarget)
@@ -81,7 +92,7 @@ const Sidebar: FC<SidebarProps> = ({
         }
     }
 
-    const handleURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleURLChange = (event: ReactChangeEvent<HTMLInputElement>) => {
         setCustomURLInput(event.target.value)
     }
 
@@ -108,15 +119,16 @@ const Sidebar: FC<SidebarProps> = ({
         customURLCallback(tempUrl)
     }
 
-    const handleSettingsSaveEnterKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const handleSettingsSaveEnterKey = (event: ReactKeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Enter" && saveEnabled) {
             handleSaveSettings()
         }
     }
 
     const handleTestConnection = async () => {
-        const testConnectionResult = await testConnection(customURLInput)
-        if (testConnectionResult) {
+        const result: TestConnectionResult = await testConnection(customURLInput)
+        setTestConnectionResult(result)
+        if (result.success) {
             setConnectionStatus(CONNECTION_STATUS.SUCCESS)
         } else {
             setConnectionStatus(CONNECTION_STATUS.ERROR)
@@ -174,7 +186,9 @@ const Sidebar: FC<SidebarProps> = ({
                         <Tooltip
                             id="agent-network-settings-tooltip"
                             placement="top"
-                            title={customURLLocalStorage || null}
+                            title={`${customURLLocalStorage || backendNeuroSanApiUrl}\nversion: ${
+                                testConnectionResult?.version || "unknown"
+                            }`}
                         >
                             <SettingsIcon
                                 id="agent-network-settings-icon"
@@ -236,11 +250,19 @@ const Sidebar: FC<SidebarProps> = ({
                     onKeyUp={handleSettingsSaveEnterKey}
                     placeholder="https://my_server_address:port"
                     size="small"
-                    sx={{marginBottom: "0.5rem", minWidth: "300px"}}
+                    sx={{marginBottom: "0.5rem", minWidth: "400px"}}
                     type="url"
                     variant="outlined"
                     value={customURLInput}
                 />
+                <PrimaryButton
+                    disabled={!customURLInput}
+                    id="agent-network-settings-test-btn"
+                    onClick={handleTestConnection}
+                    variant="contained"
+                >
+                    Test
+                </PrimaryButton>
                 <PrimaryButton
                     disabled={!saveEnabled}
                     id="agent-network-settings-save-btn"
@@ -250,16 +272,15 @@ const Sidebar: FC<SidebarProps> = ({
                     Save
                 </PrimaryButton>
                 <PrimaryButton
-                    disabled={!customURLInput}
-                    id="agent-network-settings-test-btn"
-                    onClick={handleTestConnection}
+                    id="agent-network-settings-cancel-btn"
+                    onClick={() => handleSettingsClose(true)}
                     variant="contained"
                 >
-                    Test
+                    Cancel
                 </PrimaryButton>
                 <Button
                     disabled={!customURLInput}
-                    id="agent-network-settings-reset-btn"
+                    id="agent-network-settings-default-btn"
                     onClick={handleResetSettings}
                     sx={{
                         marginLeft: "0.35rem",
@@ -267,7 +288,7 @@ const Sidebar: FC<SidebarProps> = ({
                     }}
                     variant="text"
                 >
-                    Reset
+                    Default
                 </Button>
                 {(connectionStatusSuccess || connectionStatusError) && (
                     <Box
@@ -305,7 +326,7 @@ const Sidebar: FC<SidebarProps> = ({
                                     variant="body2"
                                     color="var(--bs-red)"
                                 >
-                                    Connection failed
+                                    {`Connection failed: "${testConnectionResult?.status || "unknown error"}"`}
                                 </Typography>
                             </>
                         )}

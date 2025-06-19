@@ -62,7 +62,6 @@ describe("SideBar", () => {
         if (url) {
             await user.type(urlInput, url)
         }
-
         return {settingsButton, urlInput}
     }
 
@@ -101,13 +100,13 @@ describe("SideBar", () => {
         const settingsButton = await screen.findByRole("button", AGENT_NETWORK_SETTINGS_NAME)
         await user.hover(settingsButton)
         // Query the SVG element by its aria-label
-        await screen.findByLabelText(TOOLTIP_EXAMPLE_URL)
+        await screen.findByLabelText((label) => label.startsWith(TOOLTIP_EXAMPLE_URL))
         await user.unhover(settingsButton)
-        await waitFor(() => expect(screen.queryByText(TOOLTIP_EXAMPLE_URL)).not.toBeInTheDocument())
+        await waitFor(() => expect(screen.queryByText(new RegExp(TOOLTIP_EXAMPLE_URL, "u"))).not.toBeInTheDocument())
     })
 
     it("Should open the popover, validate buttons, update the URL field, and close the popup on Save", async () => {
-        ;(testConnection as jest.Mock).mockResolvedValue(true)
+        ;(testConnection as jest.Mock).mockResolvedValue({success: true})
         const {customURLCallback} = renderSidebarComponent()
 
         const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
@@ -121,7 +120,7 @@ describe("SideBar", () => {
 
         const testButton = screen.getByRole("button", {name: /Test/u})
         const saveButton = screen.getByRole("button", {name: /Save/u})
-        const resetButton = screen.getByRole("button", {name: /Reset/u})
+        const resetButton = screen.getByRole("button", {name: /Default/u})
 
         // Test, Save, and Reset buttons should be disabled until the user types a URL
         expect(testButton).toBeDisabled()
@@ -166,7 +165,7 @@ describe("SideBar", () => {
 
         const {urlInput} = await openPopoverAndTypeInInput(EDIT_EXAMPLE_URL)
 
-        const resetButton = screen.getByRole("button", {name: /Reset/u})
+        const resetButton = screen.getByRole("button", {name: /Default/u})
         await user.click(resetButton)
 
         // onCustomUrlChange should be called
@@ -177,7 +176,7 @@ describe("SideBar", () => {
     })
 
     it("should show success message when Test button is clicked and connection succeeds", async () => {
-        ;(testConnection as jest.Mock).mockResolvedValue(true)
+        ;(testConnection as jest.Mock).mockResolvedValue({success: true})
         renderSidebarComponent()
 
         await openPopoverAndTypeInInput(EDIT_EXAMPLE_URL)
@@ -188,7 +187,7 @@ describe("SideBar", () => {
     })
 
     it("should show error message when Test button is clicked and connection fails", async () => {
-        ;(testConnection as jest.Mock).mockResolvedValue(false)
+        ;(testConnection as jest.Mock).mockResolvedValue({success: false})
         renderSidebarComponent()
 
         await openPopoverAndTypeInInput(EDIT_EXAMPLE_URL)
@@ -204,7 +203,7 @@ describe("SideBar", () => {
         await openPopoverAndTypeInInput()
 
         const saveButton = screen.getByRole("button", {name: /Save/u})
-        const resetButton = screen.getByRole("button", {name: /Reset/u})
+        const resetButton = screen.getByRole("button", {name: /Default/u})
         expect(saveButton).toBeDisabled()
         expect(resetButton).toBeDisabled()
     })
@@ -221,7 +220,7 @@ describe("SideBar", () => {
         const input = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
         await user.clear(input)
         await user.type(input, EDIT_EXAMPLE_URL)
-        const resetButton = screen.getByRole("button", {name: /Reset/u})
+        const resetButton = screen.getByRole("button", {name: /Default/u})
         await user.click(resetButton)
 
         expect(setSelectedNetwork).toHaveBeenCalledWith(null)
@@ -246,7 +245,7 @@ describe("SideBar", () => {
     })
 
     it("should allow saving with Enter key when Save is enabled", async () => {
-        ;(testConnection as jest.Mock).mockResolvedValue(true)
+        ;(testConnection as jest.Mock).mockResolvedValue({success: true})
         const {customURLCallback} = renderSidebarComponent()
 
         const {urlInput} = await openPopoverAndTypeInInput(EDIT_EXAMPLE_URL)
@@ -268,7 +267,7 @@ describe("SideBar", () => {
     })
 
     it("should format URL before saving (add https:// if missing, remove trailing slash)", async () => {
-        ;(testConnection as jest.Mock).mockResolvedValue(true)
+        ;(testConnection as jest.Mock).mockResolvedValue({success: true})
         const {customURLCallback} = renderSidebarComponent()
 
         await openPopoverAndTypeInInput("example.com/")
@@ -279,6 +278,18 @@ describe("SideBar", () => {
 
         // Should call with formatted URL
         expect(customURLCallback).toHaveBeenCalledWith("https://example.com")
+    })
+
+    it("should handle the Cancel button correctly", async () => {
+        ;(testConnection as jest.Mock).mockResolvedValue({success: true})
+        const {customURLCallback} = renderSidebarComponent()
+
+        await openPopoverAndTypeInInput("example.com/")
+
+        // Click the Cancel button
+        const cancelButton = screen.getByRole("button", {name: /Cancel/u})
+        await user.click(cancelButton)
+        expect(customURLCallback).not.toHaveBeenCalled()
     })
 
     it("should scroll selected network into view when selectedNetwork changes", async () => {
