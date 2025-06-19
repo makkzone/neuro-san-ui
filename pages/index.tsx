@@ -229,7 +229,7 @@ export default function Index(): ReactElement {
                             </div>
                         </HeaderLineOne>
 
-                        <SubHeaderTitle id="neuro-ai-maa-box">{LOGO} Multi-Agent Accelerator</SubHeaderTitle>
+                        <SubHeaderTitle id="neuro-ai-maa-box">Multi-Agent Accelerator</SubHeaderTitle>
                         <NeuroAIDescriptionBox id="neuro-ai-description-box">
                             Low-code framework for rapidly agentifying your business.{" "}
                             <ActionLink
@@ -271,7 +271,7 @@ export default function Index(): ReactElement {
                                         paddingTop: "2.5rem",
                                     }}
                                 >
-                                    {LOGO} Decisioning
+                                    Decisioning
                                 </SubHeaderTitle>
                                 <NeuroAIDescriptionBox id="neuro-ai-description-box">
                                     Decisioning
