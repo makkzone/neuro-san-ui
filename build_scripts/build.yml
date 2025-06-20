@@ -57,9 +57,9 @@ steps:
       shell: sh
       commands:
         - |
-          # Use DISPLAY_VERSION if set and trigger is not automated(webhook),
+          # Use DISPLAY_VERSION if set not a child pipeline (in other words, manually),
           # otherwise fallback to UNILEAF_VERSION
-          if [ -n "${{DISPLAY_VERSION}}" ] && [ "${{CF_BUILD_TRIGGER}}" != "webhook" ]; then
+          if [ -n "${{DISPLAY_VERSION}}" ] && [ -z "${CHILD_PIPELINE}" ]; then
               VERSION="${{DISPLAY_VERSION}}"
           else
               VERSION="${{UNILEAF_VERSION}}"
