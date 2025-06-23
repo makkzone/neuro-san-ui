@@ -57,8 +57,8 @@ steps:
       shell: sh
       commands:
         - |
-          # Use DISPLAY_VERSION if set not a child pipeline (in other words, manually),
-          # otherwise fallback to UNILEAF_VERSION
+          # Use DISPLAY_VERSION if set and not triggered as a child pipeline.
+          # Otherwise fallback to UNILEAF_VERSION.
           if [ -n "${{DISPLAY_VERSION}}" ] && [ -z "${CHILD_PIPELINE}" ]; then
               VERSION="${{DISPLAY_VERSION}}"
           else
