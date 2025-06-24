@@ -38,8 +38,6 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
         .map((originItem) => originItem.tool)
         .includes(agentId)
 
-    const isLinearLayout = depth === undefined
-
     let backgroundColor: string
     const isHeatmap = agentCounts?.size > 0 && maxAgentCount > 0
     if (isHeatmap) {
@@ -48,9 +46,6 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
         // Calculate "heat" as a fraction of the times this agent was invoked compared to the maximum agent count.
         const colorIndex = Math.floor((agentCount / maxAgentCount) * (HEATMAP_COLORS.length - 1))
         backgroundColor = HEATMAP_COLORS[colorIndex]
-    } else if (isLinearLayout) {
-        // For linear layout, we use a single color for all nodes.
-        backgroundColor = isActiveAgent ? "var(--bs-red)" : "var(--bs-primary)"
     } else if (isActiveAgent) {
         backgroundColor = "var(--bs-green)"
     } else {
@@ -59,7 +54,7 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
 
     // Text color varies based on if it's a layout that has depth or not (radial vs linear).
     let textColor: string
-    if (!isLinearLayout && isFrontman) {
+    if (isFrontman) {
         textColor = "var(--bs-primary)"
     } else {
         textColor = "var(--bs-white)"

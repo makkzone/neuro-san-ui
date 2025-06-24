@@ -71,6 +71,27 @@ describe("AgentFlow", () => {
         verifyAgentNodes(container)
     })
 
+    it("Should allow switching to heatmap display", async () => {
+        render(
+            <ReactFlowProvider>
+                <AgentFlow
+                    id="test-flow-id"
+                    agentsInNetwork={network}
+                    originInfo={[{tool: "agent1", instantiation_index: 1}]}
+                    selectedNetwork={TEST_AGENT_MATH_GUY}
+                />
+            </ReactFlowProvider>
+        )
+
+        const heatmapButton = await screen.findByRole("button", {name: "Heatmap"})
+
+        // press the button to switch to heatmap mode
+        await user.click(heatmapButton)
+
+        // Legend should have switched to heatmap mode
+        await screen.findByText("Heat")
+    })
+
     it("Should handle highlighting the active agents", async () => {
         const {container, rerender} = render(
             <ReactFlowProvider>

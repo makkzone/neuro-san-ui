@@ -29,6 +29,7 @@ describe("AgentNode", () => {
                     getOriginInfo: () => [],
                     isFrontman: false,
                     depth: 1,
+                    agentCounts: new Map([["testNode", 42]]),
                 }}
             />
         )
