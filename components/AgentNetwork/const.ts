@@ -17,3 +17,16 @@ export const BACKGROUND_COLORS = [
     "var(--bs-black)",
     "var(--bs-info)",
 ]
+
+export const HEATMAP_COLORS = [
+    "#054b59",
+    "#197d86",
+    "#3fb0bb",
+    "#7edfe3",
+    "#97f5f7",
+    "#bfeff0",
+    "#f3d2cc",
+    "#f7a89c",
+    "#f47664",
+    "#d94835",
+]

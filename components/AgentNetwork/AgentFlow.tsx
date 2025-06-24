@@ -2,6 +2,7 @@ import AdjustRoundedIcon from "@mui/icons-material/AdjustRounded"
 import HubOutlinedIcon from "@mui/icons-material/HubOutlined"
 import ScatterPlotOutlinedIcon from "@mui/icons-material/ScatterPlotOutlined"
 import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 import {FC, useCallback, useEffect, useMemo, useRef, useState} from "react"
@@ -26,7 +27,14 @@ import {
 import "reactflow/dist/style.css"
 import {AgentNode, AgentNodeProps, NODE_HEIGHT, NODE_WIDTH} from "./AgentNode"
 import {AnimatedEdge} from "./AnimatedEdge"
-import {BACKGROUND_COLORS, BASE_RADIUS, DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS, LEVEL_SPACING} from "./const"
+import {
+    BACKGROUND_COLORS,
+    BASE_RADIUS,
+    DEFAULT_FRONTMAN_X_POS,
+    DEFAULT_FRONTMAN_Y_POS,
+    HEATMAP_COLORS,
+    LEVEL_SPACING,
+} from "./const"
 import {layoutLinear, layoutRadial} from "./GraphLayouts"
 import {ConnectivityInfo, Origin} from "../../generated/neuro-san/OpenAPITypes"
 
@@ -36,12 +44,21 @@ interface AgentFlowProps {
     id: string
     originInfo?: Origin[]
     selectedNetwork: string
+    isAwaitingLlm?: boolean
+    agentCounts?: Map<string, number>
 }
 
 type Layout = "radial" | "linear"
 // #endregion: Types
 
-const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selectedNetwork}) => {
+const AgentFlow: FC<AgentFlowProps> = ({
+    agentsInNetwork,
+    id,
+    originInfo,
+    selectedNetwork,
+    isAwaitingLlm,
+    agentCounts,
+}) => {
     const {fitView} = useReactFlow()
 
     const handleResize = useCallback(() => {
@@ -67,26 +84,28 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
 
     const [layout, setLayout] = useState<Layout>("radial")
 
+    const [showHeatmap, setShowHeatmap] = useState<boolean>(false)
+
     const [enableRadialGuides, setEnableRadialGuides] = useState<boolean>(true)
 
     // Create the flow layout depending on user preference
     useEffect(() => {
         switch (layout) {
             case "linear": {
-                const linearLayout = layoutLinear(agentsInNetwork, getOriginInfo)
+                const linearLayout = layoutLinear(agentsInNetwork, getOriginInfo, showHeatmap ? agentCounts : undefined)
                 linearLayout.nodes && setNodes(linearLayout.nodes)
                 linearLayout.edges && setEdges(linearLayout.edges)
                 break
             }
             case "radial":
             default: {
-                const radialLayout = layoutRadial(agentsInNetwork, getOriginInfo)
+                const radialLayout = layoutRadial(agentsInNetwork, getOriginInfo, showHeatmap ? agentCounts : undefined)
                 radialLayout.nodes && setNodes(radialLayout.nodes)
                 radialLayout.edges && setEdges(radialLayout.edges)
                 break
             }
         }
-    }, [agentsInNetwork, layout, originInfo])
+    }, [agentsInNetwork, layout, originInfo, showHeatmap, agentCounts, getOriginInfo])
 
     const onNodesChange = useCallback(
         (changes: NodeChange[]) => {
@@ -196,8 +215,8 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
         )
     }
 
-    // Generate Legend for depth coloring
-    function getLegend() {
+    // Generate Legend for depth or heatmap colors
+    function getLegend(palette: string[], title: string, length: number) {
         return (
             <Box
                 id={`${id}-legend`}
@@ -205,7 +224,6 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                     position: "absolute",
                     top: "10px",
                     right: "10px",
-                    backgroundColor: "white",
                     padding: "5px",
                     borderRadius: "5px",
                     boxShadow: "0 0 5px rgba(0,0,0,0.3)",
@@ -219,16 +237,16 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                         fontSize: "10px",
                     }}
                 >
-                    Depth
+                    {title}
                 </Typography>
                 {/* Depth palette */}
-                {Array.from({length: Math.min(maxDepth, BACKGROUND_COLORS.length)}, (_, i) => (
+                {Array.from({length}, (_, i) => (
                     <Box
                         id={`${id}-legend-depth-${i}`}
                         key={i}
                         style={{
                             alignItems: "center",
-                            backgroundColor: BACKGROUND_COLORS[i],
+                            backgroundColor: palette[i],
                             borderRadius: "50%",
                             color: i === 0 ? "var(--bs-primary)" : "var(--bs-white)",
                             display: "flex",
@@ -275,7 +293,38 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                 edgeTypes={edgeTypes}
                 connectionMode={ConnectionMode.Loose}
             >
-                {layout === "radial" && maxDepth > 0 && agentsInNetwork?.length ? getLegend() : null}
+                {!isAwaitingLlm && (
+                    <Button
+                        id={`${id}-heatmap-label`}
+                        sx={{
+                            position: "absolute",
+                            zIndex: 10,
+                            pointerEvents: "auto",
+                            top: "10px",
+                            right: "250px",
+                            borderRadius: "5px",
+                            display: "flex",
+                            flexDirection: "row",
+                            fontSize: "0.75rem",
+                            cursor: "pointer",
+                            borderWidth: "1px",
+                        }}
+                        variant="outlined"
+                        onClick={() => {
+                            setShowHeatmap(!showHeatmap)
+                        }}
+                    >
+                        Heatmap
+                    </Button>
+                )}
+                {!isAwaitingLlm &&
+                    maxDepth > 0 &&
+                    agentsInNetwork?.length &&
+                    getLegend(
+                        showHeatmap ? HEATMAP_COLORS : BACKGROUND_COLORS,
+                        showHeatmap ? "Heat" : "Depth",
+                        showHeatmap ? HEATMAP_COLORS.length : Math.min(maxDepth, BACKGROUND_COLORS.length)
+                    )}
                 <Background id={`${id}-background`} />
                 <Controls
                     id="react-flow-controls"

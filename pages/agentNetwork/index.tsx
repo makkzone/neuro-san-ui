@@ -1,5 +1,5 @@
 import Grid from "@mui/material/Grid2"
-import {useEffect, useState} from "react"
+import {useEffect, useRef, useState} from "react"
 import {ReactFlowProvider} from "reactflow"
 
 import {ChatCommon} from "../../components/AgentChat/ChatCommon"
@@ -41,6 +41,8 @@ export default function AgentNetworkPage() {
     const [neuroSanURL, setNeuroSanURL] = useState<string>(
         customURLLocalStorage?.replaceAll('"', "") || backendNeuroSanApiUrl
     )
+
+    const agentCountsRef = useRef<Map<string, number>>(new Map<string, number>())
 
     const customURLCallback = (url: string) => {
         setNeuroSanURL(url || backendNeuroSanApiUrl)
@@ -99,6 +101,15 @@ export default function AgentNetworkPage() {
         const chatMessage = chatMessageFromChunk(chunk)
         if (chatMessage && chatMessage.origin?.length > 0) {
             setOriginInfo([...chatMessage.origin])
+
+            // update agent counts
+            const agent = chatMessage.origin[chatMessage.origin.length - 1]
+            const agentCounts = agentCountsRef.current
+            if (agentCounts.has(agent.tool)) {
+                agentCounts[agent.tool] += 1
+            } else {
+                agentCounts[agent.tool] = 1
+            }
         }
 
         return true
@@ -155,6 +166,8 @@ export default function AgentNetworkPage() {
                         id="multi-agent-accelerator-agent-flow"
                         originInfo={originInfo}
                         selectedNetwork={selectedNetwork}
+                        isAwaitingLlm={isAwaitingLlm}
+                        agentCounts={agentCountsRef.current}
                     />
                 </ReactFlowProvider>
             </Grid>

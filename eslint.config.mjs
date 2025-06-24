@@ -147,7 +147,7 @@ const config = [
                 "error",
                 {
                     builtinGlobals: true,
-                    allow: ["event", "model", "screen"],
+                    allow: ["event", "length", "model", "screen"],
                 },
             ],
 

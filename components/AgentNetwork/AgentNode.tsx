@@ -3,14 +3,16 @@ import Typography from "@mui/material/Typography"
 import {FC} from "react"
 import {Handle, NodeProps, Position} from "reactflow"
 
-import {BACKGROUND_COLORS} from "./const"
+import {BACKGROUND_COLORS, HEATMAP_COLORS} from "./const"
 import {Origin} from "../../generated/neuro-san/OpenAPITypes"
+import {empty} from "../../utils/objects"
 
 export interface AgentNodeProps {
     agentName: string
     getOriginInfo: () => Origin[]
     isFrontman: boolean
     depth: number
+    agentCounts: Map<string, number>
 }
 
 // Node dimensions
@@ -24,7 +26,9 @@ export const NODE_WIDTH = 80
 export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentNodeProps>) => {
     // Unpack the node-specific data
     const data: AgentNodeProps = props.data
-    const {agentName, getOriginInfo, isFrontman, depth} = data
+    const {agentName, getOriginInfo, isFrontman, depth, agentCounts} = data
+
+    const maxAgentCount = agentCounts ? Math.max(...Object.values(agentCounts)) : 0
 
     // Unpack the node-specific id
     const agentId = props.id
@@ -36,9 +40,14 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
         .includes(agentId)
 
     let backgroundColor: string
+    let agentCount: number = 0
     // There's no depth for linear layout, so we just use the first color for both layouts (radial and linear).
-    if (isFrontman) {
-        backgroundColor = BACKGROUND_COLORS[0]
+    if (agentCounts && !empty(agentCounts) && maxAgentCount > 0) {
+        agentCount = agentCounts[agentId] ?? 0
+        backgroundColor = HEATMAP_COLORS[Math.floor((agentCount / maxAgentCount) * (HEATMAP_COLORS.length - 1))]
+    } else if (depth === undefined) {
+        // For linear layout, we use a single color for all nodes.
+        backgroundColor = isActiveAgent ? "var(--bs-red)" : "var(--bs-primary)"
     } else if (isActiveAgent) {
         backgroundColor = "var(--bs-green)"
     } else {
