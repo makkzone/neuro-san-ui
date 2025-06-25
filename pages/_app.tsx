@@ -71,7 +71,7 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
     // Dark mode
     const {darkMode} = usePreferences()
 
-    const theme = createTheme({
+    const theme = useMemo(() => createTheme({
         ...APP_THEME,
         palette: {
             ...APP_THEME.palette,
