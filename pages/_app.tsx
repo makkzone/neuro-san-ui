@@ -11,7 +11,7 @@ import Head from "next/head"
 import {useRouter} from "next/router"
 import {SessionProvider} from "next-auth/react"
 import {SnackbarProvider} from "notistack"
-import {ReactElement, ReactFragment, useEffect} from "react"
+import {ReactElement, ReactFragment, useEffect, useMemo} from "react"
 
 import {Auth} from "../components/Authentication/auth"
 import {ChatBot} from "../components/ChatBot/ChatBot"
@@ -84,7 +84,7 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
                 secondary: darkMode ? BRAND_COLORS["bs-gray-light"] : BRAND_COLORS["bs-gray-medium-dark"],
             },
         },
-    })
+    }), [darkMode])
 
     useEffect(() => {
         async function getEnvironment() {
