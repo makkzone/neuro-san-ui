@@ -29,6 +29,7 @@ import {AgentNode, AgentNodeProps, NODE_HEIGHT, NODE_WIDTH} from "./AgentNode"
 import {AnimatedEdge} from "./AnimatedEdge"
 import {
     BACKGROUND_COLORS,
+    BACKGROUND_COLORS_DARK_IDX,
     BASE_RADIUS,
     DEFAULT_FRONTMAN_X_POS,
     DEFAULT_FRONTMAN_Y_POS,
@@ -37,6 +38,7 @@ import {
 } from "./const"
 import {layoutLinear, layoutRadial} from "./GraphLayouts"
 import {ConnectivityInfo, Origin} from "../../generated/neuro-san/OpenAPITypes"
+import {ZIndexLayers} from "../../utils/zIndexLayers"
 
 // #region: Types
 interface AgentFlowProps {
@@ -233,21 +235,23 @@ const AgentFlow: FC<AgentFlowProps> = ({
             <Box
                 id={`${id}-legend`}
                 sx={{
+                    backgroundColor: "var(--bs-white)",
                     position: "absolute",
-                    top: "10px",
+                    top: "5px",
                     right: "10px",
                     padding: "5px",
                     borderRadius: "5px",
                     boxShadow: "0 0 5px rgba(0,0,0,0.3)",
                     display: "flex",
-                    flexDirection: "row",
+                    alignItems: "center",
+                    zIndex: ZIndexLayers.LAYER_2,
                 }}
             >
                 <Typography
                     id={`${id}-legend-label`}
                     sx={{
                         fontSize: "10px",
-                        marginLeft: "0.25rem",
+                        marginLeft: "0.2rem",
                     }}
                 >
                     {title}
@@ -261,7 +265,7 @@ const AgentFlow: FC<AgentFlowProps> = ({
                             alignItems: "center",
                             backgroundColor: palette[i],
                             borderRadius: "50%",
-                            color: i === 0 ? "var(--bs-primary)" : "var(--bs-white)",
+                            color: i < BACKGROUND_COLORS_DARK_IDX ? "var(--bs-primary)" : "var(--bs-white)",
                             display: "flex",
                             height: "15px",
                             justifyContent: "center",
@@ -292,7 +296,7 @@ const AgentFlow: FC<AgentFlowProps> = ({
                         backgroundColor: "var(--bs-white)",
                         fontSize: "2rem",
                         zIndex: 10,
-                        marginLeft: "1rem",
+                        marginLeft: "0.5rem",
                     }}
                     size="small"
                 >

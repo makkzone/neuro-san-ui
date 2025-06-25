@@ -3,7 +3,7 @@ import Typography from "@mui/material/Typography"
 import {FC} from "react"
 import {Handle, NodeProps, Position} from "reactflow"
 
-import {BACKGROUND_COLORS, HEATMAP_COLORS} from "./const"
+import {BACKGROUND_COLORS, BACKGROUND_COLORS_DARK_IDX, HEATMAP_COLORS} from "./const"
 import {Origin} from "../../generated/neuro-san/OpenAPITypes"
 
 export interface AgentNodeProps {
@@ -39,25 +39,25 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
         .includes(agentId)
 
     let backgroundColor: string
+    let textColor: string
     const isHeatmap = agentCounts?.size > 0 && maxAgentCount > 0
-    if (isHeatmap) {
+
+    if (isActiveAgent) {
+        backgroundColor = "var(--bs-green)"
+        textColor = "var(--bs-white)"
+    } else if (isHeatmap) {
         const agentCount = agentCounts.has(agentId) ? agentCounts.get(agentId) : 0
 
         // Calculate "heat" as a fraction of the times this agent was invoked compared to the maximum agent count.
         const colorIndex = Math.floor((agentCount / maxAgentCount) * (HEATMAP_COLORS.length - 1))
         backgroundColor = HEATMAP_COLORS[colorIndex]
-    } else if (isActiveAgent) {
-        backgroundColor = "var(--bs-green)"
+        const isDarkBackground = colorIndex >= BACKGROUND_COLORS_DARK_IDX
+        textColor = isDarkBackground ? "var(--bs-white)" : "var(--bs-dark)"
     } else {
-        backgroundColor = BACKGROUND_COLORS[depth % BACKGROUND_COLORS.length]
-    }
-
-    // Figure out text color to use. This will be updated when we implement dark mode.
-    let textColor: string
-    if (isFrontman) {
-        textColor = "var(--bs-primary)"
-    } else {
-        textColor = "var(--bs-white)"
+        const colorIndex = depth % BACKGROUND_COLORS.length
+        backgroundColor = BACKGROUND_COLORS[colorIndex]
+        const isDarkBackground = colorIndex >= BACKGROUND_COLORS_DARK_IDX
+        textColor = isDarkBackground ? "var(--bs-white)" : "var(--bs-dark)"
     }
 
     // Animation style for making active agent glow and pulse
@@ -77,7 +77,6 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                 alignItems: "center",
                 backgroundColor,
                 borderRadius: "50%",
-                borderColor: "var(--bs-primary)",
                 borderWidth: !isFrontman && isActiveAgent ? 4 : 1,
                 color: textColor,
                 display: "flex",
