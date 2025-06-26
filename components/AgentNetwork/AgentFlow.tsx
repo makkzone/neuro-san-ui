@@ -85,6 +85,9 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
 
     const {darkMode} = usePreferences()
 
+    // Shadow color for icon. TODO: use MUI theme system instead.
+    const shadowColor = darkMode ? "255, 255, 255" : "0, 0, 0"
+
     // Create the flow layout depending on user preference
     useEffect(() => {
         switch (layout) {
@@ -235,7 +238,7 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                     right: "10px",
                     padding: "5px",
                     borderRadius: "5px",
-                    boxShadow: "0 0 5px rgba(0,0,0,0.3)",
+                    boxShadow: `0 0 5px rgba(${shadowColor}, 0.3)`,
                     display: "flex",
                     alignItems: "center",
                     zIndex: ZIndexLayers.LAYER_2,
