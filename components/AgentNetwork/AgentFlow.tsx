@@ -342,6 +342,11 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
         )
     }
 
+    // Get the background color for the control buttons based on the layout and dark mode setting
+    const getControlButtonBackgroundColor = (isActive: boolean) => {
+        return isActive ? (darkMode ? "var(--bs-gray-dark)" : "var(--bs-gray-lighter)") : undefined
+    }
+
     return (
         <Box
             id={`${id}-outer-box`}
@@ -354,7 +359,7 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                     borderRadius: "var(--bs-border-radius-2xl)",
                 },
             }}
-            className={darkMode ? "dark" : ""}
+            className={darkMode ? "dark" : undefined}
         >
             <ReactFlow
                 id={`${id}-react-flow`}
@@ -377,7 +382,6 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                         left: "0px",
                         height: "auto",
                         width: "auto",
-                        backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
                     }}
                     showInteractive={true}
                 >
@@ -391,12 +395,12 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                                 id="radial-layout-button"
                                 onClick={() => setLayout("radial")}
                                 style={{
-                                    backgroundColor: layout === "radial" ? "var(--bs-gray-lighter" : undefined,
+                                    backgroundColor: getControlButtonBackgroundColor(layout === "radial"),
                                 }}
                             >
                                 <HubOutlinedIcon
                                     id="radial-layout-icon"
-                                    sx={{color: "black"}}
+                                    sx={{color: darkMode ? "var(--bs-white)" : "var(--bs-dark-mode-dim)"}}
                                 />
                             </ControlButton>
                         </span>
@@ -411,12 +415,12 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                                 id="linear-layout-button"
                                 onClick={() => setLayout("linear")}
                                 style={{
-                                    backgroundColor: layout === "linear" ? "var(--bs-gray-lighter" : undefined,
+                                    backgroundColor: getControlButtonBackgroundColor(layout === "linear"),
                                 }}
                             >
                                 <ScatterPlotOutlinedIcon
                                     id="linear-layout-icon"
-                                    sx={{color: "black"}}
+                                    sx={{color: darkMode ? "var(--bs-white)" : "var(--bs-dark-mode-dim)"}}
                                 />
                             </ControlButton>
                         </span>
@@ -433,14 +437,13 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                                 id="radial-guides-button"
                                 onClick={() => setEnableRadialGuides(!enableRadialGuides)}
                                 style={{
-                                    backgroundColor:
-                                        layout === "radial" && enableRadialGuides ? "var(--bs-gray-lighter" : undefined,
+                                    backgroundColor: getControlButtonBackgroundColor(enableRadialGuides),
                                 }}
                                 disabled={layout !== "radial"}
                             >
                                 <AdjustRoundedIcon
                                     id="radial-guides-icon"
-                                    sx={{color: "black"}}
+                                    sx={{color: darkMode ? "var(--bs-white)" : "var(--bs-dark-mode-dim)"}}
                                 />
                             </ControlButton>
                         </span>
