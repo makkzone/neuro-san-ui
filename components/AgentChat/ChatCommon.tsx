@@ -148,7 +148,7 @@ interface ChatCommonProps {
     readonly extraParams?: Record<string, unknown>
 
     /**
-     * Background color for the chat window. Defaults to white. Helps when there are multiple chats on a single page.
+     * Background color for the chat window. Helps when there are multiple chats on a single page.
      */
     readonly backgroundColor?: string
 
@@ -1056,10 +1056,9 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                     id={`llm-chat-title-container-${id}`}
                     sx={{
                         alignItems: "center",
-                        backgroundColor,
+                        backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-primary)",
                         borderTopLeftRadius: "var(--bs-border-radius)",
                         borderTopRightRadius: "var(--bs-border-radius)",
-                        color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
                         display: "flex",
                         justifyContent: "space-between",
                         paddingLeft: "1rem",
@@ -1070,7 +1069,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                 >
                     <Typography
                         id={`llm-chat-title-${id}-text`}
-                        sx={{fontSize: "0.9rem"}}
+                        sx={{fontSize: "0.9rem", color: "var(--bs-white)"}}
                     >
                         {title}
                     </Typography>

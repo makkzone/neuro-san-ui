@@ -83,8 +83,8 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
 
     const [enableRadialGuides, setEnableRadialGuides] = useState<boolean>(true)
 
-    // Dark mode
     const {darkMode} = usePreferences()
+
     // Create the flow layout depending on user preference
     useEffect(() => {
         switch (layout) {
@@ -230,7 +230,6 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
             <Box
                 id={`${id}-legend`}
                 sx={{
-                    backgroundColor: "var(--bs-white)",
                     position: "absolute",
                     top: "5px",
                     right: "10px",
@@ -288,10 +287,11 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                         }
                     }}
                     sx={{
-                        backgroundColor: "var(--bs-white)",
                         fontSize: "2rem",
                         zIndex: 10,
                         marginLeft: "0.5rem",
+                        backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
+                        border: darkMode ? "1px solid var(--bs-gray-medium)" : "1px solid var(--bs-gray-light)",
                     }}
                     size="small"
                 >
@@ -299,7 +299,13 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                         id={`${id}-depth-toggle`}
                         size="small"
                         value="depth"
-                        sx={{fontSize: "0.5rem", height: "1rem"}}
+                        sx={{
+                            fontSize: "0.5rem",
+                            height: "1rem",
+                            color: darkMode ? "var(--bs-white)" : "var(--bs-dark-mode-dim)",
+                            backgroundColor:
+                                darkMode && coloringOption === "depth" ? "var(--bs-gray-medium)" : undefined,
+                        }}
                     >
                         <Typography
                             id={`${id}-depth-label`}
@@ -314,7 +320,13 @@ const AgentFlow: FC<AgentFlowProps> = ({agentsInNetwork, id, originInfo, selecte
                         id={`${id}-heatmap-toggle`}
                         size="small"
                         value="heatmap"
-                        sx={{fontSize: "0.5rem", height: "1rem"}}
+                        sx={{
+                            fontSize: "0.5rem",
+                            height: "1rem",
+                            color: darkMode ? "var(--bs-white)" : "var(--bs-black)",
+                            backgroundColor:
+                                darkMode && coloringOption === "heatmap" ? "var(--bs-gray-medium)" : undefined,
+                        }}
                     >
                         <Typography
                             id={`${id}-heatmap-label`}
