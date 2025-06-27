@@ -313,7 +313,7 @@ const Sidebar: FC<SidebarProps> = ({
                     variant="contained"
                 >
                     {/* Change button to "OK" or "Cancel", depending if the default URL is specified. */}
-                    {urlInput === backendNeuroSanApiUrl ? "OK" : "Cancel"}
+                    {isDefaultUrl ? "OK" : "Cancel"}
                 </PrimaryButton>
                 <Button
                     id="agent-network-settings-default-btn"
