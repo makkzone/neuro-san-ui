@@ -312,8 +312,7 @@ const Sidebar: FC<SidebarProps> = ({
                     onClick={() => handleSettingsClose(true)}
                     variant="contained"
                 >
-                    {/* Change button to "OK" or "Cancel", depending if the default URL is specified. */}
-                    {isDefaultUrl ? "OK" : "Cancel"}
+                    Cancel
                 </PrimaryButton>
                 <Button
                     id="agent-network-settings-default-btn"
