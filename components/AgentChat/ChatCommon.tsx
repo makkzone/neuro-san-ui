@@ -275,8 +275,13 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     // Keeps track of whether the agent completed its task
     const succeeded = useRef<boolean>(false)
 
-    // Dark mode
     const {darkMode} = usePreferences()
+
+    // Temporary styling for implementation of dark mode
+    const darkModeStyling = {
+        backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
+        color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
+    }
 
     const {atelierDuneDark, a11yLight} = HLJS_THEMES
     // Hide/show existing accordions based on showThinking state
@@ -289,8 +294,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         sx: {
                             ...item.props.sx,
                             display: showThinking || item.key === finalAnswerKey?.current ? "block" : "none",
-                            backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
-                            color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
+                            ...darkModeStyling,
                         },
                     })
                 }
