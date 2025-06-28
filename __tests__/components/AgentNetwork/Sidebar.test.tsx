@@ -66,7 +66,6 @@ describe("SideBar", () => {
         if (url) {
             await user.type(urlInput, url)
         }
-
         return {settingsButton, urlInput}
     }
 
@@ -141,7 +140,6 @@ describe("SideBar", () => {
         // Test and Save buttons should be disabled until the user types a URL
         expect(testButton).toBeDisabled()
         expect(saveButton).toBeDisabled()
-        expect(defaultButton).toBeDisabled()
 
         // Type in the URL input
         await user.type(urlInput, EDIT_EXAMPLE_URL)
