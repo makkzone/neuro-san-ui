@@ -5,13 +5,17 @@ import {SnackbarProvider} from "notistack"
 import {cleanUpAgentName} from "../../../components/AgentChat/Utils"
 import Sidebar from "../../../components/AgentNetwork/Sidebar"
 import {testConnection} from "../../../controller/agent/Agent"
+import useEnvironmentStore from "../../../state/environment"
 import {withStrictMocks} from "../../common/strictMocks"
 
 const AGENT_NETWORK_SETTINGS_NAME = {name: /Agent Network Settings/u}
 const AGENT_SERVER_ADDRESS = "Agent server address"
+const CLEAR_INPUT = {name: /Clear input/u}
+const DEFAULT_EXAMPLE_URL = "https://default.example.com"
 const EDIT_EXAMPLE_URL = "https://edit.example.com"
 const TEST_AGENT_MATH_GUY = "Math Guy"
 const TEST_AGENT_MUSIC_NERD = "Music Nerd"
+const TEST_EXAMPLE_URL = "https://test.example.com"
 const TOOLTIP_EXAMPLE_URL = "https://tooltip.example.com"
 
 jest.mock("../../../controller/agent/Agent", () => ({
@@ -67,6 +71,10 @@ describe("SideBar", () => {
 
     withStrictMocks()
 
+    beforeAll(() => {
+        useEnvironmentStore.getState().setBackendNeuroSanApiUrl(DEFAULT_EXAMPLE_URL)
+    })
+
     beforeEach(() => {
         user = userEvent.setup()
     })
@@ -118,25 +126,30 @@ describe("SideBar", () => {
         await user.click(settingsButton)
         await screen.findByLabelText(AGENT_SERVER_ADDRESS)
 
+        const urlInput = screen.getByLabelText(AGENT_SERVER_ADDRESS)
+        // Ensure the input value is set to the default
+        expect(urlInput).toHaveValue(DEFAULT_EXAMPLE_URL)
+
         const testButton = screen.getByRole("button", {name: /Test/u})
         const saveButton = screen.getByRole("button", {name: /Save/u})
-        const resetButton = screen.getByRole("button", {name: /Default/u})
+        const defaultButton = screen.getByRole("button", {name: /Default/u})
 
-        // Test, Save, and Reset buttons should be disabled until the user types a URL
+        // Clear the URL input, similar to user manually clearing it (without using the clear input adornment)
+        await user.clear(urlInput)
+
+        // Test and Save buttons should be disabled until the user types a URL
         expect(testButton).toBeDisabled()
-        expect(resetButton).toBeDisabled()
         expect(saveButton).toBeDisabled()
 
-        const urlInput = screen.getByLabelText(AGENT_SERVER_ADDRESS)
-        await user.clear(urlInput)
+        // Type in the URL input
         await user.type(urlInput, EDIT_EXAMPLE_URL)
 
         // Ensure the input value is updated
         expect(urlInput).toHaveValue(EDIT_EXAMPLE_URL)
 
-        // Test and Reset buttons should be enabled once the user types a URL
+        // Test and Default buttons should be enabled once the user types a URL
         expect(testButton).toBeEnabled()
-        expect(resetButton).toBeEnabled()
+        expect(defaultButton).toBeEnabled()
 
         // Make sure the Save button is still disabled, until Test button is clicked
         expect(saveButton).toBeDisabled()
@@ -160,21 +173,6 @@ describe("SideBar", () => {
         expect(customURLCallback).toHaveBeenCalledTimes(1)
     })
 
-    it("Should reset the custom URL when the Reset button in popover is clicked", async () => {
-        const {customURLCallback} = renderSidebarComponent()
-
-        const {urlInput} = await openPopoverAndTypeInInput(EDIT_EXAMPLE_URL)
-
-        const resetButton = screen.getByRole("button", {name: /Default/u})
-        await user.click(resetButton)
-
-        // onCustomUrlChange should be called
-        expect(customURLCallback).toHaveBeenCalledTimes(1)
-
-        // Ensure the input value is reset
-        expect(urlInput).toHaveValue("")
-    })
-
     it("should show success message when Test button is clicked and connection succeeds", async () => {
         ;(testConnection as jest.Mock).mockResolvedValue({success: true})
         renderSidebarComponent()
@@ -184,6 +182,13 @@ describe("SideBar", () => {
 
         // Check if Success icon is displayed
         await screen.findByTestId("CheckCircleOutlineIcon")
+
+        // Type in URL input again
+        const urlInput = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
+        await user.type(urlInput, TEST_EXAMPLE_URL)
+
+        // Check that Success icon is not displayed
+        expect(screen.queryByTestId("CheckCircleOutlineIcon")).not.toBeInTheDocument()
     })
 
     it("should show error message when Test button is clicked and connection fails", async () => {
@@ -195,35 +200,30 @@ describe("SideBar", () => {
 
         // Check if Error icon is displayed
         await screen.findByTestId("HighlightOffIcon")
+
+        // Type in URL input again
+        const urlInput = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
+        await user.type(urlInput, TEST_EXAMPLE_URL)
+
+        // Check that Error icon is not displayed
+        expect(screen.queryByTestId("HighlightOffIcon")).not.toBeInTheDocument()
     })
 
-    it("should disable Save and Reset buttons in popover when input is empty", async () => {
+    it("Should allow Save after resetting to default URL, without Test", async () => {
         renderSidebarComponent()
 
-        await openPopoverAndTypeInInput()
+        await openPopoverAndTypeInInput(EDIT_EXAMPLE_URL)
 
+        const defaultButton = screen.getByRole("button", {name: /Default/u})
         const saveButton = screen.getByRole("button", {name: /Save/u})
-        const resetButton = screen.getByRole("button", {name: /Default/u})
+
+        // Save should be disabled since user typed in the URL input but did not test it
         expect(saveButton).toBeDisabled()
-        expect(resetButton).toBeDisabled()
-    })
 
-    // Not really a pure user interaction test, but might as well have it
-    it("should call setSelectedNetwork(null) when resetting settings", async () => {
-        const setSelectedNetwork = jest.fn()
-        renderSidebarComponent({setSelectedNetwork})
+        // Click the Default button to reset the input to the default URL
+        await user.click(defaultButton)
 
-        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
-        // Open Settings popover
-        await user.click(settingsButton)
-
-        const input = await screen.findByLabelText(AGENT_SERVER_ADDRESS)
-        await user.clear(input)
-        await user.type(input, EDIT_EXAMPLE_URL)
-        const resetButton = screen.getByRole("button", {name: /Default/u})
-        await user.click(resetButton)
-
-        expect(setSelectedNetwork).toHaveBeenCalledWith(null)
+        await waitFor(() => expect(saveButton).toBeEnabled())
     })
 
     it("should close the popover and reset input when Cancel (outside click) is triggered", async () => {
@@ -274,7 +274,7 @@ describe("SideBar", () => {
 
         // Test connection to enable Save
         await user.click(screen.getByRole("button", {name: /Test/u}))
-        await user.click(screen.getByRole("button", {name: /Save/u}))
+        await user.click(await screen.findByRole("button", {name: /Save/u}))
 
         // Should call with formatted URL
         expect(customURLCallback).toHaveBeenCalledWith("https://example.com")
@@ -290,6 +290,31 @@ describe("SideBar", () => {
         const cancelButton = screen.getByRole("button", {name: /Cancel/u})
         await user.click(cancelButton)
         expect(customURLCallback).not.toHaveBeenCalled()
+    })
+
+    it("should clear the input when Clear button is clicked", async () => {
+        renderSidebarComponent()
+
+        await openPopoverAndTypeInInput(EDIT_EXAMPLE_URL)
+
+        const clearInput = screen.getByRole("button", CLEAR_INPUT)
+        await user.click(clearInput)
+
+        const urlInput = screen.getByLabelText(AGENT_SERVER_ADDRESS)
+        expect(urlInput).toHaveValue("")
+
+        const testButton = screen.getByRole("button", {name: /Test/u})
+        const saveButton = screen.getByRole("button", {name: /Save/u})
+
+        // Test and Save buttons should be disabled after user clears the URL input
+        expect(testButton).toBeDisabled()
+        expect(saveButton).toBeDisabled()
+
+        // Check that Success icon is not displayed
+        expect(screen.queryByTestId("CheckCircleOutlineIcon")).not.toBeInTheDocument()
+
+        // Check that Error icon is not displayed
+        expect(screen.queryByTestId("HighlightOffIcon")).not.toBeInTheDocument()
     })
 
     it("should scroll selected network into view when selectedNetwork changes", async () => {

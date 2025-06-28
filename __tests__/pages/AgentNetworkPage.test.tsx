@@ -11,7 +11,7 @@ import {mockFetch} from "../testUtils"
 const MOCK_USER = "mock-user"
 
 // Backend neuro-san API server to use
-const NEURO_SAN_SERVER_URL = "https://neuro-san-dev.decisionai.ml"
+const NEURO_SAN_SERVER_URL = "https://default.example.com"
 
 const TEST_AGENT_MATH_GUY = "Math Guy"
 const TEST_AGENT_MUSIC_NERD = "Music Nerd"
@@ -56,7 +56,6 @@ describe("Agent Network Page", () => {
     withStrictMocks()
 
     beforeAll(() => {
-        process.env.NEURO_SAN_SERVER_URL = NEURO_SAN_SERVER_URL
         useEnvironmentStore.getState().setBackendNeuroSanApiUrl(NEURO_SAN_SERVER_URL)
     })
 
@@ -79,8 +78,6 @@ describe("Agent Network Page", () => {
             ],
         })
     })
-
-    afterAll(() => delete process.env.NEURO_SAN_SERVER_URL)
 
     it("should render elements on the page and change the page on click of sidebar item", async () => {
         const user = userEvent.setup()

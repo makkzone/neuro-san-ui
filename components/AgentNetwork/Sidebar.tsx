@@ -1,7 +1,8 @@
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
+import ClearIcon from "@mui/icons-material/Clear"
 import HighlightOff from "@mui/icons-material/HighlightOff"
 import SettingsIcon from "@mui/icons-material/Settings"
-import {styled} from "@mui/material"
+import {IconButton, InputAdornment, styled} from "@mui/material"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import List from "@mui/material/List"
@@ -40,6 +41,7 @@ const PrimaryButton = styled(Button)({
 // #endregion: Styled Components
 
 // #region: Types
+
 enum CONNECTION_STATUS {
     IDLE = "idle",
     SUCCESS = "success",
@@ -67,16 +69,20 @@ const Sidebar: FC<SidebarProps> = ({
     selectedNetwork,
     setSelectedNetwork,
 }) => {
-    const [customURLInput, setCustomURLInput] = useState<string>(customURLLocalStorage || "")
+    // Get default URL from the environment store.
+    const {backendNeuroSanApiUrl} = useEnvironmentStore()
+    const [urlInput, setUrlInput] = useState<string>(customURLLocalStorage || backendNeuroSanApiUrl)
     const [connectionStatus, setConnectionStatus] = useState<CONNECTION_STATUS>(CONNECTION_STATUS.IDLE)
     const [testConnectionResult, setTestConnectionResult] = useState<TestConnectionResult | null>(null)
     const connectionStatusSuccess = connectionStatus === CONNECTION_STATUS.SUCCESS
     const connectionStatusError = connectionStatus === CONNECTION_STATUS.ERROR
-    const saveEnabled = customURLInput && connectionStatusSuccess
+    const isDefaultUrl = urlInput === backendNeuroSanApiUrl
+    // Enable the Save button if the URL input is not empty and the connection status is successful,
+    // OR if the URL input is the default URL and connection status is not error
+    const saveEnabled = urlInput && (connectionStatusSuccess || (isDefaultUrl && !connectionStatusError))
     const selectedNetworkRef = useRef<HTMLDivElement | null>(null)
     const [settingsAnchorEl, setSettingsAnchorEl] = useState<HTMLButtonElement | null>(null)
     const settingsPopoverOpen = Boolean(settingsAnchorEl)
-    const {backendNeuroSanApiUrl} = useEnvironmentStore()
 
     const handleSettingsClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
         // On open of Settings popover, reset the connection status to idle
@@ -86,27 +92,27 @@ const Sidebar: FC<SidebarProps> = ({
 
     const handleSettingsClose = (cancel: boolean = false) => {
         setSettingsAnchorEl(null)
-        // If the user cancels, reset the custom URL input to the local storage value, or blank
+        // If the user cancels, reset the custom URL input to the local storage value, or the default URL
         if (cancel) {
-            setCustomURLInput(customURLLocalStorage || "")
+            setUrlInput(customURLLocalStorage || backendNeuroSanApiUrl)
         }
     }
 
     const handleURLChange = (event: ReactChangeEvent<HTMLInputElement>) => {
-        setCustomURLInput(event.target.value)
+        setUrlInput(event.target.value)
+        // Reset connection check since URL input was changed
+        setConnectionStatus(CONNECTION_STATUS.IDLE)
     }
 
-    const handleResetSettings = () => {
+    const handleDefaultSettings = () => {
         // Clear input but don't close the popover
-        setCustomURLInput("")
-        customURLCallback("")
+        setUrlInput(backendNeuroSanApiUrl)
+        // Reset connection check since URL input was cleared
         setConnectionStatus(CONNECTION_STATUS.IDLE)
-        // Call setSelectedNetwork(null) otherwise it can cause issues when switching agent networks (i.e. for Reset)
-        setSelectedNetwork(null)
     }
 
     const handleSaveSettings = () => {
-        let tempUrl = customURLInput
+        let tempUrl = urlInput
         if (tempUrl.endsWith("/")) {
             tempUrl = tempUrl.slice(0, -1)
         }
@@ -126,13 +132,18 @@ const Sidebar: FC<SidebarProps> = ({
     }
 
     const handleTestConnection = async () => {
-        const result: TestConnectionResult = await testConnection(customURLInput)
+        const result: TestConnectionResult = await testConnection(urlInput)
         setTestConnectionResult(result)
         if (result.success) {
             setConnectionStatus(CONNECTION_STATUS.SUCCESS)
         } else {
             setConnectionStatus(CONNECTION_STATUS.ERROR)
         }
+    }
+
+    const handleClearInput = () => {
+        setUrlInput("")
+        setConnectionStatus(CONNECTION_STATUS.IDLE)
     }
 
     // Make sure selected network in the list is always in view
@@ -253,10 +264,35 @@ const Sidebar: FC<SidebarProps> = ({
                     sx={{marginBottom: "0.5rem", minWidth: "400px"}}
                     type="url"
                     variant="outlined"
-                    value={customURLInput}
+                    value={urlInput}
+                    slotProps={{
+                        input: {
+                            endAdornment:
+                                urlInput && urlInput !== backendNeuroSanApiUrl ? (
+                                    <InputAdornment
+                                        id="clear-input-adornment"
+                                        position="end"
+                                    >
+                                        <IconButton
+                                            id="clear-input-icon-button"
+                                            edge="end"
+                                            onClick={handleClearInput}
+                                            size="small"
+                                            aria-label="Clear input"
+                                        >
+                                            <ClearIcon
+                                                fontSize="small"
+                                                id="clear-input-icon"
+                                            />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ) : undefined,
+                        },
+                    }}
                 />
                 <PrimaryButton
-                    disabled={!customURLInput}
+                    // Disable "Test" if the URL input is empty
+                    disabled={!urlInput}
                     id="agent-network-settings-test-btn"
                     onClick={handleTestConnection}
                     variant="contained"
@@ -279,9 +315,8 @@ const Sidebar: FC<SidebarProps> = ({
                     Cancel
                 </PrimaryButton>
                 <Button
-                    disabled={!customURLInput}
                     id="agent-network-settings-default-btn"
-                    onClick={handleResetSettings}
+                    onClick={handleDefaultSettings}
                     sx={{
                         marginLeft: "0.35rem",
                         marginTop: "2px",
