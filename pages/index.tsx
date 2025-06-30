@@ -61,8 +61,9 @@ const HeaderLineOne = styled("h1")({
 })
 
 const LaunchButton = styled("div")({
-    background: "#26efe9",
+    background: "var(--bs-accent3-medium)",
     borderRadius: "1000px",
+    color: "var(--bs-primary)",
     display: "inline-block",
     fontWeight: "bold",
     fontSize: "1.25rem",
