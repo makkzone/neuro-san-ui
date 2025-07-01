@@ -1,5 +1,5 @@
 import {render, screen, waitFor} from "@testing-library/react"
-import {userEvent} from "@testing-library/user-event"
+import {default as userEvent, UserEvent} from "@testing-library/user-event"
 import {useSession} from "next-auth/react"
 import {SnackbarProvider} from "notistack"
 
@@ -43,6 +43,17 @@ jest.mock("../../controller/agent/Agent", () => ({
     ),
 }))
 
+// Mock ChatCommon component
+const chatCommonMock = jest.fn()
+
+// Mock ChatCommon to call the mock function with props
+jest.mock("../../components/AgentChat/ChatCommon", () => ({
+    ChatCommon: (props: Record<string, unknown>) => {
+        chatCommonMock(props)
+        return <div id="test-chat-common" />
+    },
+}))
+
 window.fetch = mockFetch({})
 
 const renderAgentNetworkPage = () =>
@@ -54,6 +65,8 @@ const renderAgentNetworkPage = () =>
 
 describe("Agent Network Page", () => {
     withStrictMocks()
+
+    let user: UserEvent
 
     beforeAll(() => {
         useEnvironmentStore.getState().setBackendNeuroSanApiUrl(NEURO_SAN_SERVER_URL)
@@ -77,16 +90,16 @@ describe("Agent Network Page", () => {
                 },
             ],
         })
+
+        user = userEvent.setup()
     })
 
     it("should render elements on the page and change the page on click of sidebar item", async () => {
-        const user = userEvent.setup()
         renderAgentNetworkPage()
 
-        // Ensure Math Guy (default network) elements are rendered.
-        // Should be 2 Math Guy items (1 in sidebar, 1 in chat window)
+        // Ensure Math Guy (default network) element is rendered.
         await waitFor(() => {
-            expect(screen.getAllByText(TEST_AGENT_MATH_GUY)).toHaveLength(2)
+            expect(screen.getAllByText(TEST_AGENT_MATH_GUY)).toHaveLength(1)
         })
 
         // Find sidebar. Will fail if <> 1 found
@@ -98,10 +111,20 @@ describe("Agent Network Page", () => {
         // Click Music Nerd sidebar item
         await user.click(musicNerdItem)
 
-        // Music Nerd is selected now. There should be a sidebar item and a chatbox item (2 items total)
+        // Music Nerd is selected now. Make sure we see it.
         await waitFor(() => {
-            expect(screen.getAllByText(TEST_AGENT_MUSIC_NERD)).toHaveLength(2)
+            expect(screen.getAllByText(TEST_AGENT_MUSIC_NERD)).toHaveLength(1)
         })
+
+        // Make sure the page rendered ChatCommon with expected props
+        expect(chatCommonMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                currentUser: MOCK_USER,
+                targetAgent: TEST_AGENT_MATH_GUY,
+                clearChatOnNewAgent: true,
+                neuroSanURL: NEURO_SAN_SERVER_URL,
+            })
+        )
     })
 
     it("should display error toast when an error occurs for getAgentNetworks", async () => {
