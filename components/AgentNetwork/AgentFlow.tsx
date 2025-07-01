@@ -193,11 +193,6 @@ const AgentFlow: FC<AgentFlowProps> = ({
 
     // Generate radial guides for the network to guide the eye in the radial layout
     const getRadialGuides = () => {
-        // If it's just Frontman, no need to draw guides
-        if (maxDepth === 0) {
-            return null
-        }
-
         const circles = Array.from({length: maxDepth}).map((_, i) => (
             // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
             <circle
@@ -360,6 +355,9 @@ const AgentFlow: FC<AgentFlowProps> = ({
         return isActive ? (darkMode ? "var(--bs-gray-dark)" : "var(--bs-gray-lighter)") : undefined
     }
 
+    // Only show radial guides if radial layout is selected, radial guides are enabled, and it's not just Frontman
+    const shouldShowRadialGuides = enableRadialGuides && layout === "radial" && maxDepth > 1
+
     return (
         <Box
             id={`${id}-outer-box`}
@@ -462,7 +460,7 @@ const AgentFlow: FC<AgentFlowProps> = ({
                         </span>
                     </Tooltip>
                 </Controls>
-                {enableRadialGuides && layout === "radial" ? getRadialGuides() : null}
+                {shouldShowRadialGuides ? getRadialGuides() : null}
             </ReactFlow>
         </Box>
     )

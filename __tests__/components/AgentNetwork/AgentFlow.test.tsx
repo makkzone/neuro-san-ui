@@ -160,6 +160,22 @@ describe("AgentFlow", () => {
         expect(nodes).toHaveLength(0)
     })
 
+    it("Should handle a Frontman-only network", async () => {
+        const {container} = render(
+            <ReactFlowProvider>
+                <AgentFlow
+                    id="test-flow-id"
+                    agentsInNetwork={[network[2]]}
+                    originInfo={[]}
+                    selectedNetwork={TEST_AGENT_MATH_GUY}
+                />
+            </ReactFlowProvider>
+        )
+
+        const nodes = container.getElementsByClassName("react-flow__node")
+        expect(nodes).toHaveLength(1)
+    })
+
     test.each(["radial", "linear"])("Should allow switching to %s layout", async (layout) => {
         const {container} = render(
             <ReactFlowProvider>
