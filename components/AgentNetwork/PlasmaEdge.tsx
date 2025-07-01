@@ -4,7 +4,7 @@ import {EdgeProps, getBezierPath} from "reactflow"
 function createFunnelParticleOnPath(
     pathEl: SVGPathElement,
     canvasOffset: {x: number; y: number},
-    baseProgress?: number
+    baseProgress: number
 ) {
     // Prettier and ESlint conflict over this
     // eslint-disable-next-line newline-per-chained-call
