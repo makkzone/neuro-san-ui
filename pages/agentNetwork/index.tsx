@@ -1,10 +1,11 @@
 import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
 import Grid from "@mui/material/Grid2"
 import Grow from "@mui/material/Grow"
 import {useEffect, useRef, useState} from "react"
 import {ReactFlowProvider} from "reactflow"
 
-import {ChatCommon} from "../../components/AgentChat/ChatCommon"
+import {ChatCommon, ChatCommonHandle} from "../../components/AgentChat/ChatCommon"
 import {chatMessageFromChunk, cleanUpAgentName} from "../../components/AgentChat/Utils"
 import AgentFlow from "../../components/AgentNetwork/AgentFlow"
 import Sidebar from "../../components/AgentNetwork/Sidebar"
@@ -55,6 +56,14 @@ export default function AgentNetworkPage() {
         setCustomURLLocalStorage(url === "" ? null : url)
     }
 
+    // Reference to the ChatCommon component to allow external stop button to call its handleStop method
+    const chatRef = useRef<ChatCommonHandle>(null)
+
+    // Handle external stop button click during zen mode
+    const handleExternalStop = () => {
+        chatRef.current?.handleStop()
+    }
+
     useEffect(() => {
         async function getNetworks() {
             try {
@@ -101,6 +110,19 @@ export default function AgentNetworkPage() {
             }
         })()
     }, [neuroSanURL, selectedNetwork])
+
+    // Set up handler to allow Escape key to stop the interaction with the LLM.
+    useEffect(() => {
+        if (!isAwaitingLlm) return undefined
+
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                handleExternalStop()
+            }
+        }
+        window.addEventListener("keydown", onKeyDown)
+        return () => window.removeEventListener("keydown", onKeyDown)
+    }, [isAwaitingLlm, handleExternalStop])
 
     const onChunkReceived = (chunk: string) => {
         // Obtain origin info if present
@@ -187,7 +209,8 @@ export default function AgentNetworkPage() {
             >
                 {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
                 <ReactFlowProvider>
-                    <Box // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                    <Box
+                        id="multi-agent-accelerator-agent-flow-container"
                         sx={{
                             display: "flex",
                             justifyContent: "center",
@@ -216,20 +239,13 @@ export default function AgentNetworkPage() {
             >
                 <Grid
                     id="multi-agent-accelerator-grid-agent-chat-common"
-                    // Shrink size when awaiting LLM response, but still need to set it to a small value so that the
-                    // Stop button is visible
-                    size={isAwaitingLlm ? 0.75 : 6.5}
+                    size={6.5}
                     sx={{
                         height: "100%",
-                        // For some reason an opacity is being set on this, and that needs to be overridden
-                        opacity: isAwaitingLlm ? "100% !important" : null,
-                        // Override transform otherwise Stop button will shrink
-                        transform: isAwaitingLlm ? "none !important" : null,
-                        // To show the Stop button while awaiting LLM response, set parent to hidden visibility
-                        visibility: isAwaitingLlm ? "hidden" : null,
                     }}
                 >
                     <ChatCommon
+                        ref={chatRef}
                         neuroSanURL={neuroSanURL}
                         id="agent-network-ui"
                         currentUser={userName}
@@ -245,6 +261,20 @@ export default function AgentNetworkPage() {
                     />
                 </Grid>
             </Grow>
+            {isAwaitingLlm && (
+                <Box
+                    id="stop-button-container"
+                    sx={{position: "absolute", bottom: "1rem", right: "1rem", zIndex: 10}}
+                >
+                    <Button
+                        variant="contained"
+                        color="error"
+                        onClick={handleExternalStop}
+                    >
+                        Stop
+                    </Button>
+                </Box>
+            )}
         </Grid>
     )
 }

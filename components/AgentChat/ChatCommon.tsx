@@ -18,12 +18,13 @@ import {
     cloneElement,
     CSSProperties,
     Dispatch,
-    FC,
+    forwardRef,
     isValidElement,
     ReactElement,
     ReactNode,
     SetStateAction,
     useEffect,
+    useImperativeHandle,
     useRef,
     useState,
 } from "react"
@@ -173,32 +174,44 @@ const EMPTY = {}
 // Avatar to use for agents in chat
 const AGENT_IMAGE = "/agent.svg"
 
+// Type for forward ref to expose the handleStop function
+export type ChatCommonHandle = {
+    handleStop: () => void
+}
+
 /**
  * Common chat component for agent chat. This component is used by all agent chat components to provide a consistent
  * experience for users when chatting with agents. It handles user input as well as displaying and nicely formatting
  * agent responses. Customization for inputs and outputs is provided via event handlers-like props.
  */
-export const ChatCommon: FC<ChatCommonProps> = ({
-    id,
-    currentUser,
-    userImage,
-    setIsAwaitingLlm,
-    isAwaitingLlm,
-    onChunkReceived,
-    onStreamingStarted,
-    onStreamingComplete,
-    onSend,
-    setPreviousResponse,
-    targetAgent,
-    legacyAgentEndpoint,
-    agentPlaceholders = EMPTY,
-    clearChatOnNewAgent = false,
-    extraParams,
-    backgroundColor,
-    title,
-    onClose,
-    neuroSanURL,
-}) => {
+export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, ref) => {
+    const {
+        id,
+        currentUser,
+        userImage,
+        setIsAwaitingLlm,
+        isAwaitingLlm,
+        onChunkReceived,
+        onStreamingStarted,
+        onStreamingComplete,
+        onSend,
+        setPreviousResponse,
+        targetAgent,
+        legacyAgentEndpoint,
+        agentPlaceholders = EMPTY,
+        clearChatOnNewAgent = false,
+        extraParams,
+        backgroundColor,
+        title,
+        onClose,
+        neuroSanURL,
+    } = props
+
+    // Expose the handleStop method to parent components via ref for external control (e.g., to cancel chat requests)
+    useImperativeHandle(ref, () => ({
+        handleStop,
+    }))
+
     // User LLM chat input
     const [chatInput, setChatInput] = useState<string>("")
 
@@ -1063,7 +1076,6 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-primary)",
                         borderTopLeftRadius: "var(--bs-border-radius)",
                         borderTopRightRadius: "var(--bs-border-radius)",
-                        color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
                         display: "flex",
                         justifyContent: "space-between",
                         paddingLeft: "1rem",
@@ -1219,21 +1231,12 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                     handleSend={handleSend}
                     handleStop={handleStop}
                     previousUserQuery={previousUserQuery}
-                    repositionStopBtnWhileAwaitingLlm={!legacyAgentEndpoint}
                     shouldEnableRegenerateButton={shouldEnableRegenerateButton}
                 />
             </Box>
             <Box
                 id="user-input-div"
-                style={{
-                    ...divStyle,
-                    alignItems: "center",
-                    // Display "none" when awaiting LLM response for MAA UI (should revise for other chat
-                    // implementations)
-                    display: !legacyAgentEndpoint && isAwaitingLlm ? "none" : "flex",
-                    margin: "10px",
-                    position: "relative",
-                }}
+                style={{...divStyle, display: "flex", margin: "10px", alignItems: "center", position: "relative"}}
             >
                 <Input
                     autoComplete="off"
@@ -1299,4 +1302,8 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             </Box>
         </Box>
     )
-}
+})
+
+// Set a useful display name for the component for debugging purposes. We have to do it here because we're using
+// forwardRef in the main definition.
+ChatCommon.displayName = "ChatCommon"

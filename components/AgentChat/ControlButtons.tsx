@@ -1,5 +1,6 @@
 import {DeleteOutline, Loop, StopCircle} from "@mui/icons-material"
 import {styled} from "@mui/material"
+import {FC} from "react"
 
 import {LlmChatButton} from "./LlmChatButton"
 
@@ -11,7 +12,6 @@ interface ControlButtonsProps {
     handleSend: (query: string) => void
     handleStop: () => void
     previousUserQuery: string
-    repositionStopBtnWhileAwaitingLlm?: boolean
     shouldEnableRegenerateButton: boolean
 }
 // #endregion: Types
@@ -27,14 +27,13 @@ const SmallLlmChatButton = styled(LlmChatButton)({
  * Generate the Control Buttons for a chat window.
  * @returns A fragment containing the Control Buttons.
  */
-export const ControlButtons: React.FC<ControlButtonsProps> = ({
+export const ControlButtons: FC<ControlButtonsProps> = ({
     clearChatOnClickCallback,
     enableClearChatButton,
     isAwaitingLlm,
     handleSend,
     handleStop,
     previousUserQuery,
-    repositionStopBtnWhileAwaitingLlm = false,
     shouldEnableRegenerateButton,
 }) => (
     <>
@@ -63,12 +62,8 @@ export const ControlButtons: React.FC<ControlButtonsProps> = ({
                 disabled={!isAwaitingLlm}
                 id="stop-output-button"
                 onClick={() => handleStop()}
-                // Custom bottom and right position values when awaiting LLM response for MAA UI (should revise for
-                // other chat implementations)
-                posBottom={repositionStopBtnWhileAwaitingLlm && isAwaitingLlm ? 0 : 8}
-                posRight={repositionStopBtnWhileAwaitingLlm && isAwaitingLlm ? 0 : 23}
-                // Set visibility to "visible" when awaiting LLM response to show the Stop button
-                sx={{visibility: repositionStopBtnWhileAwaitingLlm && isAwaitingLlm ? "visible" : "none"}}
+                posBottom={8}
+                posRight={23}
             >
                 <StopCircle
                     fontSize="small"
