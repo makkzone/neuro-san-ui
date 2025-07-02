@@ -3,13 +3,14 @@ import Typography from "@mui/material/Typography"
 import {FC} from "react"
 import {Handle, NodeProps, Position} from "reactflow"
 
-import {BACKGROUND_COLORS} from "./const"
+import {BACKGROUND_COLORS, BACKGROUND_COLORS_DARK_IDX, HEATMAP_COLORS} from "./const"
 import {Origin} from "../../generated/neuro-san/OpenAPITypes"
 
 export interface AgentNodeProps {
-    agentName: string
-    getOriginInfo: () => Origin[]
-    depth: number
+    readonly agentName: string
+    readonly getOriginInfo: () => Origin[]
+    readonly depth: number
+    readonly agentCounts?: Map<string, number>
 }
 
 // Node dimensions
@@ -23,7 +24,9 @@ export const NODE_WIDTH = 80
 export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentNodeProps>) => {
     // Unpack the node-specific data
     const data: AgentNodeProps = props.data
-    const {agentName, getOriginInfo, depth} = data
+    const {agentName, getOriginInfo, depth, agentCounts} = data
+
+    const maxAgentCount = agentCounts ? Math.max(...Array.from(agentCounts.values())) : 0
 
     // Unpack the node-specific id
     const agentId = props.id
@@ -35,16 +38,26 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
         .includes(agentId)
 
     let backgroundColor: string
+    let color: string
+    const isHeatmap = agentCounts?.size > 0 && maxAgentCount > 0
 
-    // There's no depth for linear layout, so we just use the first color for both layouts (radial and linear).
     if (isActiveAgent) {
         backgroundColor = "var(--bs-green)"
-    } else {
-        backgroundColor = BACKGROUND_COLORS[depth % BACKGROUND_COLORS.length]
-    }
+        color = "var(--bs-white)"
+    } else if (isHeatmap) {
+        const agentCount = agentCounts.has(agentId) ? agentCounts.get(agentId) : 0
 
-    // Text color varies based on if it's a layout that has depth or not (radial vs linear).
-    const color = depth === undefined ? (isActiveAgent ? "var(--bs-white)" : "var(--bs-primary)") : "var(--bs-white)"
+        // Calculate "heat" as a fraction of the times this agent was invoked compared to the maximum agent count.
+        const colorIndex = Math.floor((agentCount / maxAgentCount) * (HEATMAP_COLORS.length - 1))
+        backgroundColor = HEATMAP_COLORS[colorIndex]
+        const isDarkBackground = colorIndex >= BACKGROUND_COLORS_DARK_IDX
+        color = isDarkBackground ? "var(--bs-white)" : "var(--bs-dark)"
+    } else {
+        const colorIndex = depth % BACKGROUND_COLORS.length
+        backgroundColor = BACKGROUND_COLORS[colorIndex]
+        const isDarkBackground = colorIndex >= BACKGROUND_COLORS_DARK_IDX
+        color = isDarkBackground ? "var(--bs-white)" : "var(--bs-dark)"
+    }
 
     // Animation style for making active agent glow and pulse
     // TODO: more idiomatic MUI/style= way of doing this?
@@ -55,6 +68,7 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
             100% { box-shadow: 0 0 10px 4px ${backgroundColor}; opacity: 1.0; }
         }`
         : "none"
+    const boxShadow = isActiveAgent ? "0 0 30px 12px var(--bs-primary), 0 0 60px 24px var(--bs-primary)" : undefined
 
     const boxShadow = isActiveAgent ? "0 0 30px 12px var(--bs-primary), 0 0 60px 24px var(--bs-primary)" : undefined
 
@@ -67,6 +81,7 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                     animation: isActiveAgent ? "glow 2.0s infinite" : "none",
                     backgroundColor,
                     borderRadius: "50%",
+                    // no border
                     boxShadow,
                     color,
                     display: "flex",

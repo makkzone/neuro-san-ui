@@ -6,6 +6,7 @@ import {FC, useState} from "react"
 import {ALL_BUILD_TARGET} from "../../const"
 import {CHATBOT_ENDPOINT} from "../../controller/llm/endpoints"
 import useEnvironmentStore from "../../state/environment"
+import {usePreferences} from "../../state/Preferences"
 import {useAuthentication} from "../../utils/Authentication"
 import {ZIndexLayers} from "../../utils/zIndexLayers"
 import {ChatCommon} from "../AgentChat/ChatCommon"
@@ -38,6 +39,10 @@ export const ChatBot: FC<ChatBotProps> = ({id, userAvatar, pageContext}) => {
         user: {name: currentUser},
     } = useAuthentication().data
     const {buildTarget} = useEnvironmentStore()
+    const {darkMode} = usePreferences()
+
+    // Shadow color for icon. TODO: use MUI theme system instead.
+    const shadowColor = darkMode ? "255, 255, 255" : "0, 0, 0"
 
     return (
         buildTarget === ALL_BUILD_TARGET && (
@@ -57,11 +62,11 @@ export const ChatBot: FC<ChatBotProps> = ({id, userAvatar, pageContext}) => {
                             right: "2rem",
                             height: "60%",
                             maxWidth: 400,
-                            background: "var(--bs-white)",
-                            boxShadow: "0 0px 2px 0 rgba(0, 0, 0, 0.15)",
+                            background: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
+                            boxShadow: `0 0px 2px 0 rgba(${shadowColor}, 0.15)`,
                             borderRadius: "var(--bs-border-radius)",
                             borderWidth: 1,
-                            borderColor: "var(--bs-gray-light)",
+                            borderColor: darkMode ? "var(--bs-white)" : "var(--bs-gray-light)",
                             zIndex: ZIndexLayers.LAYER_2,
                         }}
                     >
@@ -74,7 +79,7 @@ export const ChatBot: FC<ChatBotProps> = ({id, userAvatar, pageContext}) => {
                             userImage={userAvatar}
                             legacyAgentEndpoint={CHATBOT_ENDPOINT}
                             extraParams={{pageContext}}
-                            backgroundColor="var(--bs-tertiary-blue)"
+                            backgroundColor={darkMode ? "var(--bs-gray-dark)" : "var(--bs-tertiary-blue)"}
                             title="Cognizant Neuro AI Assistant"
                             onClose={() => setChatOpen(false)}
                         />
@@ -86,10 +91,16 @@ export const ChatBot: FC<ChatBotProps> = ({id, userAvatar, pageContext}) => {
                         sx={{
                             display: "flex",
                             alignItems: "center",
-                            backgroundColor: "var(--bs-white)",
+                            backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
                             borderRadius: "50%",
                             bottom: 16,
-                            boxShadow: 4,
+                            // For now mimic MUI's default box shadow but change color based on dark mode.
+                            // Eventually we should use MUI's theme system.
+                            boxShadow: `
+                              0px 2px 4px -1px rgba(${shadowColor}, 0.2),
+                              0px 4px 5px 0px rgba(${shadowColor}, 0.14),
+                              0px 1px 10px 0px rgba(${shadowColor}, 0.12)
+                            `,
                             cursor: "pointer",
                             height: 40,
                             justifyContent: "center",

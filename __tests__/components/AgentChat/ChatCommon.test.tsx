@@ -8,31 +8,21 @@ import {sendChatQuery} from "../../../controller/agent/Agent"
 import {sendLlmRequest} from "../../../controller/llm/LlmChat"
 import {ChatMessageType} from "../../../generated/neuro-san/NeuroSanClient"
 import {ChatContext, ChatMessage, ChatResponse} from "../../../generated/neuro-san/OpenAPITypes"
+import {usePreferences} from "../../../state/Preferences"
 import {withStrictMocks} from "../../common/strictMocks"
 
 // Mock agent API
-jest.mock("../../../controller/agent/Agent", () => ({
-    getAgentFunction: () => ({
-        function: {description: "Hello, I am the Hello World agent", parameters: []},
-    }),
-    getConnectivity: () => ({
-        connectivityInfo: [
-            {
-                origin: "testOrigin",
-                tools: ["testTool"],
-            },
-        ],
-    }),
-    sendChatQuery: jest.fn(),
-}))
+jest.mock("../../../controller/agent/Agent")
 
 // Mock llm_chat API
-jest.mock("../../../controller/llm/LlmChat", () => ({
-    sendLlmRequest: jest.fn(),
-}))
+jest.mock("../../../controller/llm/LlmChat")
 
 // Don't want to send user notifications during tests so mock this
 jest.mock("../../../components/Common/notification")
+
+// Mock Preferences state
+jest.mock("../../../state/Preferences")
+const mockedUsePreferences = jest.mocked(usePreferences, {shallow: true})
 
 const TEST_USER = "testUser"
 const TEST_AGENT_MATH_GUY = "Math Guy"
@@ -81,6 +71,7 @@ describe("ChatCommon", () => {
 
     beforeEach(() => {
         user = userEvent.setup()
+        mockedUsePreferences.mockReturnValue({darkMode: false, toggleDarkMode: jest.fn()})
     })
 
     async function sendQuery(agent: CombinedAgentType, query: string) {
@@ -99,8 +90,15 @@ describe("ChatCommon", () => {
         await user.click(sendButton)
     }
 
-    it("Should render correctly", async () => {
-        renderChatCommonComponent()
+    it.each([false, true])("Should render correctly with darkMode=%s", async (darkMode) => {
+        mockedUsePreferences.mockReturnValue({darkMode, toggleDarkMode: jest.fn()})
+        const overrides = {id: darkMode ? "dark-mode" : "light-mode"}
+        renderChatCommonComponent(overrides)
+
+        // Make sure the id reflects the dark mode state
+        await waitFor(() => {
+            expect(document.querySelector(`#llm-chat-${overrides.id}`)).toBeInTheDocument()
+        })
 
         expect(await screen.findByText(TEST_AGENT_MATH_GUY)).toBeInTheDocument()
 

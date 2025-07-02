@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box"
 import Grid from "@mui/material/Grid2"
 import Grow from "@mui/material/Grow"
-import {useEffect, useState} from "react"
+import {useEffect, useRef, useState} from "react"
 import {ReactFlowProvider} from "reactflow"
 
 import {ChatCommon} from "../../components/AgentChat/ChatCommon"
@@ -44,6 +44,8 @@ export default function AgentNetworkPage() {
     const [neuroSanURL, setNeuroSanURL] = useState<string>(
         customURLLocalStorage?.replaceAll('"', "") || backendNeuroSanApiUrl
     )
+
+    const agentCountsRef = useRef<Map<string, number>>(new Map<string, number>())
 
     // Dark mode
     const {darkMode} = usePreferences()
@@ -105,9 +107,24 @@ export default function AgentNetworkPage() {
         const chatMessage = chatMessageFromChunk(chunk)
         if (chatMessage && chatMessage.origin?.length > 0) {
             setOriginInfo([...chatMessage.origin])
+
+            // Update agent counts.
+            // Note: we increment an agent's count each time it appears in the origin info, but another strategy would
+            // be to only count an agent when it is the "end destination" of the chain. Needs some thought to determine
+            // which is more useful.
+            const agentCounts = agentCountsRef.current
+            for (const agent of chatMessage.origin) {
+                // If the agent is not already in the counts map, initialize it to 0 aka "upsert"
+                agentCounts.set(agent.tool, (agentCounts.get(agent.tool) || 0) + 1)
+            }
         }
 
         return true
+    }
+
+    const onStreamingStarted = (): void => {
+        // reset agent counts when a new streaming starts
+        agentCountsRef.current = new Map<string, number>()
     }
 
     const onStreamingComplete = (): void => {
@@ -186,7 +203,7 @@ export default function AgentNetworkPage() {
                             id="multi-agent-accelerator-agent-flow"
                             originInfo={originInfo}
                             selectedNetwork={selectedNetwork}
-                            isAwaitingLlm={isAwaitingLlm}
+                            agentCounts={agentCountsRef.current}
                         />
                     </Box>
                 </ReactFlowProvider>
@@ -221,6 +238,7 @@ export default function AgentNetworkPage() {
                         targetAgent={selectedNetwork}
                         onChunkReceived={onChunkReceived}
                         onStreamingComplete={onStreamingComplete}
+                        onStreamingStarted={onStreamingStarted}
                         clearChatOnNewAgent={true}
                         backgroundColor={darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-secondary-blue)"}
                     />

@@ -7,7 +7,6 @@ import Typography from "@mui/material/Typography"
 import {FC, ReactNode, SyntheticEvent, useCallback, useState} from "react"
 
 import {usePreferences} from "../../state/Preferences"
-
 // #region: Styled Components
 const Accordion = styled((props: AccordionProps) => (
     <MuiAccordion
@@ -77,7 +76,6 @@ export const MUIAccordion: FC<MUIAccordionProps> = ({
 }) => {
     // Dark mode
     const {darkMode} = usePreferences()
-
     const [expandedList, setExpandedList] = useState<number[]>(defaultExpandedPanelKey ? [defaultExpandedPanelKey] : [])
 
     const handleChange = useCallback(

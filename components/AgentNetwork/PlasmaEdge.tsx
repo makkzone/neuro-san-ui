@@ -4,18 +4,17 @@ import {EdgeProps, getBezierPath} from "reactflow"
 function createFunnelParticleOnPath(
     pathEl: SVGPathElement,
     canvasOffset: {x: number; y: number},
-    baseProgress?: number
+    baseProgress: number
 ) {
     // Prettier and ESlint conflict over this
     // eslint-disable-next-line newline-per-chained-call
     const green = getComputedStyle(document.documentElement).getPropertyValue("--bs-green").trim()
     const totalLength = pathEl.getTotalLength()
-    const progressStart = baseProgress !== undefined ? baseProgress : Math.random() * 0.05
     const speed = 0.02 + Math.random() * 0.003
     const life = 100
     const initialLife = life
 
-    let progress = progressStart
+    let progress = baseProgress
     let oscAngle = Math.random() * Math.PI * 2
     const oscSpeed = 0.1 + Math.random() * 0.05
     const maxAmp = 16 + Math.random() * 8
@@ -32,8 +31,6 @@ function createFunnelParticleOnPath(
     }
 
     const draw = (ctx: CanvasRenderingContext2D) => {
-        if (!basePoint) return
-
         const t = progress
         const taper = Math.max(0.75, 1 - t)
         const amp = maxAmp * taper
@@ -64,7 +61,7 @@ function createFunnelParticleOnPath(
         ctx.restore()
     }
 
-    const isAlive = () => remainingLife > 0
+    const isAlive = () => progress * totalLength < totalLength * 0.98
     return {update, draw, isAlive}
 }
 

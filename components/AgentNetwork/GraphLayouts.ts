@@ -57,7 +57,8 @@ const getFrontman = (parentAgents: ConnectivityInfo[], childAgents: Set<string>)
 
 export const layoutRadial = (
     agentsInNetwork: ConnectivityInfo[],
-    getOriginInfo: () => Origin[]
+    getOriginInfo: () => Origin[],
+    agentCounts: Map<string, number>
 ): {
     nodes: RFNode<AgentNodeProps>[]
     edges: Edge<EdgeProps>[]
@@ -145,6 +146,7 @@ export const layoutRadial = (
                     agentName: cleanUpAgentName(nodeId),
                     getOriginInfo,
                     depth,
+                    agentCounts,
                 },
                 position: isFrontman ? {x: centerX, y: centerY} : {x, y},
                 style: {
@@ -163,7 +165,8 @@ export const layoutRadial = (
 
 export const layoutLinear = (
     agentsInNetwork: ConnectivityInfo[],
-    getOriginInfo: () => Origin[]
+    getOriginInfo: () => Origin[],
+    agentCounts: Map<string, number>
 ): {
     nodes: RFNode<AgentNodeProps>[]
     edges: Edge<EdgeProps>[]
@@ -185,6 +188,7 @@ export const layoutLinear = (
             data: {
                 agentName: cleanUpAgentName(originOfNode),
                 getOriginInfo,
+                agentCounts,
             },
             position: isFrontman ? {x: DEFAULT_FRONTMAN_X_POS, y: DEFAULT_FRONTMAN_Y_POS} : {x: 0, y: 0},
             style: {

@@ -14,9 +14,10 @@ describe("AgentNode", () => {
 
     it("Should render correctly", async () => {
         const agentName = "Test Agent"
+        const agentId = "testNode"
         render(
             <AgentNode
-                id="testNode"
+                id={agentId}
                 type="test"
                 selected={false}
                 zIndex={0}
@@ -28,6 +29,7 @@ describe("AgentNode", () => {
                     agentName,
                     getOriginInfo: () => [],
                     depth: 1,
+                    agentCounts: new Map([[agentId, 42]]),
                 }}
             />
         )
@@ -68,11 +70,8 @@ describe("AgentNode", () => {
         const parentDiv = pElement.closest("div")
         expect(parentDiv).toBeInTheDocument()
 
-        // quirk of testing: since we have disabled css modules, we can't test for the actual color.
-        // Frontman uses a color from the globals.css stylesheet which isn't available to jest, so it will manifest as
-        // no background-color attribute.
         const style = window.getComputedStyle(parentDiv)
-        expect(style.backgroundColor).toBe("")
+        expect(style.backgroundColor).toBe("rgb(158, 202, 225)")
     })
 
     it("Should render animation if active agent", async () => {

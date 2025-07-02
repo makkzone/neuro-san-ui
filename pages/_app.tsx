@@ -11,7 +11,7 @@ import Head from "next/head"
 import {useRouter} from "next/router"
 import {SessionProvider} from "next-auth/react"
 import {SnackbarProvider} from "notistack"
-import {ReactElement, ReactFragment, useEffect} from "react"
+import {ReactElement, ReactFragment, useEffect, useMemo} from "react"
 
 import {Auth} from "../components/Authentication/auth"
 import {ChatBot} from "../components/ChatBot/ChatBot"
@@ -71,20 +71,24 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
     // Dark mode
     const {darkMode} = usePreferences()
 
-    const theme = createTheme({
-        ...APP_THEME,
-        palette: {
-            ...APP_THEME.palette,
-            mode: darkMode ? "dark" : "light",
-            background: {
-                default: darkMode ? BRAND_COLORS["bs-dark-mode-dim"] : BRAND_COLORS["bs-white"],
-            },
-            text: {
-                primary: darkMode ? BRAND_COLORS["bs-white"] : BRAND_COLORS["bs-primary"],
-                secondary: darkMode ? BRAND_COLORS["bs-gray-light"] : BRAND_COLORS["bs-gray-medium-dark"],
-            },
-        },
-    })
+    const theme = useMemo(
+        () =>
+            createTheme({
+                ...APP_THEME,
+                palette: {
+                    ...APP_THEME.palette,
+                    mode: darkMode ? "dark" : "light",
+                    background: {
+                        default: darkMode ? BRAND_COLORS["bs-dark-mode-dim"] : BRAND_COLORS["bs-white"],
+                    },
+                    text: {
+                        primary: darkMode ? BRAND_COLORS["bs-white"] : BRAND_COLORS["bs-primary"],
+                        secondary: darkMode ? BRAND_COLORS["bs-gray-light"] : BRAND_COLORS["bs-gray-medium-dark"],
+                    },
+                },
+            }),
+        [darkMode]
+    )
 
     useEffect(() => {
         async function getEnvironment() {
@@ -156,6 +160,7 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
     }, [])
 
     let body: JSX.Element | ReactFragment
+
     /**
      * Gets the outer container of the app.
      * This is a transition function to allow a smooth migration to ALB authentication. For now, this function

@@ -9,11 +9,21 @@ export const LEVEL_SPACING = 100
 
 // Palette for progressive coloring of nodes based on depth
 export const BACKGROUND_COLORS = [
-    "var(--bs-accent3-light)",
-    "var(--bs-accent2-dark)",
-    "var(--bs-accent1-dark)",
-    "var(--bs-primary)",
-    "var(--bs-dark)",
-    "var(--bs-black)",
-    "var(--bs-info)",
+    "#f7fbff",
+    "#deebf7",
+    "#c6dbef",
+    "#9ecae1",
+    "#6baed6",
+    "#4292c6",
+    "#2171b5",
+    "#08519c",
+    "#08306b",
+    "#041c45",
 ]
+
+// Zero-based index of the one where colors start to get dark. Used for displaying contrasting text colors.
+export const BACKGROUND_COLORS_DARK_IDX = 6 // Somewhat subjective
+
+// Palette for heatmap coloring of nodes
+// For now, use same palette as background colors
+export const HEATMAP_COLORS = BACKGROUND_COLORS

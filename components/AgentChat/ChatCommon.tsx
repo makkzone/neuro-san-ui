@@ -110,6 +110,11 @@ interface ChatCommonProps {
     readonly onChunkReceived?: (chunk: string) => boolean
 
     /**
+     * Will be called when the streaming is started, before any chunks are received.
+     */
+    readonly onStreamingStarted?: () => void
+
+    /**
      * Will be called when the streaming is complete, whatever the reason for termination (normal or error)
      */
     readonly onStreamingComplete?: () => void
@@ -143,7 +148,7 @@ interface ChatCommonProps {
     readonly extraParams?: Record<string, unknown>
 
     /**
-     * Background color for the chat window. Defaults to white. Helps when there are multiple chats on a single page.
+     * Background color for the chat window. Helps when there are multiple chats on a single page.
      */
     readonly backgroundColor?: string
 
@@ -180,6 +185,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     setIsAwaitingLlm,
     isAwaitingLlm,
     onChunkReceived,
+    onStreamingStarted,
     onStreamingComplete,
     onSend,
     setPreviousResponse,
@@ -269,11 +275,15 @@ export const ChatCommon: FC<ChatCommonProps> = ({
     // Keeps track of whether the agent completed its task
     const succeeded = useRef<boolean>(false)
 
-    // Dark mode
     const {darkMode} = usePreferences()
 
-    const {atelierDuneDark, a11yLight} = HLJS_THEMES
+    // Temporary styling for implementation of dark mode
+    const darkModeStyling = {
+        backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
+        color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
+    }
 
+    const {atelierDuneDark, a11yLight} = HLJS_THEMES
     // Hide/show existing accordions based on showThinking state
     useEffect(() => {
         setChatOutput((currentOutput) =>
@@ -284,8 +294,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                         sx: {
                             ...item.props.sx,
                             display: showThinking || item.key === finalAnswerKey?.current ? "block" : "none",
-                            backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
-                            color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
+                            ...darkModeStyling,
                         },
                     })
                 }
@@ -957,6 +966,9 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             />
         )
 
+        // Allow clients to do something when streaming starts
+        onStreamingStarted?.()
+
         // Set up the abort controller
         controller.current = new AbortController()
         setIsAwaitingLlm(true)
@@ -1048,7 +1060,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                     id={`llm-chat-title-container-${id}`}
                     sx={{
                         alignItems: "center",
-                        backgroundColor,
+                        backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-primary)",
                         borderTopLeftRadius: "var(--bs-border-radius)",
                         borderTopRightRadius: "var(--bs-border-radius)",
                         color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
@@ -1062,7 +1074,7 @@ export const ChatCommon: FC<ChatCommonProps> = ({
                 >
                     <Typography
                         id={`llm-chat-title-${id}-text`}
-                        sx={{fontSize: "0.9rem"}}
+                        sx={{fontSize: "0.9rem", color: "var(--bs-white)"}}
                     >
                         {title}
                     </Typography>

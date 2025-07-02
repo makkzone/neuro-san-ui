@@ -85,7 +85,6 @@ function Navbar(props: NavbarProps): ReactElement {
         // Indicate that the component has been hydrated
         setHydrated(true)
     }, [])
-
     async function handleSignOut() {
         // Clear our state storage variables
         setCurrentUser(undefined)

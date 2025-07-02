@@ -73,6 +73,27 @@ describe("AgentFlow", () => {
         verifyAgentNodes(container)
     })
 
+    it("Should allow switching to heatmap display", async () => {
+        render(
+            <ReactFlowProvider>
+                <AgentFlow
+                    id="test-flow-id"
+                    agentsInNetwork={network}
+                    originInfo={[{tool: "agent1", instantiation_index: 1}]}
+                    selectedNetwork={TEST_AGENT_MATH_GUY}
+                />
+            </ReactFlowProvider>
+        )
+
+        const heatmapButton = await screen.findByRole("button", {name: "Heatmap"})
+
+        // press the button to switch to heatmap mode
+        await user.click(heatmapButton)
+
+        // Legend should have switched to heatmap mode
+        await screen.findByText("Heat")
+    })
+
     it("Should handle highlighting the active agents", async () => {
         const {container, rerender} = render(
             <ReactFlowProvider>
@@ -135,6 +156,22 @@ describe("AgentFlow", () => {
 
         const nodes = container.getElementsByClassName("react-flow__node")
         expect(nodes).toHaveLength(0)
+    })
+
+    it("Should handle a Frontman-only network", async () => {
+        const {container} = render(
+            <ReactFlowProvider>
+                <AgentFlow
+                    id="test-flow-id"
+                    agentsInNetwork={[network[2]]}
+                    originInfo={[]}
+                    selectedNetwork={TEST_AGENT_MATH_GUY}
+                />
+            </ReactFlowProvider>
+        )
+
+        const nodes = container.getElementsByClassName("react-flow__node")
+        expect(nodes).toHaveLength(1)
     })
 
     test.each(["radial", "linear"])("Should allow switching to %s layout", async (layout) => {

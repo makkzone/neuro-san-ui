@@ -26,24 +26,37 @@ const insertTargetAgent = (agent: string, path: string) => {
     return path.replace(":agent_name", agent)
 }
 
+export interface TestConnectionResult {
+    readonly success: boolean
+    readonly status?: string
+    readonly version?: string
+}
+
 /**
  * Test connection for a neuro-san server.
  * @param url The neuro-san server URL.
  * @returns A boolean indicating whether the connection was successful.
  */
-export async function testConnection(url: string): Promise<boolean> {
+export async function testConnection(url: string): Promise<TestConnectionResult> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 2500) // 2.5s timeout
 
     try {
         const response = await fetch(url, {signal: controller.signal})
         if (!response.ok) {
-            return false
+            return {success: false, status: response.statusText}
         }
         const jsonResponse = await response.json()
-        return jsonResponse?.status === "healthy"
-    } catch {
-        return false
+        // eslint-disable-next-line no-shadow
+        const status = jsonResponse?.status
+        const success = status === "healthy"
+
+        // For now, just capture the Neuro-san version since that's all the server returns. More can be added later.
+        const version = jsonResponse?.versions?.["neuro-san"]
+        return {success, status, version}
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        return {success: false, status: errorMessage}
     } finally {
         clearTimeout(timeout)
     }
