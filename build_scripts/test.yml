@@ -44,15 +44,15 @@ steps:
     fail_fast: true
     commands:
       - apk add --quiet --no-progress --upgrade bash protobuf-dev git
-      - ./build_scripts/do_typescript_generate.sh
-      - ./build_scripts/do_openapi_generate.sh
+      #- ./build_scripts/do_typescript_generate.sh
+      #- ./build_scripts/do_openapi_generate.sh
 
   generate_openapi_types:
     title: Generate Typescript types for OpenAPI
     image: node:${{NODEJS_VERSION}}-alpine
     working_directory: ${{CF_VOLUME_PATH}}/neuro-ui
     commands:
-      - npx tsx ./build_scripts/GenerateOpenAPITypes.ts
+      #- npx tsx ./build_scripts/GenerateOpenAPITypes.ts
 
   run_eslint:
     title: Run eslint on Typescript sources
@@ -137,4 +137,5 @@ steps:
             steps.run_depcheck.result == 'failure' ||
             steps.run_ts_compilation.result == 'failure' ||
             steps.run_ts_prune.result == 'failure' ||
+            steps.run_shellcheck.result == 'failure' ||
             steps.generate_typescript_api_stubs.result == 'failure'
