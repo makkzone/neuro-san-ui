@@ -12,6 +12,7 @@ export interface AgentNodeProps {
     readonly getOriginInfo: () => Origin[]
     readonly depth: number
     readonly agentCounts?: Map<string, number>
+    readonly isAwaitingLlm?: boolean
 }
 
 // Node dimensions
@@ -25,7 +26,7 @@ export const NODE_WIDTH = 80
 export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentNodeProps>) => {
     // Unpack the node-specific data
     const data: AgentNodeProps = props.data
-    const {agentName, getOriginInfo, depth, agentCounts} = data
+    const {agentName, getOriginInfo, depth, agentCounts, isAwaitingLlm} = data
 
     const maxAgentCount = agentCounts ? Math.max(...Array.from(agentCounts.values())) : 0
 
@@ -99,11 +100,15 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                     id={`${agentId}-left-handle`}
                     position={Position.Left}
                     type="source"
+                    // Hide handles when awaiting LLM response ("zen mode")
+                    style={{display: isAwaitingLlm ? "none" : "block"}}
                 />
                 <Handle
                     id={`${agentId}-right-handle`}
                     position={Position.Right}
                     type="source"
+                    // Hide handles when awaiting LLM response ("zen mode")
+                    style={{display: isAwaitingLlm ? "none" : "block"}}
                 />
             </div>
             <Tooltip
@@ -116,11 +121,12 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                     id={`${agentId}-name`}
                     sx={{
                         display: "-webkit-box",
-                        fontSize: "11px",
+                        fontSize: "14px",
                         lineHeight: "1.2em",
                         maxHeight: "2.4em",
                         overflow: "hidden",
                         overflowWrap: "normal",
+                        position: "relative",
                         textAlign: "center",
                         textOverflow: "ellipsis",
                         WebkitBoxOrient: "vertical",
@@ -129,7 +135,6 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                         width: `${NODE_WIDTH}px`,
                         wordBreak: "normal",
                         zIndex: 10,
-                        position: "relative",
                     }}
                 >
                     {agentName}

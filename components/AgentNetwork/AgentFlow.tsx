@@ -15,7 +15,6 @@ import {
     Edge,
     EdgeProps,
     EdgeTypes,
-    MarkerType,
     NodeChange,
     ReactFlow,
     Node as RFNode,
@@ -103,7 +102,8 @@ const AgentFlow: FC<AgentFlowProps> = ({
                 const linearLayout = layoutLinear(
                     agentsInNetwork,
                     getOriginInfo,
-                    coloringOption === "heatmap" ? agentCounts : undefined
+                    coloringOption === "heatmap" ? agentCounts : undefined,
+                    isAwaitingLlm
                 )
                 linearLayout.nodes && setNodes(linearLayout.nodes)
                 linearLayout.edges && setEdges(linearLayout.edges)
@@ -114,7 +114,8 @@ const AgentFlow: FC<AgentFlowProps> = ({
                 const radialLayout = layoutRadial(
                     agentsInNetwork,
                     getOriginInfo,
-                    coloringOption === "heatmap" ? agentCounts : undefined
+                    coloringOption === "heatmap" ? agentCounts : undefined,
+                    isAwaitingLlm
                 )
                 radialLayout.nodes && setNodes(radialLayout.nodes)
                 radialLayout.edges && setEdges(radialLayout.edges)
@@ -151,14 +152,6 @@ const AgentFlow: FC<AgentFlowProps> = ({
                         // Hide edge between active nodes to avoid clashing with plasma animation
                         display: !isAwaitingLlm || originTools.includes(edge.target) ? "block" : "none",
                     },
-                    markerEnd: originTools.includes(edge.target)
-                        ? {
-                              type: MarkerType.Arrow,
-                              color: "darkblue", // var(--bs-primary) doesn't work here for some reason
-                              width: 15,
-                              height: 15,
-                          }
-                        : undefined,
                     type: originTools.includes(edge.target) ? "animatedEdge" : undefined,
                 }
             })
