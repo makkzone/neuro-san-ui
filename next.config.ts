@@ -86,6 +86,14 @@ const nextConfig: import("next").NextConfig = {
         ]
     },
 
+    redirects: async () => [
+        {
+            source: "/agentNetwork",
+            destination: "/multiAgentAccelerator",
+            permanent: true,
+        },
+    ],
+
     sassOptions: {
         includePaths: [path.join(__dirname, "styles")],
     },

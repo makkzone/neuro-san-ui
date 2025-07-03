@@ -10,6 +10,11 @@ const NeuroAIBreadcrumbs = () => {
     const pathname: string = usePathname()
     const urlPaths: string[] = pathname?.split("/").filter((path) => path !== "")
 
+    let pageName = startCase(urlPaths?.at(-1))
+    if (pageName === "Multi Agent Accelerator") {
+        pageName = "Multi-Agent Accelerator"
+    }
+
     return (
         <Grid
             id="nav-bar-breadcrumbs-row"
@@ -53,7 +58,7 @@ const NeuroAIBreadcrumbs = () => {
                         </Link>
                     )
                 })}
-                <Typography id="breadcrumb-link__current">{startCase(urlPaths?.at(-1))}</Typography>
+                <Typography id="breadcrumb-link__current">{pageName}</Typography>
             </Breadcrumbs>
         </Grid>
     )
