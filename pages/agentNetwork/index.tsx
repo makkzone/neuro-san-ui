@@ -1,5 +1,4 @@
 import {StopCircle} from "@mui/icons-material"
-import {styled} from "@mui/material"
 import Box from "@mui/material/Box"
 import Grid from "@mui/material/Grid2"
 import Grow from "@mui/material/Grow"
@@ -7,7 +6,7 @@ import {useEffect, useRef, useState} from "react"
 import {ReactFlowProvider} from "reactflow"
 
 import {ChatCommon, ChatCommonHandle} from "../../components/AgentChat/ChatCommon"
-import {LlmChatButton} from "../../components/AgentChat/LlmChatButton"
+import {SmallLlmChatButton} from "../../components/AgentChat/LlmChatButton"
 import {chatMessageFromChunk, cleanUpAgentName} from "../../components/AgentChat/Utils"
 import AgentFlow from "../../components/AgentNetwork/AgentFlow"
 import Sidebar from "../../components/AgentNetwork/Sidebar"
@@ -19,13 +18,6 @@ import {usePreferences} from "../../state/Preferences"
 import {useAuthentication} from "../../utils/Authentication"
 import {useLocalStorage} from "../../utils/use_local_storage"
 
-// #region: Styled Components
-const SmallLlmChatButton = styled(LlmChatButton)({
-    minWidth: 0,
-    padding: "0.25rem",
-})
-// #endregion: Styled Components
-
 // Main function.
 // Has to be export default for NextJS so tell ts-prune to ignore
 // ts-prune-ignore-next
@@ -36,7 +28,7 @@ export default function AgentNetworkPage() {
     } = useAuthentication().data
 
     // Stores whether are currently awaiting LLM response (for knowing when to show spinners)
-    const [isAwaitingLlm, setIsAwaitingLlm] = useState(false)
+    const [isAwaitingLlm, setIsAwaitingLlm] = useState(true)
 
     const [networks, setNetworks] = useState<string[]>([])
 
@@ -156,6 +148,8 @@ export default function AgentNetworkPage() {
     const onStreamingStarted = (): void => {
         // reset agent counts when a new streaming starts
         agentCountsRef.current = new Map<string, number>()
+
+        sendNotification(NotificationType.info, "Agents working", "Click the stop button or hit Escape to exit.")
     }
 
     const onStreamingComplete = (): void => {
@@ -274,7 +268,12 @@ export default function AgentNetworkPage() {
             {isAwaitingLlm && (
                 <Box
                     id="stop-button-container"
-                    sx={{position: "absolute", bottom: "1rem", right: "1rem", zIndex: 10}}
+                    sx={{
+                        position: "absolute",
+                        bottom: "1rem",
+                        right: "1rem",
+                        zIndex: 10,
+                    }}
                 >
                     <SmallLlmChatButton
                         aria-label="Stop"

@@ -1,8 +1,7 @@
 import {DeleteOutline, Loop, StopCircle} from "@mui/icons-material"
-import {styled} from "@mui/material"
 import {FC} from "react"
 
-import {LlmChatButton} from "./LlmChatButton"
+import {SmallLlmChatButton} from "./LlmChatButton"
 
 // #region: Types
 interface ControlButtonsProps {
@@ -15,13 +14,6 @@ interface ControlButtonsProps {
     shouldEnableRegenerateButton: boolean
 }
 // #endregion: Types
-
-// #region: Styled Components
-const SmallLlmChatButton = styled(LlmChatButton)({
-    minWidth: 0,
-    padding: "0.25rem",
-})
-// #endregion: Styled Components
 
 /**
  * Generate the Control Buttons for a chat window.
