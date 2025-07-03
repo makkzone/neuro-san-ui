@@ -1,7 +1,7 @@
-import {fireEvent, render, screen, waitFor} from "@testing-library/react"
+import {act, fireEvent, render, screen, waitFor} from "@testing-library/react"
 import {default as userEvent, UserEvent} from "@testing-library/user-event"
 
-import {ChatCommon} from "../../../components/AgentChat/ChatCommon"
+import {ChatCommon, ChatCommonHandle} from "../../../components/AgentChat/ChatCommon"
 import {AgentErrorProps, CombinedAgentType, LegacyAgentType} from "../../../components/AgentChat/Types"
 import {cleanUpAgentName} from "../../../components/AgentChat/Utils"
 import {sendChatQuery} from "../../../controller/agent/Agent"
@@ -10,6 +10,7 @@ import {ChatMessageType} from "../../../generated/neuro-san/NeuroSanClient"
 import {ChatContext, ChatMessage, ChatResponse} from "../../../generated/neuro-san/OpenAPITypes"
 import {usePreferences} from "../../../state/Preferences"
 import {withStrictMocks} from "../../common/strictMocks"
+import {createRef} from "react"
 
 // Mock agent API
 jest.mock("../../../controller/agent/Agent")
@@ -409,6 +410,23 @@ describe("ChatCommon", () => {
         expect(stopButton).toBeInTheDocument()
 
         await user.click(stopButton)
+        expect(await screen.findByText("Request cancelled.")).toBeInTheDocument()
+        expect(setAwaitingLlmMock).toHaveBeenCalledTimes(1)
+        expect(setAwaitingLlmMock).toHaveBeenCalledWith(false)
+    })
+
+    it("Should handle External Stop correctly", async () => {
+        const setAwaitingLlmMock = jest.fn()
+        const ref = createRef<ChatCommonHandle>()
+        renderChatCommonComponent({setIsAwaitingLlm: setAwaitingLlmMock, isAwaitingLlm: true, ref})
+
+        // Unusual case: need act() here because handleStop is not tied to any simulated event handler like a button
+        // click etc.
+        await act(async () => {
+            // Call the external stop handler directly
+            ref.current?.handleStop()
+        })
+
         expect(await screen.findByText("Request cancelled.")).toBeInTheDocument()
         expect(setAwaitingLlmMock).toHaveBeenCalledTimes(1)
         expect(setAwaitingLlmMock).toHaveBeenCalledWith(false)
