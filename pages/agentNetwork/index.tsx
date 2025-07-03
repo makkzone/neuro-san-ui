@@ -1,11 +1,13 @@
+import {StopCircle} from "@mui/icons-material"
+import {styled} from "@mui/material"
 import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
 import Grid from "@mui/material/Grid2"
 import Grow from "@mui/material/Grow"
 import {useEffect, useRef, useState} from "react"
 import {ReactFlowProvider} from "reactflow"
 
 import {ChatCommon, ChatCommonHandle} from "../../components/AgentChat/ChatCommon"
+import {LlmChatButton} from "../../components/AgentChat/LlmChatButton"
 import {chatMessageFromChunk, cleanUpAgentName} from "../../components/AgentChat/Utils"
 import AgentFlow from "../../components/AgentNetwork/AgentFlow"
 import Sidebar from "../../components/AgentNetwork/Sidebar"
@@ -16,6 +18,13 @@ import useEnvironmentStore from "../../state/environment"
 import {usePreferences} from "../../state/Preferences"
 import {useAuthentication} from "../../utils/Authentication"
 import {useLocalStorage} from "../../utils/use_local_storage"
+
+// #region: Styled Components
+const SmallLlmChatButton = styled(LlmChatButton)({
+    minWidth: 0,
+    padding: "0.25rem",
+})
+// #endregion: Styled Components
 
 // Main function.
 // Has to be export default for NextJS so tell ts-prune to ignore
@@ -170,6 +179,7 @@ export default function AgentNetworkPage() {
                 background: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
                 color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
                 justifyContent: isAwaitingLlm ? "center" : "unset",
+                position: "relative",
             }}
         >
             <Grow // eslint-disable-line enforce-ids-in-jsx/missing-ids
@@ -198,7 +208,7 @@ export default function AgentNetworkPage() {
 
             <Grid
                 id="multi-agent-accelerator-grid-agent-flow"
-                size={isAwaitingLlm ? undefined : 8.25}
+                size={isAwaitingLlm ? 18 : 8.25}
                 sx={{
                     height: "100%",
                     flexGrow: isAwaitingLlm ? 1 : 0,
@@ -266,13 +276,20 @@ export default function AgentNetworkPage() {
                     id="stop-button-container"
                     sx={{position: "absolute", bottom: "1rem", right: "1rem", zIndex: 10}}
                 >
-                    <Button
-                        variant="contained"
-                        color="error"
+                    <SmallLlmChatButton
+                        aria-label="Stop"
+                        disabled={!isAwaitingLlm}
+                        id="stop-output-button"
                         onClick={handleExternalStop}
+                        posBottom={8}
+                        posRight={23}
                     >
-                        Stop
-                    </Button>
+                        <StopCircle
+                            fontSize="small"
+                            id="stop-button-icon"
+                            sx={{color: "var(--bs-white)"}}
+                        />
+                    </SmallLlmChatButton>
                 </Box>
             )}
         </Grid>
