@@ -9,6 +9,7 @@ import {FaChevronRight} from "react-icons/fa6"
 const NeuroAIBreadcrumbs = () => {
     const pathname: string = usePathname()
     const urlPaths: string[] = pathname?.split("/").filter((path) => path !== "")
+    const pageName = startCase(urlPaths?.at(-1))
 
     return (
         <Grid
