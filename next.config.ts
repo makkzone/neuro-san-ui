@@ -86,6 +86,7 @@ const nextConfig: import("next").NextConfig = {
         ]
     },
 
+    // TODO: Remove this at some point
     redirects: async () => [
         {
             source: "/agentNetwork",
