@@ -182,7 +182,7 @@ export type ChatCommonHandle = {
 }
 
 // HACK: during migration to direct-to-Neuro-san path: Opp Finder pipeline is in the legacy
-// agent list but here we have the Neuro-san URL so we'll use it as a Neuro-san agent.
+// agent list but if we have the Neuro-san URL we'll use it as a Neuro-san agent and talk directly to Neuro-san.
 // But that means we have to lower case the name because that's what the server expects.
 // Ultimately: treat Opportunity Finder pipeline like any other Neuro-san agent once migration
 // is complete.
