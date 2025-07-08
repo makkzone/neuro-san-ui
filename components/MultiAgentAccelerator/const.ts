@@ -5,7 +5,7 @@ export const DEFAULT_FRONTMAN_Y_POS = 450
 export const BASE_RADIUS = 100
 
 // Distance between depth levels
-export const LEVEL_SPACING = 100
+export const LEVEL_SPACING = 150
 
 // Palette for progressive coloring of nodes based on depth
 export const BACKGROUND_COLORS = [

@@ -5,7 +5,7 @@ import dagre from "dagre"
 import {cloneDeep} from "lodash"
 import {Edge, EdgeProps, Node as RFNode} from "reactflow"
 
-import {AgentNodeProps} from "./AgentNode"
+import {AgentNodeProps, NODE_HEIGHT, NODE_WIDTH} from "./AgentNode"
 import {BASE_RADIUS, DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS, LEVEL_SPACING} from "./const"
 import {ConnectivityInfo, Origin} from "../../generated/neuro-san/OpenAPITypes"
 import {cleanUpAgentName} from "../AgentChat/Utils"
@@ -58,7 +58,8 @@ const getFrontman = (parentAgents: ConnectivityInfo[], childAgents: Set<string>)
 export const layoutRadial = (
     agentsInNetwork: ConnectivityInfo[],
     getOriginInfo: () => Origin[],
-    agentCounts: Map<string, number>
+    agentCounts: Map<string, number>,
+    isAwaitingLlm: boolean
 ): {
     nodes: RFNode<AgentNodeProps>[]
     edges: Edge<EdgeProps>[]
@@ -147,8 +148,16 @@ export const layoutRadial = (
                     getOriginInfo,
                     depth,
                     agentCounts,
+                    isAwaitingLlm,
                 },
                 position: isFrontman ? {x: centerX, y: centerY} : {x, y},
+                style: {
+                    border: "none",
+                    background: "transparent",
+                    boxShadow: "none",
+                    padding: 0,
+                    margin: 0,
+                },
             })
         })
     })
@@ -159,7 +168,8 @@ export const layoutRadial = (
 export const layoutLinear = (
     agentsInNetwork: ConnectivityInfo[],
     getOriginInfo: () => Origin[],
-    agentCounts: Map<string, number>
+    agentCounts: Map<string, number>,
+    isAwaitingLlm: boolean
 ): {
     nodes: RFNode<AgentNodeProps>[]
     edges: Edge<EdgeProps>[]
@@ -182,8 +192,16 @@ export const layoutLinear = (
                 agentName: cleanUpAgentName(originOfNode),
                 getOriginInfo,
                 agentCounts,
+                isAwaitingLlm,
             },
             position: isFrontman ? {x: DEFAULT_FRONTMAN_X_POS, y: DEFAULT_FRONTMAN_Y_POS} : {x: 0, y: 0},
+            style: {
+                border: "none",
+                background: "transparent",
+                boxShadow: "none",
+                padding: 0,
+                margin: 0,
+            },
         })
 
         if (!isFrontman) {
@@ -205,14 +223,11 @@ export const layoutLinear = (
     // Configure for left-to-right layout
     dagreGraph.setGraph({rankdir: "LR"})
 
-    const nodeWidth = 250
-    const nodeHeight = 36
-
     // Don't want to update nodes directly in existing flow so make a copy
     const nodesTmp = cloneDeep(nodesInNetwork)
 
     nodesTmp.forEach((node) => {
-        dagreGraph.setNode(node.id, {width: nodeWidth, height: nodeHeight})
+        dagreGraph.setNode(node.id, {width: NODE_WIDTH, height: NODE_HEIGHT})
     })
 
     edgesInNetwork.forEach((edge) => {
@@ -231,8 +246,8 @@ export const layoutLinear = (
         // We are shifting the dagre node position (anchor=center center) to the top left
         // so it matches the React Flow node anchor point (top left).
         node.position = {
-            x: nodeWithPosition.x - nodeWidth / 2,
-            y: nodeWithPosition.y - nodeHeight / 2,
+            x: nodeWithPosition.x - NODE_WIDTH / 2,
+            y: nodeWithPosition.y - NODE_HEIGHT / 2,
         }
 
         // Depth is index of x position in xPositions array

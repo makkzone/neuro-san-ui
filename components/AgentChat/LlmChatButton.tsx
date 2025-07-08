@@ -22,3 +22,8 @@ export const LlmChatButton = styled(Button, {
     right: posRight !== undefined ? posRight : 0,
     position: "absolute",
 }))
+
+export const SmallLlmChatButton = styled(LlmChatButton)({
+    minWidth: 0,
+    padding: "0.25rem",
+})

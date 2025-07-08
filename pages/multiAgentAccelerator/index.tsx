@@ -1,8 +1,12 @@
+import {StopCircle} from "@mui/icons-material"
+import Box from "@mui/material/Box"
 import Grid from "@mui/material/Grid2"
-import {useEffect, useRef, useState} from "react"
+import Slide from "@mui/material/Slide"
+import {useCallback, useEffect, useRef, useState} from "react"
 import {ReactFlowProvider} from "reactflow"
 
-import {ChatCommon} from "../../components/AgentChat/ChatCommon"
+import {ChatCommon, ChatCommonHandle} from "../../components/AgentChat/ChatCommon"
+import {SmallLlmChatButton} from "../../components/AgentChat/LlmChatButton"
 import {chatMessageFromChunk, cleanUpAgentName} from "../../components/AgentChat/Utils"
 import {closeNotification, NotificationType, sendNotification} from "../../components/Common/notification"
 import AgentFlow from "../../components/MultiAgentAccelerator/AgentFlow"
@@ -18,6 +22,9 @@ import {useLocalStorage} from "../../utils/use_local_storage"
 // Has to be export default for NextJS so tell ts-prune to ignore
 // ts-prune-ignore-next
 export default function MultiAgentAcceleratorPage() {
+    // Animation time for the left and right panels to slide in or out when launching the animation
+    const GROW_ANIMATION_TIME_MS = 800
+
     // For access to logged in session and current user name
     const {
         user: {image: userImage, name: userName},
@@ -34,6 +41,11 @@ export default function MultiAgentAcceleratorPage() {
 
     const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null)
 
+    const [hideOuterPanels, setHideOuterPanels] = useState<boolean>(false)
+
+    // Track whether we've shown the info popup so we don't keep bugging the user with it
+    const [haveShownPopup, setHaveShownPopup] = useState<boolean>(false)
+
     const {backendNeuroSanApiUrl} = useEnvironmentStore()
 
     const [customURLLocalStorage, setCustomURLLocalStorage] = useLocalStorage("customAgentNetworkURL", null)
@@ -48,10 +60,22 @@ export default function MultiAgentAcceleratorPage() {
     // Dark mode
     const {darkMode} = usePreferences()
 
-    const customURLCallback = (url: string) => {
-        setNeuroSanURL(url || backendNeuroSanApiUrl)
-        setCustomURLLocalStorage(url === "" ? null : url)
-    }
+    const customURLCallback = useCallback(
+        (url: string) => {
+            setNeuroSanURL(url || backendNeuroSanApiUrl)
+            setCustomURLLocalStorage(url === "" ? null : url)
+        },
+        [backendNeuroSanApiUrl, setCustomURLLocalStorage]
+    )
+
+    // Reference to the ChatCommon component to allow external stop button to call its handleStop method
+    const chatRef = useRef<ChatCommonHandle | null>(null)
+
+    // Handle external stop button click during zen mode
+    const handleExternalStop = useCallback(() => {
+        chatRef.current?.handleStop()
+        setHideOuterPanels(false)
+    }, [])
 
     useEffect(() => {
         async function getNetworks() {
@@ -74,7 +98,7 @@ export default function MultiAgentAcceleratorPage() {
             }
         }
 
-        getNetworks()
+        void getNetworks()
     }, [neuroSanURL])
 
     useEffect(() => {
@@ -100,35 +124,201 @@ export default function MultiAgentAcceleratorPage() {
         })()
     }, [neuroSanURL, selectedNetwork])
 
-    const onChunkReceived = (chunk: string) => {
-        // Obtain origin info if present
-        const chatMessage = chatMessageFromChunk(chunk)
-        if (chatMessage && chatMessage.origin?.length > 0) {
-            setOriginInfo([...chatMessage.origin])
+    // Set up handler to allow Escape key to stop the interaction with the LLM.
+    useEffect(() => {
+        if (!isAwaitingLlm) return undefined
 
-            // Update agent counts.
-            // Note: we increment an agent's count each time it appears in the origin info, but another strategy would
-            // be to only count an agent when it is the "end destination" of the chain. Needs some thought to determine
-            // which is more useful.
-            const agentCounts = agentCountsRef.current
-            for (const agent of chatMessage.origin) {
-                // If the agent is not already in the counts map, initialize it to 0 aka "upsert"
-                agentCounts.set(agent.tool, (agentCounts.get(agent.tool) || 0) + 1)
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                handleExternalStop()
             }
         }
+        window.addEventListener("keydown", onKeyDown)
+        return () => window.removeEventListener("keydown", onKeyDown)
+    }, [isAwaitingLlm, handleExternalStop])
 
-        return true
-    }
+    // Effect to reset the hideOuterPanels state when isAwaitingLlm changes
+    useEffect(() => {
+        if (!isAwaitingLlm) {
+            setHideOuterPanels(false)
+        }
+    }, [isAwaitingLlm])
 
-    const onStreamingStarted = (): void => {
+    const onChunkReceived = useCallback(
+        (chunk: string) => {
+            // Obtain origin info if present
+            const chatMessage = chatMessageFromChunk(chunk)
+            if (chatMessage && chatMessage.origin?.length > 0) {
+                setOriginInfo([...chatMessage.origin])
+
+                // Update agent counts.
+                // Note: we increment an agent's count each time it appears in the origin info, but another strategy
+                // would be to only count an agent when it is the "end destination" of the chain. Needs some thought to
+                // determine which is more useful.
+                const agentCounts = agentCountsRef.current
+                for (const agent of chatMessage.origin) {
+                    // If the agent is not already in the counts map, initialize it to 0 aka "upsert"
+                    agentCounts.set(agent.tool, (agentCounts.get(agent.tool) || 0) + 1)
+                }
+            }
+
+            return true
+        },
+        [setOriginInfo, agentCountsRef]
+    )
+
+    const onStreamingStarted = useCallback((): void => {
         // reset agent counts when a new streaming starts
         agentCountsRef.current = new Map<string, number>()
-    }
 
-    const onStreamingComplete = (): void => {
+        // Show info popup only once per session
+        if (!haveShownPopup) {
+            sendNotification(NotificationType.info, "Agents working", "Click the stop button or hit Escape to exit.")
+            setHaveShownPopup(true)
+        }
+    }, [setHaveShownPopup, haveShownPopup])
+
+    const onStreamingComplete = useCallback((): void => {
         setOriginInfo([])
+    }, [setOriginInfo])
+
+    const getLeftPanel = () => {
+        return (
+            <Slide // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                in={!isAwaitingLlm}
+                direction="right"
+                timeout={GROW_ANIMATION_TIME_MS}
+                onExited={() => {
+                    setHideOuterPanels(true)
+                }}
+            >
+                <Grid
+                    id="multi-agent-accelerator-grid-sidebar"
+                    size={hideOuterPanels ? 0 : 3.25}
+                    sx={{
+                        height: "100%",
+                    }}
+                >
+                    <Sidebar
+                        customURLLocalStorage={customURLLocalStorage}
+                        customURLCallback={customURLCallback}
+                        id="multi-agent-accelerator-sidebar"
+                        isAwaitingLlm={isAwaitingLlm}
+                        networks={networks}
+                        selectedNetwork={selectedNetwork}
+                        setSelectedNetwork={setSelectedNetwork}
+                    />
+                </Grid>
+            </Slide>
+        )
     }
 
+    const getCenterPanel = () => {
+        return (
+            <Grid
+                id="multi-agent-accelerator-grid-agent-flow"
+                size={hideOuterPanels ? 18 : 8.25}
+                sx={{
+                    height: "100%",
+                }}
+            >
+                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
+                <ReactFlowProvider>
+                    <Box
+                        id="multi-agent-accelerator-agent-flow-container"
+                        sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            width: "100%",
+                            height: "100%",
+                            maxWidth: 1000,
+                            margin: "0 auto",
+                        }}
+                    >
+                        <AgentFlow
+                            agentsInNetwork={agentsInNetwork}
+                            id="multi-agent-accelerator-agent-flow"
+                            originInfo={originInfo}
+                            selectedNetwork={selectedNetwork}
+                            agentCounts={agentCountsRef.current}
+                            isAwaitingLlm={isAwaitingLlm}
+                        />
+                    </Box>
+                </ReactFlowProvider>
+            </Grid>
+        )
+    }
+
+    const getRightPanel = () => {
+        return (
+            <Slide // eslint-disable-line enforce-ids-in-jsx/missing-ids
+                in={!isAwaitingLlm}
+                direction="left"
+                timeout={GROW_ANIMATION_TIME_MS}
+                onExited={() => {
+                    setHideOuterPanels(true)
+                }}
+            >
+                <Grid
+                    id="multi-agent-accelerator-grid-agent-chat-common"
+                    size={hideOuterPanels ? 0 : 6.5}
+                    sx={{
+                        height: "100%",
+                    }}
+                >
+                    <ChatCommon
+                        ref={chatRef}
+                        neuroSanURL={neuroSanURL}
+                        id="agent-network-ui"
+                        currentUser={userName}
+                        userImage={userImage}
+                        setIsAwaitingLlm={setIsAwaitingLlm}
+                        isAwaitingLlm={isAwaitingLlm}
+                        targetAgent={selectedNetwork}
+                        onChunkReceived={onChunkReceived}
+                        onStreamingComplete={onStreamingComplete}
+                        onStreamingStarted={onStreamingStarted}
+                        clearChatOnNewAgent={true}
+                        backgroundColor={darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-secondary-blue)"}
+                    />
+                </Grid>
+            </Slide>
+        )
+    }
+
+    const getStopButton = () => {
+        return (
+            <>
+                {isAwaitingLlm && (
+                    <Box
+                        id="stop-button-container"
+                        sx={{
+                            position: "absolute",
+                            bottom: "1rem",
+                            right: "1rem",
+                            zIndex: 10,
+                        }}
+                    >
+                        <SmallLlmChatButton
+                            aria-label="Stop"
+                            disabled={!isAwaitingLlm}
+                            id="stop-output-button"
+                            onClick={handleExternalStop}
+                            posBottom={8}
+                            posRight={23}
+                        >
+                            <StopCircle
+                                fontSize="small"
+                                id="stop-button-icon"
+                                sx={{color: "var(--bs-white)"}}
+                            />
+                        </SmallLlmChatButton>
+                    </Box>
+                )}
+            </>
+        )
+    }
     return (
         <Grid
             id="multi-agent-accelerator-grid"
@@ -145,65 +335,14 @@ export default function MultiAgentAcceleratorPage() {
                 padding: "1rem",
                 background: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-white)",
                 color: darkMode ? "var(--bs-white)" : "var(--bs-primary)",
+                justifyContent: isAwaitingLlm ? "center" : "unset",
+                position: "relative",
             }}
         >
-            <Grid
-                id="multi-agent-accelerator-grid-sidebar"
-                size={3.25}
-                sx={{
-                    height: "100%",
-                }}
-            >
-                <Sidebar
-                    customURLLocalStorage={customURLLocalStorage}
-                    customURLCallback={customURLCallback}
-                    id="multi-agent-accelerator-sidebar"
-                    isAwaitingLlm={isAwaitingLlm}
-                    networks={networks}
-                    selectedNetwork={selectedNetwork}
-                    setSelectedNetwork={setSelectedNetwork}
-                />
-            </Grid>
-            <Grid
-                id="multi-agent-accelerator-grid-agent-flow"
-                size={8.25}
-                sx={{
-                    height: "100%",
-                }}
-            >
-                {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
-                <ReactFlowProvider>
-                    <AgentFlow
-                        agentsInNetwork={agentsInNetwork}
-                        id="multi-agent-accelerator-agent-flow"
-                        originInfo={originInfo}
-                        selectedNetwork={selectedNetwork}
-                        agentCounts={agentCountsRef.current}
-                    />
-                </ReactFlowProvider>
-            </Grid>
-            <Grid
-                id="multi-agent-accelerator-grid-agent-chat-common"
-                size={6.5}
-                sx={{
-                    height: "100%",
-                }}
-            >
-                <ChatCommon
-                    neuroSanURL={neuroSanURL}
-                    id="agent-network-ui"
-                    currentUser={userName}
-                    userImage={userImage}
-                    setIsAwaitingLlm={setIsAwaitingLlm}
-                    isAwaitingLlm={isAwaitingLlm}
-                    targetAgent={selectedNetwork}
-                    onChunkReceived={onChunkReceived}
-                    onStreamingComplete={onStreamingComplete}
-                    onStreamingStarted={onStreamingStarted}
-                    clearChatOnNewAgent={true}
-                    backgroundColor={darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-secondary-blue)"}
-                />
-            </Grid>
+            {getLeftPanel()}
+            {getCenterPanel()}
+            {getRightPanel()}
+            {getStopButton()}
         </Grid>
     )
 }

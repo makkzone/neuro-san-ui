@@ -18,28 +18,22 @@ import {
     cloneElement,
     CSSProperties,
     Dispatch,
-    FC,
+    forwardRef,
     isValidElement,
     ReactElement,
     ReactNode,
     SetStateAction,
     useEffect,
+    useImperativeHandle,
     useRef,
     useState,
 } from "react"
 import ReactMarkdown from "react-markdown"
 import SyntaxHighlighter from "react-syntax-highlighter"
 
-import {MAX_AGENT_RETRIES} from "./const"
 import {ControlButtons} from "./ControlButtons"
 import {FormattedMarkdown} from "./FormattedMarkdown"
 import {AGENT_GREETINGS} from "./Greetings"
-import {chatMessageFromChunkNeuroSanIndirect, tryParseJsonNeuroSanIndirect} from "./NeuroSanIndirect/Utils"
-import {SendButton} from "./SendButton"
-import {HLJS_THEMES} from "./SyntaxHighlighterThemes"
-import {CombinedAgentType, isLegacyAgentType} from "./Types"
-import {UserQueryDisplay} from "./UserQueryDisplay"
-import {chatMessageFromChunk, checkError, cleanUpAgentName, tryParseJson} from "./Utils"
 import {getAgentFunction, getConnectivity, sendChatQuery} from "../../controller/agent/Agent"
 import {sendChatQueryLegacyNeuroSanIndirect} from "../../controller/agent/NeuroSanIndirect/Agent"
 import {sendLlmRequest} from "../../controller/llm/LlmChat"
@@ -64,6 +58,12 @@ import {LlmChatOptionsButton} from "../Common/LlmChatOptionsButton"
 import {MUIAccordion, MUIAccordionProps} from "../Common/MUIAccordion"
 import {MUIAlert} from "../Common/MUIAlert"
 import {NotificationType, sendNotification} from "../Common/notification"
+import {chatMessageFromChunkNeuroSanIndirect, tryParseJsonNeuroSanIndirect} from "./NeuroSanIndirect/Utils"
+import {SendButton} from "./SendButton"
+import {HLJS_THEMES} from "./SyntaxHighlighterThemes"
+import {CombinedAgentType, isLegacyAgentType} from "./Types"
+import {UserQueryDisplay} from "./UserQueryDisplay"
+import {chatMessageFromChunk, checkError, cleanUpAgentName, tryParseJson} from "./Utils"
 
 interface ChatCommonProps {
     /**
@@ -172,32 +172,48 @@ const EMPTY = {}
 // Avatar to use for agents in chat
 const AGENT_IMAGE = "/agent.svg"
 
+// How many times to retry the entire agent interaction process. Some networks have a well-defined success condition.
+// For others it's just "whenever the stream is done".
+const MAX_AGENT_RETRIES = 3
+
+// Type for forward ref to expose the handleStop function
+export type ChatCommonHandle = {
+    handleStop: () => void
+}
+
 /**
  * Common chat component for agent chat. This component is used by all agent chat components to provide a consistent
  * experience for users when chatting with agents. It handles user input as well as displaying and nicely formatting
  * agent responses. Customization for inputs and outputs is provided via event handlers-like props.
  */
-export const ChatCommon: FC<ChatCommonProps> = ({
-    id,
-    currentUser,
-    userImage,
-    setIsAwaitingLlm,
-    isAwaitingLlm,
-    onChunkReceived,
-    onStreamingStarted,
-    onStreamingComplete,
-    onSend,
-    setPreviousResponse,
-    targetAgent,
-    legacyAgentEndpoint,
-    agentPlaceholders = EMPTY,
-    clearChatOnNewAgent = false,
-    extraParams,
-    backgroundColor,
-    title,
-    onClose,
-    neuroSanURL,
-}) => {
+export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, ref) => {
+    const {
+        id,
+        currentUser,
+        userImage,
+        setIsAwaitingLlm,
+        isAwaitingLlm,
+        onChunkReceived,
+        onStreamingStarted,
+        onStreamingComplete,
+        onSend,
+        setPreviousResponse,
+        targetAgent,
+        legacyAgentEndpoint,
+        agentPlaceholders = EMPTY,
+        clearChatOnNewAgent = false,
+        extraParams,
+        backgroundColor,
+        title,
+        onClose,
+        neuroSanURL,
+    } = props
+
+    // Expose the handleStop method to parent components via ref for external control (e.g., to cancel chat requests)
+    useImperativeHandle(ref, () => ({
+        handleStop,
+    }))
+
     // User LLM chat input
     const [chatInput, setChatInput] = useState<string>("")
 
@@ -1286,4 +1302,8 @@ export const ChatCommon: FC<ChatCommonProps> = ({
             </Box>
         </Box>
     )
-}
+})
+
+// Set a useful display name for the component for debugging purposes. We have to do it here because we're using
+// forwardRef in the main definition.
+ChatCommon.displayName = "ChatCommon"

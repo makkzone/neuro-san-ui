@@ -5,12 +5,14 @@ import {Handle, NodeProps, Position} from "reactflow"
 
 import {BACKGROUND_COLORS, BACKGROUND_COLORS_DARK_IDX, HEATMAP_COLORS} from "./const"
 import {Origin} from "../../generated/neuro-san/OpenAPITypes"
+import {ZIndexLayers} from "../../utils/zIndexLayers"
 
 export interface AgentNodeProps {
     readonly agentName: string
     readonly getOriginInfo: () => Origin[]
     readonly depth: number
     readonly agentCounts?: Map<string, number>
+    readonly isAwaitingLlm?: boolean
 }
 
 // Node dimensions
@@ -24,7 +26,7 @@ export const NODE_WIDTH = 80
 export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentNodeProps>) => {
     // Unpack the node-specific data
     const data: AgentNodeProps = props.data
-    const {agentName, getOriginInfo, depth, agentCounts} = data
+    const {agentName, getOriginInfo, depth, agentCounts, isAwaitingLlm} = data
 
     const maxAgentCount = agentCounts ? Math.max(...Array.from(agentCounts.values())) : 0
 
@@ -66,59 +68,78 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
             0% { box-shadow: 0 0 10px 4px ${backgroundColor}; opacity: 0.60; }
             50% { box-shadow: 0 0 30px 12px ${backgroundColor}; opacity: 0.90; }
             100% { box-shadow: 0 0 10px 4px ${backgroundColor}; opacity: 1.0; }
-            }`
+        }`
         : "none"
+
     const boxShadow = isActiveAgent ? "0 0 30px 12px var(--bs-primary), 0 0 60px 24px var(--bs-primary)" : undefined
 
     return (
-        <div
-            id={agentId}
-            style={{
-                alignItems: "center",
-                animation: isActiveAgent ? "glow 2.0s infinite" : "none",
-                backgroundColor,
-                borderRadius: "50%",
-                // no border
-                boxShadow,
-                color,
-                display: "flex",
-                height: NODE_HEIGHT,
-                justifyContent: "center",
-                shapeOutside: "circle(50%)",
-                textAlign: "center",
-                width: NODE_WIDTH,
-            }}
-        >
-            <style id={`${agentId}-glow-animation`}>{glowAnimation}</style>
+        <>
+            <div
+                id={agentId}
+                style={{
+                    alignItems: "center",
+                    animation: isActiveAgent ? "glow 2.0s infinite" : "none",
+                    backgroundColor,
+                    borderRadius: "50%",
+                    // no border
+                    boxShadow,
+                    color,
+                    display: "flex",
+                    height: NODE_HEIGHT,
+                    justifyContent: "center",
+                    shapeOutside: "circle(50%)",
+                    textAlign: "center",
+                    width: NODE_WIDTH,
+                    zIndex: ZIndexLayers.LAYER_1,
+                    position: "relative",
+                }}
+            >
+                <style id={`${agentId}-glow-animation`}>{glowAnimation}</style>
+                <Handle
+                    id={`${agentId}-left-handle`}
+                    position={Position.Left}
+                    type="source"
+                    // Hide handles when awaiting LLM response ("zen mode")
+                    style={{display: isAwaitingLlm ? "none" : "block"}}
+                />
+                <Handle
+                    id={`${agentId}-right-handle`}
+                    position={Position.Right}
+                    type="source"
+                    // Hide handles when awaiting LLM response ("zen mode")
+                    style={{display: isAwaitingLlm ? "none" : "block"}}
+                />
+            </div>
             <Tooltip
                 id={`${agentId}-tooltip`}
                 title={agentName}
                 placement="top"
+                disableInteractive
             >
                 <Typography
                     id={`${agentId}-name`}
                     sx={{
-                        fontSize: "11px",
-                        overflowWrap: "break-word",
+                        display: "-webkit-box",
+                        fontSize: "14px",
+                        lineHeight: "1.2em",
+                        maxHeight: "2.4em",
+                        overflow: "hidden",
+                        overflowWrap: "normal",
+                        position: "relative",
                         textAlign: "center",
-                        width: "90%",
+                        textOverflow: "ellipsis",
+                        WebkitBoxOrient: "vertical",
+                        WebkitLineClamp: 2,
                         whiteSpace: "normal",
-                        wordBreak: "break-word",
+                        width: `${NODE_WIDTH}px`,
+                        wordBreak: "normal",
+                        zIndex: 10,
                     }}
                 >
                     {agentName}
                 </Typography>
             </Tooltip>
-            <Handle
-                id={`${agentId}-left-handle`}
-                position={Position.Left}
-                type="source"
-            />
-            <Handle
-                id={`${agentId}-right-handle`}
-                position={Position.Right}
-                type="source"
-            />
-        </div>
+        </>
     )
 }
