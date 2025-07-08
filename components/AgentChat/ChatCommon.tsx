@@ -181,6 +181,14 @@ export type ChatCommonHandle = {
     handleStop: () => void
 }
 
+// HACK: during migration to direct-to-Neuro-san path: Opp Finder pipeline is in the legacy
+// agent list but here we have the Neuro-san URL so we'll use it as a Neuro-san agent.
+// But that means we have to lower case the name because that's what the server expects.
+// Ultimately: treat Opportunity Finder pipeline like any other Neuro-san agent once migration
+// is complete.
+const agentToLower = (targetAgent: string | AgentType.OPPORTUNITY_FINDER_PIPELINE) => {
+    return targetAgent === AgentType.OPPORTUNITY_FINDER_PIPELINE ? targetAgent.toLowerCase() : targetAgent
+}
 /**
  * Common chat component for agent chat. This component is used by all agent chat components to provide a consistent
  * experience for users when chatting with agents. It handles user input as well as displaying and nicely formatting
@@ -617,7 +625,7 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
             } else {
                 // It is a Neuro-san agent, so get the function and connectivity info
                 try {
-                    agentFunction = await getAgentFunction(neuroSanURL, targetAgent, currentUser)
+                    agentFunction = await getAgentFunction(neuroSanURL, agentToLower(targetAgent), currentUser)
                 } catch {
                     // For now, just return. May be a legacy agent without a functional description in Neuro-san.
                     return
@@ -625,7 +633,11 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
             }
 
             try {
-                const connectivity: ConnectivityResponse = await getConnectivity(neuroSanURL, targetAgent, currentUser)
+                const connectivity: ConnectivityResponse = await getConnectivity(
+                    neuroSanURL,
+                    agentToLower(targetAgent),
+                    currentUser
+                )
                 updateOutput(
                     <MUIAccordion
                         id={`${id}-agent-details`}
@@ -897,15 +909,21 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
 
                         // For all other agents, use the latest Neuro-san API
                     } else {
+                        // Some coded tools (data generator...) expect the user name provided in slyData.
+                        const slyDataWithUserName = {...slyData.current, login: currentUser} as unknown as Record<
+                            string,
+                            never
+                        >
+
                         // Send the chat query to the server. This will block until the stream ends from the server
                         await sendChatQuery(
                             neuroSanURL,
                             controller?.current.signal,
                             query,
-                            targetAgent,
+                            agentToLower(targetAgent),
                             handleChunk,
                             chatContext.current,
-                            slyData.current,
+                            slyDataWithUserName,
                             currentUser
                         )
                     }
@@ -1056,8 +1074,9 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                 chatHistory.current = [...chatHistory.current, new AIMessage(currentResponse.current)]
             }
         } finally {
-            setIsAwaitingLlm(false)
             resetState()
+
+            // Allow parent components to do something when streaming is complete
             onStreamingComplete?.()
         }
     }
