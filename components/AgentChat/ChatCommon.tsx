@@ -280,6 +280,10 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
 
     const [showThinking, setShowThinking] = useState<boolean>(false)
 
+    // Migration logic: if we have the neuroSanURL, we use that. If not, fall back to the legacy indirect
+    // pmdserver path.
+    const isIndirectOppFinderPipeline = targetAgent === AgentType.OPPORTUNITY_FINDER_PIPELINE && !neuroSanURL
+
     // Define styles based on user options (wrap setting)
     const divStyle: CSSProperties = shouldWrapOutput
         ? {
@@ -738,10 +742,6 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
 
     // Enable Clear Chat button if not awaiting response and there is chat output to clear
     const enableClearChatButton = !isAwaitingLlm && chatOutput.length > 0
-
-    // Migration logic: if we have the neuroSanURL, we use that. If not, fall back to the legacy indirect
-    // pmdserver path.
-    const isIndirectOppFinderPipeline = targetAgent === AgentType.OPPORTUNITY_FINDER_PIPELINE && !neuroSanURL
 
     /**
      * Extract the final answer from the response from a legacy agent
