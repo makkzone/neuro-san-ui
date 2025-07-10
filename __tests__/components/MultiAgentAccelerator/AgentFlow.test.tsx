@@ -5,6 +5,7 @@ import {ReactFlowProvider} from "reactflow"
 import {cleanUpAgentName} from "../../../components/AgentChat/Utils"
 import AgentFlow from "../../../components/MultiAgentAccelerator/AgentFlow"
 import {ConnectivityInfo} from "../../../generated/neuro-san/OpenAPITypes"
+import {usePreferences} from "../../../state/Preferences"
 import {withStrictMocks} from "../../common/strictMocks"
 
 const TEST_AGENT_MATH_GUY = "Math Guy"
@@ -15,6 +16,10 @@ jest.mock("../../../components/MultiAgentAccelerator/PlasmaEdge", () => ({
     PlasmaEdge: () => <g data-testid="mock-plasma-edge" />,
 }))
 
+// Mock Preferences state
+jest.mock("../../../state/Preferences")
+const mockedUsePreferences = jest.mocked(usePreferences, {shallow: true})
+
 describe("AgentFlow", () => {
     let user: UserEvent
 
@@ -22,6 +27,8 @@ describe("AgentFlow", () => {
 
     beforeEach(() => {
         user = userEvent.setup()
+
+        mockedUsePreferences.mockReturnValue({darkMode: false, toggleDarkMode: jest.fn()})
     })
 
     const network: ConnectivityInfo[] = [
@@ -55,7 +62,8 @@ describe("AgentFlow", () => {
         })
     }
 
-    it("Should render correctly", async () => {
+    test.each([{darkMode: false}, {darkMode: true}])("Should render correctly in %s mode", async ({darkMode}) => {
+        mockedUsePreferences.mockReturnValue({darkMode, toggleDarkMode: jest.fn()})
         const {container} = render(
             <ReactFlowProvider>
                 <AgentFlow
@@ -67,9 +75,7 @@ describe("AgentFlow", () => {
             </ReactFlowProvider>
         )
 
-        // We don't pay for premium so we get the ad!
         expect(await screen.findByText(cleanUpAgentName("React Flow"))).toBeInTheDocument()
-
         verifyAgentNodes(container)
     })
 
