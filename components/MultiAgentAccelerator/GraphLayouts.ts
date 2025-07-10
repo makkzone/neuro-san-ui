@@ -152,10 +152,9 @@ export const layoutRadial = (
                         targetHandle,
                         animated: false,
                         markerEnd: {
-                            type: MarkerType.Arrow,
-                            color: "white", // var(--bs-primary) doesn't work here for some reason
-                            width: 15,
-                            height: 15,
+                            type: MarkerType.ArrowClosed,
+                            width: 30,
+                            height: 30,
                         },
                     })
                 }
