@@ -94,6 +94,35 @@ describe("AgentFlow", () => {
         await screen.findByText("Heat")
     })
 
+    it("Should allow switching to heatmap display with linear display mode", async () => {
+        const {container} = render(
+            <ReactFlowProvider>
+                <AgentFlow
+                    id="test-flow-id"
+                    agentsInNetwork={network}
+                    originInfo={[{tool: "agent1", instantiation_index: 1}]}
+                    selectedNetwork={TEST_AGENT_MATH_GUY}
+                />
+            </ReactFlowProvider>
+        )
+
+        // locate linear layout button
+        const linearLayoutButton = container.querySelector("#linear-layout-button")
+        expect(linearLayoutButton).toBeInTheDocument()
+
+        // click the button
+        await user.click(linearLayoutButton)
+
+        // Now switch to heatmap display
+        const heatmapButton = await screen.findByRole("button", {name: "Heatmap"})
+
+        // press the button to switch to heatmap mode
+        await user.click(heatmapButton)
+
+        // Legend should have switched to heatmap mode
+        await screen.findByText("Heat")
+    })
+
     it("Should handle highlighting the active agents", async () => {
         const {container, rerender} = render(
             <ReactFlowProvider>
