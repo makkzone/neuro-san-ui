@@ -97,31 +97,47 @@ const AgentFlow: FC<AgentFlowProps> = ({
 
     // Create the flow layout depending on user preference
     useEffect(() => {
+        let layoutResult
         switch (layout) {
             case "linear": {
-                const linearLayout = layoutLinear(
+                layoutResult = layoutLinear(
                     agentsInNetwork,
                     getOriginInfo,
                     coloringOption === "heatmap" ? agentCounts : undefined,
                     isAwaitingLlm
                 )
-                linearLayout.nodes && setNodes(linearLayout.nodes)
-                linearLayout.edges && setEdges(linearLayout.edges)
                 break
             }
             case "radial":
             default: {
-                const radialLayout = layoutRadial(
+                layoutResult = layoutRadial(
                     agentsInNetwork,
                     getOriginInfo,
                     coloringOption === "heatmap" ? agentCounts : undefined,
                     isAwaitingLlm
                 )
-                radialLayout.nodes && setNodes(radialLayout.nodes)
-                radialLayout.edges && setEdges(radialLayout.edges)
                 break
             }
         }
+
+        // Animate active edges, which are those connecting active agents as defined by originInfo.
+        let edgesToSet = layoutResult.edges || []
+        if (originInfo) {
+            const originTools = originInfo.map((originItem) => originItem.tool)
+            edgesToSet = edgesToSet.map((edge: Edge<EdgeProps>) => ({
+                ...edge,
+                style: {
+                    strokeWidth: originTools.includes(edge.target) ? 3 : undefined,
+                    stroke: originTools.includes(edge.target) ? "var(--bs-primary)" : undefined,
+                    // Hide edge between active nodes to avoid clashing with plasma animation
+                    display: !isAwaitingLlm || originTools.includes(edge.target) ? "block" : "none",
+                },
+                type: originTools.includes(edge.target) ? "animatedEdge" : undefined,
+            }))
+        }
+
+        layoutResult.nodes && setNodes(layoutResult.nodes)
+        setEdges(edgesToSet)
     }, [agentsInNetwork, layout, originInfo, coloringOption, agentCounts])
 
     const onNodesChange = useCallback(
@@ -138,27 +154,6 @@ const AgentFlow: FC<AgentFlowProps> = ({
         },
         [selectedNetwork, fitView]
     )
-
-    // Highlight active edges, which are those connecting active agents as defined by originInfo.
-    useEffect(() => {
-        if (originInfo) {
-            const originTools = originInfo.map((originItem) => originItem.tool)
-            const edgesCopy = edges.map((edge: Edge<EdgeProps>) => {
-                return {
-                    ...edge,
-                    style: {
-                        strokeWidth: originTools.includes(edge.target) ? 3 : undefined,
-                        stroke: originTools.includes(edge.target) ? "var(--bs-primary)" : undefined,
-                        // Hide edge between active nodes to avoid clashing with plasma animation
-                        display: !isAwaitingLlm || originTools.includes(edge.target) ? "block" : "none",
-                    },
-                    type: originTools.includes(edge.target) ? "animatedEdge" : undefined,
-                }
-            })
-
-            setEdges(edgesCopy)
-        }
-    }, [originInfo])
 
     const transform = useStore((state) => state.transform)
 
