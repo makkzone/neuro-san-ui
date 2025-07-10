@@ -3,7 +3,7 @@
  */
 import dagre from "dagre"
 import {cloneDeep} from "lodash"
-import {Edge, EdgeProps, Node as RFNode} from "reactflow"
+import {Edge, EdgeProps, MarkerType, Node as RFNode} from "reactflow"
 
 import {AgentNodeProps, NODE_HEIGHT, NODE_WIDTH} from "./AgentNode"
 import {BASE_RADIUS, DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS, LEVEL_SPACING} from "./const"
@@ -17,22 +17,16 @@ const AGENT_NODE_TYPE_NAME = "agentNode"
 
 // #endregion: Constants
 
-const getParent = (
-    node: string,
-    frontman: ConnectivityInfo,
-    parentAgents: ConnectivityInfo[],
-    childAgents: Set<string>
-) => {
-    const isChild = childAgents.has(node)
-    let parentId: string
-    if (isChild) {
-        // agent.tools.includes(originOfNode) is checking this node's origin
-        // the .origin at the end is getting the parent node's origin
-        parentId = parentAgents.find((agent) => agent.tools.includes(node)).origin
-    } else {
-        parentId = frontman.origin
-    }
-    return parentId
+/**
+ * Returns the "origins" (node names) of the _immediate_ parents of a node in the agent network. Grandparents and
+ * higher are not included.
+ *
+ * @param node Node ID for which to find parents
+ * @param parentAgents Full list of parent agents in the network
+ * @returns The IDs of the immediate parent nodes for the given node or the frontman if the node is not a child.
+ */
+const getParents = (node: string, parentAgents: ConnectivityInfo[]): string[] => {
+    return parentAgents.filter((agent) => agent.tools.includes(node)).map((parentNode) => parentNode.origin)
 }
 
 // "Parent agents" are those that have tools, aka "child agents"
@@ -70,9 +64,8 @@ export const layoutRadial = (
     const nodesInNetwork = []
     const edgesInNetwork = []
 
-    // Step 1: Compute depth of each node using BFS
+    // Compute depth of each node using breadth-first traversal
     const nodeDepths = new Map<string, number>()
-    const children = new Map<string, string[]>()
     const queue: {id: string; depth: number}[] = []
 
     const parentAgents = getParentAgents(agentsInNetwork)
@@ -80,28 +73,28 @@ export const layoutRadial = (
 
     const frontman = getFrontman(parentAgents, childAgents)
     if (frontman) {
+        // Add the frontman node to the network
         queue.push({id: frontman.origin, depth: 0})
         nodeDepths.set(frontman.origin, 0)
     }
 
+    // Perform a breadth-first traversal of the tree to compute the depth of each node.
     while (queue.length > 0) {
-        const {id: idTmp, depth} = queue.shift()
+        const {id: currentNodeId, depth} = queue.shift()
 
-        agentsInNetwork.forEach(({origin: childId}) => {
-            const parentId = getParent(childId, frontman, parentAgents, childAgents)
-            if (parentId === idTmp && !nodeDepths.has(childId)) {
-                nodeDepths.set(childId, depth + 1)
-                queue.push({id: childId, depth: depth + 1})
-
-                if (!children.has(idTmp)) {
-                    children.set(idTmp, [])
-                }
-                children.get(idTmp).push(childId)
+        agentsInNetwork.forEach(({origin: nodeId}) => {
+            // For each node, check if its parent matches the current node in the queue. If so, the node being tested
+            // is a child of the current node so set its depth to the depth of the current node + 1.
+            const parentIds = getParents(nodeId, parentAgents)
+            if (parentIds?.[0] === currentNodeId && !nodeDepths.has(nodeId)) {
+                // If the child node's parent matches the current node, set its depth and enqueue it.
+                nodeDepths.set(nodeId, depth + 1)
+                queue.push({id: nodeId, depth: depth + 1})
             }
         })
     }
 
-    // Step 2: Organize nodes by depth
+    // Construct a map where keys are depths and values are arrays of node IDs at that depth.
     const nodesByDepth = new Map<number, string[]>()
 
     nodeDepths.forEach((depth, nodeId) => {
@@ -122,38 +115,50 @@ export const layoutRadial = (
             const y = centerY + radius * Math.sin(angle)
 
             const isFrontman = frontman?.origin === nodeId
-            const parentNode = nodesInNetwork.find(
-                (node) => node.id === getParent(nodeId, frontman, parentAgents, childAgents)
-            )
 
-            if (parentNode) {
+            const parentNodes = getParents(nodeId, parentAgents)
+
+            // Create an edge from each parent node to this node
+            for (const parentNode of parentNodes) {
+                const graphNode = nodesInNetwork.find((node) => node.id === parentNode)
                 // Determine if the agent is left or right of its parent node for symmetrical layout
-                const dx = x - parentNode.position.x
-                const dy = y - parentNode.position.y
+                if (graphNode) {
+                    const dx = x - graphNode.position.x
+                    const dy = y - graphNode.position.y
 
-                let sourceHandle: string
-                let targetHandle: string
+                    let sourceHandle: string
+                    let targetHandle: string
 
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    // More horizontal: use left/right handles
-                    const isLeftOfParent = dx < 0
-                    sourceHandle = isLeftOfParent ? `${parentNode.id}-left-handle` : `${parentNode.id}-right-handle`
-                    targetHandle = isLeftOfParent ? `${nodeId}-right-handle` : `${nodeId}-left-handle`
-                } else {
-                    // More vertical: use top/bottom handles
-                    const isAboveParent = dy < 0
-                    sourceHandle = isAboveParent ? `${parentNode.id}-top-handle` : `${parentNode.id}-bottom-handle`
-                    targetHandle = isAboveParent ? `${nodeId}-bottom-handle` : `${nodeId}-top-handle`
+                    // Determine the handle based on the direction of the node relative to its parent
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        // More horizontal: use left/right handles
+                        const isLeftOfParent = dx < 0
+                        sourceHandle = isLeftOfParent ? `${graphNode.id}-left-handle` : `${graphNode.id}-right-handle`
+                        targetHandle = isLeftOfParent ? `${nodeId}-right-handle` : `${nodeId}-left-handle`
+                    } else {
+                        // More vertical: use top/bottom handles
+                        const isAboveParent = dy < 0
+                        sourceHandle = isAboveParent ? `${graphNode.id}-top-handle` : `${graphNode.id}-bottom-handle`
+                        targetHandle = isAboveParent ? `${nodeId}-bottom-handle` : `${nodeId}-top-handle`
+                    }
+
+                    // Add edge from parent to node
+                    edgesInNetwork.push({
+                        id: `${nodeId}-edge-${graphNode.id}`,
+                        key: `${nodeId}-edge-${graphNode.id}`,
+                        source: graphNode.id,
+                        sourceHandle,
+                        target: nodeId,
+                        targetHandle,
+                        animated: false,
+                        markerEnd: {
+                            type: MarkerType.Arrow,
+                            color: "white", // var(--bs-primary) doesn't work here for some reason
+                            width: 15,
+                            height: 15,
+                        },
+                    })
                 }
-
-                edgesInNetwork.push({
-                    id: `${nodeId}-edge`,
-                    source: parentNode.id,
-                    sourceHandle,
-                    target: nodeId,
-                    targetHandle,
-                    animated: false,
-                })
             }
 
             nodesInNetwork.push({
@@ -198,7 +203,7 @@ export const layoutLinear = (
 
         const frontman = getFrontman(parentAgents, childAgents)
 
-        const parentId = getParent(originOfNode, frontman, parentAgents, childAgents)
+        const parentId = getParents(originOfNode, parentAgents)
         const isFrontman = frontman?.origin === originOfNode
 
         nodesInNetwork.push({
