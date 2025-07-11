@@ -140,7 +140,7 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
             setSupportEmailAddress(data.supportEmailAddress)
             setEnableAuthorizeAPI(data.enableAuthorizeAPI)
             setBuildTarget(data.buildTarget || ALL_BUILD_TARGET)
-            setUnileafAgentServerUrl(data?.unileafAgentServerUrl)
+            setUnileafAgentServerUrl(data.unileafAgentServerUrl)
         }
 
         void getEnvironment()

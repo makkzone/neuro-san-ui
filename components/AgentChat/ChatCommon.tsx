@@ -34,8 +34,12 @@ import SyntaxHighlighter from "react-syntax-highlighter"
 import {ControlButtons} from "./ControlButtons"
 import {FormattedMarkdown} from "./FormattedMarkdown"
 import {AGENT_GREETINGS} from "./Greetings"
+import {SendButton} from "./SendButton"
+import {HLJS_THEMES} from "./SyntaxHighlighterThemes"
+import {CombinedAgentType, isLegacyAgentType} from "./Types"
+import {UserQueryDisplay} from "./UserQueryDisplay"
+import {chatMessageFromChunk, checkError, cleanUpAgentName, tryParseJson} from "./Utils"
 import {getAgentFunction, getConnectivity, sendChatQuery} from "../../controller/agent/Agent"
-import {sendChatQueryLegacyNeuroSanIndirect} from "../../controller/agent/NeuroSanIndirect/Agent"
 import {sendLlmRequest} from "../../controller/llm/LlmChat"
 import {AgentType} from "../../generated/metadata"
 import {ChatMessageType} from "../../generated/neuro-san/NeuroSanClient"
@@ -47,23 +51,13 @@ import {
     FunctionResponse,
 } from "../../generated/neuro-san/OpenAPITypes"
 import {FunctionResponse as GrpcFunctionResponse} from "../../generated/neuro_san/api/grpc/agent"
-import {
-    ChatContext as GrpcChatContext,
-    ChatMessage as GrpcChatMessage,
-    ChatMessageChatMessageType as GrpcChatMessageChatMessageType,
-} from "../../generated/neuro_san/api/grpc/chat"
+import {ChatContext as GrpcChatContext, ChatMessage as GrpcChatMessage} from "../../generated/neuro_san/api/grpc/chat"
 import {usePreferences} from "../../state/Preferences"
 import {hashString, hasOnlyWhitespace} from "../../utils/text"
 import {LlmChatOptionsButton} from "../Common/LlmChatOptionsButton"
 import {MUIAccordion, MUIAccordionProps} from "../Common/MUIAccordion"
 import {MUIAlert} from "../Common/MUIAlert"
 import {NotificationType, sendNotification} from "../Common/notification"
-import {chatMessageFromChunkNeuroSanIndirect, tryParseJsonNeuroSanIndirect} from "./NeuroSanIndirect/Utils"
-import {SendButton} from "./SendButton"
-import {HLJS_THEMES} from "./SyntaxHighlighterThemes"
-import {CombinedAgentType, isLegacyAgentType} from "./Types"
-import {UserQueryDisplay} from "./UserQueryDisplay"
-import {chatMessageFromChunk, checkError, cleanUpAgentName, tryParseJson} from "./Utils"
 
 interface ChatCommonProps {
     /**
@@ -280,10 +274,6 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
 
     const [showThinking, setShowThinking] = useState<boolean>(false)
 
-    // Migration logic: if we have the neuroSanURL, we use that. If not, fall back to the legacy indirect
-    // pmdserver path.
-    const isIndirectOppFinderPipeline = targetAgent === AgentType.OPPORTUNITY_FINDER_PIPELINE && !neuroSanURL
-
     // Define styles based on user options (wrap setting)
     const divStyle: CSSProperties = shouldWrapOutput
         ? {
@@ -362,103 +352,6 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
         currentResponse.current = ""
         setShowThinking(false)
     }, [neuroSanURL])
-
-    /**
-     * This function is required for Opportunity Finder > Orchestration.
-     * We cannot call the Neuro-san API directly yet, so we need to use the old API.
-     * Ideally this function should be removed once we have the new API in place.
-     */
-    /**
-     * Process a log line from the agent and format it nicely using the syntax highlighter and Accordion components.
-     * By the time we get to here, it's assumed things like errors and termination conditions have already been handled.
-     *
-     * @param logLine The log line to process
-     * @param messageType The type of the message (AI, LEGACY_LOGS etc.). Used for displaying certain message types
-     * differently
-     * @param isFinalAnswer If true, the log line is the final answer from the agent. This will be highlighted in some
-     * way to draw the user's attention to it.
-     * @param summary Used as the "title" for the accordion block. Something like an agent name or "Final Answer"
-     * @returns A React component representing the log line (agent message)
-     */
-    const processLogLineNeuroSanIndirect = (
-        logLine: string,
-        summary: string,
-        messageType?: GrpcChatMessageChatMessageType,
-        isFinalAnswer?: boolean
-    ): ReactNode => {
-        // extract the parts of the line
-        let repairedJson: string
-
-        try {
-            // Attempt to parse as JSON
-
-            // First, repair it. Also replace "escaped newlines" with actual newlines for better display.
-            repairedJson = jsonrepair(logLine)
-
-            // Now try to parse it. We don't care about the result, only if it throws on parsing.
-            JSON.parse(repairedJson)
-
-            repairedJson = repairedJson.replace(/\\n/gu, "\n").replace(/\\"/gu, "'")
-        } catch {
-            // Not valid JSON
-            repairedJson = null
-        }
-
-        const hashedSummary = hashString(summary)
-        const isAIMessage = messageType === GrpcChatMessageChatMessageType.AI
-
-        if (isAIMessage && !isFinalAnswer) {
-            lastAIMessage.current = logLine
-        }
-
-        if (isFinalAnswer) {
-            // Save key of final answer for highlighting
-            finalAnswerKey.current = hashedSummary
-        }
-
-        return (
-            <MUIAccordion
-                key={hashedSummary}
-                id={`${hashedSummary}-panel`}
-                defaultExpandedPanelKey={isFinalAnswer ? 1 : null}
-                items={[
-                    {
-                        title: summary,
-                        content: (
-                            <div id={`${summary}-details`}>
-                                {/* If we managed to parse it as JSON, pretty print it */}
-                                {repairedJson ? (
-                                    <SyntaxHighlighter
-                                        id="syntax-highlighter"
-                                        language="json"
-                                        style={darkMode ? atelierDuneDark : a11yLight}
-                                        showLineNumbers={false}
-                                        wrapLongLines={shouldWrapOutput}
-                                    >
-                                        {repairedJson}
-                                    </SyntaxHighlighter>
-                                ) : (
-                                    // eslint-disable-next-line enforce-ids-in-jsx/missing-ids
-                                    <ReactMarkdown key={hashString(logLine)}>
-                                        {logLine || "No further details"}
-                                    </ReactMarkdown>
-                                )}
-                            </div>
-                        ),
-                    },
-                ]}
-                sx={{
-                    fontSize: "large",
-                    marginBottom: "1rem",
-                    display: showThinking || isFinalAnswer ? "block" : "none",
-                    boxShadow: isFinalAnswer
-                        ? `0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 
-                                    0 9px 28px 8px rgba(0, 0, 0, 0.05)`
-                        : "none",
-                }}
-            />
-        )
-    }
 
     /**
      * Process a log line from the agent and format it nicely using the syntax highlighter and Accordion components.
@@ -614,26 +507,19 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
             // Introduce the agent to the user
             introduceAgent()
 
-            // if not neuro san agent (and not indirect Neuro-san agent), return since we won't get connectivity info
+            // if not neuro san agent return since we won't get connectivity info
             if (isLegacyAgentType(targetAgent)) {
                 return
             }
 
             let agentFunction: GrpcFunctionResponse | FunctionResponse
 
-            // For now, Opportunity Finder needs to use the indirect Neuro-san API. We will want to remove this later.
-            if (isIndirectOppFinderPipeline) {
-                // Legacy Opportunity Finder path via pmdserver doesn't support function or connectivity query,
-                // so return
+            // It is a Neuro-san agent, so get the function and connectivity info
+            try {
+                agentFunction = await getAgentFunction(neuroSanURL, agentToLower(targetAgent), currentUser)
+            } catch {
+                // For now, just return. May be a legacy agent without a functional description in Neuro-san.
                 return
-            } else {
-                // It is a Neuro-san agent, so get the function and connectivity info
-                try {
-                    agentFunction = await getAgentFunction(neuroSanURL, agentToLower(targetAgent), currentUser)
-                } catch {
-                    // For now, just return. May be a legacy agent without a functional description in Neuro-san.
-                    return
-                }
             }
 
             try {
@@ -769,45 +655,25 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
             return
         }
 
-        let chatMessage: GrpcChatMessage | ChatMessage
+        const chatMessage: GrpcChatMessage | ChatMessage = chatMessageFromChunk(chunk)
+        if (!chatMessage) {
+            // This is an error since Neuro-san agents should send us ChatMessage structures.
+            // But don't want to spam output by logging errors for every bad message.
+            return
+        }
+        // It's a ChatMessage. Does it have chat context? Only AGENT_FRAMEWORK messages can have chat context.
+        if (String(chatMessage.type) === "AGENT_FRAMEWORK" && chatMessage.chat_context) {
+            // Save the chat context, potentially overwriting any previous ones we received during this session.
+            // We only care about the last one received.
+            chatContext.current = chatMessage.chat_context
 
-        // For now, Opportunity Finder needs to use the indirect Neuro-san API. We will want to remove this later.
-        if (isIndirectOppFinderPipeline) {
-            chatMessage = chatMessageFromChunkNeuroSanIndirect(chunk)
-            if (!chatMessage) {
-                // This is an error since Neuro-san agents should send us ChatMessage structures.
-                // But don't want to spam output by logging errors for every bad message.
-                return
-            }
-            // It's a ChatMessage. Does it have chat context? Only AGENT_FRAMEWORK messages can have chat context.
-            if (chatMessage.type === GrpcChatMessageChatMessageType.AGENT_FRAMEWORK && chatMessage.chatContext) {
-                // Save the chat context, potentially overwriting any previous ones we received during this session.
-                // We only care about the last one received.
-                grpcChatContext.current = chatMessage.chatContext
-            }
+            // Nothing more to do with this message. It's just a message to give us the chat context, so return
+            return
+        }
 
-            // For all other agents, use the latest Neuro-san API
-        } else {
-            chatMessage = chatMessageFromChunk(chunk)
-            if (!chatMessage) {
-                // This is an error since Neuro-san agents should send us ChatMessage structures.
-                // But don't want to spam output by logging errors for every bad message.
-                return
-            }
-            // It's a ChatMessage. Does it have chat context? Only AGENT_FRAMEWORK messages can have chat context.
-            if (String(chatMessage.type) === "AGENT_FRAMEWORK" && chatMessage.chat_context) {
-                // Save the chat context, potentially overwriting any previous ones we received during this session.
-                // We only care about the last one received.
-                chatContext.current = chatMessage.chat_context
-
-                // Nothing more to do with this message. It's just a message to give us the chat context, so return
-                return
-            }
-
-            // Merge slyData.current with incoming chatMessage.sly_data
-            if (chatMessage.sly_data) {
-                slyData.current = {...slyData.current, ...chatMessage.sly_data}
-            }
+        // Merge slyData.current with incoming chatMessage.sly_data
+        if (chatMessage.sly_data) {
+            slyData.current = {...slyData.current, ...chatMessage.sly_data}
         }
 
         // Agent name is the last tool in the origin array. If it's not there, use a default name.
@@ -818,29 +684,11 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
 
         // It's a Neuro-san agent. Should be a ChatMessage at this point since all Neuro-san agents should return
         // ChatMessages.
-        let parsedResult: null | object | string
-
-        // For now, Opportunity Finder needs to use the indirect Neuro-san API. We will want to remove this later.
-        if (isIndirectOppFinderPipeline) {
-            parsedResult = tryParseJsonNeuroSanIndirect(chunk)
-            // For all other agents, use the latest Neuro-san API
-        } else {
-            parsedResult = tryParseJson(chunk)
-        }
+        const parsedResult: null | object | string = tryParseJson(chunk)
 
         if (typeof parsedResult === "string") {
-            // For now, Opportunity Finder needs to use the indirect Neuro-san API. We will want to remove this later.
-            if (isIndirectOppFinderPipeline) {
-                updateOutput(
-                    processLogLineNeuroSanIndirect(
-                        parsedResult,
-                        agentName,
-                        chatMessage.type as GrpcChatMessageChatMessageType
-                    )
-                )
-                // For all other agents, use the latest Neuro-san API
-            } else if (parsedResult.trim() !== "") {
-                updateOutput(processLogLine(parsedResult, agentName, chatMessage?.type as ChatMessageType))
+            if (parsedResult.trim() !== "") {
+                updateOutput(processLogLine(parsedResult, agentName, chatMessage?.type))
             }
         } else if (typeof parsedResult === "object") {
             // Does it have the error block?
@@ -855,25 +703,10 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                     </MUIAlert>
                 )
                 succeeded.current = false
-            } else {
-                // For now, Opportunity Finder needs to use the indirect Neuro-san API. We will want to remove this
-                // later.
-                // eslint-disable-next-line no-lonely-if
-                if (isIndirectOppFinderPipeline) {
-                    updateOutput(
-                        processLogLineNeuroSanIndirect(
-                            chatMessage.text,
-                            agentName,
-                            chatMessage.type as GrpcChatMessageChatMessageType
-                        )
-                    )
-
-                    // For all other agents, use the latest Neuro-san API
-                } else if (chatMessage?.text?.trim() !== "") {
-                    // Not an error, so output it if it has text. The backend sometimes sends messages with no
-                    // text content and we don't want to display those to the user.
-                    updateOutput(processLogLine(chatMessage.text, agentName, chatMessage.type as ChatMessageType))
-                }
+            } else if (chatMessage?.text?.trim() !== "") {
+                // Not an error, so output it if it has text. The backend sometimes sends messages with no
+                // text content and we don't want to display those to the user.
+                updateOutput(processLogLine(chatMessage.text, agentName, chatMessage.type))
             }
         }
     }
@@ -889,47 +722,9 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                 // Increment the attempt number and set the state to indicate we're awaiting a response
                 attemptNumber += 1
 
-                // check if targetAgent is Neuro-san agent type. We have to use a different "send" function
-                // for those.
-                if (!isLegacyAgentType(targetAgent)) {
-                    // It's a Neuro-san agent.
-
-                    // For now, Opportunity Finder needs to use the indirect Neuro-san API. We will want to remove this
-                    // later.
-                    if (isIndirectOppFinderPipeline) {
-                        // Send the chat query to the server. This will block until the stream ends from the server
-                        await sendChatQueryLegacyNeuroSanIndirect(
-                            controller?.current.signal,
-                            query,
-                            currentUser,
-                            targetAgent as AgentType,
-                            handleChunk,
-                            grpcChatContext.current
-                        )
-
-                        // For all other agents, use the latest Neuro-san API
-                    } else {
-                        // Some coded tools (data generator...) expect the user name provided in slyData.
-                        const slyDataWithUserName = {...slyData.current, login: currentUser} as unknown as Record<
-                            string,
-                            never
-                        >
-
-                        // Send the chat query to the server. This will block until the stream ends from the server
-                        await sendChatQuery(
-                            neuroSanURL,
-                            controller?.current.signal,
-                            query,
-                            agentToLower(targetAgent),
-                            handleChunk,
-                            chatContext.current,
-                            slyDataWithUserName,
-                            currentUser
-                        )
-                    }
-                } else {
-                    // It's a legacy agent (these go directly to the LLM and are different from the indirect
-                    // Neuro-san agents).
+                // Check which agent type we are dealing with
+                if (isLegacyAgentType(targetAgent)) {
+                    // It's a legacy agent (these go directly to the LLM and are different from the Neuro-san agents).
 
                     // Send the chat query to the server. This will block until the stream ends from the server
                     await sendLlmRequest(
@@ -939,6 +734,24 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                         extraParams,
                         query,
                         chatHistory.current
+                    )
+                } else {
+                    // It's a Neuro-san agent.
+
+                    // Some coded tools (data generator...) expect the user name provided in slyData.
+                    const slyDataWithUserName = {...slyData.current, login: currentUser} as unknown as Record<
+                        string,
+                        never
+                    >
+                    await sendChatQuery(
+                        neuroSanURL,
+                        controller?.current.signal,
+                        query,
+                        agentToLower(targetAgent),
+                        handleChunk,
+                        chatContext.current,
+                        slyDataWithUserName,
+                        currentUser
                     )
                 }
             } catch (error: unknown) {
@@ -1049,19 +862,7 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                         ref={finalAnswerRef}
                         style={{marginBottom: "1rem"}}
                     >
-                        {
-                            // For now, Opportunity Finder needs to use the indirect Neuro-san API. We will want to
-                            // remove this later.
-                            isIndirectOppFinderPipeline
-                                ? processLogLineNeuroSanIndirect(
-                                      lastAIMessage.current,
-                                      "Final Answer",
-                                      GrpcChatMessageChatMessageType.AI,
-                                      true
-                                  )
-                                : // For all other agents, use the latest Neuro-san API
-                                  processLogLine(lastAIMessage.current, "Final Answer", ChatMessageType.AI, true)
-                        }
+                        {processLogLine(lastAIMessage.current, "Final Answer", ChatMessageType.AI, true)}
                     </div>
                 )
             }
