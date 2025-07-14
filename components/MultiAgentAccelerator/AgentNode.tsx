@@ -1,3 +1,7 @@
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome"
+import HandymanIcon from "@mui/icons-material/Handyman"
+import PersonIcon from "@mui/icons-material/Person"
+import TravelExploreIcon from "@mui/icons-material/TravelExplore"
 import {Tooltip} from "@mui/material"
 import Typography from "@mui/material/Typography"
 import {FC} from "react"
@@ -13,11 +17,12 @@ export interface AgentNodeProps {
     readonly depth: number
     readonly agentCounts?: Map<string, number>
     readonly isAwaitingLlm?: boolean
+    readonly displayAs?: string
 }
 
 // Node dimensions
-export const NODE_HEIGHT = 80
-export const NODE_WIDTH = 80
+export const NODE_HEIGHT = 100
+export const NODE_WIDTH = 100
 
 /**
  * A node representing an agent in the network for use in react-flow.
@@ -26,7 +31,7 @@ export const NODE_WIDTH = 80
 export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentNodeProps>) => {
     // Unpack the node-specific data
     const data: AgentNodeProps = props.data
-    const {agentName, getOriginInfo, depth, agentCounts, isAwaitingLlm} = data
+    const {agentName, getOriginInfo, depth, agentCounts, isAwaitingLlm, displayAs} = data
 
     const maxAgentCount = agentCounts ? Math.max(...Array.from(agentCounts.values())) : 0
 
@@ -76,6 +81,45 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
     // Hide handles when awaiting LLM response ("zen mode")
     const handleVisibility = isAwaitingLlm ? "none" : "block"
 
+    const getDisplayAsIcon = () => {
+        const fontSize = "2.25rem"
+        const id = `${agentId}-icon`
+        if (depth === 0) {
+            return (
+                // Use special icon and larger size for Frontman
+                <PersonIcon
+                    id={id}
+                    sx={{fontSize: "2.75rem"}}
+                />
+            )
+        }
+        switch (displayAs) {
+            case "llm_agent":
+                return (
+                    <AutoAwesomeIcon
+                        id={id}
+                        sx={{fontSize}}
+                    />
+                )
+            case "external_agent":
+                return (
+                    <TravelExploreIcon
+                        id={id}
+                        sx={{fontSize}}
+                    />
+                )
+            case "coded_tool":
+                return (
+                    <HandymanIcon
+                        id={id}
+                        sx={{fontSize}}
+                    />
+                )
+            default:
+                return null
+        }
+    }
+
     return (
         <>
             <div
@@ -98,6 +142,7 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                 }}
             >
                 <style id={`${agentId}-glow-animation`}>{glowAnimation}</style>
+                {getDisplayAsIcon()}
                 <Handle
                     id={`${agentId}-left-handle`}
                     position={Position.Left}
@@ -133,19 +178,15 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                     id={`${agentId}-name`}
                     sx={{
                         display: "-webkit-box",
-                        fontSize: "14px",
-                        lineHeight: "1.2em",
-                        maxHeight: "2.4em",
+                        fontSize: "18px",
+                        fontWeight: "bold",
+                        lineHeight: "1.4em",
                         overflow: "hidden",
-                        overflowWrap: "normal",
-                        position: "relative",
                         textAlign: "center",
                         textOverflow: "ellipsis",
                         WebkitBoxOrient: "vertical",
                         WebkitLineClamp: 2,
-                        whiteSpace: "normal",
                         width: `${NODE_WIDTH}px`,
-                        wordBreak: "normal",
                         zIndex: 10,
                     }}
                 >

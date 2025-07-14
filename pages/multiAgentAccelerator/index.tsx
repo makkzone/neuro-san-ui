@@ -130,7 +130,9 @@ export default function MultiAgentAcceleratorPage() {
 
     // Set up handler to allow Escape key to stop the interaction with the LLM.
     useEffect(() => {
-        if (!isAwaitingLlm) return undefined
+        if (!isAwaitingLlm) {
+            return undefined
+        }
 
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {

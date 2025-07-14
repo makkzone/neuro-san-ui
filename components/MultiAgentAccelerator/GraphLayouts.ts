@@ -170,6 +170,7 @@ export const layoutRadial = (
                     depth,
                     agentCounts,
                     isAwaitingLlm,
+                    displayAs: agentsInNetwork.find((a) => a.origin === nodeId)?.display_as,
                 },
                 position: isFrontman ? {x: centerX, y: centerY} : {x, y},
                 style: {
