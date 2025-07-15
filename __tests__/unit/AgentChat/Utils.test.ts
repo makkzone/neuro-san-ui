@@ -1,7 +1,7 @@
 import {AgentErrorProps} from "../../../components/AgentChat/Types"
 import {chatMessageFromChunk, checkError, tryParseJson} from "../../../components/AgentChat/Utils"
 import {ChatMessageType} from "../../../generated/neuro-san/NeuroSanClient"
-import {ChatResponse} from "../../../generated/neuro-san/OpenAPITypes"
+import {ChatMessage, ChatResponse} from "../../../generated/neuro-san/OpenAPITypes"
 import {withStrictMocks} from "../../common/strictMocks"
 
 describe("AgentChat/Utils/chatMessageFromChunk", () => {
@@ -38,14 +38,12 @@ describe("AgentChat/Utils/tryParseJson", () => {
     withStrictMocks()
 
     it("Should return an object for valid JSON", () => {
-        const chunk: ChatResponse = {
-            response: {
-                type: ChatMessageType.AGENT,
-                text: JSON.stringify({foo: 42}),
-            },
+        const message: ChatMessage = {
+            type: ChatMessageType.AGENT,
+            text: JSON.stringify({foo: 42}),
         }
 
-        const chatMessage = tryParseJson(JSON.stringify(chunk))
+        const chatMessage = tryParseJson(message)
         expect(chatMessage).not.toBeNull()
 
         // make sure it's an object
@@ -55,14 +53,12 @@ describe("AgentChat/Utils/tryParseJson", () => {
     })
 
     it("Should return text cleaned up for non-JSON", () => {
-        const chunk: ChatResponse = {
-            response: {
-                type: ChatMessageType.AGENT,
-                text: 'This is a test string with embedded newline \\n and escaped double quote \\"',
-            },
+        const message: ChatMessage = {
+            type: ChatMessageType.AGENT,
+            text: 'This is a test string with embedded newline \\n and escaped double quote \\"',
         }
 
-        const chatMessage = tryParseJson(JSON.stringify(chunk))
+        const chatMessage = tryParseJson(message)
         expect(chatMessage).not.toBeNull()
         expect(typeof chatMessage).toBe("string")
         expect(chatMessage).toEqual("This is a test string with embedded newline \n and escaped double quote '")

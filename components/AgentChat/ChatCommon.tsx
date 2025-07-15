@@ -655,12 +655,14 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
             return
         }
 
-        const chatMessage: GrpcChatMessage | ChatMessage = chatMessageFromChunk(chunk)
+        // For Neuro-san agents, we expect a ChatMessage structure in the chunk.
+        const chatMessage: GrpcChatMessage | ChatMessage | null = chatMessageFromChunk(chunk)
         if (!chatMessage) {
             // This is an error since Neuro-san agents should send us ChatMessage structures.
             // But don't want to spam output by logging errors for every bad message.
             return
         }
+
         // It's a ChatMessage. Does it have chat context? Only AGENT_FRAMEWORK messages can have chat context.
         if (String(chatMessage.type) === "AGENT_FRAMEWORK" && chatMessage.chat_context) {
             // Save the chat context, potentially overwriting any previous ones we received during this session.
@@ -678,13 +680,30 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
 
         // Agent name is the last tool in the origin array. If it's not there, use a default name.
         const agentName =
-            chatMessage?.origin?.length > 0
-                ? cleanUpAgentName(chatMessage?.origin[chatMessage.origin.length - 1].tool)
+            chatMessage.origin?.length > 0
+                ? cleanUpAgentName(chatMessage.origin[chatMessage.origin.length - 1].tool)
                 : "Agent message"
 
-        // It's a Neuro-san agent. Should be a ChatMessage at this point since all Neuro-san agents should return
-        // ChatMessages.
-        const parsedResult: null | object | string = tryParseJson(chunk)
+        // Check if there is an error block in the "structure" field of the chat message.
+        if (chatMessage.structure) {
+            // If there is an error block, we should display it as an alert.
+            const errorMessage = checkError(chatMessage.structure)
+            if (errorMessage) {
+                updateOutput(
+                    <MUIAlert
+                        id="retry-message-alert"
+                        severity="warning"
+                    >
+                        {errorMessage}
+                    </MUIAlert>
+                )
+                succeeded.current = false
+                return // No need to process further if there is an error
+            }
+        }
+
+        // Legacy path: check for a string or object in the chat message "text" field.
+        const parsedResult: null | object | string = tryParseJson(chatMessage)
 
         if (typeof parsedResult === "string") {
             if (parsedResult.trim() !== "") {

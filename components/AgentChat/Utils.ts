@@ -30,26 +30,19 @@ export const chatMessageFromChunk = (chunk: string): ChatMessage => {
  * This function deals with the ambiguity of what we get back from the Neuro-san API.
  * We may receive plain text, or JSON, and the JSON itself may have a text field containing JSON which may or may
  * not be escaped and/or quoted in unpredictable ways by the LLMs. Or it could be a JSON error block.
- * @param chunk The chunk of text to process, as received from Neuro-san
+ * @param chatMessage The chat message to inspect. We will look at the `text` field of this message.
  * @return It's complicated. Either (1) the input chunk, as-is, if we failed to parse it as a ChatMessage,
  * (2) a JSON object if we were able to parse it as such or (3) plain text if all else fails.
  * @throws If we failed to parse JSON but got anything other than a SyntaxError, we rethrow it as-is.
  */
-export const tryParseJson: (chunk: string) => null | object | string = (chunk: string) => {
-    const chatMessage: ChatMessage = chatMessageFromChunk(chunk)
-    if (!chatMessage) {
-        return chunk
-    }
-
-    let chatMessageJson: object
+export const tryParseJson: (chatMessage: ChatMessage) => null | object | string = (chatMessage) => {
     const chatMessageText = chatMessage.text
 
     // LLM sometimes wraps the JSON in markdown code blocks, so we need to remove them before parsing
     const chatMessageCleaned = chatMessageText?.replace(/```json/gu, "").replace(/```/gu, "")
 
     try {
-        chatMessageJson = JSON.parse(chatMessageCleaned)
-        return chatMessageJson
+        return JSON.parse(chatMessageCleaned)
     } catch (error) {
         // Not JSON-like, so just return it as is, except we replace escaped newlines with actual newlines
         // Also replace escaped double quotes with single quotes
