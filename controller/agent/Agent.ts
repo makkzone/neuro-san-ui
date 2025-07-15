@@ -49,7 +49,9 @@ export async function testConnection(url: string): Promise<TestConnectionResult>
         const jsonResponse = await response.json()
         // eslint-disable-next-line no-shadow
         const status = jsonResponse?.status
-        const success = status === "healthy"
+
+        // Different versions of the server return different status values, so we need to check for both.
+        const success = status === "healthy" || status === "ok"
 
         // For now, just capture the Neuro-san version since that's all the server returns. More can be added later.
         const version = jsonResponse?.versions?.["neuro-san"]
