@@ -163,6 +163,19 @@ const Sidebar: FC<SidebarProps> = ({
         }
     }, [selectedNetwork])
 
+    // Get Neuro-san version on initial load
+    useEffect(() => {
+        const fetchVersion = async () => {
+            // We aren't really trying to test the connection here, just getting the version.
+            const result: TestConnectionResult = await testConnection(urlInput)
+            if (result.success) {
+                setTestConnectionResult(result)
+                setConnectionStatus(CONNECTION_STATUS.SUCCESS)
+            }
+        }
+        void fetchVersion()
+    }, [])
+
     const selectNetworkHandler = (network: string) => {
         setSelectedNetwork(network)
     }

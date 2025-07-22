@@ -18,12 +18,14 @@ const TEST_AGENT_MUSIC_NERD = "Music Nerd"
 const TEST_EXAMPLE_URL = "https://test.example.com"
 const TOOLTIP_EXAMPLE_URL = "https://tooltip.example.com"
 
-jest.mock("../../../controller/agent/Agent", () => ({
-    ...jest.requireActual("../../../controller/agent/Agent"),
-    testConnection: jest.fn(),
-}))
+jest.mock("../../../controller/agent/Agent")
+
+// Simulated Neuro-san version for testing
+const TEST_VERSION = "1.2.3.4a"
 
 describe("SideBar", () => {
+    withStrictMocks()
+
     let user: UserEvent
 
     const defaultProps = {
@@ -77,6 +79,7 @@ describe("SideBar", () => {
 
     beforeEach(() => {
         user = userEvent.setup()
+        ;(testConnection as jest.Mock).mockResolvedValue({success: true, status: "ok", version: TEST_VERSION})
     })
 
     it("Should render Sidebar correctly", async () => {
@@ -95,11 +98,20 @@ describe("SideBar", () => {
         // setSelectedNetwork should be called
         expect(setSelectedNetwork).toHaveBeenCalledTimes(1)
         expect(setSelectedNetwork).toHaveBeenCalledWith(TEST_AGENT_MATH_GUY)
+
+        // Mousing over the cog should show the tooltip with the version and URL
+        const settingsButton = await screen.findByRole("button", {name: /Agent Network Settings/u})
+
+        // Hover over the settings button to show the tooltip
+        await user.hover(settingsButton)
+
+        // Check if the tooltip is displayed with the correct URL and version
+        await screen.findByLabelText((label) => label.includes(DEFAULT_EXAMPLE_URL) && label.includes(TEST_VERSION))
     })
 
-    it("should disable the Settings button when isAwaitingLlm is true", () => {
+    it("should disable the Settings button when isAwaitingLlm is true", async () => {
         renderSidebarComponent({isAwaitingLlm: true})
-        const settingsButton = screen.getByRole("button", AGENT_NETWORK_SETTINGS_NAME)
+        const settingsButton = await screen.findByRole("button", AGENT_NETWORK_SETTINGS_NAME)
         expect(settingsButton).toBeDisabled()
     })
 
@@ -331,9 +343,9 @@ describe("SideBar", () => {
         expect(scrollIntoView).toHaveBeenCalled()
     })
 
-    it("should not break if networks is empty", () => {
+    it("should not break if networks is empty", async () => {
         renderSidebarComponent({networks: []})
-        expect(screen.getByText("Agent Networks")).toBeInTheDocument()
+        await screen.findByText("Agent Networks")
         expect(screen.queryByRole("button", {name: TEST_AGENT_MATH_GUY})).not.toBeInTheDocument()
     })
 })

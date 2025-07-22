@@ -4,6 +4,7 @@ import {useSession} from "next-auth/react"
 import {SnackbarProvider} from "notistack"
 import {forwardRef, Ref} from "react"
 
+import {testConnection} from "../../controller/agent/Agent"
 import MultiAgentAcceleratorPage from "../../pages/multiAgentAccelerator"
 import useEnvironmentStore from "../../state/environment"
 import {withStrictMocks} from "../common/strictMocks"
@@ -20,36 +21,13 @@ const TEST_AGENT_MUSIC_NERD = "Music Nerd"
 const mockUseSession = useSession as jest.Mock
 
 // Mock dependencies
-jest.mock("next-auth/react", () => {
-    return {
-        useSession: jest.fn(() => ({data: {user: {name: MOCK_USER}}})),
-    }
-})
+jest.mock("next-auth/react")
 
-// Mock fetchRuns
-jest.mock("../../controller/agent/Agent", () => ({
-    getAgentNetworks: jest.fn(() => Promise.resolve([TEST_AGENT_MATH_GUY, TEST_AGENT_MUSIC_NERD])),
-    getConnectivity: jest.fn(() =>
-        Promise.resolve({
-            connectivity_info: [
-                {
-                    origin: "date_time_provider",
-                    tools: ["current_date_time"],
-                },
-                {
-                    origin: "current_date_time",
-                },
-            ],
-        })
-    ),
-}))
-
-// Mock ChatCommon component
-const chatCommonMock = jest.fn()
-
-let setIsAwaitingLlm: (val: boolean) => void
+jest.mock("../../controller/agent/Agent")
 
 // Mock ChatCommon to call the mock function with props and support refs
+const chatCommonMock = jest.fn()
+let setIsAwaitingLlm: (val: boolean) => void
 jest.mock("../../components/AgentChat/ChatCommon", () => ({
     ChatCommon: forwardRef((props: Record<string, unknown>, ref) => {
         chatCommonMock(props)
@@ -73,7 +51,7 @@ const renderMultiAgentAcceleratorPage = () =>
         </SnackbarProvider>
     )
 
-describe("Agent Network Page", () => {
+describe("Multi Agent Accelerator Page", () => {
     withStrictMocks()
 
     let user: UserEvent
@@ -100,6 +78,7 @@ describe("Agent Network Page", () => {
                 },
             ],
         })
+        ;(testConnection as jest.Mock).mockResolvedValue({success: true, status: "ok", version: "1.0.0"})
 
         user = userEvent.setup()
     })
