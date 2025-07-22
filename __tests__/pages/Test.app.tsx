@@ -3,7 +3,7 @@ import {render, screen} from "@testing-library/react"
 import {LOGO} from "../../const"
 import NeuroAI from "../../pages/_app"
 import {withStrictMocks} from "../common/strictMocks"
-import {mockFetch} from "../testUtils"
+import {mockFetch} from "../common/testUtils"
 
 const originalFetch = window.fetch
 

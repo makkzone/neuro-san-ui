@@ -7,7 +7,7 @@ import {forwardRef, Ref} from "react"
 import MultiAgentAcceleratorPage from "../../pages/multiAgentAccelerator"
 import useEnvironmentStore from "../../state/environment"
 import {withStrictMocks} from "../common/strictMocks"
-import {mockFetch} from "../testUtils"
+import {mockFetch} from "../common/testUtils"
 
 const MOCK_USER = "mock-user"
 

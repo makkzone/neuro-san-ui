@@ -15,7 +15,6 @@ import {SnackbarProvider} from "notistack"
 import {ReactElement, ReactFragment, useEffect, useMemo, useState} from "react"
 
 import {Auth} from "../components/Authentication/auth"
-import {ChatBot} from "../components/ChatBot/ChatBot"
 import NeuroAIBreadcrumbs from "../components/Common/breadcrumbs"
 import Navbar from "../components/Common/Navbar"
 import {Snackbar} from "../components/Common/Snackbar"
@@ -65,7 +64,7 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
     } = useEnvironmentStore()
 
     // access user info store
-    const {currentUser, setCurrentUser, picture, setPicture, setOidcProvider} = useUserInfoStore()
+    const {currentUser, setCurrentUser, setPicture, setOidcProvider} = useUserInfoStore()
 
     const {pathname} = useRouter()
 
@@ -101,7 +100,7 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
         const urlPaths: string[] = pathname?.split("/").filter((path) => path !== "")
         const pageName = startCase(urlPaths?.at(-1))
 
-        // If we are on the spash screen, set the page title to the default
+        // If we are on the splash screen, set the page title to the default
         if (urlPaths.length === 0) {
             setPageTitle(DEFAULT_APP_NAME)
         }
@@ -273,13 +272,6 @@ export default function NeuroAI({Component, pageProps: {session, ...pageProps}}:
                             {/* eslint-disable-next-line enforce-ids-in-jsx/missing-ids */}
                             {includeBreadcrumbs && <NeuroAIBreadcrumbs />}
                             {getAppComponent()}
-                            <div id="fixed-pos-div">
-                                <ChatBot
-                                    id="chatbot"
-                                    userAvatar={picture || undefined}
-                                    pageContext={Component.pageContext || ""}
-                                />
-                            </div>
                         </Container>
                     </ErrorBoundary>
                 </SessionProvider>

@@ -11,7 +11,7 @@ import {sendLlmRequest} from "../../../controller/llm/LlmChat"
 import {ApiPaths, ChatFilterChat_filter_type, ChatMessageType} from "../../../generated/neuro-san/NeuroSanClient"
 import {ChatRequest} from "../../../generated/neuro-san/OpenAPITypes"
 import {withStrictMocks} from "../../common/strictMocks"
-import {mockFetch} from "../../testUtils"
+import {mockFetch} from "../../common/testUtils"
 
 jest.mock("../../../controller/llm/LlmChat")
 
