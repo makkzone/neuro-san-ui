@@ -10,6 +10,7 @@ import {sendLlmRequest} from "../../../controller/llm/LlmChat"
 import {ChatContext, ChatMessage, ChatMessageType, ChatResponse} from "../../../generated/neuro-san/NeuroSanClient"
 import {usePreferences} from "../../../state/Preferences"
 import {withStrictMocks} from "../../common/strictMocks"
+import {USER_AGENTS} from "../../common/UserAgentTestUtils"
 
 // Mock agent API
 jest.mock("../../../controller/agent/Agent")
@@ -32,6 +33,18 @@ const TEST_TOOL_SPOTIFY = "spotify_tool"
 const TEST_TOOL_LAST_FM = "last_fm_tool"
 const TEST_TOOL_SOLVER = "math_solver_tool"
 const TEST_TOOL_CALCULATOR = "calculator_tool"
+
+// Define proper types for speech recognition events. JSDOM doesn't have support for these natively.
+interface SpeechRecognitionEvent {
+    resultIndex: number
+    results: {
+        length: number
+        [index: number]: {
+            isFinal: boolean
+            transcript: string
+        }
+    }
+}
 
 function getResponseMessage(type: ChatMessageType, text: string): ChatMessage {
     return {
@@ -57,7 +70,7 @@ describe("ChatCommon", () => {
 
     const defaultProps = {
         currentUser: TEST_USER,
-        id: "",
+        id: "chat-common-test",
         isAwaitingLlm: false,
         onSend: jest.fn(),
         setIsAwaitingLlm: jest.fn(),
@@ -549,5 +562,488 @@ describe("ChatCommon", () => {
 
         // Agent response should be in the DOM but with display: none
         expect(await screen.findByText(agentResponseText)).not.toBeVisible()
+    })
+
+    it("Should handle voice transcription correctly", async () => {
+        // Store original values to restore later
+        const win = window as Window & {
+            SpeechRecognition?: typeof Function
+            webkitSpeechRecognition?: typeof Function
+        }
+        const originalSpeechRecognition = win.SpeechRecognition
+        const originalWebkitSpeechRecognition = win.webkitSpeechRecognition
+        const originalUserAgent = navigator.userAgent
+
+        // Mock speech recognition to test actual voice transcription behavior
+        const mockSpeechRecognition = {
+            continuous: true,
+            interimResults: true,
+            lang: "en-US",
+            onstart: null as (() => void) | null,
+            onresult: null as ((event: SpeechRecognitionEvent) => void) | null,
+            onerror: null as ((event: Event) => void) | null,
+            onend: null as (() => void) | null,
+            start: jest.fn(),
+            stop: jest.fn(),
+            addEventListener: jest.fn(), // Proper addEventListener mock
+        }
+
+        Object.defineProperty(navigator, "userAgent", {
+            value: USER_AGENTS.CHROME_MAC,
+            configurable: true,
+        })
+
+        // Mock SpeechRecognition constructor
+        Object.defineProperty(win, "SpeechRecognition", {
+            value: jest.fn(() => mockSpeechRecognition),
+            configurable: true,
+        })
+        Object.defineProperty(win, "webkitSpeechRecognition", {
+            value: jest.fn(() => mockSpeechRecognition),
+            configurable: true,
+        })
+
+        try {
+            renderChatCommonComponent()
+
+            const userInput = screen.getByPlaceholderText(CHAT_WITH_MATH_GUY)
+            const micButton = screen.getByTestId("microphone-button")
+
+            // Type some initial text
+            await user.type(userInput, "initial text")
+            expect(userInput).toHaveValue("initial text")
+
+            // Start voice recognition
+            await user.click(micButton)
+            expect(mockSpeechRecognition.start).toHaveBeenCalled()
+
+            // Simulate speech recognition providing a final transcript
+            const mockTranscript = "from voice recognition"
+            const mockEvent: SpeechRecognitionEvent = {
+                resultIndex: 0,
+                results: [
+                    {
+                        isFinal: true,
+                        transcript: mockTranscript,
+                    },
+                ],
+            }
+
+            // Trigger the onresult handler which should call handleVoiceTranscript
+            act(() => {
+                if (mockSpeechRecognition.onresult) {
+                    mockSpeechRecognition.onresult(mockEvent)
+                }
+            })
+
+            // The transcript should be appended to existing text with proper spacing
+            await waitFor(() => {
+                expect(userInput).toHaveValue(`initial text ${mockTranscript}`)
+            })
+
+            // Test voice input on empty field (no extra space should be added)
+            await user.clear(userInput)
+
+            // Start voice recognition again and simulate new transcript
+            await user.click(micButton)
+
+            act(() => {
+                if (mockSpeechRecognition.onresult) {
+                    mockSpeechRecognition.onresult({
+                        resultIndex: 0,
+                        results: [
+                            {
+                                isFinal: true,
+                                transcript: "standalone voice input",
+                            },
+                        ],
+                    })
+                }
+            })
+
+            // Should not add extra space when input is empty
+            await waitFor(() => {
+                expect(userInput).toHaveValue("standalone voice input")
+            })
+        } finally {
+            // Cleanup: restore original values
+            if (originalSpeechRecognition !== undefined) {
+                Object.defineProperty(win, "SpeechRecognition", {
+                    value: originalSpeechRecognition,
+                    configurable: true,
+                })
+            } else {
+                delete win.SpeechRecognition
+            }
+
+            if (originalWebkitSpeechRecognition !== undefined) {
+                Object.defineProperty(win, "webkitSpeechRecognition", {
+                    value: originalWebkitSpeechRecognition,
+                    configurable: true,
+                })
+            } else {
+                delete win.webkitSpeechRecognition
+            }
+
+            Object.defineProperty(navigator, "userAgent", {
+                value: originalUserAgent,
+                configurable: true,
+            })
+        }
+    })
+
+    it("Should handle Clear Chat functionality", async () => {
+        renderChatCommonComponent()
+
+        // First send a message to create chat output
+        const testMessage = "test message for clearing"
+        await sendQuery(TEST_AGENT_MATH_GUY, testMessage)
+
+        // Wait for the message to appear
+        await waitFor(() => {
+            expect(screen.getByText(testMessage)).toBeInTheDocument()
+        })
+
+        // Find and click Clear Chat button
+        const clearButton = screen.getByRole("button", {name: "Clear Chat"})
+        expect(clearButton).toBeInTheDocument()
+
+        await user.click(clearButton)
+
+        // Verify chat is cleared and agent introduction appears
+        expect(await screen.findByText(TEST_AGENT_MATH_GUY)).toBeInTheDocument()
+        expect(screen.queryByText(testMessage)).not.toBeInTheDocument()
+    })
+
+    it("Should render with title and close button when provided", async () => {
+        const mockOnClose = jest.fn()
+        const testTitle = "Test Chat Title"
+
+        // eslint-disable-next-line testing-library/no-unnecessary-act
+        await act(async () => {
+            renderChatCommonComponent({
+                title: testTitle,
+                onClose: mockOnClose,
+            })
+        })
+
+        // Check that title is rendered
+        expect(screen.getByText(testTitle)).toBeInTheDocument()
+
+        // Check that close button is rendered
+        expect(screen.getByTestId("close-button-chat-common-test")).toBeInTheDocument()
+    })
+
+    it("Should apply custom backgroundColor when provided", async () => {
+        const customColor = "#FF0000"
+        renderChatCommonComponent({
+            backgroundColor: customColor,
+            id: "test-chat",
+        })
+
+        await waitFor(() => {
+            const chatContainer = document.querySelector("#llm-chat-test-chat")
+            expect(chatContainer).toBeInTheDocument()
+        })
+    })
+
+    it("Should use custom agent placeholder when provided", async () => {
+        const customPlaceholder = "Custom placeholder text"
+        const customPlaceholders = {
+            [TEST_AGENT_MATH_GUY]: customPlaceholder,
+        }
+
+        // eslint-disable-next-line testing-library/no-unnecessary-act
+        await act(async () => {
+            renderChatCommonComponent({
+                agentPlaceholders: customPlaceholders,
+            })
+        })
+
+        const userInput = screen.getByPlaceholderText(customPlaceholder)
+        expect(userInput).toBeInTheDocument()
+    })
+
+    it("Should handle onStreamingStarted and onStreamingComplete callbacks", async () => {
+        const mockOnStreamingStarted = jest.fn()
+        const mockOnStreamingComplete = jest.fn()
+
+        renderChatCommonComponent({
+            onStreamingStarted: mockOnStreamingStarted,
+            onStreamingComplete: mockOnStreamingComplete,
+        })
+
+        const testResponseText = "Test response"
+        const chatResponse: ChatResponse = {
+            response: {
+                type: ChatMessageType.AGENT_FRAMEWORK,
+                text: testResponseText,
+            },
+        }
+
+        ;(sendChatQuery as jest.Mock).mockImplementation(async (_, __, ___, ____, callback) => {
+            callback(JSON.stringify(chatResponse))
+        })
+
+        await sendQuery(TEST_AGENT_MATH_GUY, "test query")
+
+        expect(mockOnStreamingStarted).toHaveBeenCalledTimes(1)
+        expect(mockOnStreamingComplete).toHaveBeenCalledTimes(1)
+    })
+
+    it("Should handle setPreviousResponse callback", async () => {
+        const mockSetPreviousResponse = jest.fn()
+
+        renderChatCommonComponent({
+            setPreviousResponse: mockSetPreviousResponse,
+        })
+
+        const testResponseText = "Test response for previous"
+        const chatResponse: ChatResponse = {
+            response: {
+                type: ChatMessageType.AGENT_FRAMEWORK,
+                text: testResponseText,
+            },
+        }
+
+        ;(sendChatQuery as jest.Mock).mockImplementation(async (_, __, ___, ____, callback) => {
+            callback(JSON.stringify(chatResponse))
+        })
+
+        await sendQuery(TEST_AGENT_MATH_GUY, "test query")
+
+        await waitFor(() => {
+            expect(mockSetPreviousResponse).toHaveBeenCalledTimes(1)
+        })
+
+        // The response may contain additional elements, so just check it was called
+        expect(mockSetPreviousResponse).toHaveBeenCalledWith(TEST_AGENT_MATH_GUY, expect.any(String))
+    })
+
+    it("Should handle onSend callback that modifies query", async () => {
+        const mockOnSend = jest.fn((query: string) => `Modified: ${query}`)
+
+        renderChatCommonComponent({
+            onSend: mockOnSend,
+        })
+
+        const originalQuery = "original query"
+        const chatResponse: ChatResponse = {
+            response: {
+                type: ChatMessageType.AGENT_FRAMEWORK,
+                text: "response text",
+            },
+        }
+
+        ;(sendChatQuery as jest.Mock).mockImplementation(async (_, __, ___, ____, callback) => {
+            callback(JSON.stringify(chatResponse))
+        })
+
+        await sendQuery(TEST_AGENT_MATH_GUY, originalQuery)
+
+        expect(mockOnSend).toHaveBeenCalledWith(originalQuery)
+    })
+
+    it("Should handle empty input correctly", async () => {
+        renderChatCommonComponent()
+
+        const userInput = screen.getByPlaceholderText(CHAT_WITH_MATH_GUY)
+        const sendButton = screen.getByRole("button", {name: "Send"})
+
+        // Send button should be disabled with empty input
+        expect(sendButton).toBeDisabled()
+
+        // Try with whitespace only
+        await user.type(userInput, "   ")
+        expect(sendButton).toBeDisabled()
+
+        // Clear and add actual content
+        await user.clear(userInput)
+        await user.type(userInput, "actual content")
+        expect(sendButton).toBeEnabled()
+    })
+
+    it("Should handle regenerate functionality", async () => {
+        renderChatCommonComponent()
+
+        // First send a query
+        const testQuery = "test query for regenerate"
+        const initialResponse: ChatResponse = {
+            response: {
+                type: ChatMessageType.AGENT_FRAMEWORK,
+                text: "initial response",
+            },
+        }
+
+        ;(sendChatQuery as jest.Mock).mockImplementation(async (_, __, ___, ____, callback) => {
+            callback(JSON.stringify(initialResponse))
+        })
+
+        await sendQuery(TEST_AGENT_MATH_GUY, testQuery)
+
+        // Regenerate button should now be enabled
+        const regenerateButton = screen.getByRole("button", {name: "Regenerate"})
+        expect(regenerateButton).toBeEnabled()
+
+        // Mock the regenerate request
+        const regenerateResponse: ChatResponse = {
+            response: {
+                type: ChatMessageType.AGENT_FRAMEWORK,
+                text: "regenerated response",
+            },
+        }
+
+        ;(sendChatQuery as jest.Mock).mockImplementation(async (_, __, ___, ____, callback) => {
+            callback(JSON.stringify(regenerateResponse))
+        })
+
+        await user.click(regenerateButton)
+
+        // Check that regenerate was triggered (component should show new response)
+        expect(regenerateButton).toBeInTheDocument()
+    })
+
+    it("Should handle malformed JSON chunks gracefully", async () => {
+        renderChatCommonComponent()
+
+        const malformedChunk = "{ malformed json without closing brace"
+
+        ;(sendChatQuery as jest.Mock).mockImplementation(async (_, __, ___, ____, callback) => {
+            callback(malformedChunk)
+        })
+
+        // Should not throw error when processing malformed JSON
+        await sendQuery(TEST_AGENT_MATH_GUY, "test query")
+
+        // Component should still be functional - check for agent greeting elements
+        const agentGreetings = screen.getAllByText(TEST_AGENT_MATH_GUY)
+        expect(agentGreetings.length).toBeGreaterThan(0)
+    })
+
+    it("Should handle chunks that return false from onChunkReceived", async () => {
+        const mockOnChunkReceived = jest.fn().mockReturnValue(false)
+
+        renderChatCommonComponent({
+            onChunkReceived: mockOnChunkReceived,
+        })
+
+        const testResponseText = "Response that should trigger retry"
+        const chatResponse: ChatResponse = {
+            response: {
+                type: ChatMessageType.AGENT_FRAMEWORK,
+                text: testResponseText,
+            },
+        }
+
+        ;(sendChatQuery as jest.Mock).mockImplementation(async (_, __, ___, ____, callback) => {
+            callback(JSON.stringify(chatResponse))
+        })
+
+        await sendQuery(TEST_AGENT_MATH_GUY, "test query")
+
+        expect(mockOnChunkReceived).toHaveBeenCalledWith(JSON.stringify(chatResponse))
+    })
+
+    it("Should handle extraParams for legacy agents", async () => {
+        const testExtraParams = {
+            customParam: "test value",
+            numericParam: 42,
+        }
+
+        renderChatCommonComponent({
+            targetAgent: LegacyAgentType.DataGenerator,
+            extraParams: testExtraParams,
+        })
+        ;(sendLlmRequest as jest.Mock).mockImplementation(async (callback) => {
+            callback("Legacy agent response")
+        })
+
+        await sendQuery(LegacyAgentType.DataGenerator, "test query")
+
+        // Verify sendLlmRequest was called with extraParams
+        // The legacyAgentEndpoint may be undefined if not provided
+        expect(sendLlmRequest).toHaveBeenCalledWith(
+            expect.any(Function), // handleChunk
+            expect.any(Object), // signal
+            undefined, // legacyAgentEndpoint (can be undefined)
+            testExtraParams, // extraParams
+            expect.any(String), // query
+            expect.any(Array) // chatHistory
+        )
+    })
+
+    it("Should handle legacyAgentEndpoint for legacy agents", async () => {
+        const testEndpoint = "custom-legacy-endpoint"
+
+        renderChatCommonComponent({
+            targetAgent: LegacyAgentType.OpportunityFinder,
+            legacyAgentEndpoint: testEndpoint,
+        })
+        ;(sendLlmRequest as jest.Mock).mockImplementation(async (callback) => {
+            callback("Legacy response with custom endpoint")
+        })
+
+        await sendQuery(LegacyAgentType.OpportunityFinder, "test query")
+
+        expect(await screen.findByText("Legacy response with custom endpoint")).toBeInTheDocument()
+    })
+
+    it.each([
+        {darkMode: true, agentId: "dark-agent"},
+        {darkMode: false, agentId: "light-agent"},
+    ])("Should handle dark mode $darkMode with custom styling", async ({darkMode, agentId}) => {
+        mockedUsePreferences.mockReturnValue({darkMode, toggleDarkMode: jest.fn()})
+
+        renderChatCommonComponent({
+            id: agentId,
+            backgroundColor: darkMode ? "#333333" : "#FFFFFF",
+        })
+
+        await waitFor(() => {
+            const chatContainer = document.querySelector(`#llm-chat-${agentId}`)
+            expect(chatContainer).toBeInTheDocument()
+        })
+
+        expect(await screen.findByText(TEST_AGENT_MATH_GUY)).toBeInTheDocument()
+    })
+
+    it("Should handle connectivity info error gracefully", async () => {
+        // Mock connectivity to throw an error
+        ;(getConnectivity as jest.Mock).mockRejectedValue(new Error("Connectivity fetch failed"))
+
+        renderChatCommonComponent()
+
+        // Component should still render despite connectivity error
+        expect(await screen.findByText(TEST_AGENT_MATH_GUY)).toBeInTheDocument()
+    })
+
+    it("Should handle network request timeout", async () => {
+        renderChatCommonComponent()
+
+        // Mock a timeout scenario
+        ;(sendChatQuery as jest.Mock).mockImplementation(async () => {
+            throw new Error("Network timeout")
+        })
+
+        jest.spyOn(console, "error").mockImplementation()
+        await sendQuery(TEST_AGENT_MATH_GUY, "test query for timeout")
+
+        // Should handle timeout gracefully and show error
+        await waitFor(() => {
+            expect(screen.getAllByText(/Error occurred:/u)).toHaveLength(3)
+        })
+    })
+
+    it("clears input when clear button is clicked", async () => {
+        renderChatCommonComponent()
+        const input = screen.getByPlaceholderText(CHAT_WITH_MATH_GUY)
+        await user.type(input, "hello")
+        // Find the clear input button by id (since it has no accessible name)
+        const clearBtn = document.getElementById("clear-input-button")
+        expect(clearBtn).toBeTruthy()
+        if (clearBtn) {
+            fireEvent.click(clearBtn)
+        }
+        expect(input).toHaveValue("")
     })
 })

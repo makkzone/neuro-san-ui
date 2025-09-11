@@ -25,6 +25,7 @@ import {
     SetStateAction,
     useEffect,
     useImperativeHandle,
+    useMemo,
     useRef,
     useState,
 } from "react"
@@ -39,6 +40,8 @@ import {HLJS_THEMES} from "./SyntaxHighlighterThemes"
 import {CombinedAgentType, isLegacyAgentType} from "./Types"
 import {UserQueryDisplay} from "./UserQueryDisplay"
 import {chatMessageFromChunk, checkError, cleanUpAgentName} from "./Utils"
+import {MicrophoneButton} from "./VoiceChat/MicrophoneButton"
+import {checkSpeechSupport, SpeechRecognition, useVoiceRecognition, VoiceChatState} from "./VoiceChat/VoiceChat"
 import {getAgentFunction, getConnectivity, sendChatQuery} from "../../controller/agent/Agent"
 import {sendLlmRequest} from "../../controller/llm/LlmChat"
 import {
@@ -179,6 +182,14 @@ export type ChatCommonHandle = {
  * agent responses. Customization for inputs and outputs is provided via event handlers-like props.
  */
 export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, ref) => {
+    const slyData = useRef<Record<string, unknown>>({})
+    // Voice state for microphone and speech recognition
+    const [voiceState, setVoiceState] = useState<VoiceChatState>({
+        isListening: false,
+        currentTranscript: "",
+        isSpeaking: false,
+        finalTranscript: "",
+    })
     const {
         id,
         currentUser,
@@ -255,13 +266,19 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
     Both fields fulfill the same purpose: to maintain conversation state across multiple messages.
     */
     const chatContext = useRef<ChatContext>(null)
-
-    const slyData = useRef<Record<string, unknown>>({})
-
-    // Create a ref for the final answer element
     const finalAnswerRef = useRef<HTMLDivElement>(null)
-
     const [showThinking, setShowThinking] = useState<boolean>(false)
+    const [isMicOn, setIsMicOn] = useState<boolean>(false)
+    const [isProcessingSpeech, setIsProcessingSpeech] = useState<boolean>(false)
+
+    // Check speech support once at component mount
+    const speechSupported = useMemo(() => checkSpeechSupport(), [])
+
+    const voiceRefs = useRef<{
+        recognition: SpeechRecognition | null
+    }>({
+        recognition: null,
+    })
 
     // Define styles based on user options (wrap setting)
     const divStyle: CSSProperties = shouldWrapOutput
@@ -863,6 +880,16 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
         }
     }
 
+    useVoiceRecognition({
+        speechSupported,
+        voiceRefs,
+        voiceState,
+        setVoiceState,
+        handleSend,
+        setIsProcessingSpeech,
+        setChatInput,
+    })
+
     return (
         <Box
             id={`llm-chat-${id}`}
@@ -897,6 +924,7 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                     </Typography>
                     {onClose && (
                         <IconButton
+                            data-testid={`close-button-${id}`}
                             id={`close-button-${id}`}
                             onClick={onClose}
                         >
@@ -1040,7 +1068,7 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
             </Box>
             <Box
                 id="user-input-div"
-                style={{...divStyle, display: "flex", margin: "10px", alignItems: "center", position: "relative"}}
+                style={{...divStyle, display: "flex", margin: "10px", alignItems: "flex-end", position: "relative"}}
             >
                 <Input
                     autoComplete="off"
@@ -1056,11 +1084,12 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                         display: "flex",
                         flexGrow: 1,
                         fontSize: "smaller",
-                        marginRight: "0.5rem",
-                        paddingBottom: "7.5px",
-                        paddingTop: "7.5px",
-                        paddingLeft: "15px",
-                        paddingRight: "15px",
+                        marginRight: "0.75rem",
+                        paddingBottom: "0.5rem",
+                        paddingTop: "0.5rem",
+                        paddingLeft: "1rem",
+                        paddingRight: "1rem",
+                        transition: "margin-right 0.2s",
                     }}
                     onChange={(event) => {
                         setChatInput(event.target.value)
@@ -1074,10 +1103,20 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                     value={chatInput}
                     endAdornment={
                         <InputAdornment
-                            id="clear-input-adornment"
+                            id="input-adornments"
                             position="end"
                             disableTypography={true}
                         >
+                            {/* Voice processing spinner - shows only when actively speaking */}
+                            {isProcessingSpeech && (
+                                <CircularProgress
+                                    size={16}
+                                    sx={{
+                                        color: "var(--bs-primary)",
+                                        marginRight: "0.5rem",
+                                    }}
+                                />
+                            )}
                             <IconButton
                                 id="clear-input-button"
                                 onClick={() => {
@@ -1095,6 +1134,17 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                             </IconButton>
                         </InputAdornment>
                     }
+                />
+
+                {/* Microphone Button */}
+                <MicrophoneButton
+                    isMicOn={isMicOn}
+                    onMicToggle={setIsMicOn}
+                    voiceState={voiceState}
+                    setVoiceState={setVoiceState}
+                    speechSupported={speechSupported}
+                    recognition={voiceRefs.current.recognition}
+                    onSendMessage={handleSend}
                 />
 
                 {/* Send Button */}
