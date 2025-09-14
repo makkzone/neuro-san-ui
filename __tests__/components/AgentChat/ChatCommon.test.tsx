@@ -41,7 +41,9 @@ interface SpeechRecognitionEvent {
         length: number
         [index: number]: {
             isFinal: boolean
-            transcript: string
+            [index: number]: {
+                transcript: string
+            }
         }
     }
 }
@@ -567,8 +569,8 @@ describe("ChatCommon", () => {
     it("Should handle voice transcription correctly", async () => {
         // Store original values to restore later
         const win = window as Window & {
-            SpeechRecognition?: typeof Function
-            webkitSpeechRecognition?: typeof Function
+            SpeechRecognition?: new () => SpeechRecognition
+            webkitSpeechRecognition?: new () => SpeechRecognition
         }
         const originalSpeechRecognition = win.SpeechRecognition
         const originalWebkitSpeechRecognition = win.webkitSpeechRecognition
@@ -585,11 +587,44 @@ describe("ChatCommon", () => {
             onend: null as (() => void) | null,
             start: jest.fn(),
             stop: jest.fn(),
-            addEventListener: jest.fn(), // Proper addEventListener mock
+            addEventListener: jest.fn((event: string, handler: (event?: unknown) => void) => {
+                // Store the handlers so we can call them in tests
+                switch (event) {
+                    case "result":
+                        mockSpeechRecognition.onresult = handler as (event: SpeechRecognitionEvent) => void
+                        break
+                    case "start":
+                        mockSpeechRecognition.onstart = handler as () => void
+                        break
+                    case "end":
+                        mockSpeechRecognition.onend = handler as () => void
+                        break
+                    case "error":
+                        // Intentionally mocking it this way
+                        // eslint-disable-next-line unicorn/prefer-add-event-listener
+                        mockSpeechRecognition.onerror = handler as (event: Event) => void
+                        break
+                    default:
+                        // Handle any other event types
+                        break
+                }
+            }),
         }
 
         Object.defineProperty(navigator, "userAgent", {
             value: USER_AGENTS.CHROME_MAC,
+            configurable: true,
+        })
+
+        // Mock getUserMedia for microphone permission
+        const mockGetUserMedia = jest.fn().mockResolvedValue({
+            getTracks: () => [{stop: jest.fn()}],
+        })
+
+        Object.defineProperty(navigator, "mediaDevices", {
+            value: {
+                getUserMedia: mockGetUserMedia,
+            },
             configurable: true,
         })
 
@@ -621,12 +656,15 @@ describe("ChatCommon", () => {
             const mockTranscript = "from voice recognition"
             const mockEvent: SpeechRecognitionEvent = {
                 resultIndex: 0,
-                results: [
-                    {
+                results: {
+                    length: 1,
+                    0: {
                         isFinal: true,
-                        transcript: mockTranscript,
+                        0: {
+                            transcript: mockTranscript,
+                        },
                     },
-                ],
+                },
             }
 
             // Trigger the onresult handler which should call handleVoiceTranscript
@@ -651,12 +689,15 @@ describe("ChatCommon", () => {
                 if (mockSpeechRecognition.onresult) {
                     mockSpeechRecognition.onresult({
                         resultIndex: 0,
-                        results: [
-                            {
+                        results: {
+                            length: 1,
+                            0: {
                                 isFinal: true,
-                                transcript: "standalone voice input",
+                                0: {
+                                    transcript: "standalone voice input",
+                                },
                             },
-                        ],
+                        },
                     })
                 }
             })

@@ -1,10 +1,10 @@
 import MicNoneIcon from "@mui/icons-material/MicNone"
 import MicOffIcon from "@mui/icons-material/MicOff"
 import Tooltip from "@mui/material/Tooltip"
-import {FC} from "react"
+import {FC, MutableRefObject} from "react"
 
 import {LlmChatButton} from "../LlmChatButton"
-import {toggleListening, VoiceChatConfig, VoiceChatState} from "./VoiceChat"
+import {toggleListening, VoiceChatState} from "./VoiceChat"
 
 // #region: Types
 export interface MicrophoneButtonProps {
@@ -24,24 +24,14 @@ export interface MicrophoneButtonProps {
     voiceState: VoiceChatState
 
     /**
-     * Function to update voice state
-     */
-    setVoiceState: (updater: (prev: VoiceChatState) => VoiceChatState) => void
-
-    /**
      * Whether speech recognition is supported in this browser
      */
     speechSupported: boolean
 
     /**
-     * Voice recognition object reference
+     * Reference to the SpeechRecognition instance
      */
-    recognition: unknown | null
-
-    /**
-     * Callback when a message should be sent
-     */
-    onSendMessage: (message: string) => void
+    recognitionRef: MutableRefObject<SpeechRecognition | null>
 }
 // #endregion: Types
 
@@ -53,26 +43,16 @@ export const MicrophoneButton: FC<MicrophoneButtonProps> = ({
     isMicOn,
     onMicToggle,
     voiceState,
-    setVoiceState,
     speechSupported,
-    recognition,
-    onSendMessage,
+    recognitionRef,
 }) => {
-    const handleClick = async () => {
+    const handleClick = () => {
         const newMicState = !isMicOn
         onMicToggle(newMicState)
 
-        const voiceConfig: VoiceChatConfig = {
-            onSendMessage,
-            onSpeakingChange: (isSpeaking) => {
-                setVoiceState((prev) => ({...prev, isSpeaking}))
-            },
-            onListeningChange: (isListening) => {
-                setVoiceState((prev) => ({...prev, isListening}))
-            },
-        }
+        if (!speechSupported) return
 
-        await toggleListening(recognition, voiceState, voiceConfig, setVoiceState, speechSupported)
+        toggleListening(recognitionRef.current, voiceState, speechSupported)
     }
 
     const isDisabled = !speechSupported

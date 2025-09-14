@@ -39,9 +39,15 @@ jest.mock("../../../../components/AgentChat/LlmChatButton", () => ({
 
 describe("MicrophoneButton", () => {
     const mockOnMicToggle = jest.fn()
-    const mockSetVoiceState = jest.fn()
-    const mockOnSendMessage = jest.fn()
-    const mockRecognition = {start: jest.fn(), stop: jest.fn()}
+    const mockRecognition: Partial<SpeechRecognition> = {
+        start: jest.fn(),
+        stop: jest.fn(),
+        continuous: false,
+        interimResults: false,
+        lang: "en-US",
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+    }
 
     const defaultVoiceState: VoiceChatState = {
         isListening: false,
@@ -54,10 +60,8 @@ describe("MicrophoneButton", () => {
         isMicOn: false,
         onMicToggle: mockOnMicToggle,
         voiceState: defaultVoiceState,
-        setVoiceState: mockSetVoiceState,
         speechSupported: true,
-        recognition: mockRecognition,
-        onSendMessage: mockOnSendMessage,
+        recognitionRef: {current: mockRecognition as SpeechRecognition},
     }
 
     withStrictMocks()
@@ -100,15 +104,7 @@ describe("MicrophoneButton", () => {
         await user.click(button)
 
         expect(mockOnMicToggle).toHaveBeenCalledWith(true)
-        expect(toggleListening).toHaveBeenCalledWith(
-            mockRecognition,
-            defaultVoiceState,
-            expect.objectContaining({
-                onSendMessage: mockOnSendMessage,
-            }),
-            mockSetVoiceState,
-            true
-        )
+        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceState, true)
     })
 
     it("calls onMicToggle and toggleListening when clicked to turn off", async () => {
@@ -124,33 +120,20 @@ describe("MicrophoneButton", () => {
         await user.click(button)
 
         expect(mockOnMicToggle).toHaveBeenCalledWith(false)
-        expect(toggleListening).toHaveBeenCalledWith(
-            mockRecognition,
-            defaultVoiceState,
-            expect.objectContaining({
-                onSendMessage: mockOnSendMessage,
-            }),
-            mockSetVoiceState,
-            true
-        )
+        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceState, true)
     })
 
-    it("sets up voice config with correct callbacks when turning on", async () => {
+    it("passes correct parameters to toggleListening when turning on", async () => {
         const user = userEvent.setup()
         render(<MicrophoneButton {...defaultProps} />)
 
         const button = screen.getByTestId("microphone-button")
         await user.click(button)
 
-        const voiceConfigCall = (toggleListening as jest.Mock).mock.calls[0][2]
-        expect(voiceConfigCall).toEqual({
-            onSendMessage: mockOnSendMessage,
-            onSpeakingChange: expect.any(Function),
-            onListeningChange: expect.any(Function),
-        })
+        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceState, true)
     })
 
-    it("sets up voice config with correct callbacks when turning off", async () => {
+    it("passes correct parameters to toggleListening when turning off", async () => {
         const user = userEvent.setup()
         render(
             <MicrophoneButton
@@ -162,68 +145,7 @@ describe("MicrophoneButton", () => {
         const button = screen.getByTestId("microphone-button")
         await user.click(button)
 
-        const voiceConfigCall = (toggleListening as jest.Mock).mock.calls[0][2]
-        expect(voiceConfigCall).toEqual({
-            onSendMessage: mockOnSendMessage,
-            onSpeakingChange: expect.any(Function),
-            onListeningChange: expect.any(Function),
-        })
-    })
-
-    it("calls setVoiceState when onSpeakingChange is triggered", async () => {
-        const user = userEvent.setup()
-        render(<MicrophoneButton {...defaultProps} />)
-
-        const button = screen.getByTestId("microphone-button")
-        await user.click(button)
-
-        const voiceConfigCall = (toggleListening as jest.Mock).mock.calls[0][2]
-        const onSpeakingChange = voiceConfigCall.onSpeakingChange
-
-        // Simulate speaking change
-        onSpeakingChange(true)
-
-        expect(mockSetVoiceState).toHaveBeenCalledWith(expect.any(Function))
-
-        // Test the actual state update function
-        const stateUpdater = mockSetVoiceState.mock.calls[mockSetVoiceState.mock.calls.length - 1][0]
-        const mockPrevState = {
-            isListening: false,
-            currentTranscript: "",
-            speechSupported: true,
-            isSpeaking: false,
-            finalTranscript: "",
-        }
-        const newState = stateUpdater(mockPrevState)
-        expect(newState).toEqual({...mockPrevState, isSpeaking: true})
-    })
-
-    it("calls setVoiceState when onListeningChange is triggered", async () => {
-        const user = userEvent.setup()
-        render(<MicrophoneButton {...defaultProps} />)
-
-        const button = screen.getByTestId("microphone-button")
-        await user.click(button)
-
-        const voiceConfigCall = (toggleListening as jest.Mock).mock.calls[0][2]
-        const onListeningChange = voiceConfigCall.onListeningChange
-
-        // Simulate listening change
-        onListeningChange(true)
-
-        expect(mockSetVoiceState).toHaveBeenCalledWith(expect.any(Function))
-
-        // Test the actual state update function
-        const stateUpdater = mockSetVoiceState.mock.calls[mockSetVoiceState.mock.calls.length - 1][0]
-        const mockPrevState = {
-            isListening: false,
-            currentTranscript: "",
-            speechSupported: true,
-            isSpeaking: false,
-            finalTranscript: "",
-        }
-        const newState = stateUpdater(mockPrevState)
-        expect(newState).toEqual({...mockPrevState, isListening: true})
+        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceState, true)
     })
 
     it("has correct styling based on voice state", () => {
@@ -330,47 +252,41 @@ describe("MicrophoneButton", () => {
         expect(button).toBeInTheDocument()
     })
 
-    it("mic button is disabled and tooltip is shown if not Chrome (speech not supported)", async () => {
-        const unsupportedAgents = [
-            USER_AGENTS.EDGE_MAC,
-            USER_AGENTS.EDGE_WINDOWS,
-            USER_AGENTS.FIREFOX_MAC,
-            USER_AGENTS.FIREFOX_WINDOWS,
-        ]
+    test.each([
+        ["Edge on Mac", USER_AGENTS.EDGE_MAC],
+        ["Edge on Windows", USER_AGENTS.EDGE_WINDOWS],
+        ["Firefox on Mac", USER_AGENTS.FIREFOX_MAC],
+        ["Firefox on Windows", USER_AGENTS.FIREFOX_WINDOWS],
+    ])("mic button is disabled and tooltip is shown for unsupported browser: %s", async (_browserName, userAgent) => {
+        Object.defineProperty(navigator, "userAgent", {
+            value: userAgent,
+            configurable: true,
+        })
 
-        for (const ua of unsupportedAgents) {
-            Object.defineProperty(navigator, "userAgent", {
-                value: ua,
-                configurable: true,
-            })
-
-            const unsupportedVoiceState = {
-                ...defaultVoiceState,
-            }
-            const {unmount} = render(
-                <MicrophoneButton
-                    {...defaultProps}
-                    voiceState={unsupportedVoiceState}
-                    speechSupported={false}
-                />
-            )
-
-            const button = screen.getByTestId("microphone-button")
-            expect(button).toBeInTheDocument()
-            expect(button).toBeDisabled()
-            const user = userEvent.setup()
-            await user.hover(button)
-            // MUI Tooltip renders in a portal, so check document.body
-            expect(
-                await screen.findByText(
-                    "Voice input is only supported in Google Chrome on Mac or Windows.",
-                    {},
-                    {container: document.body}
-                )
-            ).toBeInTheDocument()
-
-            // Clean up after each iteration to avoid side effects
-            unmount()
+        const unsupportedVoiceState = {
+            ...defaultVoiceState,
         }
+        render(
+            <MicrophoneButton
+                {...defaultProps}
+                voiceState={unsupportedVoiceState}
+                speechSupported={false}
+            />
+        )
+
+        const button = screen.getByTestId("microphone-button")
+        expect(button).toBeInTheDocument()
+        expect(button).toBeDisabled()
+
+        const user = userEvent.setup()
+        await user.hover(button)
+        // MUI Tooltip renders in a portal, so check document.body
+        expect(
+            await screen.findByText(
+                "Voice input is only supported in Google Chrome on Mac or Windows.",
+                {},
+                {container: document.body}
+            )
+        ).toBeInTheDocument()
     })
 })

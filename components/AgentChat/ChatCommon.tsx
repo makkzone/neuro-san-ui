@@ -41,7 +41,7 @@ import {CombinedAgentType, isLegacyAgentType} from "./Types"
 import {UserQueryDisplay} from "./UserQueryDisplay"
 import {chatMessageFromChunk, checkError, cleanUpAgentName} from "./Utils"
 import {MicrophoneButton} from "./VoiceChat/MicrophoneButton"
-import {checkSpeechSupport, SpeechRecognition, useVoiceRecognition, VoiceChatState} from "./VoiceChat/VoiceChat"
+import {checkSpeechSupport, useVoiceRecognition, VoiceChatState} from "./VoiceChat/VoiceChat"
 import {getAgentFunction, getConnectivity, sendChatQuery} from "../../controller/agent/Agent"
 import {sendLlmRequest} from "../../controller/llm/LlmChat"
 import {
@@ -273,12 +273,6 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
 
     // Check speech support once at component mount
     const speechSupported = useMemo(() => checkSpeechSupport(), [])
-
-    const voiceRefs = useRef<{
-        recognition: SpeechRecognition | null
-    }>({
-        recognition: null,
-    })
 
     // Define styles based on user options (wrap setting)
     const divStyle: CSSProperties = shouldWrapOutput
@@ -880,12 +874,9 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
         }
     }
 
-    useVoiceRecognition({
-        speechSupported,
-        voiceRefs,
-        voiceState,
+    // Use voice recognition hook
+    const {recognitionRef} = useVoiceRecognition({
         setVoiceState,
-        handleSend,
         setIsProcessingSpeech,
         setChatInput,
     })
@@ -1141,10 +1132,8 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                     isMicOn={isMicOn}
                     onMicToggle={setIsMicOn}
                     voiceState={voiceState}
-                    setVoiceState={setVoiceState}
                     speechSupported={speechSupported}
-                    recognition={voiceRefs.current.recognition}
-                    onSendMessage={handleSend}
+                    recognitionRef={recognitionRef}
                 />
 
                 {/* Send Button */}
