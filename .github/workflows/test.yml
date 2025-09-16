@@ -26,7 +26,15 @@ jobs:
               run: |
                   apk add --quiet --no-progress --upgrade bash shellcheck
 
-            - name: Install Node.js dependencies
+            # Install yarn version from package.json packageManager field using corepack
+            # "corepack install" reads package.json and installs the right yarn version from the packageManager field
+            - name: Set yarn version
+              run: |
+                  corepack enable
+                  corepack install 
+                  yarn --version
+
+            - name: Install dependencies
               run: |
                   yarn --version
                   yarn install
@@ -53,20 +61,15 @@ jobs:
                   yarn check-format --version
                   yarn check-format
 
-            - name: Run depcheck
+            - name: Run knip
               run: |
-                  yarn depcheck --version
-                  yarn depcheck
-
-            - name: Run ts-prune
-              run: |
-                  yarn list --depth=0 --pattern ts-prune
-                  yarn ts-prune --error
+                  yarn knip --version
+                  yarn knip
 
             - name: Run tests
               run: |
-                  yarn unit_test --version
-                  yarn unit_test
+                  yarn test --version
+                  yarn test
 
             - name: Notify Slack on success
               if: success()
