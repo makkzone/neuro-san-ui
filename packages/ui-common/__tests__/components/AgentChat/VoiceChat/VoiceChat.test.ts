@@ -47,13 +47,8 @@ afterAll(() => {
 describe("VoiceChat utils", () => {
     describe("Browser Support", () => {
         beforeEach(() => {
-            // Reset SpeechRecognition and webkitSpeechRecognition before each test
+            // Reset SpeechRecognition before each test
             Object.defineProperty(window, "SpeechRecognition", {
-                value: jest.fn(),
-                configurable: true,
-                writable: true,
-            })
-            Object.defineProperty(window, "webkitSpeechRecognition", {
                 value: jest.fn(),
                 configurable: true,
                 writable: true,
@@ -79,36 +74,16 @@ describe("VoiceChat utils", () => {
         it("returns false if SpeechRecognition is missing", () => {
             mockUserAgent(USER_AGENTS.CHROME_MAC)
             delete (window as unknown as Record<string, unknown>)["SpeechRecognition"]
-            delete (window as unknown as Record<string, unknown>)["webkitSpeechRecognition"]
             expect("SpeechRecognition" in window).toBe(false)
-            expect("webkitSpeechRecognition" in window).toBe(false)
             expect(checkSpeechSupport()).toBe(false)
         })
 
-        it("should handle webkit speech recognition when SpeechRecognition is not available", () => {
+        it("should return false when SpeechRecognition API is missing", () => {
             // Mock Chrome browser
             mockChromeBrowser()
 
-            // Mock only webkitSpeechRecognition
-            Object.defineProperty(window, "SpeechRecognition", {
-                value: undefined,
-                configurable: true,
-            })
-            Object.defineProperty(window, "webkitSpeechRecognition", {
-                value: jest.fn(),
-                configurable: true,
-            })
-
-            expect(checkSpeechSupport()).toBe(true)
-        })
-
-        it("should return false when both SpeechRecognition APIs are missing", () => {
-            // Mock Chrome browser
-            mockChromeBrowser()
-
-            // Remove both APIs completely without using 'any'
+            // Remove SpeechRecognition API
             delete (window as unknown as Record<string, unknown>)["SpeechRecognition"]
-            delete (window as unknown as Record<string, unknown>)["webkitSpeechRecognition"]
 
             expect(checkSpeechSupport()).toBe(false)
         })

@@ -74,7 +74,6 @@ const config = [
                 JSX: "readonly",
                 // Speech Recognition API globals
                 SpeechRecognition: "readonly",
-                webkitSpeechRecognition: "readonly",
                 SpeechRecognitionEvent: "readonly",
                 SpeechRecognitionErrorEvent: "readonly",
             },

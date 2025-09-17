@@ -553,13 +553,11 @@ describe("ChatCommon", () => {
     })
 
     it("Should handle voice transcription correctly", async () => {
-        // Store original values to restore later
+        // Store value to restore later
         const win = window as Window & {
             SpeechRecognition?: typeof SpeechRecognition
-            webkitSpeechRecognition?: typeof SpeechRecognition
         }
         const originalSpeechRecognition = win.SpeechRecognition
-        const originalWebkitSpeechRecognition = win.webkitSpeechRecognition
         const originalUserAgent = navigator.userAgent
 
         // Mock speech recognition to test actual voice transcription behavior
@@ -616,10 +614,6 @@ describe("ChatCommon", () => {
 
         // Mock SpeechRecognition constructor
         Object.defineProperty(win, "SpeechRecognition", {
-            value: jest.fn(() => mockSpeechRecognition),
-            configurable: true,
-        })
-        Object.defineProperty(win, "webkitSpeechRecognition", {
             value: jest.fn(() => mockSpeechRecognition),
             configurable: true,
         })
@@ -730,15 +724,6 @@ describe("ChatCommon", () => {
                 })
             } else {
                 delete win.SpeechRecognition
-            }
-
-            if (originalWebkitSpeechRecognition !== undefined) {
-                Object.defineProperty(win, "webkitSpeechRecognition", {
-                    value: originalWebkitSpeechRecognition,
-                    configurable: true,
-                })
-            } else {
-                delete win.webkitSpeechRecognition
             }
 
             Object.defineProperty(navigator, "userAgent", {
