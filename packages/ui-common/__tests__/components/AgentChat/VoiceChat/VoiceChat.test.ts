@@ -2,9 +2,9 @@ import {USER_AGENTS} from "../../../../../../__tests__/common/UserAgentTestUtils
 import {
     checkSpeechSupport,
     cleanup,
-    VoiceChatEventHandlers,
     stopSpeechSynthesis,
     toggleListening,
+    VoiceChatEventHandlers,
     VoiceChatState,
 } from "../../../../components/AgentChat/VoiceChat/VoiceChat"
 
@@ -91,7 +91,7 @@ describe("VoiceChat utils", () => {
             mockUserAgent(USER_AGENTS.EDGE_MAC)
             expect(checkSpeechSupport()).toBe(false)
         })
-        
+
         it("returns false if SpeechRecognition is missing", () => {
             mockUserAgent(USER_AGENTS.CHROME_MAC)
             delete (window as unknown as Record<string, unknown>)["SpeechRecognition"]
