@@ -5,11 +5,16 @@ import {ReactNode} from "react"
 import {withStrictMocks} from "../../../../../../__tests__/common/strictMocks"
 import {USER_AGENTS} from "../../../../../../__tests__/common/UserAgentTestUtils"
 import {MicrophoneButton, MicrophoneButtonProps} from "../../../../components/AgentChat/VoiceChat/MicrophoneButton"
-import {SpeechRecognitionState, toggleListening} from "../../../../components/AgentChat/VoiceChat/VoiceChat"
+import {
+    checkSpeechSupport,
+    SpeechRecognitionState,
+    toggleListening,
+} from "../../../../components/AgentChat/VoiceChat/VoiceChat"
 
 // Mock the VoiceChat module
 jest.mock("../../../../components/AgentChat/VoiceChat/VoiceChat", () => ({
     toggleListening: jest.fn(),
+    checkSpeechSupport: jest.fn(),
 }))
 
 // Mock the LlmChatButton component
@@ -61,12 +66,18 @@ describe("MicrophoneButton", () => {
         onMicToggle: mockOnMicToggle,
         speechRecognitionRef: {current: mockRecognition as SpeechRecognition},
         voiceInputState: defaultVoiceInputState,
+        setVoiceInputState: jest.fn(),
     }
 
     withStrictMocks()
 
     beforeEach(() => {
         ;(toggleListening as jest.Mock).mockResolvedValue(undefined)
+        ;(checkSpeechSupport as jest.Mock).mockReturnValue(true)
+    })
+
+    afterEach(() => {
+        jest.clearAllMocks()
     })
 
     it("renders with mic off icon when not listening", () => {
@@ -103,7 +114,7 @@ describe("MicrophoneButton", () => {
         await user.click(button)
 
         expect(mockOnMicToggle).toHaveBeenCalledWith(true)
-        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceInputState)
+        expect(toggleListening).toHaveBeenCalledWith(true, mockRecognition)
     })
 
     it("calls onMicToggle and toggleListening when clicked to turn off", async () => {
@@ -119,7 +130,7 @@ describe("MicrophoneButton", () => {
         await user.click(button)
 
         expect(mockOnMicToggle).toHaveBeenCalledWith(false)
-        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceInputState)
+        expect(toggleListening).toHaveBeenCalledWith(false, mockRecognition)
     })
 
     it("passes correct parameters to toggleListening when turning on", async () => {
@@ -129,7 +140,7 @@ describe("MicrophoneButton", () => {
         const button = screen.getByTestId("microphone-button")
         await user.click(button)
 
-        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceInputState)
+        expect(toggleListening).toHaveBeenCalledWith(true, mockRecognition)
     })
 
     it("passes correct parameters to toggleListening when turning off", async () => {
@@ -144,7 +155,7 @@ describe("MicrophoneButton", () => {
         const button = screen.getByTestId("microphone-button")
         await user.click(button)
 
-        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceInputState)
+        expect(toggleListening).toHaveBeenCalledWith(false, mockRecognition)
     })
 
     it("has correct styling based on voice state", () => {
@@ -261,6 +272,9 @@ describe("MicrophoneButton", () => {
             value: userAgent,
             configurable: true,
         })
+
+        // Mock checkSpeechSupport to return false for unsupported browsers
+        ;(checkSpeechSupport as jest.Mock).mockReturnValue(false)
 
         const unsupportedVoiceInputState = {
             ...defaultVoiceInputState,

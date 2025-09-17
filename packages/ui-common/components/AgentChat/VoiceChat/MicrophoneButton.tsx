@@ -1,10 +1,10 @@
 import MicNoneIcon from "@mui/icons-material/MicNone"
 import MicOffIcon from "@mui/icons-material/MicOff"
 import Tooltip from "@mui/material/Tooltip"
-import {FC, MutableRefObject} from "react"
+import {Dispatch, FC, MutableRefObject, SetStateAction} from "react"
 
 import {LlmChatButton} from "../LlmChatButton"
-import {checkSpeechSupport, toggleListening, SpeechRecognitionState} from "./VoiceChat"
+import {checkSpeechSupport, SpeechRecognitionState, toggleListening} from "./VoiceChat"
 
 // #region: Types
 export interface MicrophoneButtonProps {
@@ -28,6 +28,10 @@ export interface MicrophoneButtonProps {
      */
     voiceInputState: SpeechRecognitionState
 
+    /**
+     * Function to update voice input state
+     */
+    setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>
 }
 // #endregion: Types
 
@@ -40,16 +44,26 @@ export const MicrophoneButton: FC<MicrophoneButtonProps> = ({
     onMicToggle,
     speechRecognitionRef,
     voiceInputState,
+    setVoiceInputState,
 }) => {
     const speechSupported = checkSpeechSupport()
-    
+
     const handleClick = async () => {
         const newMicState = !isMicOn
         onMicToggle(newMicState)
 
         if (!speechSupported) return
 
-        await toggleListening(speechRecognitionRef.current, voiceInputState)
+        // If turning off the microphone, immediately update the voice state
+        if (!newMicState) {
+            setVoiceInputState((prev) => ({
+                ...prev,
+                isListening: false,
+                isProcessingSpeech: false,
+            }))
+        }
+
+        await toggleListening(newMicState, speechRecognitionRef.current)
     }
 
     const isDisabled = !speechSupported

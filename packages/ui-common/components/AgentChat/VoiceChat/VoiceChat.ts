@@ -1,4 +1,4 @@
-import {Dispatch, MutableRefObject, SetStateAction, useMemo, useRef} from "react"
+import {Dispatch, MutableRefObject, SetStateAction} from "react"
 
 // #region: Types
 
@@ -33,11 +33,6 @@ export interface SpeechRecognitionEventHandlers {
     onStart: () => void
 }
 
-interface UseSpeechRecognitionProps {
-    setChatInput: Dispatch<SetStateAction<string>>
-    setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>
-}
-
 // #endregion: Types
 
 // Check if browser is Chrome (excluding Edge)
@@ -62,31 +57,22 @@ export const checkSpeechSupport = (): boolean => {
 }
 
 // Handle speech recognition start
-const handleRecognitionStart =
-    (
-        setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>
-    ) =>
-    (): void => {
-        setVoiceInputState((prev) => ({
-            ...prev,
-            isListening: true,
-            currentTranscript: "",
-            isProcessingSpeech: true,
-        }))
-    }
+const handleRecognitionStart = (setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>) => (): void => {
+    setVoiceInputState((prev) => ({
+        ...prev,
+        currentTranscript: "",
+        isListening: true,
+    }))
+}
 
 // Handle speech recognition end
-const handleRecognitionEnd =
-    (
-        setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>
-    ) =>
-    (): void => {
-        setVoiceInputState((prev) => ({
-            ...prev,
-            isListening: false,
-            isProcessingSpeech: false,
-        }))
-    }
+const handleRecognitionEnd = (setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>) => (): void => {
+    setVoiceInputState((prev) => ({
+        ...prev,
+        isListening: false,
+        isProcessingSpeech: false,
+    }))
+}
 
 // Handle speech recognition results
 const handleRecognitionResult =
@@ -134,9 +120,7 @@ const handleRecognitionResult =
 
 // Handle speech recognition errors
 const handleRecognitionError =
-    (
-        setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>
-    ) =>
+    (setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>) =>
     (event: SpeechRecognitionErrorEvent): void => {
         console.error("Speech recognition error:", event.error)
         setVoiceInputState((prev) => ({
@@ -148,43 +132,38 @@ const handleRecognitionError =
 
 // Remove speech recognition event handlers and stop speech recognition
 export const cleanupAndStopSpeechRecognition = (
-    speechRecognition: SpeechRecognition | null,
-    eventHandlers: SpeechRecognitionEventHandlers
+    setChatInput: Dispatch<SetStateAction<string>>,
+    setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>,
+    speechRecognitionRef: MutableRefObject<SpeechRecognition | null>
 ): void => {
-    if (!speechRecognition) return
+    if (!speechRecognitionRef?.current) return
 
     // TODO: For tests, may update
-    if (typeof speechRecognition.removeEventListener === "function") {
-        speechRecognition.removeEventListener("start", eventHandlers.onStart)
-        speechRecognition.removeEventListener("end", eventHandlers.onEnd)
-        speechRecognition.removeEventListener("result", eventHandlers.onResult)
-        speechRecognition.removeEventListener("error", eventHandlers.onError)
+    if (typeof speechRecognitionRef.current.removeEventListener === "function") {
+        speechRecognitionRef.current.removeEventListener("end", handleRecognitionEnd(setVoiceInputState))
+        speechRecognitionRef.current.removeEventListener("error", handleRecognitionError(setVoiceInputState))
+        speechRecognitionRef.current.removeEventListener(
+            "result",
+            handleRecognitionResult(setVoiceInputState, setChatInput)
+        )
+        speechRecognitionRef.current.removeEventListener("start", handleRecognitionStart(setVoiceInputState))
     }
 
     try {
-        speechRecognition.stop()
+        speechRecognitionRef.current.stop()
     } catch (error) {
         console.warn("Error stopping speechRecognition:", error)
     }
 }
 
-export const setupSpeechRecognition = ({setChatInput, setVoiceInputState}: UseSpeechRecognitionProps): {
+export const setupSpeechRecognition = (
+    setChatInput: Dispatch<SetStateAction<string>>,
+    setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>,
     speechRecognitionRef: MutableRefObject<SpeechRecognition | null>
-    speechSupported: boolean
+): {
+    speechRecognitionRef: MutableRefObject<SpeechRecognition | null>
 } => {
-    const speechRecognitionRef = useRef<SpeechRecognition | null>(null)
     const speechSupported = checkSpeechSupport()
-
-    // Create stable event handlers using useMemo
-    const eventHandlers = useMemo(
-        (): SpeechRecognitionEventHandlers => ({
-            onStart: handleRecognitionStart(setVoiceInputState),
-            onEnd: handleRecognitionEnd(setVoiceInputState),
-            onResult: handleRecognitionResult(setVoiceInputState, setChatInput),
-            onError: handleRecognitionError(setVoiceInputState),
-        }),
-        [setChatInput, setVoiceInputState]
-    )
 
     if (speechSupported) {
         const speechRecognition = new SpeechRecognition()
@@ -193,21 +172,17 @@ export const setupSpeechRecognition = ({setChatInput, setVoiceInputState}: UseSp
         speechRecognition.interimResults = true
         speechRecognition.lang = navigator.language || "en-US"
 
-        speechRecognition.addEventListener("start", eventHandlers.onStart)
-        speechRecognition.addEventListener("end", eventHandlers.onEnd)
-        speechRecognition.addEventListener("result", eventHandlers.onResult)
-        speechRecognition.addEventListener("error", eventHandlers.onError)
+        speechRecognition.addEventListener("end", handleRecognitionEnd(setVoiceInputState))
+        speechRecognition.addEventListener("error", handleRecognitionError(setVoiceInputState))
+        speechRecognition.addEventListener("result", handleRecognitionResult(setVoiceInputState, setChatInput))
+        speechRecognition.addEventListener("start", handleRecognitionStart(setVoiceInputState))
 
         speechRecognitionRef.current = speechRecognition
-        
     } else {
         speechRecognitionRef.current = null
     }
 
-    return {
-        speechRecognitionRef,
-        speechSupported,
-    }
+    return {speechRecognitionRef}
 }
 
 // Request microphone permission
@@ -240,20 +215,21 @@ const requestMicrophonePermission = async (): Promise<boolean> => {
 }
 
 // Toggle listening function
-export const toggleListening = async (
-    recognition: SpeechRecognition | null,
-    voiceInputState: SpeechRecognitionState,
-): Promise<void> => {
+export const toggleListening = async (isMicOn: boolean, recognition: SpeechRecognition | null): Promise<void> => {
     if (!recognition) return
 
-    if (voiceInputState.isListening) {
-        recognition.stop()
-    } else {
+    if (isMicOn) {
         // Request microphone permission before starting
         const hasPermission = await requestMicrophonePermission()
         if (hasPermission) {
             recognition.start()
         }
+    } else {
+        // Stop recognition immediately
+        try {
+            recognition.stop()
+        } catch (error) {
+            console.warn("Error stopping speech recognition:", error)
+        }
     }
 }
-
