@@ -88,11 +88,11 @@ describe("MicrophoneButton", () => {
     })
 
     it("renders with mic on icon when listening", () => {
-        const listeningvoiceInputState = {...defaultVoiceInputState, isListening: true}
+        const listeningVoiceInputState = {...defaultVoiceInputState, isListening: true}
         render(
             <MicrophoneButton
                 {...defaultProps}
-                voiceInputState={listeningvoiceInputState}
+                voiceInputState={listeningVoiceInputState}
             />
         )
 
@@ -166,11 +166,11 @@ describe("MicrophoneButton", () => {
         expect(button).toHaveAttribute("id", "microphone-button")
 
         // Check listening state
-        const listeningvoiceInputState = {...defaultVoiceInputState, isListening: true}
+        const listeningVoiceInputState = {...defaultVoiceInputState, isListening: true}
         rerender(
             <MicrophoneButton
                 {...defaultProps}
-                voiceInputState={listeningvoiceInputState}
+                voiceInputState={listeningVoiceInputState}
             />
         )
 
@@ -228,12 +228,12 @@ describe("MicrophoneButton", () => {
     })
 
     it("applies success background color when microphone is on and listening", () => {
-        const listeningvoiceInputState = {...defaultVoiceInputState, isListening: true}
+        const listeningVoiceInputState = {...defaultVoiceInputState, isListening: true}
         render(
             <MicrophoneButton
                 {...defaultProps}
                 isMicOn={true}
-                voiceInputState={listeningvoiceInputState}
+                voiceInputState={listeningVoiceInputState}
             />
         )
 
@@ -250,12 +250,12 @@ describe("MicrophoneButton", () => {
     })
 
     it("applies secondary background color when microphone is on but not listening", () => {
-        const notListeningVoiceInputState = {...defaultVoiceInputState, isListening: false}
+        const notlisteningVoiceInputState = {...defaultVoiceInputState, isListening: false}
         render(
             <MicrophoneButton
                 {...defaultProps}
                 isMicOn={true}
-                voiceInputState={notListeningVoiceInputState}
+                voiceInputState={notlisteningVoiceInputState}
             />
         )
         const button = screen.getByTestId("microphone-button")
