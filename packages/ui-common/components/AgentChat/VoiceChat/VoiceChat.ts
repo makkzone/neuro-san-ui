@@ -143,7 +143,7 @@ const setupVoiceRecognition = (eventHandlers: VoiceChatEventHandlers): SpeechRec
 }
 
 // Cleanup voice recognition
-const cleanupVoiceRecognition = (
+export const cleanupVoiceRecognition = (
     recognition: SpeechRecognition | null,
     eventHandlers: VoiceChatEventHandlers
 ): void => {
@@ -222,13 +222,6 @@ export const toggleListening = async (
     }
 }
 
-// Stop speech synthesis
-export const stopSpeechSynthesis = (): void => {
-    if ("speechSynthesis" in window && window.speechSynthesis) {
-        window.speechSynthesis.cancel()
-    }
-}
-
 // Request microphone permission
 const requestMicrophonePermission = async (): Promise<boolean> => {
     if (!isChromeDetection()) return false
@@ -256,10 +249,4 @@ const requestMicrophonePermission = async (): Promise<boolean> => {
         }
     }
     return false
-}
-
-// Clean up function
-export const cleanup = (recognition: SpeechRecognition | null, eventHandlers: VoiceChatEventHandlers): void => {
-    cleanupVoiceRecognition(recognition, eventHandlers)
-    stopSpeechSynthesis()
 }

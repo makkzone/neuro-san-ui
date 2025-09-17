@@ -1,8 +1,7 @@
 import {USER_AGENTS} from "../../../../../../__tests__/common/UserAgentTestUtils"
 import {
     checkSpeechSupport,
-    cleanup,
-    stopSpeechSynthesis,
+    cleanupVoiceRecognition,
     toggleListening,
     VoiceChatEventHandlers,
     VoiceChatState,
@@ -22,14 +21,12 @@ const mockChromeBrowser = () => {
 // Suppress React 18 render warning during hook tests
 let errorSpy: jest.SpyInstance
 let originalSpeechRecognition: unknown
-let originalSpeechSynthesis: unknown
 let originalGetUserMedia: unknown
 let originalMediaDevices: unknown
 
 beforeAll(() => {
     errorSpy = jest.spyOn(console, "error").mockImplementation(jest.fn())
     originalSpeechRecognition = ((window as Window) && {SpeechRecognition: {}}).SpeechRecognition
-    originalSpeechSynthesis = window.speechSynthesis
     originalMediaDevices = navigator.mediaDevices
     originalGetUserMedia = navigator.mediaDevices?.getUserMedia
 })
@@ -37,13 +34,6 @@ beforeAll(() => {
 afterAll(() => {
     errorSpy.mockRestore()
     ;((window as Window) && {SpeechRecognition: {}}).SpeechRecognition = originalSpeechRecognition
-    if (originalSpeechSynthesis) {
-        Object.defineProperty(window, "speechSynthesis", {
-            value: originalSpeechSynthesis,
-            configurable: true,
-            writable: true,
-        })
-    }
     if (originalMediaDevices) {
         Object.defineProperty(navigator, "mediaDevices", {
             value: originalMediaDevices,
@@ -170,7 +160,7 @@ describe("VoiceChat utils", () => {
                 removeEventListener: jest.fn(),
             }
 
-            cleanup(mockRecognition as unknown as SpeechRecognition, mockEventHandlers)
+            cleanupVoiceRecognition(mockRecognition as unknown as SpeechRecognition, mockEventHandlers)
             expect(mockRecognition.removeEventListener).toHaveBeenCalledTimes(4)
             expect(mockRecognition.stop).toHaveBeenCalled()
         })
@@ -332,29 +322,6 @@ describe("VoiceChat utils", () => {
         })
     })
 
-    describe("Speech Synthesis", () => {
-        it("stopSpeechSynthesis calls cancel when speechSynthesis is available", () => {
-            const mockCancel = jest.fn()
-            Object.defineProperty(window, "speechSynthesis", {
-                value: {cancel: mockCancel},
-                configurable: true,
-            })
-
-            stopSpeechSynthesis()
-            expect(mockCancel).toHaveBeenCalled()
-        })
-
-        it("stopSpeechSynthesis handles missing speechSynthesis gracefully", () => {
-            Object.defineProperty(window, "speechSynthesis", {
-                value: undefined,
-                configurable: true,
-            })
-
-            // Should not throw error
-            expect(() => stopSpeechSynthesis()).not.toThrow()
-        })
-    })
-
     describe("Error Handling", () => {
         it("toggleListening should handle unsupported speech or missing recognition", async () => {
             const state: VoiceChatState = {
@@ -377,7 +344,7 @@ describe("VoiceChat utils", () => {
                 onError: jest.fn(),
             }
 
-            cleanup(null, mockEventHandlers)
+            cleanupVoiceRecognition(null, mockEventHandlers)
             // Should not throw error when recognition is null
             expect(true).toBe(true) // Test passes if no error is thrown
         })

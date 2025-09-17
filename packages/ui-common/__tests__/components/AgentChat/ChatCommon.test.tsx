@@ -560,8 +560,8 @@ describe("ChatCommon", () => {
     it("Should handle voice transcription correctly", async () => {
         // Store original values to restore later
         const win = window as Window & {
-            SpeechRecognition?: new () => SpeechRecognition
-            webkitSpeechRecognition?: new () => SpeechRecognition
+            SpeechRecognition?: typeof SpeechRecognition
+            webkitSpeechRecognition?: typeof SpeechRecognition
         }
         const originalSpeechRecognition = win.SpeechRecognition
         const originalWebkitSpeechRecognition = win.webkitSpeechRecognition
