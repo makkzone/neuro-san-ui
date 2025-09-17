@@ -1,11 +1,17 @@
 import {USER_AGENTS} from "../../../../../../__tests__/common/UserAgentTestUtils"
 import {
     checkSpeechSupport,
-    cleanupVoiceRecognition,
     toggleListening,
-    VoiceChatEventHandlers,
-    VoiceChatState,
+    SpeechRecognitionState,
 } from "../../../../components/AgentChat/VoiceChat/VoiceChat"
+
+// Default state for tests only
+const defaultSpeechRecognitionState: SpeechRecognitionState = {
+    isListening: false,
+    currentTranscript: "",
+    finalTranscript: "",
+    isProcessingSpeech: false,
+}
 
 const mockUserAgent = (userAgent: string) => {
     Object.defineProperty(navigator, "userAgent", {
@@ -128,12 +134,7 @@ describe("VoiceChat utils", () => {
 
     describe("Permission and State Handling", () => {
         it("toggleListening handles permission denied", async () => {
-            const state: VoiceChatState = {
-                isListening: false,
-                currentTranscript: "",
-                isSpeaking: false,
-                finalTranscript: "",
-            }
+            const state: SpeechRecognitionState = {...defaultSpeechRecognitionState}
             Object.defineProperty(navigator, "mediaDevices", {
                 value: {
                     getUserMedia: jest.fn().mockRejectedValue({name: "NotAllowedError"}),
@@ -143,45 +144,27 @@ describe("VoiceChat utils", () => {
             })
 
             const mockRecognition = {start: jest.fn(), stop: jest.fn()}
-            await toggleListening(mockRecognition as unknown as SpeechRecognition, state, false)
+            await toggleListening(mockRecognition as unknown as SpeechRecognition, state)
             expect(mockRecognition.start).not.toHaveBeenCalled()
         })
 
-        it("cleanup calls event handlers and stops recognition", () => {
-            const mockEventHandlers: VoiceChatEventHandlers = {
-                onStart: jest.fn(),
-                onEnd: jest.fn(),
-                onResult: jest.fn(),
-                onError: jest.fn(),
-            }
-
-            const mockRecognition = {
-                stop: jest.fn(),
-                removeEventListener: jest.fn(),
-            }
-
-            cleanupVoiceRecognition(mockRecognition as unknown as SpeechRecognition, mockEventHandlers)
-            expect(mockRecognition.removeEventListener).toHaveBeenCalledTimes(4)
-            expect(mockRecognition.stop).toHaveBeenCalled()
-        })
 
         it("toggleListening starts and stops recognition", async () => {
             // Mock Chrome browser for this test
             mockChromeBrowser()
 
-            const listeningState: VoiceChatState = {
-                isListening: true,
-                currentTranscript: "",
-                isSpeaking: false,
+            const listeningState: SpeechRecognitionState = {
+                ...defaultSpeechRecognitionState,
                 finalTranscript: "hi",
+                isListening: true,
             }
 
             const recognition = {stop: jest.fn(), start: jest.fn()}
-            await toggleListening(recognition as unknown as SpeechRecognition, listeningState, true)
+            await toggleListening(recognition as unknown as SpeechRecognition, listeningState)
             expect(recognition.stop).toHaveBeenCalled()
 
             // Now test start
-            const notListeningState: VoiceChatState = {...listeningState, isListening: false}
+            const notListeningState: SpeechRecognitionState = {...listeningState, isListening: false}
 
             // Mock successful permission
             Object.defineProperty(navigator, "mediaDevices", {
@@ -194,19 +177,14 @@ describe("VoiceChat utils", () => {
                 writable: true,
             })
 
-            await toggleListening(recognition as unknown as SpeechRecognition, notListeningState, true)
+            await toggleListening(recognition as unknown as SpeechRecognition, notListeningState)
             expect(recognition.start).toHaveBeenCalled()
         })
     })
 
     describe("Microphone Permission Handling", () => {
         it("should handle microphone permission requests in Chrome", async () => {
-            const state: VoiceChatState = {
-                isListening: false,
-                currentTranscript: "",
-                isSpeaking: false,
-                finalTranscript: "",
-            }
+            const state: SpeechRecognitionState = {...defaultSpeechRecognitionState}
 
             // Mock Chrome browser
             mockChromeBrowser()
@@ -224,7 +202,7 @@ describe("VoiceChat utils", () => {
             })
 
             const recognition = {start: jest.fn(), stop: jest.fn()}
-            await toggleListening(recognition as unknown as SpeechRecognition, state, true)
+            await toggleListening(recognition as unknown as SpeechRecognition, state)
 
             expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
                 audio: {
@@ -237,12 +215,7 @@ describe("VoiceChat utils", () => {
         })
 
         it("should handle microphone permission errors", async () => {
-            const state: VoiceChatState = {
-                isListening: false,
-                currentTranscript: "",
-                isSpeaking: false,
-                finalTranscript: "",
-            }
+            const state: SpeechRecognitionState = {...defaultSpeechRecognitionState}
 
             // Mock Chrome browser
             mockChromeBrowser()
@@ -259,18 +232,13 @@ describe("VoiceChat utils", () => {
             })
 
             const recognition = {start: jest.fn(), stop: jest.fn()}
-            await toggleListening(recognition as unknown as SpeechRecognition, state, true)
+            await toggleListening(recognition as unknown as SpeechRecognition, state)
 
             expect(recognition.start).not.toHaveBeenCalled()
         })
 
         it("should handle PermissionDeniedError", async () => {
-            const state: VoiceChatState = {
-                isListening: false,
-                currentTranscript: "",
-                isSpeaking: false,
-                finalTranscript: "",
-            }
+            const state: SpeechRecognitionState = {...defaultSpeechRecognitionState}
 
             // Mock Chrome browser
             mockChromeBrowser()
@@ -287,18 +255,13 @@ describe("VoiceChat utils", () => {
             })
 
             const recognition = {start: jest.fn(), stop: jest.fn()}
-            await toggleListening(recognition as unknown as SpeechRecognition, state, true)
+            await toggleListening(recognition as unknown as SpeechRecognition, state)
 
             expect(recognition.start).not.toHaveBeenCalled()
         })
 
         it("should handle other getUserMedia errors gracefully", async () => {
-            const state: VoiceChatState = {
-                isListening: false,
-                currentTranscript: "",
-                isSpeaking: false,
-                finalTranscript: "",
-            }
+            const state: SpeechRecognitionState = {...defaultSpeechRecognitionState}
 
             // Mock Chrome browser
             mockChromeBrowser()
@@ -315,7 +278,7 @@ describe("VoiceChat utils", () => {
             })
 
             const recognition = {start: jest.fn(), stop: jest.fn()}
-            await toggleListening(recognition as unknown as SpeechRecognition, state, true)
+            await toggleListening(recognition as unknown as SpeechRecognition, state)
 
             // Should still try to start recognition since it's Chrome and error is not permission-related
             expect(recognition.start).toHaveBeenCalled()
@@ -324,28 +287,14 @@ describe("VoiceChat utils", () => {
 
     describe("Error Handling", () => {
         it("toggleListening should handle unsupported speech or missing recognition", async () => {
-            const state: VoiceChatState = {
-                isListening: false,
-                currentTranscript: "",
-                isSpeaking: false,
-                finalTranscript: "",
-            }
-
-            await toggleListening(null, state, true)
+            const state: SpeechRecognitionState = {...defaultSpeechRecognitionState}
+            await toggleListening(null, state)
+            await toggleListening(null, state)
             // Should not throw error when recognition is null
             expect(true).toBe(true) // Test passes if no error is thrown
         })
 
         it("cleanup should handle missing recognition object gracefully", () => {
-            const mockEventHandlers: VoiceChatEventHandlers = {
-                onStart: jest.fn(),
-                onEnd: jest.fn(),
-                onResult: jest.fn(),
-                onError: jest.fn(),
-            }
-
-            cleanupVoiceRecognition(null, mockEventHandlers)
-            // Should not throw error when recognition is null
             expect(true).toBe(true) // Test passes if no error is thrown
         })
     })

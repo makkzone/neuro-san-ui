@@ -4,7 +4,7 @@ import Tooltip from "@mui/material/Tooltip"
 import {FC, MutableRefObject} from "react"
 
 import {LlmChatButton} from "../LlmChatButton"
-import {toggleListening, VoiceChatState} from "./VoiceChat"
+import {checkSpeechSupport, toggleListening, SpeechRecognitionState} from "./VoiceChat"
 
 // #region: Types
 export interface MicrophoneButtonProps {
@@ -19,19 +19,15 @@ export interface MicrophoneButtonProps {
     onMicToggle: (newState: boolean) => void
 
     /**
-     * Current voice recognition state
-     */
-    voiceState: VoiceChatState
-
-    /**
-     * Whether speech recognition is supported in this browser
-     */
-    speechSupported: boolean
-
-    /**
      * Reference to the SpeechRecognition instance
      */
-    recognitionRef: MutableRefObject<SpeechRecognition | null>
+    speechRecognitionRef: MutableRefObject<SpeechRecognition | null>
+
+    /**
+     * Current voice input state
+     */
+    voiceInputState: SpeechRecognitionState
+
 }
 // #endregion: Types
 
@@ -42,17 +38,18 @@ export interface MicrophoneButtonProps {
 export const MicrophoneButton: FC<MicrophoneButtonProps> = ({
     isMicOn,
     onMicToggle,
-    voiceState,
-    speechSupported,
-    recognitionRef,
+    speechRecognitionRef,
+    voiceInputState,
 }) => {
+    const speechSupported = checkSpeechSupport()
+    
     const handleClick = async () => {
         const newMicState = !isMicOn
         onMicToggle(newMicState)
 
         if (!speechSupported) return
 
-        await toggleListening(recognitionRef.current, voiceState, speechSupported)
+        await toggleListening(speechRecognitionRef.current, voiceInputState)
     }
 
     const isDisabled = !speechSupported
@@ -74,11 +71,11 @@ export const MicrophoneButton: FC<MicrophoneButtonProps> = ({
                         padding: "0.5rem",
                         right: 70,
                         backgroundColor:
-                            isMicOn && voiceState.isListening ? "var(--bs-success)" : "var(--bs-secondary)",
+                            isMicOn && voiceInputState.isListening ? "var(--bs-success)" : "var(--bs-secondary)",
                     }}
                     tabIndex={0}
                 >
-                    {voiceState.isListening ? (
+                    {voiceInputState.isListening ? (
                         <MicNoneIcon
                             sx={{color: "var(--bs-white)"}}
                             data-testid="MicNoneIcon"

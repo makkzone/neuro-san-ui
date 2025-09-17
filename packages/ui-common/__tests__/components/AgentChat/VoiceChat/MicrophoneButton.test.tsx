@@ -5,7 +5,7 @@ import {ReactNode} from "react"
 import {withStrictMocks} from "../../../../../../__tests__/common/strictMocks"
 import {USER_AGENTS} from "../../../../../../__tests__/common/UserAgentTestUtils"
 import {MicrophoneButton, MicrophoneButtonProps} from "../../../../components/AgentChat/VoiceChat/MicrophoneButton"
-import {toggleListening, VoiceChatState} from "../../../../components/AgentChat/VoiceChat/VoiceChat"
+import {SpeechRecognitionState, toggleListening} from "../../../../components/AgentChat/VoiceChat/VoiceChat"
 
 // Mock the VoiceChat module
 jest.mock("../../../../components/AgentChat/VoiceChat/VoiceChat", () => ({
@@ -49,19 +49,18 @@ describe("MicrophoneButton", () => {
         removeEventListener: jest.fn(),
     }
 
-    const defaultVoiceState: VoiceChatState = {
-        isListening: false,
+    const defaultVoiceInputState: SpeechRecognitionState = {
         currentTranscript: "",
-        isSpeaking: false,
         finalTranscript: "",
+        isListening: false,
+        isProcessingSpeech: false,
     }
 
     const defaultProps: MicrophoneButtonProps = {
         isMicOn: false,
         onMicToggle: mockOnMicToggle,
-        voiceState: defaultVoiceState,
-        speechSupported: true,
-        recognitionRef: {current: mockRecognition as SpeechRecognition},
+        speechRecognitionRef: {current: mockRecognition as SpeechRecognition},
+        voiceInputState: defaultVoiceInputState,
     }
 
     withStrictMocks()
@@ -78,11 +77,11 @@ describe("MicrophoneButton", () => {
     })
 
     it("renders with mic on icon when listening", () => {
-        const listeningVoiceState = {...defaultVoiceState, isListening: true}
+        const listeningvoiceInputState = {...defaultVoiceInputState, isListening: true}
         render(
             <MicrophoneButton
                 {...defaultProps}
-                voiceState={listeningVoiceState}
+                voiceInputState={listeningvoiceInputState}
             />
         )
 
@@ -104,7 +103,7 @@ describe("MicrophoneButton", () => {
         await user.click(button)
 
         expect(mockOnMicToggle).toHaveBeenCalledWith(true)
-        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceState, true)
+        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceInputState)
     })
 
     it("calls onMicToggle and toggleListening when clicked to turn off", async () => {
@@ -120,7 +119,7 @@ describe("MicrophoneButton", () => {
         await user.click(button)
 
         expect(mockOnMicToggle).toHaveBeenCalledWith(false)
-        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceState, true)
+        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceInputState)
     })
 
     it("passes correct parameters to toggleListening when turning on", async () => {
@@ -130,7 +129,7 @@ describe("MicrophoneButton", () => {
         const button = screen.getByTestId("microphone-button")
         await user.click(button)
 
-        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceState, true)
+        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceInputState)
     })
 
     it("passes correct parameters to toggleListening when turning off", async () => {
@@ -145,7 +144,7 @@ describe("MicrophoneButton", () => {
         const button = screen.getByTestId("microphone-button")
         await user.click(button)
 
-        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceState, true)
+        expect(toggleListening).toHaveBeenCalledWith(mockRecognition, defaultVoiceInputState)
     })
 
     it("has correct styling based on voice state", () => {
@@ -156,11 +155,11 @@ describe("MicrophoneButton", () => {
         expect(button).toHaveAttribute("id", "microphone-button")
 
         // Check listening state
-        const listeningVoiceState = {...defaultVoiceState, isListening: true}
+        const listeningvoiceInputState = {...defaultVoiceInputState, isListening: true}
         rerender(
             <MicrophoneButton
                 {...defaultProps}
-                voiceState={listeningVoiceState}
+                voiceInputState={listeningvoiceInputState}
             />
         )
 
@@ -218,12 +217,12 @@ describe("MicrophoneButton", () => {
     })
 
     it("applies success background color when microphone is on and listening", () => {
-        const listeningVoiceState = {...defaultVoiceState, isListening: true}
+        const listeningvoiceInputState = {...defaultVoiceInputState, isListening: true}
         render(
             <MicrophoneButton
                 {...defaultProps}
                 isMicOn={true}
-                voiceState={listeningVoiceState}
+                voiceInputState={listeningvoiceInputState}
             />
         )
 
@@ -240,12 +239,12 @@ describe("MicrophoneButton", () => {
     })
 
     it("applies secondary background color when microphone is on but not listening", () => {
-        const notListeningVoiceState = {...defaultVoiceState, isListening: false}
+        const notListeningVoiceInputState = {...defaultVoiceInputState, isListening: false}
         render(
             <MicrophoneButton
                 {...defaultProps}
                 isMicOn={true}
-                voiceState={notListeningVoiceState}
+                voiceInputState={notListeningVoiceInputState}
             />
         )
         const button = screen.getByTestId("microphone-button")
@@ -263,14 +262,13 @@ describe("MicrophoneButton", () => {
             configurable: true,
         })
 
-        const unsupportedVoiceState = {
-            ...defaultVoiceState,
+        const unsupportedVoiceInputState = {
+            ...defaultVoiceInputState,
         }
         render(
             <MicrophoneButton
                 {...defaultProps}
-                voiceState={unsupportedVoiceState}
-                speechSupported={false}
+                voiceInputState={unsupportedVoiceInputState}
             />
         )
 

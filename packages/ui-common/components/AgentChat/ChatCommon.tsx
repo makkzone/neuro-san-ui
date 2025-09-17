@@ -25,7 +25,6 @@ import {
     SetStateAction,
     useEffect,
     useImperativeHandle,
-    useMemo,
     useRef,
     useState,
 } from "react"
@@ -41,7 +40,7 @@ import {CombinedAgentType, isLegacyAgentType} from "./Types"
 import {UserQueryDisplay} from "./UserQueryDisplay"
 import {chatMessageFromChunk, checkError, cleanUpAgentName} from "./Utils"
 import {MicrophoneButton} from "./VoiceChat/MicrophoneButton"
-import {checkSpeechSupport, useVoiceRecognition, VoiceChatState} from "./VoiceChat/VoiceChat"
+import {setupSpeechRecognition, SpeechRecognitionState} from "./VoiceChat/VoiceChat"
 import {getAgentFunction, getConnectivity, sendChatQuery} from "../../controller/agent/Agent"
 import {sendLlmRequest} from "../../controller/llm/LlmChat"
 import {
@@ -183,13 +182,7 @@ export type ChatCommonHandle = {
  */
 export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, ref) => {
     const slyData = useRef<Record<string, unknown>>({})
-    // Voice state for microphone and speech recognition
-    const [voiceState, setVoiceState] = useState<VoiceChatState>({
-        isListening: false,
-        currentTranscript: "",
-        isSpeaking: false,
-        finalTranscript: "",
-    })
+
     const {
         id,
         currentUser,
@@ -268,11 +261,23 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
     const chatContext = useRef<ChatContext>(null)
     const finalAnswerRef = useRef<HTMLDivElement>(null)
     const [showThinking, setShowThinking] = useState<boolean>(false)
-    const [isMicOn, setIsMicOn] = useState<boolean>(false)
-    const [isProcessingSpeech, setIsProcessingSpeech] = useState<boolean>(false)
 
-    // Check speech support once at component mount
-    const speechSupported = useMemo(() => checkSpeechSupport(), [])
+    // Microphone state for voice input
+    const [isMicOn, setIsMicOn] = useState<boolean>(false)
+
+    // Voice state for speech recognition
+    const [voiceInputState, setVoiceInputState] = useState<SpeechRecognitionState>({
+        currentTranscript: "",
+        finalTranscript: "",
+        isListening: false,
+        isProcessingSpeech: false,
+    })
+
+    // Set up speech recognition
+    const {speechRecognitionRef} = setupSpeechRecognition({
+        setVoiceInputState,
+        setChatInput,
+    })
 
     // Define styles based on user options (wrap setting)
     const divStyle: CSSProperties = shouldWrapOutput
@@ -874,13 +879,6 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
         }
     }
 
-    // Use voice recognition hook
-    const {recognitionRef} = useVoiceRecognition({
-        setVoiceState,
-        setIsProcessingSpeech,
-        setChatInput,
-    })
-
     return (
         <Box
             id={`llm-chat-${id}`}
@@ -1099,7 +1097,7 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                             disableTypography={true}
                         >
                             {/* Voice processing spinner - shows only when actively speaking */}
-                            {isProcessingSpeech && (
+                            {voiceInputState.isProcessingSpeech && (
                                 <CircularProgress
                                     size={16}
                                     sx={{
@@ -1131,9 +1129,8 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                 <MicrophoneButton
                     isMicOn={isMicOn}
                     onMicToggle={setIsMicOn}
-                    voiceState={voiceState}
-                    speechSupported={speechSupported}
-                    recognitionRef={recognitionRef}
+                    speechRecognitionRef={speechRecognitionRef}
+                    voiceInputState={voiceInputState}
                 />
 
                 {/* Send Button */}
