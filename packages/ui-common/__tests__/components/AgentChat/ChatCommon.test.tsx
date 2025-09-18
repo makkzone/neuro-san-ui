@@ -681,33 +681,26 @@ describe("ChatCommon", () => {
 
             act(() => {
                 if (mockSpeechRecognition.onresult) {
-                    mockSpeechRecognition.onresult({
-                        resultIndex: 0,
-                        results: {
-                            length: 1,
-                            item() {
-                                return {
-                                    length: 1,
-                                    isFinal: true,
-                                    item() {
-                                        return {confidence: 100, transcript: "standalone voice input"}
-                                    },
-                                    0: {confidence: 100, transcript: "standalone voice input"},
-                                } as unknown as SpeechRecognitionResult
-                            },
-                            0: {
-                                length: 1,
-                                isFinal: true,
-                                item() {
-                                    return {confidence: 100, transcript: "standalone voice input"}
-                                },
-                                0: {
-                                    confidence: 100,
-                                    transcript: "standalone voice input",
-                                },
-                            },
+                    const mockVoiceResult: Partial<SpeechRecognitionResult> = {
+                        length: 1,
+                        isFinal: true,
+                        item() {
+                            return {confidence: 100, transcript: "standalone voice input"}
                         },
-                    } as unknown as SpeechRecognitionEvent)
+                        0: {confidence: 100, transcript: "standalone voice input"},
+                    }
+                    const mockVoiceResults: Partial<SpeechRecognitionResultList> = {
+                        length: 1,
+                        item() {
+                            return mockVoiceResult as SpeechRecognitionResult
+                        },
+                        0: mockVoiceResult as SpeechRecognitionResult,
+                    }
+                    const mockVoiceEvent: Partial<SpeechRecognitionEvent> = {
+                        resultIndex: 0,
+                        results: mockVoiceResults as SpeechRecognitionResultList,
+                    }
+                    mockSpeechRecognition.onresult(mockVoiceEvent as SpeechRecognitionEvent)
                 }
             })
 
