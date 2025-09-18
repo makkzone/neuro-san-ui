@@ -593,6 +593,7 @@ describe("ChatCommon", () => {
                         break
                 }
             }),
+            removeEventListener: jest.fn(),
         }
 
         Object.defineProperty(navigator, "userAgent", {

@@ -1,6 +1,13 @@
-import {Dispatch, MutableRefObject, SetStateAction} from "react"
+import {Dispatch, SetStateAction} from "react"
 
 // #region: Types
+
+interface SpeechRecognitionHandlers {
+    end: () => void
+    error: (event: SpeechRecognitionErrorEvent) => void
+    result: (event: SpeechRecognitionEvent) => void
+    start: () => void
+}
 
 export interface SpeechRecognitionState {
     /**
@@ -119,36 +126,31 @@ const handleRecognitionError =
     }
 
 // Remove speech recognition event handlers and stop speech recognition
-export const cleanupAndStopSpeechRecognition = (
-    setChatInput: Dispatch<SetStateAction<string>>,
-    setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>,
-    speechRecognitionRef: MutableRefObject<SpeechRecognition | null>
-): void => {
-    // If speech recognition ref or removeEventListener are null, return
-    if (!speechRecognitionRef?.current || typeof speechRecognitionRef.current.removeEventListener !== "function") return
+export function cleanupAndStopSpeechRecognition(
+    speechRecognitionRef: React.MutableRefObject<SpeechRecognition | null>,
+    handlers: SpeechRecognitionHandlers | null
+): void {
+    const speechRecognition = speechRecognitionRef.current
+    if (!speechRecognition || !handlers) return
 
-    speechRecognitionRef.current.removeEventListener("end", handleRecognitionEnd(setVoiceInputState))
-    speechRecognitionRef.current.removeEventListener("error", handleRecognitionError(setVoiceInputState))
-    speechRecognitionRef.current.removeEventListener(
-        "result",
-        handleRecognitionResult(setVoiceInputState, setChatInput)
-    )
-    speechRecognitionRef.current.removeEventListener("start", handleRecognitionStart(setVoiceInputState))
+    speechRecognition.removeEventListener("end", handlers.end)
+    speechRecognition.removeEventListener("error", handlers.error)
+    speechRecognition.removeEventListener("result", handlers.result)
+    speechRecognition.removeEventListener("start", handlers.start)
 
     try {
-        speechRecognitionRef.current.stop()
+        speechRecognition.stop()
     } catch (error) {
         console.warn("Error stopping speechRecognition:", error)
     }
+    speechRecognitionRef.current = null
 }
 
-export const setupSpeechRecognition = (
+export function setupSpeechRecognition(
     setChatInput: Dispatch<SetStateAction<string>>,
     setVoiceInputState: Dispatch<SetStateAction<SpeechRecognitionState>>,
-    speechRecognitionRef: MutableRefObject<SpeechRecognition | null>
-): {
-    speechRecognitionRef: MutableRefObject<SpeechRecognition | null>
-} => {
+    speechRecognitionRef: React.MutableRefObject<SpeechRecognition | null>
+): SpeechRecognitionHandlers | null {
     const speechSupported = checkSpeechSupport()
 
     if (speechSupported) {
@@ -158,17 +160,25 @@ export const setupSpeechRecognition = (
         speechRecognition.interimResults = true
         speechRecognition.lang = navigator.language || "en-US"
 
-        speechRecognition.addEventListener("end", handleRecognitionEnd(setVoiceInputState))
-        speechRecognition.addEventListener("error", handleRecognitionError(setVoiceInputState))
-        speechRecognition.addEventListener("result", handleRecognitionResult(setVoiceInputState, setChatInput))
-        speechRecognition.addEventListener("start", handleRecognitionStart(setVoiceInputState))
+        // Create handler references
+        const handlers: SpeechRecognitionHandlers = {
+            end: handleRecognitionEnd(setVoiceInputState),
+            error: handleRecognitionError(setVoiceInputState),
+            result: handleRecognitionResult(setVoiceInputState, setChatInput),
+            start: handleRecognitionStart(setVoiceInputState),
+        }
+
+        speechRecognition.addEventListener("end", handlers.end)
+        speechRecognition.addEventListener("error", handlers.error)
+        speechRecognition.addEventListener("result", handlers.result)
+        speechRecognition.addEventListener("start", handlers.start)
 
         speechRecognitionRef.current = speechRecognition
+        return handlers
     } else {
         speechRecognitionRef.current = null
+        return null
     }
-
-    return {speechRecognitionRef}
 }
 
 // Request microphone permission

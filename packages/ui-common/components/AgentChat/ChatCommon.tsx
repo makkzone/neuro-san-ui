@@ -306,10 +306,10 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
 
     useEffect(() => {
         // Set up speech recognition
-        setupSpeechRecognition(setChatInput, setVoiceInputState, speechRecognitionRef)
+        const handlers = setupSpeechRecognition(setChatInput, setVoiceInputState, speechRecognitionRef)
 
         // Clean up function
-        return () => cleanupAndStopSpeechRecognition(setChatInput, setVoiceInputState, speechRecognitionRef)
+        return () => cleanupAndStopSpeechRecognition(speechRecognitionRef, handlers)
     }, [])
 
     // Hide/show existing accordions based on showThinking state
