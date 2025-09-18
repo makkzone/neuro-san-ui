@@ -635,32 +635,34 @@ describe("ChatCommon", () => {
 
             // Simulate speech recognition providing a final transcript
             const mockTranscript = "from voice recognition"
-            const mockEvent = {
-                resultIndex: 0,
-                results: {
-                    length: 1,
-                    item(_index: number) {
-                        return mockEvent.results[_index]
-                    },
-                    *[Symbol.iterator]() {
-                        yield mockEvent.results[0]
-                    },
-                    0: {
-                        length: 1,
-                        isFinal: true,
-                        item(_index: number) {
-                            return mockEvent.results[0][_index]
-                        },
-                        *[Symbol.iterator]() {
-                            yield mockEvent.results[0][0]
-                        },
-                        0: {
-                            confidence: 100,
-                            transcript: mockTranscript,
-                        },
-                    },
+            const mockAlternative: SpeechRecognitionAlternative = {
+                confidence: 100,
+                transcript: mockTranscript,
+            }
+
+            const mockResult: SpeechRecognitionResult = {
+                length: 1,
+                isFinal: true,
+                item() {
+                    return mockAlternative
                 },
-            } as unknown as SpeechRecognitionEvent
+                [Symbol.iterator]: Array.prototype[Symbol.iterator].bind([mockAlternative]),
+                0: mockAlternative,
+            }
+
+            const mockResults: SpeechRecognitionResultList = {
+                length: 1,
+                item() {
+                    return mockResult
+                },
+                [Symbol.iterator]: Array.prototype[Symbol.iterator].bind([mockResult]),
+                0: mockResult,
+            }
+
+            const mockEvent: SpeechRecognitionEvent = {
+                resultIndex: 0,
+                results: mockResults,
+            } as SpeechRecognitionEvent
 
             // Trigger the onresult handler which should call handleVoiceTranscript
             act(() => {
