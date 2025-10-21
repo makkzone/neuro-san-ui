@@ -14,9 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import {Edge, EdgeProps} from "reactflow"
+
 import {withStrictMocks} from "../../../../../__tests__/common/strictMocks"
 import {DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS} from "../../../components/MultiAgentAccelerator/const"
-import {layoutLinear, layoutRadial} from "../../../components/MultiAgentAccelerator/GraphLayouts"
+import {
+    addThoughtBubbleEdge,
+    getThoughtBubbleEdges,
+    layoutLinear,
+    layoutRadial,
+    MAX_GLOBAL_THOUGHT_BUBBLES,
+    removeThoughtBubbleEdge,
+} from "../../../components/MultiAgentAccelerator/GraphLayouts"
 import {ConnectivityInfo} from "../../../generated/neuro-san/NeuroSanClient"
 
 describe("GraphLayouts", () => {
@@ -60,8 +69,8 @@ describe("GraphLayouts", () => {
         {origin: "agent3", tools: []},
     ]
 
-    it("Should generate a linear layout", async () => {
-        const {nodes, edges} = layoutLinear(new Map(), threeAgentNetwork, () => null, false)
+    it("Should generate a linear layout", () => {
+        const {nodes, edges} = layoutLinear(new Map(), threeAgentNetwork, null, false, new Map())
 
         expect(nodes).toHaveLength(3)
         expect(edges).toHaveLength(2)
@@ -86,8 +95,8 @@ describe("GraphLayouts", () => {
         expect(nodes[1].position.x).toBeLessThan(nodes[2].position.x)
     })
 
-    it("Should generate a radial layout", async () => {
-        const {nodes, edges} = layoutRadial(new Map(), sevenAgentNetwork, () => null, false)
+    it("Should generate a radial layout", () => {
+        const {nodes, edges} = layoutRadial(new Map(), sevenAgentNetwork, null, false, new Map())
 
         expect(nodes).toHaveLength(7)
         expect(edges).toHaveLength(6)
@@ -151,8 +160,8 @@ describe("GraphLayouts", () => {
         expect(agent7.position.x).toBeLessThan(agent4.position.x)
     })
 
-    it("Should handle cycles in the graph", async () => {
-        const {nodes, edges} = layoutRadial(new Map(), networkWithCycles, () => null, false)
+    it("Should handle cycles in the graph", () => {
+        const {nodes, edges} = layoutRadial(new Map(), networkWithCycles, null, false, new Map())
 
         expect(nodes).toHaveLength(4)
 
@@ -179,7 +188,7 @@ describe("GraphLayouts", () => {
     })
 
     it("Should handle direct and transitive dependencies in the graph", async () => {
-        const {nodes, edges} = layoutRadial(new Map(), transitiveGraph, () => null, false)
+        const {nodes, edges} = layoutRadial(new Map(), transitiveGraph, null, false, new Map())
 
         // Check nodes
         expect(nodes).toHaveLength(3)
@@ -198,11 +207,37 @@ describe("GraphLayouts", () => {
         expect(edges.some((edge) => edge.source === "agent2" && edge.target === "agent3")).toBe(true)
     })
 
+    it("filters edges to only include those between conversation agents", () => {
+        const agents: ConnectivityInfo[] = [
+            {origin: "a", tools: ["b"]},
+            {origin: "b", tools: []},
+        ]
+
+        const agentCounts = new Map<string, number>()
+        agentCounts.set("a", 1)
+        agentCounts.set("b", 1)
+
+        // currentConversations indicates a conversation between a and b
+        const conversations = [
+            {
+                agents: new Set(["a", "b"]),
+                id: "conv1",
+                startedAt: new Date(),
+            },
+        ]
+
+        const params: Parameters<typeof layoutLinear> = [agentCounts, agents, conversations, true, new Map()]
+        const {edges} = layoutLinear(...params)
+
+        // There should be at least one edge since a->b is a conversation agent edge
+        expect(edges.some((e) => e.source === "a" && e.target === "b")).toBeTruthy()
+    })
+
     test.each([
         {layoutFunction: layoutRadial, name: "radial"},
         {layoutFunction: layoutLinear, name: "linear"},
     ])("Should handle a degenerate single-node graph in $name layout", async ({layoutFunction}) => {
-        const {nodes, edges} = layoutFunction(new Map(), singleNodeNetwork, () => null, false)
+        const {nodes, edges} = layoutFunction(new Map(), singleNodeNetwork, null, false, new Map())
 
         expect(nodes).toHaveLength(1)
         expect(edges).toHaveLength(0)
@@ -213,12 +248,155 @@ describe("GraphLayouts", () => {
     test.each([
         {layoutFunction: layoutRadial, name: "radial"},
         {layoutFunction: layoutLinear, name: "linear"},
-    ])("Should handle a disconnected graph in $name layout", async ({layoutFunction}) => {
+    ])("Should handle a disconnected graph in $name layout", ({layoutFunction}) => {
         // We don't really support this case; "should never happen". This test is to make sure we at least
         // don't crash. This also exercises the (invalid) "multiple frontmen" case
-        const {nodes, edges} = layoutFunction(new Map(), disconnectedGraph, () => null, false)
+        const {nodes, edges} = layoutFunction(new Map(), disconnectedGraph, null, false, new Map())
 
         expect(nodes.length).toBeGreaterThanOrEqual(0) // undefined behavior with bad input
         expect(edges.length).toBeGreaterThanOrEqual(0) // undefined behavior with bad input
+    })
+
+    describe("Thought Bubble Edge Management", () => {
+        const mockEdge: Edge = {
+            id: "edge1",
+            source: "node1",
+            target: "node2",
+            type: "thoughtBubbleEdge",
+            data: {text: "Test message"},
+        }
+
+        const mockEdge2: Edge = {
+            id: "edge2",
+            source: "node3",
+            target: "node4",
+            type: "thoughtBubbleEdge",
+            data: {text: "Test message"},
+        }
+
+        let thoughtBubbleEdgesMap: Map<string, {edge: Edge<EdgeProps>; timestamp: number}>
+
+        beforeEach(() => {
+            thoughtBubbleEdgesMap = new Map()
+        })
+
+        it("Should add and retrieve global thought bubble edges", () => {
+            addThoughtBubbleEdge(thoughtBubbleEdgesMap, "conv1", mockEdge)
+
+            const {edges} = layoutRadial(new Map(), threeAgentNetwork, null, true, thoughtBubbleEdgesMap)
+            const thoughtBubbleEdges = edges.filter((e) => e.type === "thoughtBubbleEdge")
+
+            expect(thoughtBubbleEdges).toHaveLength(1)
+            expect(thoughtBubbleEdges[0]).toEqual(
+                expect.objectContaining({
+                    id: "edge1",
+                    source: "node1",
+                    target: "node2",
+                })
+            )
+        })
+
+        it("Should remove global thought bubble edges", () => {
+            addThoughtBubbleEdge(thoughtBubbleEdgesMap, "conv1", mockEdge)
+            removeThoughtBubbleEdge(thoughtBubbleEdgesMap, "conv1")
+
+            const {edges} = layoutRadial(new Map(), threeAgentNetwork, null, true, thoughtBubbleEdgesMap)
+            const thoughtBubbleEdges = edges.filter((e) => e.type === "thoughtBubbleEdge")
+
+            expect(thoughtBubbleEdges).toHaveLength(0)
+        })
+
+        it("Should enforce max thought bubble limit", () => {
+            // Add more than MAX_GLOBAL_THOUGHT_BUBBLES (5) edges
+            for (let i = 0; i < MAX_GLOBAL_THOUGHT_BUBBLES + 2; i += 1) {
+                const mockEdgeMultiple: Edge = {
+                    id: `edge${i}`,
+                    source: "node1",
+                    target: "node2",
+                    type: "thoughtBubbleEdge",
+                    data: {text: `Unique message ${i}`},
+                }
+                addThoughtBubbleEdge(thoughtBubbleEdgesMap, `conv${i}`, mockEdgeMultiple)
+            }
+
+            const {edges} = layoutRadial(new Map(), threeAgentNetwork, null, true, thoughtBubbleEdgesMap)
+            const thoughtBubbleEdges = edges.filter((e) => e.type === "thoughtBubbleEdge")
+
+            expect(thoughtBubbleEdges).toHaveLength(5)
+        })
+
+        it("Should remove single thought bubble edge", () => {
+            const e: Edge = {id: "e1", source: "A", target: "B"}
+            addThoughtBubbleEdge(thoughtBubbleEdgesMap, "c1", e)
+            removeThoughtBubbleEdge(thoughtBubbleEdgesMap, "c1")
+            expect(getThoughtBubbleEdges(thoughtBubbleEdgesMap).length).toBe(0)
+        })
+
+        it("Should clear all thought bubble edges", () => {
+            addThoughtBubbleEdge(thoughtBubbleEdgesMap, "conv1", mockEdge)
+            addThoughtBubbleEdge(thoughtBubbleEdgesMap, "conv2", mockEdge2)
+            thoughtBubbleEdgesMap.clear()
+
+            const {edges} = layoutRadial(new Map(), threeAgentNetwork, null, true, thoughtBubbleEdgesMap)
+            const thoughtBubbleEdges = edges.filter((e) => e.type === "thoughtBubbleEdge")
+
+            expect(thoughtBubbleEdges).toHaveLength(0)
+        })
+
+        test.each([
+            {layoutFunction: layoutRadial, name: "radial"},
+            {layoutFunction: layoutLinear, name: "linear"},
+        ])("$name layout: should add thought bubble from cache when no duplicate ids exist", ({layoutFunction}) => {
+            const singleNodeMap = new Map<string, {edge: Edge<EdgeProps>; timestamp: number}>()
+            const bubble: Edge = {id: "tb1", source: "A", target: "B", type: "thoughtBubbleEdge", data: {text: "x"}}
+            addThoughtBubbleEdge(singleNodeMap, "conv-x", bubble)
+
+            const {edges} = layoutFunction(new Map(), [{origin: "A", tools: []}], null, true, singleNodeMap)
+            const bubbleEdges = edges.filter((e) => e.type === "thoughtBubbleEdge")
+            expect(bubbleEdges).toHaveLength(1)
+            expect(bubbleEdges[0].id).toBe("tb1")
+        })
+
+        test.each([
+            {layoutFunction: layoutRadial, name: "radial"},
+            {layoutFunction: layoutLinear, name: "linear"},
+        ])("$name layout: should add thought bubble when network already has non-thought edges", ({layoutFunction}) => {
+            const tbMap = new Map<string, {edge: Edge<EdgeProps>; timestamp: number}>()
+            const bubble: Edge = {id: "should-add", source: "agent1", target: "agent2", type: "thoughtBubbleEdge"}
+            addThoughtBubbleEdge(tbMap, "not-add", bubble)
+
+            const agents: ConnectivityInfo[] = [
+                {origin: "agent1", tools: ["agent2"]},
+                {origin: "agent2", tools: []},
+            ]
+
+            const {edges} = layoutFunction(new Map(), agents, null, false, tbMap)
+            const thoughtBubbleEdges = edges.filter((e) => e.type === "thoughtBubbleEdge")
+            expect(thoughtBubbleEdges).toHaveLength(1)
+            expect(thoughtBubbleEdges[0].id).toBe("should-add")
+        })
+
+        test.each([
+            {layoutFunction: layoutRadial, name: "radial"},
+            {layoutFunction: layoutLinear, name: "linear"},
+        ])(
+            "$name layout: should skip thought bubble when an existing network edge has the same id",
+            ({layoutFunction}) => {
+                const tbMap = new Map<string, {edge: Edge<EdgeProps>; timestamp: number}>()
+                const bubble: Edge = {id: "B-edge-A", source: "A", target: "B", type: "thoughtBubbleEdge"}
+                addThoughtBubbleEdge(tbMap, "dup-net", bubble)
+
+                const agents: ConnectivityInfo[] = [
+                    {origin: "A", tools: ["B"]},
+                    {origin: "B", tools: []},
+                ]
+
+                const {edges} = layoutFunction(new Map(), agents, null, false, tbMap)
+
+                const thoughtBubbleEdges = edges.filter((e) => e.type === "thoughtBubbleEdge")
+                expect(thoughtBubbleEdges).toHaveLength(0)
+                expect(edges.some((e) => e.id === "B-edge-A" && e.type !== "thoughtBubbleEdge")).toBeTruthy()
+            }
+        )
     })
 })

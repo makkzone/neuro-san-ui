@@ -27,6 +27,44 @@ import {ConnectivityInfo} from "../../generated/neuro-san/NeuroSanClient"
 import {AgentConversation} from "../../utils/agentConversations"
 import {cleanUpAgentName} from "../AgentChat/Utils"
 
+export const MAX_GLOBAL_THOUGHT_BUBBLES = 5
+
+export const addThoughtBubbleEdge = (
+    thoughtBubbleEdges: Map<string, {edge: Edge<EdgeProps>; timestamp: number}>,
+    conversationId: string,
+    edge: Edge<EdgeProps>
+) => {
+    // Add with timestamp for age-based cleanup
+    thoughtBubbleEdges.set(conversationId, {
+        edge,
+        timestamp: Date.now(),
+    })
+
+    // Enforce max limit - remove oldest if over limit
+    if (thoughtBubbleEdges.size > MAX_GLOBAL_THOUGHT_BUBBLES) {
+        const entries = Array.from(thoughtBubbleEdges.entries())
+        const sorted = entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
+        const toRemove = sorted.slice(0, sorted.length - MAX_GLOBAL_THOUGHT_BUBBLES)
+
+        toRemove.forEach(([id]) => {
+            thoughtBubbleEdges.delete(id)
+        })
+    }
+}
+
+export const removeThoughtBubbleEdge = (
+    thoughtBubbleEdges: Map<string, {edge: Edge<EdgeProps>; timestamp: number}>,
+    conversationId: string
+) => {
+    thoughtBubbleEdges.delete(conversationId)
+}
+
+export const getThoughtBubbleEdges = (
+    thoughtBubbleEdges: Map<string, {edge: Edge<EdgeProps>; timestamp: number}>
+): Edge<EdgeProps>[] => {
+    return Array.from(thoughtBubbleEdges.values()).map((item) => item.edge)
+}
+
 // Helper function to check if two agents are in the same conversation
 const areAgentsInSameConversation = (
     conversations: AgentConversation[] | null,
@@ -105,8 +143,9 @@ const getEdgeProperties = (
 export const layoutRadial = (
     agentCounts: Map<string, number>,
     agentsInNetwork: ConnectivityInfo[],
-    getConversations: () => AgentConversation[] | null,
-    isAwaitingLlm: boolean
+    currentConversations: AgentConversation[] | null, // For plasma edges (live) and node highlighting
+    isAwaitingLlm: boolean,
+    thoughtBubbleEdges: Map<string, {edge: Edge<EdgeProps>; timestamp: number}>
 ): {
     nodes: RFNode<AgentNodeProps>[]
     edges: Edge<EdgeProps>[]
@@ -154,6 +193,8 @@ export const layoutRadial = (
     })
 
     // Assign layout positions based on depth & spread angles per level
+    // Use currentConversations for plasma edges and node highlighting (cleared at network end)
+
     nodesByDepth.forEach((nodeIds, depth) => {
         const radius = BASE_RADIUS + depth * LEVEL_SPACING
         const angleStep = (2 * Math.PI) / nodeIds.length // Divide full circle among nodes at this level
@@ -191,8 +232,8 @@ export const layoutRadial = (
                         targetHandle = isAboveParent ? `${nodeId}-bottom-handle` : `${nodeId}-top-handle`
                     }
 
-                    const conversations = getConversations()
-                    const isEdgeAnimated = areAgentsInSameConversation(conversations, nodeId, graphNode.id)
+                    // Plasma edges based on currentConversations (live, cleared at network end)
+                    const isEdgeAnimated = areAgentsInSameConversation(currentConversations, nodeId, graphNode.id)
 
                     // Add edge from parent to node
                     if (!isAwaitingLlm || isEdgeAnimated) {
@@ -211,7 +252,8 @@ export const layoutRadial = (
                     agentName: cleanUpAgentName(nodeId),
                     depth,
                     displayAs: agentsInNetwork.find((a) => a.origin === nodeId)?.display_as,
-                    getConversations,
+                    // Use current conversations for node highlighting (cleared at end)
+                    getConversations: () => currentConversations,
                     isAwaitingLlm,
                 },
                 position: isFrontman ? {x: DEFAULT_FRONTMAN_X_POS, y: DEFAULT_FRONTMAN_Y_POS} : {x, y},
@@ -226,26 +268,38 @@ export const layoutRadial = (
         })
     })
 
+    // Add thought bubble edges from cache to avoid duplicates across layout recalculations
+    const bubbleEdges = getThoughtBubbleEdges(thoughtBubbleEdges)
+    const thoughtBubbleEdgesToAdd = bubbleEdges.filter((edge: Edge<EdgeProps>) =>
+        edgesInNetwork.every(
+            (existing: Edge<EdgeProps>) => existing.id !== edge.id && edge.type === "thoughtBubbleEdge"
+        )
+    )
+
+    edgesInNetwork.push(...thoughtBubbleEdgesToAdd)
+
     return {nodes: nodesInNetwork, edges: edgesInNetwork}
 }
 
 export const layoutLinear = (
     agentCounts: Map<string, number>,
     agentsInNetwork: ConnectivityInfo[],
-    getConversations: () => AgentConversation[] | null,
-    isAwaitingLlm: boolean
+    currentConversations: AgentConversation[] | null, // For plasma edges (live) and node highlighting
+    isAwaitingLlm: boolean,
+    thoughtBubbleEdges: Map<string, {edge: Edge<EdgeProps>; timestamp: number}>
 ): {
     nodes: RFNode<AgentNodeProps>[]
     edges: Edge<EdgeProps>[]
 } => {
     const nodesInNetwork: RFNode<AgentNodeProps>[] = []
     const edgesInNetwork: Edge<EdgeProps>[] = []
+
+    // Do these calculations outside the loop for efficiency
+    const parentAgents = getParentAgents(agentsInNetwork)
+    const childAgents = getChildAgents(parentAgents)
+    const frontman = getFrontman(parentAgents, childAgents)
+
     agentsInNetwork.forEach(({origin: originOfNode}) => {
-        const parentAgents = getParentAgents(agentsInNetwork)
-        const childAgents = getChildAgents(parentAgents)
-
-        const frontman = getFrontman(parentAgents, childAgents)
-
         const parentIds = getParents(originOfNode, parentAgents)
         const isFrontman = frontman?.origin === originOfNode
 
@@ -256,7 +310,8 @@ export const layoutLinear = (
                 agentCounts,
                 agentName: cleanUpAgentName(originOfNode),
                 displayAs: agentsInNetwork.find((a) => a.origin === originOfNode)?.display_as,
-                getConversations,
+                // Use current conversations for node highlighting (cleared at end)
+                getConversations: () => currentConversations,
                 isAwaitingLlm,
                 depth: undefined, // Depth will be computed later
             },
@@ -273,8 +328,7 @@ export const layoutLinear = (
         if (!isFrontman) {
             for (const parentNode of parentIds) {
                 // Add edges from parents to node
-                const conversations = getConversations()
-                const isEdgeAnimated = areAgentsInSameConversation(conversations, parentNode, originOfNode)
+                const isEdgeAnimated = areAgentsInSameConversation(currentConversations, parentNode, originOfNode)
 
                 // Include all edges here, since dagre needs them to compute the layout correctly.
                 // We will filter them later if we're in "awaiting LLM" mode.
@@ -290,6 +344,16 @@ export const layoutLinear = (
             }
         }
     })
+
+    // Add thought bubble edges from cache to avoid duplicates across layout recalculations
+    const bubbleEdges = getThoughtBubbleEdges(thoughtBubbleEdges)
+    const thoughtBubbleEdgesToAdd = bubbleEdges.filter((edge: Edge<EdgeProps>) =>
+        edgesInNetwork.every(
+            (existing: Edge<EdgeProps>) => existing.id !== edge.id && edge.type === "thoughtBubbleEdge"
+        )
+    )
+
+    edgesInNetwork.push(...thoughtBubbleEdgesToAdd)
 
     const dagreGraph = new dagre.graphlib.Graph()
     dagreGraph.setDefaultEdgeLabel(() => ({}))
@@ -335,10 +399,18 @@ export const layoutLinear = (
     })
 
     // If we're in "awaiting LLM" mode, we filter edges to only include those that are between conversation agents.
-    const conversations = getConversations()
+    // Use currentConversations (plasma edges are live and clear at network end)
     const filteredEdges = isAwaitingLlm
-        ? edgesInNetwork.filter((edge) => areAgentsInSameConversation(conversations, edge.source, edge.target))
+        ? edgesInNetwork.filter((edge) => areAgentsInSameConversation(currentConversations, edge.source, edge.target))
         : edgesInNetwork
+
+    // Add thought bubble edges from cache to avoid duplicates across layout recalculations
+    const globalBubbleEdges = getThoughtBubbleEdges(thoughtBubbleEdges)
+    const thoughtBubbles = globalBubbleEdges.filter((edge: Edge<EdgeProps>) =>
+        filteredEdges.every((existing: Edge<EdgeProps>) => existing.id !== edge.id)
+    )
+
+    filteredEdges.push(...thoughtBubbles)
 
     return {nodes: nodesTmp, edges: filteredEdges}
 }

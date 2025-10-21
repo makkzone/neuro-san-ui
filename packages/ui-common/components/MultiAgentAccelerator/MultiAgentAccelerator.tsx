@@ -19,7 +19,7 @@ import Box from "@mui/material/Box"
 import Grid from "@mui/material/Grid"
 import Slide from "@mui/material/Slide"
 import {JSX as ReactJSX, useCallback, useEffect, useRef, useState} from "react"
-import {ReactFlowProvider} from "reactflow"
+import {Edge, EdgeProps, ReactFlowProvider} from "reactflow"
 
 import {AgentFlow} from "./AgentFlow"
 import {Sidebar} from "./Sidebar"
@@ -55,13 +55,15 @@ export const MultiAgentAccelerator = ({
     // Stores whether are currently awaiting LLM response (for knowing when to show spinners)
     const [isAwaitingLlm, setIsAwaitingLlm] = useState(false)
 
+    // Track streaming state - controls thought bubble cleanup timer, and enables "zen mode" (hides outer panels after
+    // animation)
+    const [isStreaming, setIsStreaming] = useState(false)
+
     const [networks, setNetworks] = useState<string[]>([])
 
     const [agentsInNetwork, setAgentsInNetwork] = useState<ConnectivityInfo[]>([])
 
     const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null)
-
-    const [hideOuterPanels, setHideOuterPanels] = useState<boolean>(false)
 
     // Track whether we've shown the info popup so we don't keep bugging the user with it
     const [haveShownPopup, setHaveShownPopup] = useState<boolean>(false)
@@ -79,6 +81,11 @@ export const MultiAgentAccelerator = ({
 
     const [currentConversations, setCurrentConversations] = useState<AgentConversation[] | null>(null)
 
+    // State to hold thought bubble edges - avoids duplicates across layout recalculations
+    const [thoughtBubbleEdges, setThoughtBubbleEdges] = useState<
+        Map<string, {edge: Edge<EdgeProps>; timestamp: number}>
+    >(new Map())
+
     const customURLCallback = useCallback(
         (url: string) => {
             setNeuroSanURL(url || backendNeuroSanApiUrl)
@@ -87,13 +94,18 @@ export const MultiAgentAccelerator = ({
         [backendNeuroSanApiUrl, setCustomURLLocalStorage]
     )
 
+    const resetState = useCallback(() => {
+        setThoughtBubbleEdges(new Map())
+        setIsStreaming(false)
+    }, [])
+
     // Reference to the ChatCommon component to allow external stop button to call its handleStop method
     const chatRef = useRef<ChatCommonHandle | null>(null)
 
-    // Handle external stop button click during zen mode
+    // Handle external stop button click - stops streaming and exits zen mode
     const handleExternalStop = useCallback(() => {
         chatRef.current?.handleStop()
-        setHideOuterPanels(false)
+        resetState()
     }, [])
 
     useEffect(() => {
@@ -162,10 +174,10 @@ export const MultiAgentAccelerator = ({
         return () => window.removeEventListener("keydown", onKeyDown)
     }, [isAwaitingLlm, handleExternalStop])
 
-    // Effect to reset the hideOuterPanels state when isAwaitingLlm changes
+    // Effect to exit zen mode when streaming ends
     useEffect(() => {
         if (!isAwaitingLlm) {
-            setHideOuterPanels(false)
+            setIsStreaming(false)
         }
     }, [isAwaitingLlm])
 
@@ -186,6 +198,9 @@ export const MultiAgentAccelerator = ({
             sendNotification(NotificationType.info, "Agents working", "Click the stop button or hit Escape to exit.")
             setHaveShownPopup(true)
         }
+
+        // Mark that streaming has started
+        setIsStreaming(true)
     }, [haveShownPopup])
 
     const onStreamingComplete = useCallback((): void => {
@@ -193,6 +208,7 @@ export const MultiAgentAccelerator = ({
         conversationsRef.current = null
         agentCountsRef.current = new Map<string, number>()
         setCurrentConversations(null)
+        resetState()
     }, [])
 
     const getLeftPanel = () => {
@@ -203,12 +219,12 @@ export const MultiAgentAccelerator = ({
                 direction="right"
                 timeout={GROW_ANIMATION_TIME_MS}
                 onExited={() => {
-                    setHideOuterPanels(true)
+                    setIsStreaming(true)
                 }}
             >
                 <Grid
                     id="multi-agent-accelerator-grid-sidebar"
-                    size={hideOuterPanels ? 0 : 3.25}
+                    size={isStreaming ? 0 : 3.25}
                     sx={{
                         height: "100%",
                     }}
@@ -231,7 +247,7 @@ export const MultiAgentAccelerator = ({
         return (
             <Grid
                 id="multi-agent-accelerator-grid-agent-flow"
-                size={hideOuterPanels ? 18 : 8.25}
+                size={isStreaming ? 18 : 8.25}
                 sx={{
                     height: "100%",
                 }}
@@ -255,6 +271,9 @@ export const MultiAgentAccelerator = ({
                             id="multi-agent-accelerator-agent-flow"
                             currentConversations={currentConversations}
                             isAwaitingLlm={isAwaitingLlm}
+                            isStreaming={isStreaming}
+                            thoughtBubbleEdges={thoughtBubbleEdges}
+                            setThoughtBubbleEdges={setThoughtBubbleEdges}
                         />
                     </Box>
                 </ReactFlowProvider>
@@ -270,12 +289,12 @@ export const MultiAgentAccelerator = ({
                 direction="left"
                 timeout={GROW_ANIMATION_TIME_MS}
                 onExited={() => {
-                    setHideOuterPanels(true)
+                    setIsStreaming(true)
                 }}
             >
                 <Grid
                     id="multi-agent-accelerator-grid-agent-chat-common"
-                    size={hideOuterPanels ? 0 : 6.5}
+                    size={isStreaming ? 0 : 6.5}
                     sx={{
                         height: "100%",
                     }}

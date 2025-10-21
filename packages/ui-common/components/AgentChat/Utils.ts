@@ -60,6 +60,6 @@ export const checkError: (chatMessageJson: object) => string | null = (chatMessa
  * @param agentName Agent name in SNAKE_CASE format.
  * @returns User-friendly agent name.
  */
-export function cleanUpAgentName(agentName: string): string {
+export const cleanUpAgentName = (agentName: string): string => {
     return startCase(capitalize(agentName))
 }
