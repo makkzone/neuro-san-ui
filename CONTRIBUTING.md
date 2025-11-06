@@ -22,6 +22,7 @@ Thank you for your interest in contributing to this project!
 ## Reporting Bugs
 
 Open an issue with:
+
 - Clear description of the bug
 - Steps to reproduce
 - Expected vs actual behavior
@@ -30,6 +31,7 @@ Open an issue with:
 ## Suggesting Features
 
 Open an issue describing:
+
 - The problem you're trying to solve
 - Your proposed solution
 - Any alternatives you've considered
