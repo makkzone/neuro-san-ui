@@ -2,36 +2,41 @@ import {styled} from "@mui/material"
 import {FC, Fragment, useCallback, useEffect, useMemo, useRef, useState} from "react"
 import type {Edge, Node as RFNode} from "reactflow"
 
+import {ChatMessageType} from "../../generated/neuro-san/NeuroSanClient"
+
 // #region: Types
 
 interface ThoughtBubbleOverlayProps {
     readonly nodes: RFNode[]
     readonly edges: Edge[]
     readonly showThoughtBubbles?: boolean
+    readonly isStreaming?: boolean
     readonly onBubbleHoverChange?: (bubbleId: string | null) => void
 }
 interface ThoughtBubbleProps {
     readonly isHovered: boolean
     readonly isTruncated: boolean
     readonly animationDelay: number
-    readonly bubbleScreenX: number
-    readonly bubbleScreenY: number
+    readonly bubbleIndex: number
+    readonly isVisible?: boolean
+    readonly isExiting?: boolean
 }
+// Note: Removed BubblePosition interface - no longer needed for right-side positioning
 
 // #endregion: Types
 
 // #region: Constants
 
-const BUBBLE_ARROW_HEIGHT = 14
-const BUBBLE_ARROW_WIDTH = 24
+const BUBBLE_DISTANCE_FROM_RIGHT_EDGE = 20 // Fixed distance from right edge
 const BUBBLE_HEIGHT = 78
+const BUBBLE_HEIGHT_PLUS_SPACING = BUBBLE_HEIGHT + 10
+const BUBBLE_STACK_OFFSET_TOP = 70
 const BUBBLE_WIDTH = 260
 
 const LAYOUT_BUBBLES_ANIMATION_DELAY_MS = 120 // Delay between each bubble's animation start
-const LAYOUT_BUBBLES_TOP_MARGIN = 50 // Distance from top of container
-const LAYOUT_BUBBLES_RIGHT_MARGIN = 40 // Distance from right edge
-const LAYOUT_BUBBLES_TRIANGLE_ROTATION = 90 // Point left (rotate arrow 90 degrees clockwise)
-const LAYOUT_BUBBLES_VERTICAL_SPACING = 90 // Spacing between stacked bubbles
+
+// Constants for connecting lines
+const CONNECTING_LINE_OPACITY = 0.3 // Semi-transparent connecting line
 
 // #endregion: Constants
 
@@ -49,51 +54,61 @@ const OverlayContainer = styled("div")({
 
 const ThoughtBubble = styled("div", {
     shouldForwardProp: (prop) =>
-        !["isHovered", "isTruncated", "animationDelay", "bubbleScreenX", "bubbleScreenY"].includes(prop as string),
-})<ThoughtBubbleProps>(({theme, isHovered, isTruncated, animationDelay, bubbleScreenX, bubbleScreenY}) => ({
-    // Colors / theme
-    // TODO: Add dark mode support? For now both light and dark mode use the same thought bubble style and look fine.
-    background: "linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(250,250,250,0.95) 100%)",
-    border: "var(--bs-border-width) var(--bs-border-style) var(--bs-border-color)",
-    borderRadius: "var(--bs-border-radius-lg)",
-    color: "var(--bs-primary)",
-    fontFamily: theme.typography.fontFamily, // TODO: Easy to pull from theme. Rest we need to revisit.
-    fontSize: "var(--bs-body-font-size-extra-small)",
-    fontWeight: "var(--bs-body-font-weight)",
-    padding: "10px 14px",
+        !["isHovered", "isTruncated", "animationDelay", "bubbleIndex", "isVisible", "isExiting"].includes(
+            prop as string
+        ),
+})<ThoughtBubbleProps>(
+    ({theme, isHovered, isTruncated, animationDelay, bubbleIndex, isVisible = true, isExiting = false}) => ({
+        // Colors / theme
+        // TODO: Add dark mode support? For now both light and dark mode use the same bubble style and look fine.
+        background: "linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(250,250,250,0.95) 100%)",
+        border: "var(--bs-border-width) var(--bs-border-style) var(--bs-border-color)",
+        borderRadius: "var(--bs-border-radius-lg)",
+        color: "var(--bs-primary)",
+        fontFamily: theme.typography.fontFamily, // TODO: Easy to pull from theme. Rest we need to revisit.
+        fontSize: "var(--bs-body-font-size-extra-small)",
+        fontWeight: "var(--bs-body-font-weight)",
+        padding: "10px 14px",
 
-    // Positioning
-    position: "absolute",
-    right: bubbleScreenX, // Position from right edge instead of left
-    top: bubbleScreenY,
-    transform: "translateY(-50%)", // Only center vertically, not horizontally
+        // Positioning - restore original right-side layout
+        position: "absolute",
+        right: BUBBLE_DISTANCE_FROM_RIGHT_EDGE,
+        top: BUBBLE_STACK_OFFSET_TOP + bubbleIndex * BUBBLE_HEIGHT_PLUS_SPACING, // Stack vertically with spacing
+        transform: "none",
 
-    // Dimensions
-    height: isHovered && isTruncated ? BUBBLE_HEIGHT : "auto", // Only expand height when hovered AND text is truncated
-    maxHeight: BUBBLE_HEIGHT, // Max 3 lines always
-    minHeight: "auto", // Let height adjust to content
-    minWidth: "100px",
-    width: BUBBLE_WIDTH,
+        // Dimensions
+        // Only expand height when hovered AND text is truncated
+        height: isHovered && isTruncated ? BUBBLE_HEIGHT : "auto",
+        maxHeight: BUBBLE_HEIGHT, // Max 3 lines always
+        minHeight: "auto", // Let height adjust to content
+        minWidth: "100px",
+        width: BUBBLE_WIDTH,
 
-    // Other styles
-    boxShadow: isHovered
-        ? "0 4px 20px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)"
-        : "0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.08)",
-    zIndex: isHovered ? 10002 : 10000,
-    lineHeight: 1.4,
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
-    transition: "box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
-    cursor: isTruncated ? "pointer" : "default",
-    userSelect: isHovered && isTruncated ? "text" : "none",
-    animation: `fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) ${animationDelay}ms both`,
-    pointerEvents: "auto",
-    wordBreak: "break-word",
-    overflow: "hidden", // Always hide overflow
-    // Enable vertical scrolling only when hovered and truncated
-    overflowY: isHovered && isTruncated ? "auto" : "hidden",
-    whiteSpace: "normal",
-}))
+        // Other styles
+        boxShadow: isHovered
+            ? "0 4px 20px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)"
+            : "0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.08)",
+        zIndex: isHovered ? 10002 : 10000,
+        lineHeight: 1.4,
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        transition: `box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+            z-index 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+            transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)`,
+        cursor: isTruncated ? "pointer" : "default",
+        userSelect: isHovered && isTruncated ? "text" : "none",
+        animation: isExiting
+            ? "fadeOutDown 0.4s cubic-bezier(0.4, 0, 0.1, 1) both"
+            : `fadeInUp 0.6s cubic-bezier(0.2, 0, 0.2, 1) ${animationDelay}ms both`,
+        opacity: isVisible ? (isExiting ? 0 : 1) : 0,
+        pointerEvents: "auto",
+        wordBreak: "break-word",
+        overflow: "hidden", // Always hide overflow
+        // Enable vertical scrolling only when hovered and truncated
+        overflowY: isHovered && isTruncated ? "auto" : "hidden",
+        whiteSpace: "normal",
+    })
+)
 
 const TruncatedText = styled("div")<{isHovered: boolean; isTruncated: boolean}>(({isHovered, isTruncated}) => ({
     display: isHovered && isTruncated ? "block" : "-webkit-box",
@@ -109,30 +124,108 @@ export const ThoughtBubbleOverlay: FC<ThoughtBubbleOverlayProps> = ({
     nodes,
     edges,
     showThoughtBubbles = true,
+    isStreaming = false,
     onBubbleHoverChange,
 }) => {
     // hoveredBubbleId: id of currently hovered bubble (or null)
     const [hoveredBubbleId, setHoveredBubbleId] = useState<string | null>(null)
     // truncatedBubbles: set of edge ids whose text overflows the collapsed box
     const [truncatedBubbles, setTruncatedBubbles] = useState<Set<string>>(new Set())
+    // bubbleStates: track animation state of each bubble and when it's entered (used to delay line rendering
+    // until the bubble's entrance animation delay has passed)
+    const [bubbleStates, setBubbleStates] = useState<
+        Map<string, {isVisible: boolean; isExiting: boolean; enteredAt: number}>
+    >(new Map())
     // hoverTimeoutRef: used to debounce clearing of hovered state on mouse leave
-    const hoverTimeoutRef = useRef<number | null>(null)
+    const hoverTimeoutRef = useRef<number | ReturnType<typeof setTimeout> | null>(null)
     // textRefs: mapping of edge id -> DOM node for measuring scrollHeight/clientHeight
     const textRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+    // animationTimeouts: track timeouts for bubble removal
+    const animationTimeouts = useRef<Map<string, number | ReturnType<typeof setTimeout>>>(new Map())
+    // Refs for SVG lines to update without re-rendering
+    const lineRefs = useRef<Map<string, SVGLineElement>>(new Map())
+    // Ref to the overlay container so we can observe layout changes more precisely
+    const overlayRef = useRef<HTMLDivElement | null>(null)
+    // rAF ref for scheduling post-paint updates
+    const rafRef = useRef<ReturnType<typeof requestAnimationFrame> | null>(null)
+    const mountedRef = useRef(true)
 
-    // Filter edges with meaningful text
-    const thoughtBubbleEdges = edges.filter((e) => {
-        if (typeof e?.data?.text !== "string") {
-            return false
-        }
-        return e.data.text
-    })
+    // Filter edges with meaningful text (memoized to prevent infinite re-renders)
+    const thoughtBubbleEdges = useMemo(
+        () =>
+            edges.filter((e) => {
+                if (typeof e?.data?.text !== "string") {
+                    return false
+                }
+                return e.data.text
+            }),
+        [edges]
+    )
 
-    // Find frontman node (depth === 0, same as isFrontman logic in AgentNode.tsx)
+    // Find frontman node (depth === 0, similar to isFrontman logic in AgentNode.tsx)
     const frontmanNode = useMemo(() => {
         if (!nodes || !Array.isArray(nodes) || nodes.length === 0) return null
         return nodes.find((n) => n.data?.depth === 0)
     }, [nodes])
+
+    // Handle bubble lifecycle (appear/disappear animations)
+    useEffect(() => {
+        const currentEdgeIds = new Set(thoughtBubbleEdges.map((e) => e.id))
+        const previousBubbleIds = new Set(bubbleStates.keys())
+
+        // Find new bubbles that should appear
+        const newBubbles = thoughtBubbleEdges.filter((e) => !previousBubbleIds.has(e.id))
+
+        // Find bubbles that should disappear
+        const removingBubbles = Array.from(previousBubbleIds).filter((id) => !currentEdgeIds.has(id))
+
+        setBubbleStates((prev) => {
+            const newState = new Map(prev)
+
+            // Add new bubbles in entering state. Record when they entered so we can delay showing
+            // connecting lines until the bubble's entrance animation delay.
+            const now = Date.now()
+            newBubbles.forEach((edge) => {
+                newState.set(edge.id, {isVisible: true, isExiting: false, enteredAt: now})
+            })
+
+            // Mark removing bubbles as exiting
+            removingBubbles.forEach((id) => {
+                const currentState = newState.get(id)
+                if (currentState) {
+                    newState.set(id, {...currentState, isExiting: true})
+
+                    // Clear any existing timeout
+                    const existingTimeout = animationTimeouts.current.get(id)
+                    if (existingTimeout) {
+                        clearTimeout(existingTimeout)
+                    }
+
+                    // Schedule removal after exit animation
+                    const timeout = window.setTimeout(() => {
+                        setBubbleStates((s) => {
+                            const updatedState = new Map(s)
+                            updatedState.delete(id)
+                            return updatedState
+                        })
+                        animationTimeouts.current.delete(id)
+                    }, 400) // Match exit animation duration (0.4s)
+
+                    animationTimeouts.current.set(id, timeout)
+                }
+            })
+
+            return newState
+        })
+    }, [thoughtBubbleEdges])
+
+    // Cleanup timeouts on unmount
+    useEffect(() => {
+        return () => {
+            animationTimeouts.current.forEach((timeout) => clearTimeout(timeout))
+            animationTimeouts.current.clear()
+        }
+    }, [])
 
     // Sort edges to prioritize frontman's edges first
     const sortedEdges = useMemo(() => {
@@ -145,6 +238,28 @@ export const ThoughtBubbleOverlay: FC<ThoughtBubbleOverlayProps> = ({
         )
         return [...frontmanEdges, ...otherEdges]
     }, [thoughtBubbleEdges, frontmanNode])
+
+    // Determine which agents are currently "active" using the same logic as AgentNode.
+    // An agent is active if any current conversation includes that agent's id.
+    const activeAgentIds = useMemo(() => {
+        const set = new Set<string>()
+        if (!nodes || !Array.isArray(nodes)) return set
+
+        for (const node of nodes) {
+            const getConversations = node.data?.getConversations
+            if (typeof getConversations === "function") {
+                const convs = getConversations()
+                if (Array.isArray(convs)) {
+                    const hasSelf = convs.some((conv) => Boolean(conv?.agents?.has?.(node.id)))
+                    if (hasSelf) {
+                        set.add(node.id)
+                    }
+                }
+            }
+        }
+
+        return set
+    }, [nodes])
 
     // Check truncation after render, but only when nothing is hovered
     // (to avoid measuring expanded bubbles)
@@ -203,65 +318,282 @@ export const ThoughtBubbleOverlay: FC<ThoughtBubbleOverlayProps> = ({
         [onBubbleHoverChange]
     )
 
-    // Create a stable mapping of edge IDs to vertical positions
-    // This prevents bubbles from moving when other bubbles are added/removed
-    const edgePositions = useMemo(() => {
-        const positions = new Map<string, {row: number; col: number}>()
+    // Calculate line coordinates - measurement only. Can be called from rAF/update loop.
+    const calculateLineCoordinates = useCallback(
+        (
+            edge: Edge,
+            bubbleIndex: number,
+            agentRectCache?: Map<string, DOMRect>
+        ): {x1: number; y1: number; x2: number; y2: number; targetAgent: string}[] | null => {
+            // Skip HUMAN conversation types - no lines for human bubbles
+            if (edge.data?.type === ChatMessageType.HUMAN) {
+                return null
+            }
 
-        // Stack bubbles vertically (one per row, single column)
-        sortedEdges.forEach((edge, index) => {
-            positions.set(edge.id, {row: index, col: 0})
-        })
+            // Get actual bubble DOM position (fresh every time)
+            const bubbleElement = document.querySelector(`[data-bubble-id="${CSS.escape(edge.id)}"]`)
+            let bubbleX: number
+            let bubbleY: number
 
-        return positions
-    }, [sortedEdges])
+            if (bubbleElement) {
+                const bubbleRect = bubbleElement.getBoundingClientRect()
+                // Use the left edge center of the bubble (where line should start)
+                bubbleX = Math.round(bubbleRect.left)
+                bubbleY = Math.round(bubbleRect.top + bubbleRect.height / 2)
+            } else {
+                // Fallback: calculate approximate viewport position
+                bubbleX = window.innerWidth - BUBBLE_DISTANCE_FROM_RIGHT_EDGE - BUBBLE_WIDTH
+                bubbleY = BUBBLE_STACK_OFFSET_TOP + bubbleIndex * BUBBLE_HEIGHT_PLUS_SPACING + BUBBLE_HEIGHT / 2
+            }
+
+            // Determine which agents to point to. If the edge supplies an `agents` array in
+            // data (provided by AgentFlow), use that. Otherwise fallback to the explicit
+            // edge.target/edge.source pair (single target).
+            let agentIds: string[] = Array.isArray(edge.data?.agents)
+                ? (edge.data?.agents as string[])
+                : [edge.target || edge.source].filter(Boolean)
+
+            if (agentIds.length === 0) return null
+
+            // Filter out any agents that are not currently active (we only draw lines to active agents).
+            // Always apply filtering based on the activeAgentIds set.
+            agentIds = agentIds.filter((id) => activeAgentIds.has(id))
+            if (agentIds.length === 0) return null
+
+            // For each agent id, find its visual element and calculate mid-point.
+            const results: {x1: number; y1: number; x2: number; y2: number; targetAgent: string}[] = []
+
+            for (const agentId of agentIds) {
+                // Find the agent element by its data-id attribute
+                const agentElements = document.querySelectorAll(`[data-id="${CSS.escape(agentId)}"].react-flow__node`)
+                const foundAgentEl = agentElements?.[0] || null
+
+                let agentX = 0
+                let agentY = 0
+
+                if (foundAgentEl) {
+                    // Prefer the cached rect when present; otherwise compute and cache it.
+                    const cachedRect = agentRectCache?.get(agentId)
+                    const containerRect = cachedRect ?? foundAgentEl.getBoundingClientRect()
+                    if (cachedRect == null) {
+                        agentRectCache?.set(agentId, containerRect)
+                    }
+
+                    if (containerRect) {
+                        agentX = Math.round(containerRect.left + containerRect.width / 2)
+                        agentY = Math.round(containerRect.top + containerRect.height / 2)
+                    }
+                }
+
+                results.push({x1: bubbleX, y1: bubbleY, x2: agentX, y2: agentY, targetAgent: agentId})
+            }
+
+            return results
+        },
+        [activeAgentIds]
+    )
+
+    // Get all bubbles to render (including exiting ones)
+    const allBubbleIds = Array.from(bubbleStates.keys())
+    // Memoize the resolved edges so updateAllLines (and effects depending on it)
+    // doesn't get recreated on every render unnecessarily.
+    const renderableBubbles = useMemo(
+        () =>
+            allBubbleIds
+                .map((id) => sortedEdges.find((e) => e.id === id) ?? edges.find((e) => e.id === id))
+                .filter((edge): edge is Edge => edge !== undefined),
+        [allBubbleIds, sortedEdges, edges]
+    )
+
+    // Update all SVG lines imperatively after paint. This reads DOM (getBoundingClientRect)
+    // and writes attributes on existing <line> elements stored in `lineRefs`.
+    const updateAllLines = useCallback(() => {
+        try {
+            renderableBubbles.forEach((edge, index) => {
+                const bubbleState = bubbleStates.get(edge.id) || {isVisible: true, isExiting: false, enteredAt: 0}
+                if (!bubbleState.isVisible || bubbleState.isExiting) return
+
+                // Respect the entrance animation delay gating (lines appear only after bubble start)
+                const elapsed = Date.now() - (bubbleState?.enteredAt ?? 0)
+                const animationDelay = index * LAYOUT_BUBBLES_ANIMATION_DELAY_MS
+                if (elapsed < animationDelay) return
+
+                const coordsArray = calculateLineCoordinates(edge, index)
+
+                if (!coordsArray || coordsArray.length === 0) return
+
+                for (const coords of coordsArray) {
+                    const lineKey = `${edge.id}-${coords.targetAgent}`
+                    const lineEl = lineRefs.current.get(lineKey)
+                    if (lineEl) {
+                        // Update attributes imperatively
+                        lineEl.setAttribute("x1", String(coords.x1))
+                        lineEl.setAttribute("y1", String(coords.y1))
+                        lineEl.setAttribute("x2", String(coords.x2))
+                        lineEl.setAttribute("y2", String(coords.y2))
+                    }
+                }
+            })
+        } catch (err) {
+            // Guard against unexpected DOM errors during measurement
+            // Do not throw to avoid breaking the app
+
+            console.debug("ThoughtBubbleOverlay: updateAllLines error", err)
+        }
+    }, [renderableBubbles, bubbleStates, calculateLineCoordinates])
+
+    // Schedule post-paint updates with rAF and ResizeObserver. Also optionally run a
+    // continuous loop while `isStreaming` is true to keep lines in sync during streaming.
+    useEffect(() => {
+        mountedRef.current = true
+
+        const schedule = () => {
+            if (rafRef.current != null) return
+            rafRef.current = requestAnimationFrame(() => {
+                rafRef.current = null
+                if (!mountedRef.current) return
+                updateAllLines()
+            })
+        }
+
+        // Initial schedule
+        schedule()
+
+        // Resize observer to detect layout/size changes
+        const ro = new ResizeObserver(() => schedule())
+        try {
+            if (overlayRef.current) ro.observe(overlayRef.current)
+            else ro.observe(document.body)
+        } catch {
+            // Ignore if RO observation fails in some test environments
+        }
+
+        // Window resize
+        window.addEventListener("resize", schedule)
+
+        // If streaming, run a continuous rAF loop to keep up with frequent layout updates
+        let streamingRaf: number | null = null
+        const startStreamingLoop = () => {
+            if (streamingRaf != null) return
+            const loop = () => {
+                updateAllLines()
+                streamingRaf = requestAnimationFrame(loop)
+            }
+            streamingRaf = requestAnimationFrame(loop)
+        }
+        const stopStreamingLoop = () => {
+            if (streamingRaf != null) {
+                cancelAnimationFrame(streamingRaf)
+                streamingRaf = null
+            }
+        }
+
+        if (isStreaming) startStreamingLoop()
+
+        return () => {
+            mountedRef.current = false
+            if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
+            ro.disconnect()
+            window.removeEventListener("resize", schedule)
+            stopStreamingLoop()
+        }
+    }, [updateAllLines, isStreaming])
 
     // Don't render anything if thought bubbles are disabled
-    // Note: This MUST come after all hooks to maintain consistent hook ordering
+    // This check is placed after all hooks so hook ordering stays consistent across renders.
     if (!showThoughtBubbles) return null
 
     return (
         <OverlayContainer>
-            {sortedEdges.map((edge: Edge, index: number) => {
+            <svg
+                style={{
+                    position: "fixed",
+                    left: 0,
+                    top: 0,
+                    width: "100vw",
+                    height: "100vh",
+                    pointerEvents: "none",
+                    zIndex: 9998,
+                    opacity: 1,
+                }}
+            >
+                {renderableBubbles.map((edge: Edge, index: number) => {
+                    // Per-bubble staggered animation delay in milliseconds (for line animations)
+                    const animationDelay = index * LAYOUT_BUBBLES_ANIMATION_DELAY_MS
+
+                    const bubbleState = bubbleStates.get(edge.id) || {isVisible: true, isExiting: false, enteredAt: 0}
+                    if (!bubbleState.isVisible) return null
+
+                    // Only render lines after the bubble's entrance animation delay has elapsed.
+                    const elapsed = Date.now() - (bubbleState.enteredAt || 0)
+                    const shouldShowLines = elapsed >= animationDelay
+                    if (!shouldShowLines) return null
+
+                    // Calculate fresh coordinates for this line (may return multiple targets)
+                    const coordsArray = calculateLineCoordinates(edge, index) as
+                        | {x1: number; y1: number; x2: number; y2: number; targetAgent: string}[]
+                        | null
+
+                    if (!coordsArray || coordsArray.length === 0) return null
+
+                    return (
+                        <g key={`line-group-${edge.id}`}>
+                            {coordsArray.map((coords) => {
+                                const lineKey = `${edge.id}-${coords.targetAgent}`
+                                return (
+                                    <line
+                                        key={`line-${lineKey}`}
+                                        ref={(el: SVGLineElement | null) => {
+                                            if (el) {
+                                                lineRefs.current.set(lineKey, el)
+                                            } else {
+                                                lineRefs.current.delete(lineKey)
+                                            }
+                                        }}
+                                        x1={coords.x1}
+                                        y1={coords.y1}
+                                        x2={coords.x2}
+                                        y2={coords.y2}
+                                        stroke="var(--thought-bubble-line-color)"
+                                        strokeWidth="3"
+                                        strokeDasharray="3,3"
+                                        style={{
+                                            opacity: bubbleState.isExiting ? 0 : CONNECTING_LINE_OPACITY,
+                                            transition: (() => {
+                                                const duration = bubbleState.isExiting ? 400 : 600
+                                                const delay = bubbleState.isExiting ? 0 : animationDelay
+                                                return `opacity ${duration}ms cubic-bezier(0.2, 0, 0.2, 1) ${delay}ms`
+                                            })(),
+                                        }}
+                                    />
+                                )
+                            })}
+                        </g>
+                    )
+                })}
+            </svg>
+
+            {renderableBubbles.map((edge: Edge, index: number) => {
                 const text = edge.data?.text
                 if (!text) return null
-
-                // Find the node to position bubble near
-                if (!nodes || !Array.isArray(nodes)) return null
-
-                // If this edge involves the frontman, position bubble near frontman
-                // Otherwise position near source node
-                const isFrontmanEdge =
-                    frontmanNode && (edge.source === frontmanNode.id || edge.target === frontmanNode.id)
-                const positionNode = isFrontmanEdge ? frontmanNode : nodes.find((n: RFNode) => n.id === edge.source)
-                if (!positionNode) return null
-
-                // Stack bubbles vertically (one per row)
-                const position = edgePositions.get(edge.id) || {row: 0, col: 0}
-
-                // Position bubbles on the right side, stacked vertically
-                const bubbleRightOffset = LAYOUT_BUBBLES_RIGHT_MARGIN + BUBBLE_WIDTH / 2
-                const screenYCoord = LAYOUT_BUBBLES_TOP_MARGIN + position.row * LAYOUT_BUBBLES_VERTICAL_SPACING
 
                 // Per-bubble staggered animation delay in milliseconds
                 const animationDelay = index * LAYOUT_BUBBLES_ANIMATION_DELAY_MS
 
                 const isHovered = hoveredBubbleId === edge.id
                 const isTruncated = truncatedBubbles.has(edge.id)
-
-                // Calculate screen X from the right edge
-                // We'll use CSS right positioning in the component
-                const bubbleScreenX = bubbleRightOffset
-                const bubbleScreenY = screenYCoord
+                const bubbleState = bubbleStates.get(edge.id) || {isVisible: true, isExiting: false}
 
                 return (
                     <Fragment key={edge.id}>
                         <ThoughtBubble
+                            data-bubble-id={edge.id}
                             isHovered={isHovered}
                             isTruncated={isTruncated}
                             animationDelay={animationDelay}
-                            bubbleScreenX={bubbleScreenX}
-                            bubbleScreenY={bubbleScreenY}
+                            bubbleIndex={index}
+                            isVisible={bubbleState.isVisible}
+                            isExiting={bubbleState.isExiting}
                             onMouseEnter={() => handleHoverChange(edge.id)}
                             onMouseLeave={() => handleHoverChange(null)}
                         >
@@ -280,36 +612,6 @@ export const ThoughtBubbleOverlay: FC<ThoughtBubbleOverlayProps> = ({
                                 {text}
                             </TruncatedText>
                         </ThoughtBubble>
-                        {/* Triangle pointer - positioned on the left side of the bubble and pointing left */}
-                        <div
-                            style={{
-                                position: "absolute",
-                                // Position to left of bubble, touching edge (arrow width / 2)
-                                right: bubbleScreenX + BUBBLE_WIDTH - BUBBLE_ARROW_WIDTH / 2,
-                                top: bubbleScreenY,
-                                transform: `translate(0, -50%) rotate(${LAYOUT_BUBBLES_TRIANGLE_ROTATION}deg)`,
-                                width: BUBBLE_ARROW_WIDTH,
-                                height: BUBBLE_ARROW_HEIGHT,
-                                zIndex: 9999,
-                                pointerEvents: "none",
-                                filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))",
-                            }}
-                        >
-                            <svg
-                                width={BUBBLE_ARROW_WIDTH}
-                                height={BUBBLE_ARROW_HEIGHT}
-                                viewBox="0 0 24 14"
-                                style={{display: "block"}}
-                            >
-                                <polygon
-                                    // Draws a left-pointing triangle used as the bubble’s arrow pointer
-                                    points="0,0 12,14 24,0"
-                                    fill="rgba(255,255,255,0.98)"
-                                    stroke="rgba(0, 0, 0, 0.06)"
-                                    strokeWidth="1"
-                                />
-                            </svg>
-                        </div>
                     </Fragment>
                 )
             })}

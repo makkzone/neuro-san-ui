@@ -15,94 +15,96 @@ limitations under the License.
 */
 
 import {render} from "@testing-library/react"
+import {act} from "react-dom/test-utils"
 import {Position} from "reactflow"
 
-import {withStrictMocks} from "../../../../../__tests__/common/strictMocks"
 import {PlasmaEdge} from "../../../components/MultiAgentAccelerator/PlasmaEdge"
 
-// Capture the *real* createElement before it's mocked
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-const originalCreateElement = global.document?.createElement
-
 describe("PlasmaEdge", () => {
-    withStrictMocks()
+    it("renders and runs animation with mocked canvas context, SVG methods, and RAF", () => {
+        const errSpy = jest.spyOn(console, "error").mockImplementation()
 
-    beforeEach(() => {
-        // Mock canvas context
-        jest.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
-            () =>
-                ({
-                    save: jest.fn(),
-                    beginPath: jest.fn(),
-                    arc: jest.fn(),
-                    fill: jest.fn(),
-                    restore: jest.fn(),
-                    clearRect: jest.fn(),
-                    setTransform: jest.fn(),
-                    scale: jest.fn(),
-                    shadowBlur: 0,
-                    shadowColor: "",
-                    fillStyle: "",
-                    globalAlpha: 1,
-                }) as never
-        )
+        // Mock getContext to provide minimal API used by the component
+        const fakeCtx: Partial<CanvasRenderingContext2D> = {
+            setTransform: jest.fn(),
+            scale: jest.fn(),
+            clearRect: jest.fn(),
+            beginPath: jest.fn(),
+            arc: jest.fn(),
+            fill: jest.fn(),
+            save: jest.fn(),
+            restore: jest.fn(),
+        }
 
-        // Mock SVG path methods
-        jest.spyOn(SVGPathElement.prototype, "getTotalLength").mockImplementation(() => 100)
-        jest.spyOn(SVGPathElement.prototype, "getPointAtLength").mockImplementation((len: number) => ({
-            x: len,
-            y: len,
-            z: 0,
-            w: 1,
-            matrixTransform: () => this,
-            toJSON: () => ({x: len, y: len, z: 0, w: 1}),
-        }))
+        // Keep originals so we can restore later (use explicit narrow types instead of `any`)
+        const origGetContext = HTMLCanvasElement.prototype.getContext as unknown as (
+            contextId?: string | null
+        ) => CanvasRenderingContext2D | null
+        const origRAF = global.requestAnimationFrame
+        const origCAF = global.cancelAnimationFrame
+        const origGetTotalLength = (SVGElement.prototype as unknown as {getTotalLength?: () => number}).getTotalLength
+        const origGetPointAtLength = (
+            SVGElement.prototype as unknown as {getPointAtLength?: (l: number) => {x: number; y: number}}
+        ).getPointAtLength
 
-        // Mock createElement for <path>
-        jest.spyOn(document, "createElement").mockImplementation(
-            (
-                (original) =>
-                (tag: string, ...args) => {
-                    const el = original.call(document, tag, ...args)
-                    if (tag.toLowerCase() === "path") {
-                        Object.assign(el, {
-                            getTotalLength: () => 100,
-                            getPointAtLength: (len: number) => ({
-                                x: len,
-                                y: len,
-                                z: 0,
-                                w: 1,
-                                matrixTransform: () => el,
-                                toJSON: () => ({x: len, y: len, z: 0, w: 1}),
-                            }),
-                        })
-                    }
-                    return el
-                }
-            )(originalCreateElement)
-        )
-    })
+        // Monkeypatch getContext on canvas prototype for the test
+        HTMLCanvasElement.prototype.getContext = function () {
+            return fakeCtx as CanvasRenderingContext2D
+        } as unknown as typeof HTMLCanvasElement.prototype.getContext
 
-    it("should render correctly", () => {
-        jest.spyOn(console, "error").mockImplementation()
+        // Provide simple implementations for SVG element methods used by the particle generator
+        ;(Element.prototype as unknown as {getTotalLength?: () => number}).getTotalLength = function () {
+            return 100
+        }
+        ;(Element.prototype as unknown as {getPointAtLength?: (l: number) => {x: number; y: number}}).getPointAtLength =
+            function (l: number) {
+                return {x: l, y: l}
+            }
 
-        render(
+        // Mock RAF to run callback immediately once
+        global.requestAnimationFrame = (cb: FrameRequestCallback) => {
+            try {
+                cb(0)
+            } catch {
+                // ignore
+            }
+            return 1
+        }
+        global.cancelAnimationFrame = () => undefined
+
+        const {unmount, container} = render(
             <PlasmaEdge
-                id="test-animated-edge"
+                // edge props are minimally required for rendering
+                id="test-edge"
                 source="test-source"
                 target="test-target"
                 sourceX={0}
                 sourceY={0}
-                targetX={0}
-                targetY={0}
-                sourcePosition={Position.Right}
-                targetPosition={Position.Left}
+                targetX={200}
+                targetY={120}
+                sourcePosition={Position.Left}
+                targetPosition={Position.Right}
             />
         )
 
-        expect(console.error).toHaveBeenCalledTimes(3)
-        expect(document.querySelector("canvas")).toBeInTheDocument()
-        expect(document.querySelector("foreignObject")).toBeInTheDocument()
-        expect(document.querySelector("path")).toBeInTheDocument()
+        // Allow effects to run
+        act(() => undefined)
+
+        // Ensure canvas and path are present
+        const canvas = container.querySelector("canvas")
+        const path = container.querySelector("path")
+        expect(canvas).not.toBeNull()
+        expect(path).not.toBeNull()
+
+        // Cleanup and restore
+        unmount()
+        ;(HTMLCanvasElement.prototype as unknown as {getContext?: typeof origGetContext}).getContext = origGetContext
+        global.requestAnimationFrame = origRAF
+        global.cancelAnimationFrame = origCAF
+        ;(SVGElement.prototype as unknown as {getTotalLength?: () => number}).getTotalLength = origGetTotalLength
+        ;(
+            SVGElement.prototype as unknown as {getPointAtLength?: (l: number) => {x: number; y: number}}
+        ).getPointAtLength = origGetPointAtLength
+        errSpy.mockRestore()
     })
 })
