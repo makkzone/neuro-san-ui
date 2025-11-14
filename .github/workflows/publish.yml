@@ -13,12 +13,19 @@
 #    limitations under the License.
 
 # This workflow publishes the package to GitHub Packages when a release is published.
+# It can also be triggered manually for testing purposes.
 
 name: Publish Package
 
 on:
     release:
         types: [published]
+    workflow_dispatch:
+        inputs:
+            tag:
+                description: "Tag to publish (e.g., 'test-1', 'v1.3.2-rc1')"
+                required: true
+                type: string
 
 permissions:
     contents: read
@@ -56,11 +63,16 @@ jobs:
             - name: Normalize version (remove 'v' prefix if present)
               id: version
               run: |
-                  VERSION="${{ github.event.release.tag_name }}"
+                  # Get tag from either release event or manual input
+                  if [ "${{ github.event_name }}" = "release" ]; then
+                    TAG="${{ github.event.release.tag_name }}"
+                  else
+                    TAG="${{ inputs.tag }}"
+                  fi
                   # Remove 'v' prefix if present
-                  VERSION="${VERSION#v}"
+                  VERSION="${TAG#v}"
                   echo "normalized_version=$VERSION" >> "$GITHUB_OUTPUT"
-                  echo "Publishing version: $VERSION"
+                  echo "Publishing version: $VERSION (from tag: $TAG)"
 
             - name: Set ui-common version to release tag
               run: yarn workspace @cognizant-ai-lab/ui-common version ${{ steps.version.outputs.normalized_version }}
