@@ -91,7 +91,7 @@ jobs:
 
             - name: Install dependencies
               run: |
-                  rm -rf node_modules
+                  rm --recursive --force node_modules
                   yarn cache clean --all
                   yarn install --immutable
 
@@ -102,7 +102,7 @@ jobs:
               id: compute
               run: |
                   SHORT_SHA="${GITHUB_SHA::7}"
-                  BASE_VERSION=$(node -e "console.log(require('./packages/ui-common/package.json').version)")
+                  BASE_VERSION=$(node --eval "console.log(require('./packages/ui-common/package.json').version)")
                   BASE_VERSION="${BASE_VERSION%%-*}"
 
                   if [ "${{ github.event_name }}" = "push" ]; then
