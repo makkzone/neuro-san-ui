@@ -37,12 +37,17 @@ import {
 jest.mock("../../../controller/llm/LlmChat")
 
 const NEURO_SAN_EXAMPLE_URL = "https://neuro-san.example.com"
+
+const TEST_AGENTS_FOLDER = "test-agents"
 const TEST_AGENT_MATH_GUY = "math_guy"
+const TEST_AGENT_MUSIC_NERD = "music-nerd"
 const TEST_USERNAME = "test-username"
 
 let oldFetch: typeof global.fetch
 
 describe("Controller/Agent/testConnection", () => {
+    withStrictMocks()
+
     it("Should handle a successful testConnection result", async () => {
         global.fetch = mockFetch({status: "healthy", versions: {"neuro-san": "1.2.3"}})
         const result: TestConnectionResult = await testConnection("www.example.com")
@@ -66,6 +71,8 @@ describe("Controller/Agent/testConnection", () => {
 })
 
 describe("Controller/Agent/getAgentNetworks", () => {
+    withStrictMocks()
+
     beforeEach(() => {
         oldFetch = global.fetch
     })
@@ -75,10 +82,30 @@ describe("Controller/Agent/getAgentNetworks", () => {
     })
 
     it("Should fetch and return agent network names", async () => {
-        const agents = [{agent_name: "network1"}, {agent_name: "network2"}]
+        const agents = [
+            {agent_name: `${TEST_AGENTS_FOLDER}/${TEST_AGENT_MATH_GUY}`},
+            {agent_name: `${TEST_AGENTS_FOLDER}/${TEST_AGENT_MUSIC_NERD}`},
+        ]
         global.fetch = mockFetch({agents})
         const result = await getAgentNetworks(NEURO_SAN_EXAMPLE_URL)
-        expect(result).toEqual(["network1", "network2"])
+        expect(result).toEqual([
+            {
+                label: TEST_AGENTS_FOLDER,
+                path: TEST_AGENTS_FOLDER,
+                children: [
+                    {
+                        label: TEST_AGENT_MATH_GUY,
+                        path: `${TEST_AGENTS_FOLDER}/${TEST_AGENT_MATH_GUY}`,
+                        agent: {agent_name: `${TEST_AGENTS_FOLDER}/${TEST_AGENT_MATH_GUY}`},
+                    },
+                    {
+                        label: TEST_AGENT_MUSIC_NERD,
+                        path: `${TEST_AGENTS_FOLDER}/${TEST_AGENT_MUSIC_NERD}`,
+                        agent: {agent_name: `${TEST_AGENTS_FOLDER}/${TEST_AGENT_MUSIC_NERD}`},
+                    },
+                ],
+            },
+        ])
         expect(global.fetch).toHaveBeenCalledWith(`${NEURO_SAN_EXAMPLE_URL}${ApiPaths.ConciergeService_List}`)
     })
 })
@@ -160,6 +187,8 @@ describe("Controller/Agent/sendChatQuery", () => {
 })
 
 describe("Controller/Agent/getConnectivity", () => {
+    withStrictMocks()
+
     beforeEach(() => {
         oldFetch = global.fetch
     })
@@ -186,7 +215,7 @@ describe("Controller/Agent/getConnectivity", () => {
     })
 
     it("Should throw on non-ok response", async () => {
-        const debugSpy = jest.spyOn(console, "debug").mockImplementation()
+        const errorSpy = jest.spyOn(console, "error").mockImplementation()
         global.fetch = jest.fn(() =>
             Promise.resolve({
                 ok: false,
@@ -197,12 +226,15 @@ describe("Controller/Agent/getConnectivity", () => {
         await expect(getConnectivity(NEURO_SAN_EXAMPLE_URL, TEST_AGENT_MATH_GUY, TEST_USERNAME)).rejects.toThrow(
             "Failed to send connectivity request: Not Found"
         )
-        expect(debugSpy).toHaveBeenCalled()
-        debugSpy.mockRestore()
+
+        // Make sure getConnectivity logged the error to the console
+        expect(errorSpy).toHaveBeenCalled()
     })
 })
 
 describe("Controller/Agent/getAgentFunction", () => {
+    withStrictMocks()
+
     beforeEach(() => {
         oldFetch = global.fetch
     })
