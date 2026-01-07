@@ -16,7 +16,7 @@
 # ================================================================================
 # Cull NPM Packages Script
 # ================================================================================
-# Purpose: Clean up old non-release npm packages to prevent package proliferation.
+# Purpose: Clean up old dev (non-release) npm packages to prevent package proliferation.
 #
 # Usage: ./cull_npm_packages.sh <package_name> <package_owner> <retention_days> <dry_run> <min_keep_versions>
 #
@@ -25,168 +25,293 @@
 #   package_owner     - GitHub org/user that owns the package (e.g., "cognizant-ai-lab")
 #   retention_days    - Number of days; packages older than this are candidates for deletion
 #   dry_run           - "true" or "false"; if true, no packages are actually deleted
-#   min_keep_versions - Always keep at least this many most recent non-release versions
+#   min_keep_versions - Always keep at least this many most recent dev versions
 #
 # Environment:
 #   GH_TOKEN - GitHub token with packages:write permission (required)
 #
 # Retention Policy:
 # - Release packages (version format: x.y.z) are NEVER deleted
-# - Non-release packages (version format: x.y.z-main.sha.run or x.y.z-pr.sha.run):
+# - Dev packages (version format: x.y.z-main.sha.run or x.y.z-pr.sha.run):
 #   - The most recent N packages are ALWAYS kept (regardless of age)
 #   - Packages older than cutoff_date (beyond the most recent N) are deleted
 # ================================================================================
 
 set -euo pipefail
 
-# Parse arguments
-PACKAGE_NAME="${1:?Usage: $0 <package_name> <package_owner> <retention_days> <dry_run> <min_keep_versions>}"
-PACKAGE_OWNER="${2:?Usage: $0 <package_name> <package_owner> <retention_days> <dry_run> <min_keep_versions>}"
-RETENTION_DAYS="${3:?Usage: $0 <package_name> <package_owner> <retention_days> <dry_run> <min_keep_versions>}"
-DRY_RUN="${4:?Usage: $0 <package_name> <package_owner> <retention_days> <dry_run> <min_keep_versions>}"
-MIN_KEEP_VERSIONS="${5:?Usage: $0 <package_name> <package_owner> <retention_days> <dry_run> <min_keep_versions>}"
+# ================================================================================
+# Global Variables (set by parse_args and setup functions)
+# ================================================================================
+PACKAGE_NAME=""
+PACKAGE_OWNER=""
+RETENTION_DAYS=""
+DRY_RUN=""
+MIN_KEEP_VERSIONS=""
+CUTOFF_DATE=""
+RELEASE_FILE=""
+DEV_FILE=""
+SORTED_FILE=""
 
-# Calculate cutoff date from retention days (uses GNU date, available on ubuntu-latest)
-CUTOFF_DATE=$(date --date "$RETENTION_DAYS days ago" --utc +%Y-%m-%dT%H:%M:%SZ)
-echo "Cutoff date: $CUTOFF_DATE"
-echo "Packages created before this date will be considered for deletion"
-
-echo "Fetching package versions for @${PACKAGE_OWNER}/${PACKAGE_NAME}..."
-echo "Retention policy: Keep last $MIN_KEEP_VERSIONS non-release versions, delete others older than $CUTOFF_DATE"
-
-# Create temporary files for storing versions
-RELEASE_FILE=$(mktemp)
-NON_RELEASE_FILE=$(mktemp)
-trap 'rm --force "$RELEASE_FILE" "$NON_RELEASE_FILE"' EXIT
-
-# Fetch all package versions (paginated) and categorize them
-PAGE=1
-PER_PAGE=100
-
-while true; do
-    RESPONSE=$(gh api \
-        --header "Accept: application/vnd.github+json" \
-        --header "X-GitHub-Api-Version: 2022-11-28" \
-        "/orgs/${PACKAGE_OWNER}/packages/npm/${PACKAGE_NAME}/versions?per_page=${PER_PAGE}&page=${PAGE}" \
-        2>/dev/null || echo "[]")
-
-    if [ "$RESPONSE" = "[]" ] || [ -z "$RESPONSE" ]; then
-        break
-    fi
-
-    # Categorize each version as release or non-release
-    echo "$RESPONSE" | jq --compact-output '.[]' | while read -r VERSION_JSON; do
-        VERSION_ID=$(echo "$VERSION_JSON" | jq --raw-output '.id')
-        VERSION_NAME=$(echo "$VERSION_JSON" | jq --raw-output '.name')
-        CREATED_AT=$(echo "$VERSION_JSON" | jq --raw-output '.created_at')
-
-        # Check if this is a release version (format: x.y.z without any suffix)
-        if echo "$VERSION_NAME" | grep --quiet --extended-regexp '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "$VERSION_ID|$VERSION_NAME|$CREATED_AT" >> "$RELEASE_FILE"
-        else
-            echo "$VERSION_ID|$VERSION_NAME|$CREATED_AT" >> "$NON_RELEASE_FILE"
-        fi
-    done
-
-    # Check if there are more pages
-    VERSION_COUNT=$(echo "$RESPONSE" | jq --raw-output 'length')
-    if [ "$VERSION_COUNT" -lt "$PER_PAGE" ]; then
-        break
-    fi
-    PAGE=$((PAGE + 1))
-done
-
-# Initialize counters
 TOTAL_VERSIONS=0
 RELEASE_VERSIONS=0
 KEPT_VERSIONS=0
 DELETED_VERSIONS=0
 WOULD_DELETE_VERSIONS=0
 
-# Process release versions (always keep)
-echo ""
-echo "=== Release Versions (always kept) ==="
-if [ -s "$RELEASE_FILE" ]; then
-    RELEASE_VERSIONS=$(wc --lines < "$RELEASE_FILE" | tr --delete ' ')
-    TOTAL_VERSIONS=$((TOTAL_VERSIONS + RELEASE_VERSIONS))
-    while IFS='|' read -r VERSION_ID VERSION_NAME CREATED_AT; do
-        echo "KEEP (release): $VERSION_NAME (created: $CREATED_AT)"
-    done < "$RELEASE_FILE"
-else
-    echo "No release versions found"
-fi
+# ================================================================================
+# Utility Functions
+# ================================================================================
 
-# Process non-release versions
-echo ""
-echo "=== Non-Release Versions ==="
-if [ -s "$NON_RELEASE_FILE" ]; then
-    # Sort by creation date (newest first) and save to a new temp file
-    # The created_at field is ISO 8601 format, so lexicographic sort works
-    SORTED_FILE=$(mktemp)
-    sort --field-separator='|' --key=3 --reverse "$NON_RELEASE_FILE" > "$SORTED_FILE"
-    NON_RELEASE_COUNT=$(wc --lines < "$SORTED_FILE" | tr --delete ' ')
-    TOTAL_VERSIONS=$((TOTAL_VERSIONS + NON_RELEASE_COUNT))
-    echo "Found $NON_RELEASE_COUNT non-release versions"
-    echo "Keeping at least $MIN_KEEP_VERSIONS most recent versions regardless of age"
-    echo ""
+log() {
+    echo "$*"
+}
 
-    # Process each version - reading from file avoids subshell counter issues
-    VERSION_INDEX=0
-    while IFS='|' read -r VERSION_ID VERSION_NAME CREATED_AT; do
-        VERSION_INDEX=$((VERSION_INDEX + 1))
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
 
-        # Always keep the first N versions (most recent)
-        if [ "$VERSION_INDEX" -le "$MIN_KEEP_VERSIONS" ]; then
-            echo "KEEP (min-keep #$VERSION_INDEX): $VERSION_NAME (created: $CREATED_AT)"
-            KEPT_VERSIONS=$((KEPT_VERSIONS + 1))
-            continue
+require_cmd() {
+    command -v "$1" >/dev/null 2>&1 || die "Missing required command: $1"
+}
+
+check_deps() {
+    require_cmd gh
+    require_cmd jq
+    require_cmd date
+    require_cmd sort
+    require_cmd wc
+    require_cmd tr
+    require_cmd grep
+    require_cmd mktemp
+}
+
+is_release_version() {
+    local version="$1"
+    echo "$version" | grep --quiet --extended-regexp '^[0-9]+\.[0-9]+\.[0-9]+$'
+}
+
+# ================================================================================
+# Argument Parsing and Setup
+# ================================================================================
+
+parse_args() {
+    PACKAGE_NAME="${1:?Usage: $0 <package_name> <package_owner> <retention_days> <dry_run> <min_keep_versions>}"
+    PACKAGE_OWNER="${2:?Usage: $0 <package_name> <package_owner> <retention_days> <dry_run> <min_keep_versions>}"
+    RETENTION_DAYS="${3:?Usage: $0 <package_name> <package_owner> <retention_days> <dry_run> <min_keep_versions>}"
+    DRY_RUN="${4:?Usage: $0 <package_name> <package_owner> <retention_days> <dry_run> <min_keep_versions>}"
+    MIN_KEEP_VERSIONS="${5:?Usage: $0 <package_name> <package_owner> <retention_days> <dry_run> <min_keep_versions>}"
+}
+
+compute_cutoff_date() {
+    CUTOFF_DATE=$(date --date "$RETENTION_DAYS days ago" --utc +%Y-%m-%dT%H:%M:%SZ)
+    log "Cutoff date: $CUTOFF_DATE"
+    log "Packages created before this date will be considered for deletion"
+}
+
+cleanup() {
+    rm --force "${RELEASE_FILE:-}" "${DEV_FILE:-}" "${SORTED_FILE:-}"
+}
+
+setup_temp_files() {
+    RELEASE_FILE=$(mktemp)
+    DEV_FILE=$(mktemp)
+    trap cleanup EXIT
+}
+
+init_counters() {
+    TOTAL_VERSIONS=0
+    RELEASE_VERSIONS=0
+    KEPT_VERSIONS=0
+    DELETED_VERSIONS=0
+    WOULD_DELETE_VERSIONS=0
+}
+
+# ================================================================================
+# GitHub API Functions
+# ================================================================================
+
+fetch_versions_page() {
+    local page="$1"
+    local per_page="$2"
+    gh api \
+        --header "Accept: application/vnd.github+json" \
+        --header "X-GitHub-Api-Version: 2022-11-28" \
+        "/orgs/${PACKAGE_OWNER}/packages/npm/${PACKAGE_NAME}/versions?per_page=${per_page}&page=${page}" \
+        2>/dev/null || echo "[]"
+}
+
+categorize_version() {
+    local version_json="$1"
+    local version_id version_name created_at
+
+    version_id=$(echo "$version_json" | jq --raw-output '.id')
+    version_name=$(echo "$version_json" | jq --raw-output '.name')
+    created_at=$(echo "$version_json" | jq --raw-output '.created_at')
+
+    if is_release_version "$version_name"; then
+        echo "$version_id|$version_name|$created_at" >> "$RELEASE_FILE"
+    else
+        echo "$version_id|$version_name|$created_at" >> "$DEV_FILE"
+    fi
+}
+
+fetch_and_categorize_versions() {
+    local page=1
+    local per_page=100
+    local response version_count
+
+    log "Fetching package versions for @${PACKAGE_OWNER}/${PACKAGE_NAME}..."
+    log "Retention policy: Keep last $MIN_KEEP_VERSIONS dev versions, delete others older than $CUTOFF_DATE"
+
+    while true; do
+        response=$(fetch_versions_page "$page" "$per_page")
+
+        if [ "$response" = "[]" ] || [ -z "$response" ]; then
+            break
         fi
 
-        # For versions beyond the minimum keep count, apply age-based rule
-        if [[ "$CREATED_AT" < "$CUTOFF_DATE" ]]; then
-            if [ "$DRY_RUN" = "true" ]; then
-                echo "WOULD DELETE: $VERSION_NAME (created: $CREATED_AT)"
-                WOULD_DELETE_VERSIONS=$((WOULD_DELETE_VERSIONS + 1))
-            else
-                echo "DELETING: $VERSION_NAME (created: $CREATED_AT)"
-                gh api \
-                    --method DELETE \
-                    --header "Accept: application/vnd.github+json" \
-                    --header "X-GitHub-Api-Version: 2022-11-28" \
-                    "/orgs/${PACKAGE_OWNER}/packages/npm/${PACKAGE_NAME}/versions/${VERSION_ID}" \
-                    2>/dev/null || echo "Failed to delete version $VERSION_NAME"
-                DELETED_VERSIONS=$((DELETED_VERSIONS + 1))
+        echo "$response" | jq --compact-output '.[]' | while read -r version_json; do
+            categorize_version "$version_json"
+        done
+
+        version_count=$(echo "$response" | jq --raw-output 'length')
+        if [ "$version_count" -lt "$per_page" ]; then
+            break
+        fi
+        page=$((page + 1))
+    done
+}
+
+delete_version() {
+    local version_id="$1"
+    local version_name="$2"
+
+    gh api \
+        --method DELETE \
+        --header "Accept: application/vnd.github+json" \
+        --header "X-GitHub-Api-Version: 2022-11-28" \
+        "/orgs/${PACKAGE_OWNER}/packages/npm/${PACKAGE_NAME}/versions/${version_id}" \
+        2>/dev/null || log "Failed to delete version $version_name"
+}
+
+# ================================================================================
+# Version Processing Functions
+# ================================================================================
+
+process_release_versions() {
+    log ""
+    log "=== Release Versions (always kept) ==="
+
+    if [ -s "$RELEASE_FILE" ]; then
+        RELEASE_VERSIONS=$(wc --lines < "$RELEASE_FILE" | tr --delete ' ')
+        TOTAL_VERSIONS=$((TOTAL_VERSIONS + RELEASE_VERSIONS))
+
+        while IFS='|' read -r version_id version_name created_at; do
+            log "KEEP (release): $version_name (created: $created_at)"
+        done < "$RELEASE_FILE"
+    else
+        log "No release versions found"
+    fi
+}
+
+process_dev_versions() {
+    local version_index=0
+    local dev_count
+    local version_id version_name created_at
+
+    log ""
+    log "=== Dev Versions ==="
+
+    if [ -s "$DEV_FILE" ]; then
+        SORTED_FILE=$(mktemp)
+        sort --field-separator='|' --key=3 --reverse "$DEV_FILE" > "$SORTED_FILE"
+
+        dev_count=$(wc --lines < "$SORTED_FILE" | tr --delete ' ')
+        TOTAL_VERSIONS=$((TOTAL_VERSIONS + dev_count))
+
+        log "Found $dev_count dev versions"
+        log "Keeping at least $MIN_KEEP_VERSIONS most recent versions regardless of age"
+        log ""
+
+        while IFS='|' read -r version_id version_name created_at; do
+            version_index=$((version_index + 1))
+
+            if [ "$version_index" -le "$MIN_KEEP_VERSIONS" ]; then
+                log "KEEP (min-keep #$version_index): $version_name (created: $created_at)"
+                KEPT_VERSIONS=$((KEPT_VERSIONS + 1))
+                continue
             fi
-        else
-            echo "KEEP (recent): $VERSION_NAME (created: $CREATED_AT)"
-            KEPT_VERSIONS=$((KEPT_VERSIONS + 1))
-        fi
-    done < "$SORTED_FILE"
-    rm --force "$SORTED_FILE"
-else
-    echo "No non-release versions found"
-fi
 
-# Output summary
-echo ""
-echo "=== Summary ==="
-echo "Total versions processed: $TOTAL_VERSIONS"
-echo "Release versions (kept): $RELEASE_VERSIONS"
-echo "Non-release versions kept: $KEPT_VERSIONS"
-if [ "$DRY_RUN" = "true" ]; then
-    echo "Versions that would be deleted: $WOULD_DELETE_VERSIONS"
-else
-    echo "Versions deleted: $DELETED_VERSIONS"
-fi
+            if [[ "$created_at" < "$CUTOFF_DATE" ]]; then
+                if [ "$DRY_RUN" = "true" ]; then
+                    log "WOULD DELETE: $version_name (created: $created_at)"
+                    WOULD_DELETE_VERSIONS=$((WOULD_DELETE_VERSIONS + 1))
+                else
+                    log "DELETING: $version_name (created: $created_at)"
+                    delete_version "$version_id" "$version_name"
+                    DELETED_VERSIONS=$((DELETED_VERSIONS + 1))
+                fi
+            else
+                log "KEEP (recent): $version_name (created: $created_at)"
+                KEPT_VERSIONS=$((KEPT_VERSIONS + 1))
+            fi
+        done < "$SORTED_FILE"
 
-# Output results for GitHub Actions (if GITHUB_OUTPUT is set)
-if [ -n "${GITHUB_OUTPUT:-}" ]; then
-    {
-        echo "cutoff_date=$CUTOFF_DATE"
-        echo "total=$TOTAL_VERSIONS"
-        echo "release=$RELEASE_VERSIONS"
-        echo "kept=$KEPT_VERSIONS"
-        echo "deleted=$DELETED_VERSIONS"
-        echo "would_delete=$WOULD_DELETE_VERSIONS"
-    } >> "$GITHUB_OUTPUT"
-fi
+        rm --force "$SORTED_FILE"
+        SORTED_FILE=""
+    else
+        log "No dev versions found"
+    fi
+}
+
+# ================================================================================
+# Output Functions
+# ================================================================================
+
+print_summary() {
+    log ""
+    log "=== Summary ==="
+    log "Total versions processed: $TOTAL_VERSIONS"
+    log "Release versions (kept): $RELEASE_VERSIONS"
+    log "Dev versions kept: $KEPT_VERSIONS"
+
+    if [ "$DRY_RUN" = "true" ]; then
+        log "Versions that would be deleted: $WOULD_DELETE_VERSIONS"
+    else
+        log "Versions deleted: $DELETED_VERSIONS"
+    fi
+}
+
+emit_github_output() {
+    if [ -n "${GITHUB_OUTPUT:-}" ]; then
+        {
+            echo "cutoff_date=$CUTOFF_DATE"
+            echo "total=$TOTAL_VERSIONS"
+            echo "release=$RELEASE_VERSIONS"
+            echo "kept=$KEPT_VERSIONS"
+            echo "deleted=$DELETED_VERSIONS"
+            echo "would_delete=$WOULD_DELETE_VERSIONS"
+        } >> "$GITHUB_OUTPUT"
+    fi
+}
+
+# ================================================================================
+# Main
+# ================================================================================
+
+main() {
+    check_deps
+    parse_args "$@"
+    compute_cutoff_date
+    setup_temp_files
+    init_counters
+
+    fetch_and_categorize_versions
+    process_release_versions
+    process_dev_versions
+    print_summary
+    emit_github_output
+}
+
+main "$@"
