@@ -87,15 +87,6 @@ jobs:
                   echo "Retention days: $RETENTION_DAYS"
                   echo "Min keep versions: $MIN_KEEP_VERSIONS"
 
-            - name: Calculate cutoff date
-              id: cutoff
-              run: |
-                  RETENTION_DAYS="${{ steps.params.outputs.retention_days }}"
-                  CUTOFF_DATE=$(date -d "$RETENTION_DAYS days ago" -u +%Y-%m-%dT%H:%M:%SZ)
-                  echo "cutoff_date=$CUTOFF_DATE" >> $GITHUB_OUTPUT
-                  echo "Cutoff date: $CUTOFF_DATE"
-                  echo "Packages created before this date will be considered for deletion"
-
             - name: List and cull packages
               id: cull
               env:
@@ -104,7 +95,7 @@ jobs:
                   ./build_scripts/cull_npm_packages.sh \
                     "${{ env.PACKAGE_NAME }}" \
                     "${{ env.PACKAGE_OWNER }}" \
-                    "${{ steps.cutoff.outputs.cutoff_date }}" \
+                    "${{ steps.params.outputs.retention_days }}" \
                     "${{ steps.params.outputs.dry_run }}" \
                     "${{ steps.params.outputs.min_keep_versions }}"
 
@@ -114,7 +105,7 @@ jobs:
                   DRY_RUN="${{ steps.params.outputs.dry_run }}"
                   RETENTION_DAYS="${{ steps.params.outputs.retention_days }}"
                   MIN_KEEP_VERSIONS="${{ steps.params.outputs.min_keep_versions }}"
-                  CUTOFF_DATE="${{ steps.cutoff.outputs.cutoff_date }}"
+                  CUTOFF_DATE="${{ steps.cull.outputs.cutoff_date }}"
 
                   echo "### NPM Package Cull Summary" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
