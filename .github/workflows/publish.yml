@@ -94,7 +94,7 @@ jobs:
 
             # OIDC trusted publishing requires npm 11.5.1+
             - name: Update npm for OIDC support
-              run: npm install --global npm@latest
+              run: npm install --global npm@11.8.0
 
             - name: Install dependencies
               run: |
