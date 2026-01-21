@@ -108,32 +108,13 @@ jobs:
             - name: Compute version and dist-tag
               id: compute
               run: |
-                  SHORT_SHA="${GITHUB_SHA::7}"
-                  BASE_VERSION=$(node --eval "console.log(require('./packages/ui-common/package.json').version)")
-                  BASE_VERSION="${BASE_VERSION%%-*}"
-
-                  if [ "${{ github.event_name }}" = "push" ]; then
-                    # Push to main: snapshot version with "main" dist-tag
-                    VERSION="${BASE_VERSION}-main.${SHORT_SHA}.${{ github.run_number }}"
-                    DIST_TAG="main"
-                    echo "Publishing merge snapshot: $VERSION with dist-tag: $DIST_TAG"
-                  elif [ "${{ github.event_name }}" = "release" ]; then
-                    # Release: use release tag for version, "latest" dist-tag
-                    TAG="${{ github.event.release.tag_name }}"
-                    VERSION="${TAG#v}"
-                    DIST_TAG="latest"
-                    echo "Publishing release version: $VERSION with dist-tag: $DIST_TAG"
-                  else
-                    # Manual workflow_dispatch: prerelease version with user-selected dist-tag
-                    VERSION="${BASE_VERSION}-pr.${SHORT_SHA}.${{ github.run_number }}"
-                    DIST_TAG="${{ inputs.dist_tag || 'prerelease' }}"
-                    echo "Publishing manual version: $VERSION with dist-tag: $DIST_TAG"
-                  fi
-
-                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-                  echo "dist_tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
-                  echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
-                  echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+                  ./build_scripts/compute_publish_version.sh \
+                    "${{ github.event_name }}" \
+                    "${{ github.sha }}" \
+                    "${{ github.run_number }}" \
+                    "packages/ui-common/package.json" \
+                    "${{ github.event.release.tag_name }}" \
+                    "${{ inputs.dist_tag }}"
 
             - name: Set ui-common version
               run: ./build_scripts/set_package_version.sh packages/ui-common/package.json ${{ steps.compute.outputs.version }}
