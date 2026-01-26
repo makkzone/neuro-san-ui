@@ -118,6 +118,12 @@ jobs:
             - name: Build ui-common library
               run: yarn build:lib
 
+            # Upgrade npm to v11.5.1+ for OIDC trusted publishing support.
+            # Node.js 22.x ships with npm v10, which has a bug causing 404 errors
+            # during OIDC token exchange. See: https://docs.npmjs.com/trusted-publishers
+            - name: Upgrade npm for OIDC support
+              run: npm install --global npm@11.8.0
+
             # Yarn 4 requires YARN_NPM_AUTH_TOKEN for registry auth.
             # NODE_AUTH_TOKEN is set by actions/setup-node via OIDC.
             - name: Publish to npm registry
