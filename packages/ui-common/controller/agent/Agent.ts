@@ -85,6 +85,23 @@ export async function testConnection(url: string): Promise<TestConnectionResult>
 }
 
 /**
+ * Get LLM suggestions for agent icons.
+ * @param agents The list of agents to get icon suggestions for.
+ * @returns A promise that resolves to the fetch response.
+ */
+export async function getLlmIconSuggestions(agents: readonly AgentInfo[]): Promise<Record<string, string>> {
+    const res = await fetch("http://localhost:3001/api/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({agents}),
+    })
+
+    return JSON.parse(await res.json())
+}
+
+/**
  * Get the list of available agent networks from the concierge service.
  * @param url The neuro-san server URL
  * @returns A promise that resolves to an array of AgentInfo objects.

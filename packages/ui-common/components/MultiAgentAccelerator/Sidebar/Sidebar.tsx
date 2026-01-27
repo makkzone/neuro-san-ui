@@ -75,6 +75,7 @@ enum CONNECTION_STATUS {
 export interface SidebarProps {
     readonly customURLCallback: (url: string) => void
     readonly customURLLocalStorage?: string
+    readonly iconSuggestions?: Record<string, string>
     readonly id: string
     readonly isAwaitingLlm: boolean
     readonly networks: readonly AgentInfo[]
@@ -86,6 +87,7 @@ export interface SidebarProps {
 export const Sidebar: FC<SidebarProps> = ({
     customURLCallback,
     customURLLocalStorage,
+    iconSuggestions,
     id,
     isAwaitingLlm,
     networks,
@@ -249,6 +251,7 @@ export const Sidebar: FC<SidebarProps> = ({
                             nodeIndex: index,
                             setSelectedNetwork,
                             shouldDisableTree: isAwaitingLlm,
+                            iconSuggestions,
                         } as unknown,
                     }}
                 />

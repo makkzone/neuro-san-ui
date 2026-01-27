@@ -23,7 +23,7 @@ import {Edge, EdgeProps, ReactFlowProvider} from "reactflow"
 
 import {AgentFlow} from "./AgentFlow"
 import {Sidebar} from "./Sidebar/Sidebar"
-import {getAgentNetworks, getConnectivity} from "../../controller/agent/Agent"
+import {getAgentNetworks, getConnectivity, getLlmIconSuggestions} from "../../controller/agent/Agent"
 import {AgentInfo, ConnectivityInfo, ConnectivityResponse} from "../../generated/neuro-san/NeuroSanClient"
 import {AgentConversation, processChatChunk} from "../../utils/agentConversations"
 import {useLocalStorage} from "../../utils/useLocalStorage"
@@ -60,6 +60,7 @@ export const MultiAgentAccelerator = ({
     const [isStreaming, setIsStreaming] = useState(false)
 
     const [networks, setNetworks] = useState<readonly AgentInfo[]>([])
+    const [iconSuggestions, setIconSuggestions] = useState<Record<string, string>>({})
 
     const [agentsInNetwork, setAgentsInNetwork] = useState<ConnectivityInfo[]>([])
 
@@ -113,6 +114,10 @@ export const MultiAgentAccelerator = ({
             try {
                 const networksTmp: readonly AgentInfo[] = await getAgentNetworks(neuroSanURL)
                 setNetworks(networksTmp)
+
+                const iconSuggestionsTmp = await getLlmIconSuggestions(networksTmp)
+                setIconSuggestions(iconSuggestionsTmp)
+                console.debug("Icon suggestions:", iconSuggestionsTmp)
                 closeNotification()
             } catch (e) {
                 sendNotification(
@@ -123,6 +128,7 @@ export const MultiAgentAccelerator = ({
                 )
                 setNetworks([])
                 setSelectedNetwork(null)
+                setIconSuggestions({})
             }
         }
 
@@ -234,6 +240,7 @@ export const MultiAgentAccelerator = ({
                         id="multi-agent-accelerator-sidebar"
                         isAwaitingLlm={isAwaitingLlm}
                         networks={networks}
+                        iconSuggestions={iconSuggestions}
                         setSelectedNetwork={(newNetwork) => {
                             agentCountsRef.current = new Map()
                             setSelectedNetwork(newNetwork)
