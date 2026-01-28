@@ -331,8 +331,10 @@ export const AgentFlow: FC<AgentFlowProps> = ({
     const shadowColor = darkMode ? "255, 255, 255" : "0, 0, 0"
 
     const isHeatmap = coloringOption === "heatmap"
+
+    const brandPalette = useSettingsStore((state) => state.settings.branding.rangePalette)
     const paletteKey = useSettingsStore((state) => state.settings.appearance.rangePalette)
-    const palette = PALETTES[paletteKey]
+    const palette = brandPalette ?? PALETTES[paletteKey]
 
     // Merge agents from active thought bubbles with agentsInNetwork for layout
     // This ensures bubble edges persist even when agents disappear from the network

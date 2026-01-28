@@ -82,8 +82,43 @@ Metadata:
 {metadata}
 `)
 
+/* eslint-disable max-len */
+const brandingColorsPromps = ChatPromptTemplate.fromTemplate(`
+Given a company name, suggest colors in hex format that match the company's branding.
+Return your response as JSON in the following format with no markdown, text or other comments:
+{{
+    "primary": "#hexcode",
+    "background": "#hexcode",
+    "plasma": "#hexcode",
+    "nodeColor": "#hexcode",
+    "rangePalette": ["#hexcode1", "#hexcode2", "#hexcode3", "#hexcode4", "#hexcode5", "#hexcode6", "#hexcode7", "#hexcode8", "#hexcode9", "#hexcode10"]
+}}
+
+"plasma" is used for displaying animated plasma effects in the UI, "nodeColor" is used for coloring agent nodes in
+the network visualization, and "rangePalette" is a graduated color palette with 10 items used for depth/heatmap 
+coloring.
+
+Company: {company}
+`)
+/* eslint-enable max-len */
+
 app.get("/api/health", (_req, res) => {
     res.json({status: "ok"})
+})
+
+app.get("/api/branding", async (req, res) => {
+    console.debug("Received branding request", req.body)
+    try {
+        const company = req.query["company"] as string
+
+        const formattedPrompt = await brandingColorsPromps.formatMessages({company})
+        const response = await llm.invoke(formattedPrompt)
+
+        res.json(response.content)
+    } catch (error) {
+        console.error("Error:", error)
+        res.status(500).json({error: "Failed to get LLM response"})
+    }
 })
 
 app.post("/api/suggestIconsForNetworks", async (req, res) => {

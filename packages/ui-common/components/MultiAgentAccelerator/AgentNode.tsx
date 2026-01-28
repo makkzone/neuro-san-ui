@@ -55,12 +55,10 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
     // Agent node color from settings store
     const agentNodeColor = useSettingsStore((state) => state.settings.appearance.agentNodeColor)
 
-    // Agent node icon color from settings store
-    const agentNodeIconColor = useSettingsStore((state) => state.settings.appearance.agentIconColor)
-
     // Color palette for depth/heatmap coloring
+    const brandPalette = useSettingsStore((state) => state.settings.branding.rangePalette)
     const paletteKey = useSettingsStore((state) => state.settings.appearance.rangePalette)
-    const palette = PALETTES[paletteKey]
+    const palette = brandPalette ?? PALETTES[paletteKey]
 
     // Unpack the node-specific data
     const data: AgentNodeProps = props.data
@@ -128,6 +126,8 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
         }
     }
 
+    const color = theme.palette.getContrastText(backgroundColor)
+
     return (
         <>
             <div
@@ -138,7 +138,7 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                     backgroundColor,
                     borderRadius: "50%",
                     boxShadow,
-                    color: agentNodeIconColor,
+                    color,
                     display: "flex",
                     height: NODE_HEIGHT * (isFrontman ? 1.25 : 1.0),
                     justifyContent: "center",

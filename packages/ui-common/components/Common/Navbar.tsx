@@ -34,6 +34,7 @@ import {
     DEFAULT_USER_IMAGE,
     NEURO_SAN_UI_VERSION,
 } from "../../const"
+import {useSettingsStore} from "../../state/Settings"
 import {isDarkMode} from "../../Theme/Theme"
 import {navigateToUrl} from "../../utils/BrowserNavigation"
 import {SettingsDialog} from "../Settings/SettingsDialog"
@@ -62,13 +63,6 @@ export interface NavbarProps {
 
     // Support email address for contact us functionality
     readonly supportEmailAddress: string
-}
-
-const MENU_ITEM_TEXT_PROPS = {
-    color: "var(--bs-white)",
-    backgroundColor: "var(--bs-primary)",
-    fontFamily: "var(--bs-body-font-family)",
-    fontSize: "18px",
 }
 
 const DISABLE_OUTLINE_PROPS = {
@@ -130,6 +124,17 @@ export const Navbar = ({
     // Settings dialog state
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
 
+    // Customer for branding
+    const customer = useSettingsStore((state) => state.settings.branding.customer)
+    const plasmaColor = useSettingsStore((state) => state.settings.appearance.plasmaColor)
+
+    const MENU_ITEM_TEXT_PROPS = {
+        color: plasmaColor || "var(--bs-white)",
+        backgroundColor: "var(--bs-primary)",
+        fontFamily: "var(--bs-body-font-family)",
+        fontSize: "18px",
+    }
+
     return hydrated ? (
         <Grid
             id="nav-bar-container"
@@ -137,7 +142,7 @@ export const Navbar = ({
             alignItems="center"
             sx={{
                 ...MENU_ITEM_TEXT_PROPS,
-                color: "var(--bs-white)",
+                color: plasmaColor || "var(--bs-white)",
                 padding: "0.25rem",
             }}
         >
@@ -148,32 +153,50 @@ export const Navbar = ({
                     onClose={() => setSettingsDialogOpen(false)}
                 />
             )}
-            <a
-                id="splash-logo-link"
-                href="https://www.cognizant.com/us/en"
-                style={{
-                    display: "flex",
-                    paddingLeft: "0.15rem",
-                }}
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                    id="logo-img"
-                    width="200"
-                    height="45"
-                    src="/cognizant-logo-white.svg"
-                    alt="Cognizant Logo"
-                />
-            </a>
+            {customer ? (
+                <Typography
+                    id="customer-branding"
+                    sx={{
+                        ...MENU_ITEM_TEXT_PROPS,
+                        color: plasmaColor || undefined,
+                        fontSize: "24px",
+                        fontWeight: "bold",
+                        paddingLeft: "0.15rem",
+                        width: "200px",
+                        display: "flex",
+                        alignItems: "center",
+                    }}
+                >
+                    {customer}
+                </Typography>
+            ) : (
+                <a
+                    id="splash-logo-link"
+                    href="https://www.cognizant.com/us/en"
+                    style={{
+                        display: "flex",
+                        paddingLeft: "0.15rem",
+                    }}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        id="logo-img"
+                        width="200"
+                        height="45"
+                        src="/cognizant-logo-white.svg"
+                        alt="Cognizant Logo"
+                    />
+                </a>
+            )}
             {/*App title*/}
             <Grid id={id}>
                 <Typography
                     id="nav-bar-brand"
                     sx={{
                         ...MENU_ITEM_TEXT_PROPS,
-                        color: "var(--bs-white)",
+                        color: plasmaColor || "var(--bs-white)",
                         marginLeft: "0.85rem",
                         fontSize: "16px",
                         fontWeight: "bold",
@@ -184,7 +207,7 @@ export const Navbar = ({
                         style={{
                             fontWeight: 500,
                             fontSize: "1.1rem",
-                            color: "var(--bs-white)",
+                            color: plasmaColor || "var(--bs-white)",
                             position: "relative",
                             bottom: "1px",
                             textDecoration: "none",
@@ -208,7 +231,7 @@ export const Navbar = ({
                     display: "flex",
                     justifyContent: "flex-end", // Right align
                     alignItems: "center", // Vertically center
-                    color: "var(--bs-white)",
+                    color: plasmaColor || "var(--bs-white)",
                     marginRight: "50px",
                 }}
             >
@@ -239,7 +262,7 @@ export const Navbar = ({
                     Explore
                     <ArrowDropDownIcon
                         id="nav-explore-dropdown-arrow"
-                        sx={{color: "var(--bs-white)", fontSize: 22}}
+                        sx={{color: plasmaColor || "var(--bs-white)", fontSize: 22}}
                     />
                 </Typography>
                 <Menu
@@ -290,7 +313,7 @@ export const Navbar = ({
                     Help
                     <ArrowDropDownIcon
                         id="nav-help-dropdown-arrow"
-                        sx={{color: "var(--bs-white)", fontSize: 22}}
+                        sx={{color: plasmaColor || "var(--bs-white)", fontSize: 22}}
                     />
                 </Typography>
                 <Menu
@@ -360,7 +383,7 @@ export const Navbar = ({
                         />
                         <ArrowDropDownIcon
                             id="nav-user-dropdown-arrow"
-                            sx={{color: "var(--bs-white)", fontSize: 22}}
+                            sx={{color: plasmaColor || "var(--bs-white)", fontSize: 22}}
                         />
                     </IconButton>
                     <Menu

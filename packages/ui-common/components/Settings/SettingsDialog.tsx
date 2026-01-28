@@ -4,11 +4,13 @@ import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Divider from "@mui/material/Divider"
 import FormLabel from "@mui/material/FormLabel"
+import TextField from "@mui/material/TextField"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
 import Typography from "@mui/material/Typography"
 import {FC, MouseEvent as ReactMouseEvent, useState} from "react"
 
 import {FadingCheckmark, useCheckmarkFade} from "./FadingCheckmark"
+import {getBrandingColors} from "../../controller/agent/Agent"
 import {useSettingsStore} from "../../state/Settings"
 import {PaletteKey, PALETTES} from "../../Theme/Palettes"
 import {ConfirmationModal} from "../Common/confirmationModal"
@@ -45,6 +47,10 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
     const paletteKey = useSettingsStore((state) => state.settings.appearance.rangePalette)
     const rangePaletteCheckmark = useCheckmarkFade()
 
+    // Customer for branding
+    const customer = useSettingsStore((state) => state.settings.branding.customer)
+    const customerCheckmark = useCheckmarkFade()
+
     const handlePaletteChange = (_event: ReactMouseEvent<HTMLElement>, newPalette: PaletteKey | null) => {
         if (newPalette) {
             updateSettings({
@@ -54,6 +60,46 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
             })
         }
         rangePaletteCheckmark.trigger()
+    }
+
+    const [brandingInput, setBrandingInput] = useState<string>(customer)
+
+    const handleBrandingApply = async () => {
+        updateSettings({
+            branding: {
+                customer: brandingInput,
+            },
+        })
+        customerCheckmark.trigger()
+
+        const brandingColors = await getBrandingColors(brandingInput)
+        console.debug("Fetched branding colors:", brandingColors)
+
+        if (brandingColors["plasma"]) {
+            updateSettings({
+                appearance: {
+                    plasmaColor: brandingColors["plasma"],
+                },
+            })
+            plasmaColorCheckmark.trigger()
+        }
+
+        if (brandingColors["nodeColor"]) {
+            updateSettings({
+                appearance: {
+                    agentNodeColor: brandingColors["nodeColor"],
+                },
+            })
+            agentNodeColorCheckmark.trigger()
+        }
+
+        if (Array.isArray(brandingColors["rangePalette"])) {
+            updateSettings({
+                branding: {
+                    rangePalette: brandingColors["rangePalette"] as string[],
+                },
+            })
+        }
     }
 
     return (
@@ -101,6 +147,26 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
                         Network display
                     </Typography>
                     <Divider sx={{marginBottom: 2}} />
+                    <Box sx={{display: "flex", alignItems: "center"}}>
+                        <Box sx={{display: "flex", alignItems: "center", gap: 2, marginBottom: "1rem"}}>
+                            <FormLabel>Branding:</FormLabel>
+                            <TextField
+                                aria-label="branding-input"
+                                onChange={(e) => setBrandingInput(e.target.value)}
+                                value={brandingInput}
+                                size="small"
+                                variant="outlined"
+                            />
+                            <Button
+                                variant="contained"
+                                size="small"
+                                onClick={handleBrandingApply}
+                            >
+                                Apply
+                            </Button>
+                            <FadingCheckmark show={customerCheckmark.show} />
+                        </Box>
+                    </Box>
                     <Box sx={{display: "flex", alignItems: "center"}}>
                         <FormLabel>Palette (heatmap and depth):</FormLabel>
                         <ToggleButtonGroup

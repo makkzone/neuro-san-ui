@@ -113,6 +113,19 @@ export async function getAgentIconSuggestions(connectivity: ConnectivityResponse
     return JSON.parse(await res.json())
 }
 
+export async function getBrandingColors(company: string): Promise<Record<string, string>> {
+    const fetchUrl = `http://localhost:3001/api/branding?company=${encodeURIComponent(company)}`
+
+    const res = await fetch(fetchUrl, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    return JSON.parse(await res.json())
+}
+
 /**
  * Get the list of available agent networks from the concierge service.
  * @param url The neuro-san server URL
