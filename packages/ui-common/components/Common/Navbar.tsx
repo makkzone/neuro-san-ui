@@ -479,18 +479,22 @@ export const Navbar = ({
             {/*Dark mode toggle*/}
             <Tooltip
                 id="dark-mode-toggle"
-                title="Toggle dark mode"
+                title={
+                    customer
+                        ? "Not available when customer branding is active. Reset via Settings menu."
+                        : "Toggle dark mode"
+                }
             >
                 <DarkModeIcon
                     id="dark-mode-icon"
                     sx={{
                         marginRight: "1rem",
                         fontSize: "1rem",
-                        cursor: "pointer",
+                        cursor: customer ? "not-allowed" : "pointer",
                         color: darkMode ? "var(--bs-yellow)" : "var(--bs-gray-dark)",
                     }}
                     onClick={() => {
-                        setMode(darkMode ? "light" : "dark")
+                        !customer && setMode(darkMode ? "light" : "dark")
                     }}
                 />
             </Tooltip>

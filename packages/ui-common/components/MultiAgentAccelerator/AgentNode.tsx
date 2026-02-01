@@ -18,6 +18,7 @@ limitations under the License.
 // eslint-disable-next-line no-restricted-imports
 import * as MuiIcons from "@mui/icons-material"
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome"
+import Box from "@mui/material/Box"
 import {useTheme} from "@mui/material/styles"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
@@ -137,60 +138,60 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
     const color = autoAgentIconColor ? theme.palette.getContrastText(backgroundColor) : agentNodeIconColor
 
     return (
-        <>
-            <div
-                id={agentId}
-                data-testid={agentId}
-                style={{
-                    alignItems: "center",
-                    animation: isActiveAgent ? "glow 2.0s infinite" : "none",
-                    backgroundColor,
-                    borderRadius: "50%",
-                    boxShadow,
-                    color,
-                    display: "flex",
-                    height: NODE_HEIGHT * (isFrontman ? 1.25 : 1.0),
-                    justifyContent: "center",
-                    shapeOutside: "circle(50%)",
-                    textAlign: "center",
-                    width: NODE_WIDTH * (isFrontman ? 1.25 : 1.0),
-                    zIndex: getZIndex(1, theme),
-                    position: "relative",
-                }}
-            >
-                <style id={`${agentId}-glow-animation`}>{glowAnimation}</style>
-                {getDisplayAsIcon()}
-                <Handle
-                    id={`${agentId}-left-handle`}
-                    position={Position.Left}
-                    type="source"
-                    style={{display: handleVisibility}}
-                />
-                <Handle
-                    id={`${agentId}-right-handle`}
-                    position={Position.Right}
-                    type="source"
-                    style={{display: handleVisibility}}
-                />
-                <Handle
-                    id={`${agentId}-top-handle`}
-                    position={Position.Top}
-                    type="source"
-                    style={{display: handleVisibility}}
-                />
-                <Handle
-                    id={`${agentId}-bottom-handle`}
-                    position={Position.Bottom}
-                    type="source"
-                    style={{display: handleVisibility}}
-                />
-            </div>
-            <Tooltip
-                id={`${agentId}-tooltip`}
-                title={agentName}
-                placement="top"
-                disableInteractive
-            >
+        <Tooltip
+            id={`${agentId}-tooltip`}
+            title={agentName}
+            placement="top"
+            disableInteractive={true}
+        >
+            <Box>
+                <Box
+                    id={agentId}
+                    data-testid={agentId}
+                    style={{
+                        alignItems: "center",
+                        animation: isActiveAgent ? "glow 2.0s infinite" : "none",
+                        backgroundColor,
+                        borderRadius: "50%",
+                        boxShadow,
+                        color,
+                        display: "flex",
+                        height: NODE_HEIGHT * (isFrontman ? 1.25 : 1.0),
+                        justifyContent: "center",
+                        shapeOutside: "circle(50%)",
+                        textAlign: "center",
+                        width: NODE_WIDTH * (isFrontman ? 1.25 : 1.0),
+                        zIndex: getZIndex(1, theme),
+                        position: "relative",
+                    }}
+                >
+                    <style id={`${agentId}-glow-animation`}>{glowAnimation}</style>
+                    {getDisplayAsIcon()}
+                    <Handle
+                        id={`${agentId}-left-handle`}
+                        position={Position.Left}
+                        type="source"
+                        style={{display: handleVisibility}}
+                    />
+                    <Handle
+                        id={`${agentId}-right-handle`}
+                        position={Position.Right}
+                        type="source"
+                        style={{display: handleVisibility}}
+                    />
+                    <Handle
+                        id={`${agentId}-top-handle`}
+                        position={Position.Top}
+                        type="source"
+                        style={{display: handleVisibility}}
+                    />
+                    <Handle
+                        id={`${agentId}-bottom-handle`}
+                        position={Position.Bottom}
+                        type="source"
+                        style={{display: handleVisibility}}
+                    />
+                </Box>
                 <Typography
                     id={`${agentId}-name`}
                     sx={{
@@ -209,7 +210,7 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                 >
                     {agentName}
                 </Typography>
-            </Tooltip>
-        </>
+            </Box>
+        </Tooltip>
     )
 }

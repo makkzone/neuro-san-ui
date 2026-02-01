@@ -181,6 +181,11 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
                             <TextField
                                 aria-label="branding-input"
                                 onChange={(e) => setBrandingInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && brandingInput?.trim().length > 0) {
+                                        handleBrandingApply()
+                                    }
+                                }}
                                 value={brandingInput}
                                 placeholder="Company or organization name"
                                 size="small"
@@ -188,6 +193,7 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
                                 variant="outlined"
                             />
                             <Button
+                                disabled={brandingInput?.trim().length === 0}
                                 variant="contained"
                                 size="small"
                                 onClick={handleBrandingApply}
