@@ -18,11 +18,9 @@ import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp"
 import MuiAccordion, {AccordionProps} from "@mui/material/Accordion"
 import MuiAccordionDetails from "@mui/material/AccordionDetails"
 import MuiAccordionSummary, {accordionSummaryClasses, AccordionSummaryProps} from "@mui/material/AccordionSummary"
-import {styled, SxProps, useColorScheme} from "@mui/material/styles"
+import {styled, SxProps} from "@mui/material/styles"
 import Typography from "@mui/material/Typography"
 import {FC, ReactNode, SyntheticEvent, useCallback, useState} from "react"
-
-import {isDarkMode} from "../../Theme/Theme"
 
 // #region: Styled Components
 const Accordion = styled((props: AccordionProps) => (
@@ -91,10 +89,6 @@ export const MUIAccordion: FC<MUIAccordionProps> = ({
     items,
     sx,
 }) => {
-    // Dark mode
-    const {mode, systemMode} = useColorScheme()
-    const darkMode = isDarkMode(mode, systemMode)
-
     const [expandedList, setExpandedList] = useState<number[]>(defaultExpandedPanelKey ? [defaultExpandedPanelKey] : [])
 
     const handleChange = useCallback(
@@ -133,7 +127,6 @@ export const MUIAccordion: FC<MUIAccordionProps> = ({
                             aria-controls={`${baseIdAndPanelKey}-summary`}
                             id={`${baseIdAndPanelKey}-summary`}
                             sx={{
-                                // backgroundColor: darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-gray-background)",
                                 flexDirection: arrowPosition === "left" ? "row-reverse" : undefined,
                             }}
                         >

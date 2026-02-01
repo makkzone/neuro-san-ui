@@ -46,6 +46,15 @@ const cssVar = (variableName: string): string => {
     return rootStyles?.getPropertyValue(variableName).trim() || DEFAULT_COLOR
 }
 
+const adjustBrightness = (color: string, percent: number): string => {
+    const num = parseInt(color.replace("#", ""), 16)
+    const amt = Math.round(2.55 * percent)
+    const R = Math.min(255, Math.max(0, (num >> 16) + amt))
+    const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amt))
+    const B = Math.min(255, Math.max(0, (num & 0x0000ff) + amt))
+    return `#${((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1)}`
+}
+
 /**
  * This is the main theme for the app. It is used by the MUI ThemeProvider. It supplies light and dark themes
  * using custom colors defined in globals.css.
@@ -92,6 +101,7 @@ export const createAppTheme = (primary: string, secondary: string, background: s
                 palette: {
                     background: {
                         default: background,
+                        paper: adjustBrightness(background, 5),
                     },
                     text: {
                         primary: primary || cssVar("--bs-white"),
@@ -103,6 +113,7 @@ export const createAppTheme = (primary: string, secondary: string, background: s
                 palette: {
                     background: {
                         default: background,
+                        paper: adjustBrightness(background, 5),
                     },
                     text: {
                         primary: primary || cssVar("--bs-black"),
