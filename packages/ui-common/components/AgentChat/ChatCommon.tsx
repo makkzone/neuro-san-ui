@@ -224,6 +224,7 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
         agentPlaceholders = EMPTY,
         clearChatOnNewAgent = false,
         extraParams,
+        backgroundColor,
         title,
         onClose,
         neuroSanURL,
@@ -554,7 +555,6 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                                 await handleSend(query)
                             }}
                             sx={{
-                                color: "var(--bs-white)",
                                 marginRight: "1rem",
                                 marginBottom: "1rem",
                                 backgroundColor: "var(--bs-accent1-medium)",
@@ -1055,6 +1055,7 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                     id="llm-responses"
                     ref={chatOutputRef}
                     sx={{
+                        backgroundColor: backgroundColor || undefined,
                         borderWidth: "1px",
                         borderRadius: "0.5rem",
                         fontSize: "smaller",
@@ -1087,6 +1088,9 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                             </span>
                             <CircularProgress
                                 id="awaitingOutputSpinner"
+                                sx={{
+                                    color: "var(--bs-primary)",
+                                }}
                                 size="1rem"
                             />
                         </Box>
@@ -1155,6 +1159,7 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                                 <CircularProgress
                                     size={16}
                                     sx={{
+                                        color: "var(--bs-primary)",
                                         marginRight: "0.5rem",
                                     }}
                                 />
@@ -1165,6 +1170,7 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                                     setChatInput("")
                                 }}
                                 sx={{
+                                    color: "var(--bs-primary)",
                                     opacity: userInputEmpty ? "25%" : "100%",
                                 }}
                                 disabled={userInputEmpty}

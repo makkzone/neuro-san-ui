@@ -329,7 +329,6 @@ export const MultiAgentAccelerator = ({
                         onStreamingComplete={onStreamingComplete}
                         onStreamingStarted={onStreamingStarted}
                         clearChatOnNewAgent={true}
-                        // backgroundColor={darkMode ? "var(--bs-dark-mode-dim)" : "var(--bs-secondary-blue)"}
                     />
                 </Grid>
             </Slide>
@@ -360,6 +359,7 @@ export const MultiAgentAccelerator = ({
                             <StopCircle
                                 fontSize="small"
                                 id="stop-button-icon"
+                                sx={{color: "var(--bs-white)"}}
                             />
                         </SmallLlmChatButton>
                     </Box>
