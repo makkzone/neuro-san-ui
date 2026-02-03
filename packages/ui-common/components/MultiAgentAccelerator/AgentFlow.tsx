@@ -550,8 +550,6 @@ export const AgentFlow: FC<AgentFlowProps> = ({
                         sx={{
                             fontSize: "0.5rem",
                             height: "1rem",
-                            backgroundColor:
-                                darkMode && coloringOption === "depth" ? "var(--bs-gray-medium)" : undefined,
                         }}
                     >
                         <Typography
@@ -570,7 +568,6 @@ export const AgentFlow: FC<AgentFlowProps> = ({
                         sx={{
                             fontSize: "0.5rem",
                             height: "1rem",
-                            backgroundColor: darkMode && isHeatmap ? "var(--bs-gray-medium)" : undefined,
                         }}
                     >
                         <Typography

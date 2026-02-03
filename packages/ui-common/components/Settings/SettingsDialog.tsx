@@ -3,6 +3,7 @@ import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Divider from "@mui/material/Divider"
 import FormLabel from "@mui/material/FormLabel"
+import {createTheme, ThemeProvider, useColorScheme} from "@mui/material/styles"
 import TextField from "@mui/material/TextField"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
@@ -13,6 +14,7 @@ import {FadingCheckmark, useCheckmarkFade} from "./FadingCheckmark"
 import {getBrandingColors} from "../../controller/agent/Agent"
 import {useSettingsStore} from "../../state/Settings"
 import {PaletteKey, PALETTES} from "../../Theme/Palettes"
+import {isDarkMode} from "../../Theme/Theme"
 import {ConfirmationModal} from "../Common/ConfirmationModal"
 import {MUIDialog} from "../Common/MUIDialog"
 import {NotificationType, sendNotification} from "../Common/notification"
@@ -51,6 +53,9 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
     // Customer for branding
     const customer = useSettingsStore((state) => state.settings.branding.customer)
     const customerCheckmark = useCheckmarkFade()
+
+    const {mode, systemMode} = useColorScheme()
+    const darkMode = isDarkMode(mode, systemMode)
 
     const handlePaletteChange = (_event: ReactMouseEvent<HTMLElement>, newPalette: PaletteKey | null) => {
         if (newPalette) {
@@ -144,7 +149,14 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
     }, [customer])
 
     return (
-        <>
+        // Always use default theme for settings dialog so user can always see to reset
+        <ThemeProvider
+            theme={createTheme({
+                palette: {
+                    mode: darkMode ? "dark" : "light",
+                },
+            })}
+        >
             {resetToDefaultSettingsOpen ? (
                 <ConfirmationModal
                     id={`${id}-reset-to-default-settings-confirmation-modal`}
@@ -354,6 +366,6 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
                     </Button>
                 </Box>
             </MUIDialog>
-        </>
+        </ThemeProvider>
     )
 }

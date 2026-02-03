@@ -555,12 +555,12 @@ export const ChatCommon = forwardRef<ChatCommonHandle, ChatCommonProps>((props, 
                                 await handleSend(query)
                             }}
                             sx={{
+                                color: "var(--bs-white)",
                                 marginRight: "1rem",
                                 marginBottom: "1rem",
                                 backgroundColor: "var(--bs-accent1-medium)",
                                 "&:hover": {
                                     backgroundColor: "var(--bs-accent1-dark)",
-                                    color: "var(--bs-white)",
                                 },
                             }}
                         />
