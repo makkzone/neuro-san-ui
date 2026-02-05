@@ -128,7 +128,7 @@ export async function testConnection(url: string): Promise<TestConnectionResult>
  */
 export async function getNetworkIconSuggestions(networks: readonly AgentInfo[]): Promise<Record<string, string>> {
     const fetchFunction = () =>
-        fetch("http://localhost:3001/api/suggestIconsForNetworks", {
+        fetch("/api/networkIconSuggestions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -140,7 +140,7 @@ export async function getNetworkIconSuggestions(networks: readonly AgentInfo[]):
 
 export async function getAgentIconSuggestions(connectivity: ConnectivityResponse): Promise<Record<string, string>> {
     const fetchFunction = () =>
-        fetch("http://localhost:3001/api/suggestIconsForAgents", {
+        fetch("/api/agentIconSuggestions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -152,7 +152,7 @@ export async function getAgentIconSuggestions(connectivity: ConnectivityResponse
 }
 
 export async function getBrandingColors(company: string): Promise<Record<string, string>> {
-    const fetchUrl = `http://localhost:3001/api/branding?company=${encodeURIComponent(company)}`
+    const fetchUrl = `/api/branding?company=${encodeURIComponent(company)}`
 
     const fetchFunction = () =>
         fetch(fetchUrl, {

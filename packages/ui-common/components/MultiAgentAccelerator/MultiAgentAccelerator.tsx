@@ -114,7 +114,7 @@ export const MultiAgentAccelerator: FC<MultiAgentAcceleratorProps> = ({
     }, [])
 
     useEffect(() => {
-        async function getNetworks() {
+        ;(async () => {
             try {
                 const networksTmp: readonly AgentInfo[] = await getAgentNetworks(neuroSanURL)
                 setNetworks(networksTmp)
@@ -129,13 +129,11 @@ export const MultiAgentAccelerator: FC<MultiAgentAcceleratorProps> = ({
                 setNetworks([])
                 setSelectedNetwork(null)
             }
-        }
-
-        void getNetworks()
+        })()
     }, [neuroSanURL])
 
     useEffect(() => {
-        async function getSuggestions() {
+        ;(async () => {
             if (!(networks?.length > 0)) {
                 setIconSuggestions({})
                 return
@@ -148,9 +146,7 @@ export const MultiAgentAccelerator: FC<MultiAgentAcceleratorProps> = ({
                 console.warn("Unable to get network icon suggestions from LLM:", e)
                 setIconSuggestions({})
             }
-        }
-
-        void getSuggestions()
+        })()
     }, [networks])
 
     useEffect(() => {
@@ -166,23 +162,36 @@ export const MultiAgentAccelerator: FC<MultiAgentAcceleratorProps> = ({
                         .concat()
                         .sort((a, b) => a?.origin.localeCompare(b?.origin))
                     setAgentsInNetwork(agentsInNetworkSorted)
-
-                    const agentIconSuggestionsTmp = await getAgentIconSuggestions(connectivity)
-                    setAgentIconSuggestions(agentIconSuggestionsTmp)
+                    setAgentIconSuggestions({})
                     closeNotification()
                 } catch (e) {
                     const networkName = cleanUpAgentName(selectedNetwork)
                     sendNotification(
                         NotificationType.error,
                         "Connection error",
-                        // eslint-disable-next-line max-len
-                        `Unable to get agent list for "${networkName}". Verify that ${neuroSanURL} is a valid Multi-Agent Accelerator Server. Error: ${e}.`
+                        `Unable to get agent list for "${networkName}". Verify that ${neuroSanURL} is a valid ` +
+                            `Multi-Agent Accelerator Server. Error: ${e}.`
                     )
                     setAgentsInNetwork([])
                 }
             }
         })()
     }, [neuroSanURL, selectedNetwork])
+
+    useEffect(() => {
+        ;(async () => {
+            if (agentsInNetwork.length > 0) {
+                try {
+                    const connectivity: ConnectivityResponse = {connectivity_info: agentsInNetwork}
+                    const agentIconSuggestionsTmp = await getAgentIconSuggestions(connectivity)
+                    setAgentIconSuggestions(agentIconSuggestionsTmp)
+                } catch (e) {
+                    console.warn("Unable to get agent icon suggestions:", e)
+                    setAgentIconSuggestions({})
+                }
+            }
+        })()
+    }, [agentsInNetwork])
 
     // Set up handler to allow Escape key to stop the interaction with the LLM.
     useEffect(() => {

@@ -1,23 +1,25 @@
 /**
- * Next.js API route to provide branding colors using LangChain and OpenAI.
+ * Next.js API route to suggest icons for networks using LangChain and OpenAI.
  */
 
 import {ChatOpenAI} from "@langchain/openai"
 import type {NextApiRequest, NextApiResponse} from "next"
 
-import {SUGGEST_BRANDING_COLORS_PROMPT} from "./prompts"
+import {SUGGEST_NETWORK_ICONS_PROMPT} from "./prompts"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== "GET") {
+    if (req.method !== "POST") {
         return res.status(405).json({error: "Method not allowed"})
     }
 
     try {
-        const company = req.query["company"] as string
+        console.debug("Received suggestIconsForNetworks request", req.body)
 
-        const formattedPrompt = await SUGGEST_BRANDING_COLORS_PROMPT.formatMessages({
-            company,
-        })
+        const variables = {
+            network_list: typeof req.body === "object" ? JSON.stringify(req.body, null, 2) : req.body,
+        }
+
+        const formattedPrompt = await SUGGEST_NETWORK_ICONS_PROMPT.formatMessages(variables)
         const response = await new ChatOpenAI({
             model: "gpt-4o",
             temperature: 0.7,
