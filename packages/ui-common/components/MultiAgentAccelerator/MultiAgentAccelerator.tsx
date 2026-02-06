@@ -134,17 +134,14 @@ export const MultiAgentAccelerator: FC<MultiAgentAcceleratorProps> = ({
 
     useEffect(() => {
         ;(async () => {
-            if (!(networks?.length > 0)) {
-                setNetworkIconSuggestions({})
-                return
-            }
-
-            try {
-                const suggestions = await getNetworkIconSuggestions(networks)
-                setNetworkIconSuggestions(suggestions)
-            } catch (e) {
-                console.warn("Unable to get network icon suggestions from LLM:", e)
-                setNetworkIconSuggestions({})
+            if (networks?.length > 0) {
+                try {
+                    const suggestions = await getNetworkIconSuggestions(networks)
+                    setNetworkIconSuggestions(suggestions)
+                } catch (e) {
+                    console.warn("Unable to get network icon suggestions from LLM:", e)
+                    setNetworkIconSuggestions({})
+                }
             }
         })()
     }, [networks])

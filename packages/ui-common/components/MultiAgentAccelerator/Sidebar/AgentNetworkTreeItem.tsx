@@ -37,11 +37,11 @@ type TagColor = (typeof TAG_COLORS)[number]
 // Keep track of which tags have which colors so that the same tag always has the same color
 const tagsToColors = new Map<string, TagColor>()
 
-interface AgentNetworkNodeProps extends TreeItemProps {
+export interface AgentNetworkNodeProps extends TreeItemProps {
     readonly nodeIndex: Map<string, AgentInfo>
-    setSelectedNetwork: (network: string) => void
-    shouldDisableTree: boolean
-    networkIconSuggestions: Record<string, string>
+    readonly setSelectedNetwork: (network: string) => void
+    readonly shouldDisableTree: boolean
+    readonly networkIconSuggestions: Record<string, string>
 }
 
 /**

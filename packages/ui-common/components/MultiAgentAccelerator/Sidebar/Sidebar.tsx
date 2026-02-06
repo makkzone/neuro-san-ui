@@ -36,7 +36,7 @@ import {
     useState,
 } from "react"
 
-import {AgentNetworkNode} from "./AgentNetworkTreeItem"
+import {AgentNetworkNode, AgentNetworkNodeProps} from "./AgentNetworkTreeItem"
 import {buildTreeViewItems} from "./TreeUtils"
 import {testConnection, TestConnectionResult} from "../../../controller/agent/Agent"
 import {AgentInfo} from "../../../generated/neuro-san/NeuroSanClient"
@@ -84,6 +84,8 @@ export const Sidebar: FC<SidebarProps> = ({
     networks,
     setSelectedNetwork,
 }) => {
+    console.debug("network icon suggestions in sidebar:", networkIconSuggestions)
+
     // Get default URL from the environment store.
     const {backendNeuroSanApiUrl} = useEnvironmentStore()
     const [urlInput, setUrlInput] = useState<string>(customURLLocalStorage || backendNeuroSanApiUrl)
@@ -242,8 +244,8 @@ export const Sidebar: FC<SidebarProps> = ({
                             nodeIndex: index,
                             setSelectedNetwork,
                             shouldDisableTree: isAwaitingLlm,
-                            iconSuggestions: networkIconSuggestions,
-                        } as unknown,
+                            networkIconSuggestions,
+                        } as AgentNetworkNodeProps,
                     }}
                 />
             </aside>

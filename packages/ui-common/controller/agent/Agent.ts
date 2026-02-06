@@ -57,7 +57,6 @@ const MAX_RETRIES = 3
 
 /**
  * Retry a fetch function up to MAX_RETRIES times on failure. This will retry on network errors, non-2xx HTTP
- * and JSON parsing errors, the latter being especially important when dealing with LLM-generated content.
  * @param fetchFn The fetch function to retry.
  * @returns The parsed JSON response of type T. No verification is done on the structure of T.
  */
@@ -72,7 +71,7 @@ async function retryFetch<T>(fetchFn: () => Promise<Response>): Promise<T> {
                 lastError = new Error(`HTTP ${response.status}: ${response.statusText}`)
             } else {
                 const text = await response.json()
-                return JSON.parse(text) as T
+                return text as T
             }
         } catch (error) {
             lastError = error instanceof Error ? error : new Error(String(error))
