@@ -84,8 +84,6 @@ export const Sidebar: FC<SidebarProps> = ({
     networks,
     setSelectedNetwork,
 }) => {
-    console.debug("network icon suggestions in sidebar:", networkIconSuggestions)
-
     // Get default URL from the environment store.
     const {backendNeuroSanApiUrl} = useEnvironmentStore()
     const [urlInput, setUrlInput] = useState<string>(customURLLocalStorage || backendNeuroSanApiUrl)
