@@ -3,7 +3,7 @@
  */
 
 import {SUGGEST_AGENT_ICONS_PROMPT} from "./prompts"
-import {createLLMHandler} from "../utils/llmHandler"
+import {createLLMHandler} from "../Common/LlmHandler"
 
 export default createLLMHandler({
     allowedMethod: "POST",
