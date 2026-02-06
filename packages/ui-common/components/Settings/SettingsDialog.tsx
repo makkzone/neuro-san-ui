@@ -231,7 +231,7 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
                                         handleBrandingApply()
                                     }
                                 }}
-                                value={customerInput}
+                                value={customerInput ?? ""}
                                 placeholder="Company or organization name"
                                 size="small"
                                 sx={{width: "100%"}}

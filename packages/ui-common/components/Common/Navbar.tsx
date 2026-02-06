@@ -198,6 +198,8 @@ export const Navbar = ({
                 <Box sx={{display: "flex", alignItems: "center", gap: 2}}>
                     {}
                     {logoUrl ? (
+                        // We're trying to wean ourselves off Next.js
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                             src={logoUrl}
                             alt={`${customer} Logo`}

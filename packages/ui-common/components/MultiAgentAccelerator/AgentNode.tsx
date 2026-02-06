@@ -18,7 +18,9 @@ limitations under the License.
 // eslint-disable-next-line no-restricted-imports
 import * as MuiIcons from "@mui/icons-material"
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome"
-import Box from "@mui/material/Box"
+import HandymanIcon from "@mui/icons-material/Handyman"
+import PersonIcon from "@mui/icons-material/Person"
+import TravelExploreIcon from "@mui/icons-material/TravelExplore"
 import {useTheme} from "@mui/material/styles"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
@@ -70,7 +72,7 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
 
     // Unpack the node-specific data
     const data: AgentNodeProps = props.data
-    const {agentCounts, agentName, depth, getConversations, agentIconSuggestion, isAwaitingLlm} = data
+    const {agentCounts, agentName, depth, displayAs, getConversations, agentIconSuggestion, isAwaitingLlm} = data
 
     // Determine if this is the Frontman node (depth 0)
     const isFrontman = depth === 0
@@ -125,12 +127,43 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
 
     // Determine which icon to display based on the agent type whether it is Frontman or not
     const getDisplayAsIcon = () => {
+        const id = `${agentId}-icon`
         if (agentIconSuggestion && MuiIcons[agentIconSuggestion as keyof typeof MuiIcons]) {
             const IconComponent = MuiIcons[agentIconSuggestion as keyof typeof MuiIcons]
             return <IconComponent sx={{fontSize: AGENT_ICON_SIZE}} />
+        } else if (isFrontman) {
+            return (
+                // Use special icon and larger size for Frontman
+                <PersonIcon
+                    id={id}
+                    sx={{fontSize: FRONTMAN_ICON_SIZE}}
+                />
+            )
         } else {
-            // return blank icon
-            return <AutoAwesomeIcon sx={{fontSize: isFrontman ? FRONTMAN_ICON_SIZE : AGENT_ICON_SIZE}} />
+            switch (displayAs) {
+                case "external_agent":
+                    return (
+                        <TravelExploreIcon
+                            id={id}
+                            sx={{fontSize: AGENT_ICON_SIZE}}
+                        />
+                    )
+                case "coded_tool":
+                    return (
+                        <HandymanIcon
+                            id={id}
+                            sx={{fontSize: AGENT_ICON_SIZE}}
+                        />
+                    )
+                case "llm_agent":
+                default:
+                    return (
+                        <AutoAwesomeIcon
+                            id={id}
+                            sx={{fontSize: AGENT_ICON_SIZE}}
+                        />
+                    )
+            }
         }
     }
 
@@ -138,60 +171,60 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
     const color = autoAgentIconColor ? theme.palette.getContrastText(backgroundColor) : agentNodeIconColor
 
     return (
-        <Tooltip
-            id={`${agentId}-tooltip`}
-            title={agentName}
-            placement="top"
-            disableInteractive={true}
-        >
-            <Box>
-                <Box
-                    id={agentId}
-                    data-testid={agentId}
-                    style={{
-                        alignItems: "center",
-                        animation: isActiveAgent ? "glow 2.0s infinite" : "none",
-                        backgroundColor,
-                        borderRadius: "50%",
-                        boxShadow,
-                        color,
-                        display: "flex",
-                        height: NODE_HEIGHT * (isFrontman ? 1.25 : 1.0),
-                        justifyContent: "center",
-                        shapeOutside: "circle(50%)",
-                        textAlign: "center",
-                        width: NODE_WIDTH * (isFrontman ? 1.25 : 1.0),
-                        zIndex: getZIndex(1, theme),
-                        position: "relative",
-                    }}
-                >
-                    <style id={`${agentId}-glow-animation`}>{glowAnimation}</style>
-                    {getDisplayAsIcon()}
-                    <Handle
-                        id={`${agentId}-left-handle`}
-                        position={Position.Left}
-                        type="source"
-                        style={{display: handleVisibility}}
-                    />
-                    <Handle
-                        id={`${agentId}-right-handle`}
-                        position={Position.Right}
-                        type="source"
-                        style={{display: handleVisibility}}
-                    />
-                    <Handle
-                        id={`${agentId}-top-handle`}
-                        position={Position.Top}
-                        type="source"
-                        style={{display: handleVisibility}}
-                    />
-                    <Handle
-                        id={`${agentId}-bottom-handle`}
-                        position={Position.Bottom}
-                        type="source"
-                        style={{display: handleVisibility}}
-                    />
-                </Box>
+        <>
+            <div
+                id={agentId}
+                data-testid={agentId}
+                style={{
+                    alignItems: "center",
+                    animation: isActiveAgent ? "glow 2.0s infinite" : "none",
+                    backgroundColor,
+                    borderRadius: "50%",
+                    boxShadow,
+                    color,
+                    display: "flex",
+                    height: NODE_HEIGHT * (isFrontman ? 1.25 : 1.0),
+                    justifyContent: "center",
+                    shapeOutside: "circle(50%)",
+                    textAlign: "center",
+                    width: NODE_WIDTH * (isFrontman ? 1.25 : 1.0),
+                    zIndex: getZIndex(1, theme),
+                    position: "relative",
+                }}
+            >
+                <style id={`${agentId}-glow-animation`}>{glowAnimation}</style>
+                {getDisplayAsIcon()}
+                <Handle
+                    id={`${agentId}-left-handle`}
+                    position={Position.Left}
+                    type="source"
+                    style={{display: handleVisibility}}
+                />
+                <Handle
+                    id={`${agentId}-right-handle`}
+                    position={Position.Right}
+                    type="source"
+                    style={{display: handleVisibility}}
+                />
+                <Handle
+                    id={`${agentId}-top-handle`}
+                    position={Position.Top}
+                    type="source"
+                    style={{display: handleVisibility}}
+                />
+                <Handle
+                    id={`${agentId}-bottom-handle`}
+                    position={Position.Bottom}
+                    type="source"
+                    style={{display: handleVisibility}}
+                />
+            </div>
+            <Tooltip
+                id={`${agentId}-tooltip`}
+                title={agentName}
+                placement="top"
+                disableInteractive
+            >
                 <Typography
                     id={`${agentId}-name`}
                     sx={{
@@ -210,7 +243,7 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
                 >
                     {agentName}
                 </Typography>
-            </Box>
-        </Tooltip>
+            </Tooltip>
+        </>
     )
 }
