@@ -238,7 +238,11 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
                                 variant="outlined"
                             />
                             <Button
-                                disabled={customerInput?.trim().length === 0 || isBrandingApplying}
+                                disabled={
+                                    customerInput?.trim().length === 0 ||
+                                    isBrandingApplying ||
+                                    customerInput === customer
+                                }
                                 variant="contained"
                                 size="small"
                                 onClick={handleBrandingApply}
