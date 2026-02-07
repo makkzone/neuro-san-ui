@@ -17,7 +17,7 @@ limitations under the License.
 import httpStatus from "http-status"
 import {createMocks} from "node-mocks-http"
 
-import handler from "../../../pages/api/environment"
+import handler from "../../../../pages/api/environment"
 
 describe("Environment API handler", () => {
     const originalEnv = process.env
