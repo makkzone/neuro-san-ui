@@ -27,6 +27,7 @@ import {
     LIST_NETWORKS_RESPONSE,
     TEST_AGENT_MATH_GUY,
     TEST_AGENT_MATH_GUY_DISPLAY,
+    TEST_AGENT_MUSIC_NERD,
     TEST_AGENTS_FOLDER,
     TEST_AGENTS_FOLDER_DISPLAY,
     TEST_DEEP_AGENT,
@@ -63,12 +64,20 @@ describe("SideBar", () => {
 
     let user: UserEvent
 
+    // Provide a suggested icon for first network, and an invalid icon name for the second network
+    // to test error handling
+    const networkIconSuggestions = {
+        [`${TEST_AGENTS_FOLDER}/${TEST_AGENT_MATH_GUY}`]: "Settings",
+        [`${TEST_AGENTS_FOLDER}/${TEST_AGENT_MUSIC_NERD}`]: "NonExistentIcon",
+    }
+
     const defaultProps: SidebarProps = {
         customURLCallback: jest.fn(),
         id: "test-flow-id",
-        networks: LIST_NETWORKS_RESPONSE,
-        setSelectedNetwork: jest.fn(),
         isAwaitingLlm: false,
+        networks: LIST_NETWORKS_RESPONSE,
+        networkIconSuggestions,
+        setSelectedNetwork: jest.fn(),
     }
 
     /**
@@ -152,6 +161,25 @@ describe("SideBar", () => {
 
         // Check if the tooltip is displayed with the correct URL and version
         await screen.findByLabelText((label) => label.includes(DEFAULT_EXAMPLE_URL) && label.includes(TEST_VERSION))
+    })
+
+    it("Should display suggested network icons correctly", async () => {
+        renderSidebarComponent()
+
+        // click to expand networks
+        const header = await screen.findByText(TEST_AGENTS_FOLDER_DISPLAY)
+        await user.click(header)
+
+        const networkElement = await screen.findByText(cleanUpAgentName(TEST_AGENT_MATH_GUY))
+
+        // Find the icon within the same parent container as the network text
+        const networkContainer = networkElement.closest('[role="treeitem"]')
+        within(networkContainer as HTMLElement).getByTestId("SettingsIcon")
+
+        // For the second network with an invalid icon name, there should be no icon
+        const secondNetworkElement = await screen.findByText(cleanUpAgentName(TEST_AGENT_MUSIC_NERD))
+        const secondNetworkContainer = secondNetworkElement.closest('[role="treeitem"]')
+        expect(within(secondNetworkContainer as HTMLElement).queryByTestId("NonExistentIcon")).not.toBeInTheDocument()
     })
 
     it("Should render the tags when user mouses over the icon", async () => {
