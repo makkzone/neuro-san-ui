@@ -4,7 +4,7 @@ import Button from "@mui/material/Button"
 import CircularProgress from "@mui/material/CircularProgress"
 import Divider from "@mui/material/Divider"
 import FormLabel from "@mui/material/FormLabel"
-import {createTheme, ThemeProvider, useColorScheme} from "@mui/material/styles"
+import {createTheme, ThemeProvider, useTheme} from "@mui/material/styles"
 import TextField from "@mui/material/TextField"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
@@ -16,7 +16,6 @@ import {FadingCheckmark, useCheckmarkFade} from "./FadingCheckmark"
 import {getBrandingColors} from "../../controller/agent/Agent"
 import {useSettingsStore} from "../../state/Settings"
 import {PaletteKey, PALETTES} from "../../Theme/Palettes"
-import {isDarkMode} from "../../Theme/Theme"
 import {ConfirmationModal} from "../Common/ConfirmationModal"
 import {MUIDialog} from "../Common/MUIDialog"
 import {NotificationType, sendNotification} from "../Common/notification"
@@ -59,8 +58,9 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
     const [customerInput, setCustomerInput] = useState<string>(customer)
     const [isBrandingApplying, setIsBrandingApplying] = useState<boolean>(false)
 
-    const {mode, systemMode} = useColorScheme()
-    const darkMode = isDarkMode(mode, systemMode)
+    // Record user's current theme so at least the settings dialog (with default MUI theme) matches that
+    const theme = useTheme()
+    const paletteMode = theme.palette.mode
 
     const handlePaletteChange = (_event: ReactMouseEvent<HTMLElement>, newPalette: PaletteKey | null) => {
         if (newPalette) {
@@ -169,11 +169,12 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
     const paletteKeys: PaletteKey[] = Object.keys(availablePalettes) as (keyof typeof availablePalettes)[]
 
     return (
-        // Always use default theme for settings dialog so user can always see to reset
+        // Always use default theme for settings dialog so user can always see to reset. It's possible that with
+        // certain custom themes the dialog would be unreadable.
         <ThemeProvider
             theme={createTheme({
                 palette: {
-                    mode: darkMode ? "dark" : "light",
+                    mode: paletteMode ? "dark" : "light",
                 },
             })}
         >
@@ -228,7 +229,7 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
                                 onChange={(e) => setCustomerInput(e.target.value)}
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter" && customerInput?.trim().length > 0) {
-                                        handleBrandingApply()
+                                        void handleBrandingApply()
                                     }
                                 }}
                                 value={customerInput ?? ""}
@@ -254,6 +255,7 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
                                         />
                                     ) : undefined
                                 }
+                                sx={{minWidth: "8rem"}}
                             >
                                 {isBrandingApplying ? "Applying..." : "Apply"}
                             </Button>

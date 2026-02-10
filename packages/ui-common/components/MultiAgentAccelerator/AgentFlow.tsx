@@ -43,7 +43,7 @@ import {
 
 import {AgentNode, AgentNodeProps, NODE_HEIGHT, NODE_WIDTH} from "./AgentNode"
 import {BASE_RADIUS, DEFAULT_FRONTMAN_X_POS, DEFAULT_FRONTMAN_Y_POS, LEVEL_SPACING} from "./const"
-import {addThoughtBubbleEdge, layoutLinear, layoutRadial, removeThoughtBubbleEdge} from "./GraphLayouts"
+import {addThoughtBubbleEdge, layoutLinear, layoutRadial, LayoutResult, removeThoughtBubbleEdge} from "./GraphLayouts"
 import {PlasmaEdge} from "./PlasmaEdge"
 import {ThoughtBubbleEdge} from "./ThoughtBubbleEdge"
 import {ThoughtBubbleOverlay} from "./ThoughtBubbleOverlay"
@@ -357,7 +357,7 @@ export const AgentFlow: FC<AgentFlowProps> = ({
 
     // Create the flow layout depending on user preference
     // Memoize layoutResult so it only recalculates when relevant data changes
-    const layoutResult = useMemo(
+    const layoutResult: LayoutResult = useMemo(
         () =>
             layout === "linear"
                 ? layoutLinear(
