@@ -42,11 +42,11 @@ interface Settings {
         readonly rangePalette: PaletteKey
     }
     branding: {
-        customer: string
-        primary: string
-        secondary: string
-        background: string
-        rangePalette: string[]
+        customer: string | null
+        primary: string | null
+        secondary: string | null
+        background: string | null
+        rangePalette: string[] | null
     }
 }
 

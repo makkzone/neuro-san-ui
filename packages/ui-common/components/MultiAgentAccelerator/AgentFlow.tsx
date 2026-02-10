@@ -325,7 +325,7 @@ export const AgentFlow: FC<AgentFlowProps> = ({
         return () => clearInterval(cleanupInterval)
     }, [isStreaming, removeThoughtBubbleEdgeHelper])
 
-    // Shadow color for
+    // Shadow color for icon
     const shadowColor = theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.common.black
     const isHeatmap = coloringOption === "heatmap"
 

@@ -68,7 +68,10 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
     // Color palette for depth/heatmap coloring
     const brandPalette = useSettingsStore((state) => state.settings.branding.rangePalette)
     const paletteKey = useSettingsStore((state) => state.settings.appearance.rangePalette)
-    const palette = paletteKey === "brand" ? brandPalette : PALETTES[paletteKey]
+    const palette =
+        paletteKey === "brand" && brandPalette
+            ? brandPalette
+            : PALETTES[paletteKey as Exclude<typeof paletteKey, "brand">]
 
     // Unpack the node-specific data
     const data: AgentNodeProps = props.data
@@ -131,38 +134,43 @@ export const AgentNode: FC<NodeProps<AgentNodeProps>> = (props: NodeProps<AgentN
         if (agentIconSuggestion && MuiIcons[agentIconSuggestion as keyof typeof MuiIcons]) {
             const IconComponent = MuiIcons[agentIconSuggestion as keyof typeof MuiIcons]
             return <IconComponent sx={{fontSize: AGENT_ICON_SIZE}} />
-        } else if (isFrontman) {
-            return (
-                // Use special icon and larger size for Frontman
-                <PersonIcon
-                    id={id}
-                    sx={{fontSize: FRONTMAN_ICON_SIZE}}
-                />
-            )
         } else {
-            switch (displayAs) {
-                case "external_agent":
-                    return (
-                        <TravelExploreIcon
-                            id={id}
-                            sx={{fontSize: AGENT_ICON_SIZE}}
-                        />
-                    )
-                case "coded_tool":
-                    return (
-                        <HandymanIcon
-                            id={id}
-                            sx={{fontSize: AGENT_ICON_SIZE}}
-                        />
-                    )
-                case "llm_agent":
-                default:
-                    return (
-                        <AutoAwesomeIcon
-                            id={id}
-                            sx={{fontSize: AGENT_ICON_SIZE}}
-                        />
-                    )
+            if (agentIconSuggestion) {
+                console.warn(`Invalid MUI icon suggestion: ${agentIconSuggestion}`)
+            }
+            if (isFrontman) {
+                return (
+                    // Use special icon and larger size for Frontman
+                    <PersonIcon
+                        id={id}
+                        sx={{fontSize: FRONTMAN_ICON_SIZE}}
+                    />
+                )
+            } else {
+                switch (displayAs) {
+                    case "external_agent":
+                        return (
+                            <TravelExploreIcon
+                                id={id}
+                                sx={{fontSize: AGENT_ICON_SIZE}}
+                            />
+                        )
+                    case "coded_tool":
+                        return (
+                            <HandymanIcon
+                                id={id}
+                                sx={{fontSize: AGENT_ICON_SIZE}}
+                            />
+                        )
+                    case "llm_agent":
+                    default:
+                        return (
+                            <AutoAwesomeIcon
+                                id={id}
+                                sx={{fontSize: AGENT_ICON_SIZE}}
+                            />
+                        )
+                }
             }
         }
     }

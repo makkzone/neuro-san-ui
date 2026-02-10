@@ -124,7 +124,7 @@ export default function NeuroSanUI({Component, pageProps}: ExtendedAppProps): Re
     const secondary = useSettingsStore((state) => state.settings.branding.secondary)
     const background = useSettingsStore((state) => state.settings.branding.background)
 
-    const theme = useMemo(() => createAppTheme(primary, secondary, background), [primary, background])
+    const theme = useMemo(() => createAppTheme(primary, secondary, background), [primary, secondary, background])
 
     useEffect(() => {
         const urlPaths: string[] = pathname?.split("/").filter((path) => path !== "")

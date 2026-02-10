@@ -106,7 +106,7 @@ describe("LlmHandler", () => {
 
         await handleLLMRequest(req, res, {
             extractVariables(): Record<string, unknown> {
-                return undefined
+                return {}
             },
             promptTemplate: {
                 formatMessages: jest.fn().mockResolvedValue([{content: "Test prompt"}]),

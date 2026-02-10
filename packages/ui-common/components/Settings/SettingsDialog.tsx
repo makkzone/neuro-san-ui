@@ -87,6 +87,14 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
             })
 
             const brandingColors = await getBrandingColors(customerInput)
+            if (!brandingColors) {
+                console.warn(`Failed to fetch branding colors for customer "${customerInput}"`)
+                sendNotification(
+                    NotificationType.error,
+                    `Failed to fetch branding colors for "${customerInput}". Please check the name and try again.`
+                )
+                return
+            }
 
             updateSettings({
                 appearance: {
@@ -149,7 +157,7 @@ export const SettingsDialog: FC<SettingsDialogProps> = ({id, isOpen, onClose}) =
 
             brandingCheckmark.trigger()
         } catch (error) {
-            console.warn(`Failed to fetch branding colors for customer "${customerInput}:"`, error)
+            console.warn(`Failed to fetch branding colors for customer "${customerInput}":`, error)
             sendNotification(
                 NotificationType.error,
                 `Failed to fetch branding colors for "${customerInput}". Please check the name and try again.`

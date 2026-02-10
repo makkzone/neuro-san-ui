@@ -68,7 +68,6 @@ describe("SideBar", () => {
     // to test error handling
     const networkIconSuggestions = {
         [`${TEST_AGENTS_FOLDER}/${TEST_AGENT_MATH_GUY}`]: "Settings",
-        [`${TEST_AGENTS_FOLDER}/${TEST_AGENT_MUSIC_NERD}`]: "NonExistentIcon",
     }
 
     const defaultProps: SidebarProps = {
@@ -167,19 +166,34 @@ describe("SideBar", () => {
         renderSidebarComponent()
 
         // click to expand networks
-        const header = await screen.findByText(TEST_AGENTS_FOLDER_DISPLAY)
+        const header = screen.getByText(TEST_AGENTS_FOLDER_DISPLAY)
         await user.click(header)
 
-        const networkElement = await screen.findByText(cleanUpAgentName(TEST_AGENT_MATH_GUY))
+        const networkElement = screen.getByText(TEST_AGENT_MATH_GUY_DISPLAY)
 
         // Find the icon within the same parent container as the network text
         const networkContainer = networkElement.closest('[role="treeitem"]')
         within(networkContainer as HTMLElement).getByTestId("SettingsIcon")
+    })
 
-        // For the second network with an invalid icon name, there should be no icon
-        const secondNetworkElement = await screen.findByText(cleanUpAgentName(TEST_AGENT_MUSIC_NERD))
-        const secondNetworkContainer = secondNetworkElement.closest('[role="treeitem"]')
-        expect(within(secondNetworkContainer as HTMLElement).queryByTestId("NonExistentIcon")).not.toBeInTheDocument()
+    it("Should handle invalid icon suggestions correctly", async () => {
+        const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation()
+        renderSidebarComponent({
+            // Override networkIconSuggestions to include an invalid icon name for TEST_AGENT_MUSIC_NERD
+            networkIconSuggestions: {
+                ...networkIconSuggestions,
+                [`${TEST_AGENTS_FOLDER}/${TEST_AGENT_MUSIC_NERD}`]: "NonExistentIcon",
+            },
+        })
+
+        // click to expand networks
+        const header = screen.getByText(TEST_AGENTS_FOLDER_DISPLAY)
+        await user.click(header)
+
+        screen.getByText(TEST_AGENT_MATH_GUY_DISPLAY)
+        expect(screen.queryByText("NonExistentIcon")).not.toBeInTheDocument()
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("NonExistentIcon"))
     })
 
     it("Should render the tags when user mouses over the icon", async () => {

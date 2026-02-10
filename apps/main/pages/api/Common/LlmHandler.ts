@@ -38,6 +38,11 @@ export const handleLLMRequest = async (
 
     try {
         const variables = extractVariables(req)
+        if (!variables || typeof variables !== "object") {
+            res.status(httpStatus.BAD_REQUEST).json({error: "Invalid variables"})
+            return
+        }
+
         const formattedPrompt = await promptTemplate.formatMessages(variables)
         const response = await new ChatOpenAI({
             model: "gpt-4o",

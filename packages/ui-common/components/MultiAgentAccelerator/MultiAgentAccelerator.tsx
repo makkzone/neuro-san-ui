@@ -18,7 +18,7 @@ import StopCircle from "@mui/icons-material/StopCircle"
 import Box from "@mui/material/Box"
 import Grid from "@mui/material/Grid"
 import Slide from "@mui/material/Slide"
-import {FC, JSX as ReactJSX, useCallback, useEffect, useRef, useState} from "react"
+import {FC, JSX as ReactJSX, useCallback, useEffect, useMemo, useRef, useState} from "react"
 import {Edge, EdgeProps, ReactFlowProvider} from "reactflow"
 
 import {AgentFlow} from "./AgentFlow"
@@ -97,6 +97,17 @@ export const MultiAgentAccelerator: FC<MultiAgentAcceleratorProps> = ({
             setCustomURLLocalStorage(url === "" ? null : url)
         },
         [backendNeuroSanApiUrl, setCustomURLLocalStorage]
+    )
+
+    // Memoized key for agent names to trigger icon suggestion updates when the set of agents changes, not just
+    // when sorting/other operations on the agents list
+    const agentNamesKey = useMemo(
+        () =>
+            agentsInNetwork
+                .map((agent) => agent.origin)
+                .sort()
+                .join(","),
+        [agentsInNetwork]
     )
 
     const resetState = useCallback(() => {
@@ -188,7 +199,7 @@ export const MultiAgentAccelerator: FC<MultiAgentAcceleratorProps> = ({
                 }
             }
         })()
-    }, [agentsInNetwork])
+    }, [agentNamesKey])
 
     // Set up handler to allow Escape key to stop the interaction with the LLM.
     useEffect(() => {

@@ -22,7 +22,7 @@ import Button from "@mui/material/Button"
 import IconButton from "@mui/material/IconButton"
 import InputAdornment from "@mui/material/InputAdornment"
 import Popover from "@mui/material/Popover"
-import {styled, useColorScheme, useTheme} from "@mui/material/styles"
+import {styled, useTheme} from "@mui/material/styles"
 import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
@@ -41,7 +41,6 @@ import {buildTreeViewItems} from "./TreeUtils"
 import {testConnection, TestConnectionResult} from "../../../controller/agent/Agent"
 import {AgentInfo} from "../../../generated/neuro-san/NeuroSanClient"
 import {useEnvironmentStore} from "../../../state/Environment"
-import {isDarkMode} from "../../../Theme/Theme"
 import {getZIndex} from "../../../utils/zIndexLayers"
 
 // #region: Styled Components
@@ -96,8 +95,7 @@ export const Sidebar: FC<SidebarProps> = ({
 
     // Theming/Dark mode
     const theme = useTheme()
-    const {mode, systemMode} = useColorScheme()
-    const darkMode = isDarkMode(mode, systemMode)
+    const darkMode = theme.palette.mode === "dark"
 
     const handleSettingsClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
         // On open of Settings popover, reset the connection status to idle

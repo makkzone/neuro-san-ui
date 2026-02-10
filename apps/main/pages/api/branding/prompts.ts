@@ -15,8 +15,7 @@ Return your response as JSON in the following format with no markdown, text or o
 
 These colors will be used in a MUI theme for a web application, so ensure they work well together and that there is
 adequate contrast between primary and background colors.
-"primary" is used for primary UI elements like buttons and highlights, "background" is used for the main
-background of the app,
+"primary" is used for primary UI elements like buttons and highlights
 "secondary" is used for secondary UI elements like borders and accents,
 "background" is used for the main background of the app, Avoid boring white or black for better aesthetics and 
 try to choose vibrant colors (not too saturated) that fit the company branding and contrast well with each other. 

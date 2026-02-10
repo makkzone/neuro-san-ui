@@ -97,6 +97,8 @@ export const AgentNetworkNode: FC<AgentNetworkNodeProps> = ({
     if (iconNameSuggestion && MuiIcons[iconNameSuggestion as keyof typeof MuiIcons]) {
         const IconComponent = MuiIcons[iconNameSuggestion as keyof typeof MuiIcons]
         muiIconElement = <IconComponent sx={{fontSize: "1rem"}} />
+    } else if (iconNameSuggestion) {
+        console.warn(`Icon "${iconNameSuggestion}" not found in MUI icons library.`)
     }
 
     return (

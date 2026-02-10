@@ -27,13 +27,16 @@ describe("SettingsDialog", () => {
         global.fetch = originalFetch
     })
 
-    async function enterCustomerName(customerName: string) {
+    async function enterCustomerName(customerName: string, shouldClickApply: boolean = true) {
         const customerInput = screen.getByPlaceholderText(/Company or organization name/u)
+        await user.clear(customerInput)
         await user.type(customerInput, customerName)
 
-        // Click "Apply"
-        const applyButton = screen.getByRole("button", {name: /Apply/u})
-        await user.click(applyButton)
+        if (shouldClickApply) {
+            // Click "Apply" if requested
+            const applyButton = screen.getByRole("button", {name: /Apply/u})
+            await user.click(applyButton)
+        }
     }
 
     it("renders the SettingsDialog with default props", async () => {
@@ -270,6 +273,13 @@ describe("SettingsDialog", () => {
         expect(brandingSettings.secondary).toBe(secondary)
         expect(brandingSettings.background).toBe(background)
         expect(brandingSettings.rangePalette).toEqual(palette)
+
+        // Now try using Enter to submit a new customer name and check that it also applies branding
+        const newCustomerName = "Acme 2"
+        await enterCustomerName(newCustomerName, false)
+        await user.keyboard("{Enter}")
+
+        expect(useSettingsStore.getState().settings.branding.customer).toBe(newCustomerName)
     })
 
     it("Handles missing branding values from server", async () => {

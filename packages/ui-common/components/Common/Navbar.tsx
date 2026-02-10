@@ -173,7 +173,8 @@ export const Navbar = ({
     // Construct logo URL if customer branding is set to retrieve logo from logo.dev.
     // NOTE: for this to work, a valid, active logo.dev token must be set in environment variables.
     const logoUrl = logoDevToken
-        ? `https://img.logo.dev/name/${customer}?token=${logoDevToken}&theme=light&format=png&size=75`
+        ? `https://img.logo.dev/name/${encodeURIComponent(customer)}` +
+          `?token=${logoDevToken}&theme=light&format=png&size=75`
         : null
 
     return hydrated ? (
@@ -196,7 +197,6 @@ export const Navbar = ({
             )}
             {customer ? (
                 <Box sx={{display: "flex", alignItems: "center", gap: 2}}>
-                    {}
                     {logoUrl ? (
                         // We're trying to wean ourselves off Next.js
                         // eslint-disable-next-line @next/next/no-img-element
